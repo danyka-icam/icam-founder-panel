@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ICAM Founder Panel v2</title>
+  <style>
+    :root{
+      --bg-0:#222a30;
+      --bg-1:#2b3338;
+      --bg-2:#313a3f;
+      --surface:rgba(69,78,82,.58);
+      --surface-2:rgba(78,87,90,.54);
+      --surface-3:rgba(86,95,96,.46);
+      --line:rgba(237,241,237,.105);
+      --line-soft:rgba(235,239,235,.06);
+      --text:#e5e5df;
+      --muted:#a8aeaa;
+      --muted-2:#858d89;
+      --sage:#a9c47f;
+      --sage-2:#7f9d67;
+      --gold:#d6bb78;
+      --amber:#d7a144;
+      --coral:#d47563;
+      --steel:#7da3b9;
+      --shadow:0 16px 34px rgba(8,12,14,.14), inset 0 1px 0 rgba(255,255,255,.036), inset 0 -1px 0 rgba(0,0,0,.12);
+      --radius:14px;
+      --sidebar:216px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;min-height:100%;color:var(--text);
+      font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:#1d2429
+    }
+    body{
+      overflow-x:hidden;
+      background:
+        radial-gradient(1100px 680px at 42% 4%,rgba(170,181,180,.15),transparent 62%),
+        radial-gradient(840px 660px at 80% 52%,rgba(112,126,122,.08),transparent 68%),
+        linear-gradient(145deg,#2e373c 0%,#283137 44%,#222a30 100%);
+    }
+    body:before{
+      content:"";position:fixed;inset:0;pointer-events:none;opacity:.17;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
+      mix-blend-mode:soft-light
+    }
+
+    button,a,input,select{font:inherit}
+    button{color:inherit}
+    .app-shell{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);min-height:100vh}
+
+    .sidebar{
+      position:sticky;top:0;height:100vh;padding:21px 14px 18px;
+      border-right:1px solid var(--line);
+      background:linear-gradient(180deg,rgba(36,45,50,.64),rgba(30,38,42,.74));
+      backdrop-filter:blur(18px);overflow-y:auto
+    }
+    .side-head{
+      height:48px;display:flex;align-items:center;padding:0 12px 9px;
+      border-bottom:1px solid var(--line-soft);margin-bottom:10px
+    }
+    .side-head strong{
+      font:400 17px Georgia,"Times New Roman",serif;color:#e2e2db;letter-spacing:.05em
+    }
+    .side-head span{color:var(--gold);margin-left:5px}
+    .nav{display:flex;flex-direction:column;gap:4px}
+    .nav a{
+      display:flex;align-items:center;gap:11px;padding:10px 12px;border:1px solid transparent;
+      border-radius:9px;color:#d4d7d3;text-decoration:none;font-size:13.5px;transition:.15s
+    }
+    .nav a:hover{background:rgba(255,255,255,.035)}
+    .nav a.active{
+      background:linear-gradient(90deg,rgba(115,140,115,.24),rgba(91,107,101,.16));
+      border-color:rgba(174,198,170,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.03)
+    }
+    .nav .dot{
+      width:18px;height:18px;border-radius:50%;display:grid;place-items:center;
+      border:1px solid rgba(220,225,221,.16);font-size:9px;color:#b9c0bb
+    }
+    .nav a.active .dot{color:var(--sage);border-color:rgba(169,196,127,.25)}
+    .side-note{
+      margin:18px 4px 0;padding:14px 12px;border:1px solid var(--line);
+      border-radius:13px;background:rgba(255,255,255,.018);
+      color:#aeb4b0;font:12px/1.55 Georgia,"Times New Roman",serif
+    }
+
+    .main{padding:18px 28px 28px;min-width:0}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:18px;
+      min-height:68px;padding:0 2px 11px
+    }
+    .topbar h1{
+      font:400 32px/1 Georgia,"Times New Roman",serif;margin:0 0 5px;letter-spacing:-.4px
+    }
+    .topbar p{margin:0;color:var(--muted);font:16px Georgia,"Times New Roman",serif}
+    .top-actions{display:flex;align-items:center;gap:10px}
+    .search-pill,.profile,.quiet-pill{
+      height:42px;border:1px solid var(--line);border-radius:22px;background:rgba(22,29,33,.26);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);display:flex;align-items:center;color:#d6d8d4
+    }
+    .search-pill{
+      width:265px;justify-content:space-between;padding:0 15px;color:#aeb5b0;font-size:12px
+    }
+    .search-pill[disabled]{cursor:not-allowed;opacity:.82}
+    .quiet-pill{padding:0 13px;color:#b7bdb8;font-size:12px}
+    .profile{padding:0 10px 0 5px;border-color:transparent;background:transparent;gap:9px}
+    .avatar{
+      width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+      background:linear-gradient(135deg,#e4d0bd,#5b3c32);color:#1f2527;font-weight:700
+    }
+    .profile-text{display:flex;flex-direction:column;font-size:11px}
+    .profile-text small{color:#aeb4b0;margin-top:2px}
+
+    .page{display:none}
+    .page.active{display:block}
+
+    .card{
+      position:relative;border:1px solid var(--line);border-radius:var(--radius);
+      background:
+        radial-gradient(120% 110% at 14% 0%,rgba(255,255,255,.062),transparent 48%),
+        linear-gradient(180deg,rgba(255,255,255,.026),rgba(255,255,255,.008) 32%,rgba(0,0,0,.025)),
+        var(--surface);
+      box-shadow:var(--shadow);backdrop-filter:blur(14px);overflow:hidden
+    }
+    .card:after{
+      content:"";position:absolute;inset:0;pointer-events:none;
+      background:linear-gradient(112deg,rgba(255,255,255,.018),transparent 32%,transparent 72%,rgba(255,255,255,.009));
+      mix-blend-mode:screen
+    }
+    .panel-head{
+      min-height:52px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;
+      border-bottom:1px solid var(--line-soft);position:relative;z-index:1
+    }
+    .head-title h2{
+      margin:0;font:400 18px Georgia,"Times New Roman",serif
+    }
+    .head-title small{display:block;margin-top:3px;color:#929a95;font-size:11px}
+    .top-corner-arrow{
+      width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+      border:1px solid rgba(225,229,225,.12);background:rgba(20,26,29,.24);
+      color:#cfd5cf;font-size:15px;cursor:pointer
+    }
+    .top-corner-arrow:hover{color:var(--sage);border-color:rgba(169,196,127,.25)}
+
+    .state{
+      display:inline-flex;align-items:center;gap:7px;padding:5px 8px;border-radius:999px;
+      border:1px solid var(--line);font-size:10.5px;color:#c4cac5;background:rgba(20,25,27,.18)
+    }
+    .state:before{content:"";width:6px;height:6px;border-radius:50%;background:#76807b}
+    .state.lab:before{background:var(--gold)}
+    .state.live:before{background:var(--sage)}
+    .state.warn:before{background:var(--amber)}
+    .state.unavailable:before{background:#7a827e}
+
+    .home-grid{
+      display:grid;grid-template-columns:1.28fr 1fr;grid-template-areas:
+        "now need"
+        "changed risk"
+        "health health";
+      gap:10px
+    }
+    .home-grid .now{grid-area:now}
+    .home-grid .need{grid-area:need}
+    .home-grid .changed{grid-area:changed}
+    .home-grid .risk{grid-area:risk}
+    .home-grid .health{grid-area:health}
+    .home-panel{min-height:230px}
+    .home-panel .body{padding:15px 16px;position:relative;z-index:1}
+    .empty-copy{
+      min-height:130px;display:flex;flex-direction:column;justify-content:center;
+      color:#aeb5b0;line-height:1.55;font-size:13px
+    }
+    .empty-copy strong{font:400 18px Georgia,"Times New Roman",serif;color:#e1e2dc;margin-bottom:7px}
+    .empty-copy b{color:var(--sage);font-weight:500}
+
+    .section-title{
+      display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:16px 0 9px
+    }
+    .section-title h2{margin:0;font:400 22px Georgia,"Times New Roman",serif}
+    .section-title p{margin:4px 0 0;color:#959d98;font-size:12px}
+
+    .strip{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px
+    }
+    .strip .card{min-height:92px;padding:15px 16px}
+    .strip small{color:#8f9893;font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+    .strip strong{display:block;margin-top:7px;font:400 18px Georgia,"Times New Roman",serif}
+    .strip span{display:block;margin-top:5px;color:#aeb4af;font-size:11px;line-height:1.35}
+
+    .workspace-switcher{
+      display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px
+    }
+    .workspace-switcher button{
+      border:1px solid var(--line);background:rgba(25,31,34,.22);color:#b9bfba;
+      border-radius:16px;padding:7px 11px;font-size:11px;cursor:pointer
+    }
+    .workspace-switcher button.active{
+      color:#e7e9e4;background:rgba(115,140,115,.18);border-color:rgba(174,198,170,.16)
+    }
+
+    .orchestrator-grid{
+      display:grid;grid-template-columns:1.35fr .95fr;grid-template-areas:
+        "mine recommendations"
+        "waiting recommendations"
+        "risk capture";
+      gap:10px
+    }
+    .mine{grid-area:mine}.waiting{grid-area:waiting}.recommendations{grid-area:recommendations}
+    .orch-risk{grid-area:risk}.capture{grid-area:capture}
+
+    .atlas-grid{
+      display:grid;grid-template-columns:1.2fr 1fr 1fr;grid-template-areas:
+        "now now worlds"
+        "model forecasts forecasts"
+        "performance surprises changing";
+      gap:10px
+    }
+    .atlas-now{grid-area:now}.worlds{grid-area:worlds}.model{grid-area:model}.forecasts{grid-area:forecasts}
+    .performance{grid-area:performance}.surprises{grid-area:surprises}.changing{grid-area:changing}
+
+    .dt-grid{
+      display:grid;grid-template-columns:1.2fr 1fr;grid-template-areas:
+        "overview gates"
+        "humans population"
+        "live live";
+      gap:10px
+    }
+    .dt-overview{grid-area:overview}.dt-gates{grid-area:gates}.humans{grid-area:humans}
+    .population{grid-area:population}.liveworld{grid-area:live}
+
+    .panel-body{padding:14px 16px;position:relative;z-index:1}
+    .panel-body p{margin:0;color:#aeb5b0;font-size:12.5px;line-height:1.55}
+    .panel-body h3{margin:0 0 7px;font:400 16px Georgia,"Times New Roman",serif}
+    .rows{margin-top:10px}
+    .row{
+      display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;
+      padding:10px 0;border-top:1px solid var(--line-soft)
+    }
+    .row:first-child{border-top:0}
+    .row strong{font-size:12.5px;font-weight:500}
+    .row small{display:block;color:#8f9792;font-size:10.5px;margin-top:3px;line-height:1.4}
+    .row .meta{font-size:10.5px;color:#9fa6a1}
+    .flow{
+      display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin:0 0 10px
+    }
+    .flow div{
+      padding:11px 9px;border:1px solid var(--line);border-radius:11px;
+      background:rgba(23,29,31,.18);min-height:70px
+    }
+    .flow b{display:block;font-size:10px;color:#d6d9d4}
+    .flow span{display:block;margin-top:5px;color:#8f9893;font-size:9.5px;line-height:1.35}
+
+    .step-form{display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:7px;margin-top:11px}
+    .step-form input,.step-form select{
+      border:1px solid var(--line);border-radius:9px;background:rgba(17,22,24,.35);
+      color:#88918c;padding:9px 10px;font-size:11px
+    }
+    .step-form button{
+      border:1px solid var(--line);border-radius:9px;background:rgba(17,22,24,.35);
+      color:#747d78;padding:9px 11px;cursor:not-allowed;font-size:11px
+    }
+    .micro-note{margin-top:9px;color:#858e89;font-size:10.5px;line-height:1.45}
+
+    .gate-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}
+    .gate{
+      padding:9px;border:1px solid var(--line-soft);border-radius:9px;background:rgba(22,28,30,.18)
+    }
+    .gate b{font-size:10.5px}.gate span{display:block;margin-top:4px;color:#8f9792;font-size:9.5px}
+
+    .migration{
+      min-height:360px;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px
+    }
+    .migration h2{margin:0;font:400 23px Georgia,"Times New Roman",serif}
+    .migration p{max-width:580px;margin:9px auto 0;color:#9fa7a2;font-size:13px;line-height:1.6}
+
+    .drawer{
+      position:fixed;top:0;right:0;width:min(440px,92vw);height:100vh;z-index:40;
+      background:linear-gradient(180deg,rgba(42,51,56,.98),rgba(31,39,43,.99));
+      border-left:1px solid var(--line);box-shadow:-24px 0 48px rgba(4,7,8,.24);
+      transform:translateX(105%);transition:transform .2s ease;padding:22px;overflow:auto
+    }
+    .drawer.open{transform:translateX(0)}
+    .drawer button{
+      border:1px solid var(--line);border-radius:16px;background:rgba(20,26,29,.24);
+      color:#c9cec9;padding:7px 10px;cursor:pointer
+    }
+    .drawer h2{font:400 25px Georgia,"Times New Roman",serif;margin:22px 0 8px}
+    .drawer p{color:#9fa7a2;font-size:12px;line-height:1.6}
+    .drawer dl{display:grid;grid-template-columns:120px 1fr;gap:9px 12px;font-size:11px}
+    .drawer dt{color:#818a85}.drawer dd{margin:0;color:#d5d9d4}
+
+    .footer-note{
+      margin-top:14px;color:#707a75;font-size:9.5px;text-align:right;letter-spacing:.03em
+    }
+
+    @media(max-width:1180px){
+      .home-grid,.orchestrator-grid,.atlas-grid,.dt-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:none}
+      .home-grid>*,
+      .orchestrator-grid>*,
+      .atlas-grid>*,
+      .dt-grid>*{grid-area:auto!important}
+      .strip{grid-template-columns:1fr 1fr}
+      .flow{grid-template-columns:repeat(3,1fr)}
+    }
+    @media(max-width:850px){
+      :root{--sidebar:0px}
+      .app-shell{display:block}
+      .sidebar{position:relative;height:auto}
+      .nav{display:grid;grid-template-columns:1fr 1fr}
+      .main{padding:18px}
+      .topbar{flex-direction:column}
+      .search-pill{display:none}
+      .home-grid,.orchestrator-grid,.atlas-grid,.dt-grid,.strip{grid-template-columns:1fr}
+      .flow{grid-template-columns:1fr 1fr}
+      .gate-grid{grid-template-columns:1fr 1fr}
+      .step-form{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="side-head"><strong>ICAM <span>/ LAB</span></strong></div>
+    <nav class="nav" id="nav">
+      <a href="#home" data-page="home"><span class="dot">01</span><span>Главная</span></a>
+      <a href="#orchestrator" data-page="orchestrator"><span class="dot">02</span><span>Оркестратор</span></a>
+      <a href="#foundation" data-page="foundation"><span class="dot">03</span><span>Фундамент</span></a>
+      <a href="#research" data-page="research"><span class="dot">04</span><span>Исследования</span></a>
+      <a href="#atlas" data-page="atlas"><span class="dot">05</span><span>ATLAS</span></a>
+      <a href="#digital-twin" data-page="digital-twin"><span class="dot">06</span><span>Digital Twin</span></a>
+      <a href="#brazilportal" data-page="brazilportal"><span class="dot">07</span><span>BrazilPortal</span></a>
+      <a href="#operations" data-page="operations"><span class="dot">08</span><span>Операции</span></a>
+      <a href="#registry" data-page="registry"><span class="dot">09</span><span>Реестр</span></a>
+      <a href="#signals" data-page="signals"><span class="dot">10</span><span>Сигналы</span></a>
+      <a href="#documents" data-page="documents"><span class="dot">11</span><span>Документы</span></a>
+      <a href="#testing" data-page="testing"><span class="dot">12</span><span>Тестирование</span></a>
+      <a href="#diagnostics" data-page="diagnostics"><span class="dot">13</span><span>Диагностика</span></a>
+    </nav>
+    <div class="side-note">«Сильная система не требует героя. Она умеет держать форму сама.»</div>
+  </aside>
+
+  <main class="main">
+
+    <section class="page" data-page-panel="home">
+      <header class="topbar">
+        <div><h1>ICAM Founder Panel</h1><p>единая управляющая среда</p></div>
+        <div class="top-actions">
+          <button class="search-pill" disabled><span>Спросите что-нибудь о системе...</span><span>⌕</span></button>
+          <span class="quiet-pill">v2 · draft</span>
+          <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div>
+        </div>
+      </header>
+
+      <section class="strip">
+        <article class="card"><small>Маршруты</small><strong>Источник не подключён</strong><span>Оркестратор станет владельцем порядка действий.</span></article>
+        <article class="card"><small>Founder attention</small><strong>Источник не подключён</strong><span>Только решения, действительно требующие Founder.</span></article>
+        <article class="card"><small>Testing</small><strong>Источник не подключён</strong><span>Failed / rerun попадут в риск после wiring.</span></article>
+        <article class="card"><small>Freshness</small><strong>Источник не подключён</strong><span>Никаких подставных current-state значений.</span></article>
+      </section>
+
+      <section class="home-grid">
+        <article class="card home-panel now">
+          <div class="panel-head"><div class="head-title"><h2>1. СЕЙЧАС</h2><small>Что действительно двигаем</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="body"><div class="empty-copy"><strong>Маршруты ещё не подключены</strong><span>Здесь будет explainable порядок Оркестратора: <b>следующий ход → почему сейчас → у кого мяч</b>.</span></div></div>
+        </article>
+        <article class="card home-panel need">
+          <div class="panel-head"><div class="head-title"><h2>2. НУЖНО ОТ МЕНЯ</h2><small>Только Founder-only решения</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="body"><div class="empty-copy"><strong>Источник внимания ещё не подключён</strong><span>Здесь не будет общих системных задач — только то, что нельзя решить без Founder.</span></div></div>
+        </article>
+        <article class="card home-panel changed">
+          <div class="panel-head"><div class="head-title"><h2>3. ЧТО ИЗМЕНИЛОСЬ</h2><small>С прошлого захода</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="body"><div class="empty-copy"><strong>Материальный diff ещё не подключён</strong><span>Статус, этап, gate, смена владельца хода, решение, важный результат — без event-шумов.</span></div></div>
+        </article>
+        <article class="card home-panel risk">
+          <div class="panel-head"><div class="head-title"><h2>4. ЗАСТОЙ / РИСК</h2><small>Где система теряет движение</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="body"><div class="empty-copy"><strong>Риски ещё не подключены</strong><span>Здесь сойдутся stalled routes, blockers и failed/rerun tests.</span></div></div>
+        </article>
+        <article class="card health">
+          <div class="panel-head"><div class="head-title"><h2>СОСТОЯНИЕ СИСТЕМЫ</h2><small>Компактно, без второй Главной внутри Главной</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><p>После wiring здесь останется только короткая полоса здоровья ключевых контуров и freshness. Глубокая диагностика живёт отдельно.</p></div>
+        </article>
+      </section>
+    </section>
+
+    <section class="page" data-page-panel="orchestrator">
+      <header class="topbar">
+        <div><h1>Оркестратор</h1><p>маршруты, следующий ход, рекомендации и память решений</p></div>
+        <div class="top-actions"><span class="state unavailable">READ SOURCE NOT WIRED</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div></div>
+      </header>
+
+      <div class="workspace-switcher"><button class="active">Обзор</button><button>Маршруты</button><button>Рекомендации</button><button>Решения</button><button>Журнал</button><button>Деньги</button><button>Закрыто</button></div>
+
+      <section class="orchestrator-grid">
+        <article class="card mine">
+          <div class="panel-head"><div class="head-title"><h2>СЕЙЧАС / МОЙ ХОД</h2><small>Только Founder-owned routes</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><div class="empty-copy"><strong>Маршруты пока не подключены</strong><span>Frontend не рассчитывает собственный рейтинг. Здесь появится порядок, который отдаёт Оркестратор.</span></div></div>
+        </article>
+        <article class="card waiting">
+          <div class="panel-head"><div class="head-title"><h2>ЖДЁМ</h2><small>Не считать внешнее ожидание моей нагрузкой</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><p>Покажем: кого/чего ждём → с какого момента → условие возврата → дата пересмотра.</p></div>
+        </article>
+        <article class="card recommendations">
+          <div class="panel-head"><div class="head-title"><h2>РЕКОМЕНДАЦИИ</h2><small>Что делать, почему и когда пересмотреть</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body">
+            <div class="empty-copy"><strong>Рекомендации ещё не подключены</strong><span>Здесь будут evidence balance, downside, confidence и revision condition — не просто «совет».</span></div>
+          </div>
+        </article>
+        <article class="card orch-risk">
+          <div class="panel-head"><div class="head-title"><h2>ЗАСТОЙ / РИСК</h2><small>Что стоит и почему</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><p>Stale route, missing owner, missing next move, blocker или сработавший revision trigger.</p></div>
+        </article>
+        <article class="card capture">
+          <div class="panel-head"><div class="head-title"><h2>＋ ШАГ</h2><small>Один ввод → Оркестратор → Главная</small></div></div>
+          <div class="panel-body">
+            <div class="step-form">
+              <input disabled value="Что сделать?">
+              <select disabled><option>Маршрут / проект</option></select>
+              <select disabled><option>У кого ход</option></select>
+              <button disabled>Добавить</button>
+            </div>
+            <div class="micro-note">Write отключён до отдельного gate. Будем переиспользовать существующий bounded Orchestrator write path, а не создавать второй task store.</div>
+          </div>
+        </article>
+      </section>
+    </section>
+
+    <section class="page" data-page-panel="atlas">
+      <header class="topbar">
+        <div><h1>ATLAS</h1><p>World Observer / Navigator</p></div>
+        <div class="top-actions"><span class="state unavailable">RUNTIME UNAVAILABLE</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div></div>
+      </header>
+
+      <div class="flow">
+        <div><b>WHAT I WATCH</b><span>ATLAS NOW / World Cells</span></div>
+        <div><b>WHAT I THINK</b><span>Current Model</span></div>
+        <div><b>WHAT I EXPECT</b><span>Forecasts</span></div>
+        <div><b>WHAT HAPPENED</b><span>Outcomes</span></div>
+        <div><b>WHAT SURPRISED ME</b><span>Surprises</span></div>
+        <div><b>HOW I CHANGED</b><span>Model changes</span></div>
+      </div>
+
+      <section class="atlas-grid">
+        <article class="card atlas-now">
+          <div class="panel-head"><div class="head-title"><h2>ATLAS NOW</h2><small>3–8 активных линий внимания, не поток новостей</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><div class="empty-copy"><strong>Нормализованный ATLAS source ещё не подключён</strong><span>До `/api/atlas/overview` здесь не будет фальшивых миров, версий или линий внимания.</span></div></div>
+        </article>
+        <article class="card worlds">
+          <div class="panel-head"><div class="head-title"><h2>WORLD CELLS</h2><small>Динамические модели участков мира</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><p>State · confidence · active hypotheses · material change · last contradiction · freshness.</p></div>
+        </article>
+        <article class="card model">
+          <div class="panel-head"><div class="head-title"><h2>CURRENT MODEL</h2><small>Что ATLAS считает происходящим</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><p>NEW / STRENGTHENING / STABLE / WEAKENING / CONTESTED / UNRESOLVED / REJECTED.</p></div>
+        </article>
+        <article class="card forecasts">
+          <div class="panel-head"><div class="head-title"><h2>FORECASTS</h2><small>OPEN / RESOLVED</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><div class="rows"><div class="row"><div><strong>Original forecast immutable</strong><small>Probability · horizon · model version · outcome · score</small></div><span class="state unavailable">UNAVAILABLE</span></div></div></div>
+        </article>
+        <article class="card performance">
+          <div class="panel-head"><div class="head-title"><h2>PERFORMANCE</h2><small>Как развивается Наблюдатель</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><p>Calibration · Brier · Forecast Improvement · Time to Contradiction · Candidate vs Canonical.</p></div>
+        </article>
+        <article class="card surprises">
+          <div class="panel-head"><div class="head-title"><h2>SURPRISES</h2><small>Где реальность сильно нарушила ожидания</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><p>Не каждая ошибка — только material surprise.</p></div>
+        </article>
+        <article class="card changing">
+          <div class="panel-head"><div class="head-title"><h2>HOW ATLAS IS CHANGING</h2><small>Candidate history</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><p>PROPOSED / TESTING / PASS / FAIL / REJECTED / PROMOTED. Rejected changes остаются видимыми.</p></div>
+        </article>
+      </section>
+    </section>
+
+    <section class="page" data-page-panel="digital-twin">
+      <header class="topbar">
+        <div><h1>Digital Twin</h1><p>Human Dynamics → Humans → Population → Live World</p></div>
+        <div class="top-actions"><span class="state lab">LAB</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div></div>
+      </header>
+
+      <div class="workspace-switcher"><button class="active">Overview</button><button>Humans</button><button>Population</button><button>Live World</button><button>Experiments</button></div>
+
+      <section class="dt-grid">
+        <article class="card dt-overview">
+          <div class="panel-head"><div class="head-title"><h2>HUMAN DYNAMICS</h2><small>Perception · memory · decision · revision</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><div class="empty-copy"><strong>Research projection ещё не подключена</strong><span>ATLAS остаётся отдельной верхнеуровневой вкладкой. Здесь будут люди и популяции, а не вторая копия ATLAS.</span></div></div>
+        </article>
+
+        <article class="card dt-gates">
+          <div class="panel-head"><div class="head-title"><h2>EXPERIMENTS</h2><small>H0 → H8.1</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body">
+            <div class="gate-grid">
+              <div class="gate"><b>H0</b><span>UNAVAILABLE</span></div><div class="gate"><b>H1</b><span>UNAVAILABLE</span></div>
+              <div class="gate"><b>H2</b><span>UNAVAILABLE</span></div><div class="gate"><b>H3</b><span>UNAVAILABLE</span></div>
+              <div class="gate"><b>H4</b><span>UNAVAILABLE</span></div><div class="gate"><b>H5</b><span>UNAVAILABLE</span></div>
+              <div class="gate"><b>H6</b><span>UNAVAILABLE</span></div><div class="gate"><b>H7</b><span>UNAVAILABLE</span></div>
+              <div class="gate"><b>H7.1</b><span>UNAVAILABLE</span></div><div class="gate"><b>H8</b><span>UNAVAILABLE</span></div>
+              <div class="gate"><b>H8.1</b><span>UNAVAILABLE</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card humans">
+          <div class="panel-head"><div class="head-title"><h2>HUMANS</h2><small>Individual synthetic humans / Twin candidates</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><p>Perception, Report, Intention, Behavior, Agency attribution, Narrative, Memory и Updating не будут смешиваться в «личность».</p></div>
+        </article>
+
+        <article class="card population">
+          <div class="panel-head"><div class="head-title"><h2>POPULATION</h2><small>Derived macro dynamics</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
+          <div class="panel-body"><p><strong>DERIVED POPULATION STATE ≠ STORED HUMAN STATE.</strong> Macro не превращается молча в свойство каждого человека.</p></div>
+        </article>
+
+        <article class="card liveworld">
+          <div class="panel-head"><div class="head-title"><h2>LIVE WORLD / THRONGLETS</h2><small>Будущий живой синтетический мир</small></div><span class="state lab">LAB</span></div>
+          <div class="panel-body"><div class="empty-copy"><strong>Event stream ещё не существует в Panel v2</strong><span>Никакой декоративной анимации. Движение появится только когда есть реальные события, replay и world checkpoints.</span></div></div>
+        </article>
+      </section>
+    </section>
+
+    <section class="page" data-page-panel="foundation"></section>
+    <section class="page" data-page-panel="research"></section>
+    <section class="page" data-page-panel="brazilportal"></section>
+    <section class="page" data-page-panel="operations"></section>
+    <section class="page" data-page-panel="registry"></section>
+    <section class="page" data-page-panel="signals"></section>
+    <section class="page" data-page-panel="documents"></section>
+    <section class="page" data-page-panel="testing"></section>
+    <section class="page" data-page-panel="diagnostics"></section>
+
+    <div class="footer-note">Founder Panel v2 · branch prototype · no canonical writes · no fabricated current-state data</div>
+  </main>
+</div>
+
+<aside class="drawer" id="drawer">
+  <button id="drawerClose">← Закрыть</button>
+  <h2>Inspector</h2>
+  <p>Единый правый drawer для глубины. Он не превращает первый экран обратно в техническую консоль.</p>
+  <dl>
+    <dt>Object ID</dt><dd>—</dd>
+    <dt>Owning branch</dt><dd>—</dd>
+    <dt>Source</dt><dd>—</dd>
+    <dt>Freshness</dt><dd>—</dd>
+    <dt>Next move</dt><dd>—</dd>
+    <dt>Gate</dt><dd>—</dd>
+    <dt>Blockers</dt><dd>—</dd>
+  </dl>
+</aside>
+
+<script>
+(function(){
+  "use strict";
+
+  const placeholder = {
+    foundation:["Фундамент","устойчивость, восстановление и целостность ICAM"],
+    research:["Исследования","активные исследовательские линии и их реальное состояние"],
+    brazilportal:["BrazilPortal","живой коммерческий и миграционный контур"],
+    operations:["Операции","исполнение и операционные контуры"],
+    registry:["Реестр","объекты, identity debt и canonical ownership"],
+    signals:["Сигналы","внимание и системные сигналы"],
+    documents:["Документы","manual review, canonical lifecycle и durability"],
+    testing:["Тестирование","Founder-facing смысл тестов и lineage"],
+    diagnostics:["Диагностика","источники, browser health и degraded states"]
+  };
+
+  Object.entries(placeholder).forEach(([key,val])=>{
+    const p=document.querySelector('[data-page-panel="'+key+'"]');
+    p.innerHTML =
+      '<header class="topbar"><div><h1>'+val[0]+'</h1><p>'+val[1]+'</p></div>'+
+      '<div class="top-actions"><span class="state unavailable">NOT MIGRATED</span>'+
+      '<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div></div></header>'+
+      '<article class="card migration"><div><h2>Экран ещё не перенесён в v2</h2>'+
+      '<p>Старый production workbench остаётся нетронутым. Этот экран перенесём после визуальной приёмки shell, Главной, Оркестратора, ATLAS и Digital Twin.</p></div></article>';
+  });
+
+  function route(){
+    let key=(location.hash||"#home").slice(1);
+    let panel=document.querySelector('[data-page-panel="'+key+'"]');
+    if(!panel){key="home";panel=document.querySelector('[data-page-panel="home"]')}
+    document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+    panel.classList.add("active");
+    document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("active",a.dataset.page===key));
+    window.scrollTo(0,0);
+  }
+
+  document.querySelectorAll(".workspace-switcher").forEach(sw=>{
+    sw.addEventListener("click",e=>{
+      if(e.target.tagName!=="BUTTON")return;
+      sw.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
+      e.target.classList.add("active");
+    });
+  });
+
+  const drawer=document.getElementById("drawer");
+  document.addEventListener("click",e=>{
+    if(e.target.closest("[data-drawer]")) drawer.classList.add("open");
+  });
+  document.getElementById("drawerClose").addEventListener("click",()=>drawer.classList.remove("open"));
+
+  window.addEventListener("hashchange",route);
+  route();
+})();
+</script>
+</body>
+</html>
