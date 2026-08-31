@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ICAM Founder Panel — Документы</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="documents.css" />
+  <link rel="stylesheet" href="shell-normalize.css" />
+<script src="trust-contract.js"></script>
+<link rel="stylesheet" href="panel-readability.css">
+<link rel="stylesheet" href="panel-polish.css">
+<link rel="stylesheet" href="panel-system.css">
+<link rel="stylesheet" href="panel-layout.css">
+<link rel="stylesheet" href="panel-final.css">
+</head>
+<body class="documents-page">
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H4.5A1.5 1.5 0 0 1 3 19.5z"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9h18M5 9v9m4-9v9m6-9v9m4-9v9M3 20h18M12 3l9 4H3z"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.5 9.2A1.8 1.8 0 0 0 6 21h12a1.8 1.8 0 0 0 1.5-2.8L14 9V3M7.5 15h9"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></symbol>
+    <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7M3 12h18"/></symbol>
+    <symbol id="i-reg" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0M7 12a5 5 0 0 1 10 0M10 12a2 2 0 0 1 4 0M12 14v7"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v6c0 5-3.3 8-8 9-4.7-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-stack" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5zM3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 22 20H2z"/><path d="M12 9v5M12 17h.01"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand" aria-label="ICAM Lab"><div class="brand-logo-fallback"><span>ICAM</span><i>/</i><b>LAB</b></div></div>
+      <nav class="nav">
+        <a href="index.html"><svg><use href="#i-home"/></svg><span>Главная</span></a>
+        <a href="foundation.html"><svg><use href="#i-bank"/></svg><span>Фундамент</span></a>
+        <a href="research.html"><svg><use href="#i-flask"/></svg><span>Исследования</span></a>
+        <a href="brazilportal.html"><svg><use href="#i-globe"/></svg><span>BrazilPortal</span></a>
+        <a href="operations.html"><svg><use href="#i-brief"/></svg><span>Операции</span></a>
+        <a href="registry.html"><svg><use href="#i-reg"/></svg><span>Реестр</span></a>
+        <a href="signals.html"><svg><use href="#i-signal"/></svg><span>Сигналы</span></a>
+        <a class="active" href="documents.html"><svg><use href="#i-doc"/></svg><span>Документы</span></a>
+        <a href="testing.html"><svg><use href="#i-check"/></svg><span>Тестирование</span></a>
+        <a href="settings.html"><svg><use href="#i-gear"/></svg><span>Настройки</span></a>
+      </nav>
+      <div class="manifesto"><p class="side-quote">«Сильная система не требует героя. Она умеет держать форму сама.»</p><div class="leaf-art">⌁</div></div>
+    </aside>
+
+    <main class="main documents-main">
+      <header class="topbar documents-topbar">
+        <div><h1>Документы</h1><p>жизненный цикл, происхождение и связность файлов ICAM</p></div>
+        <div class="top-actions">
+          <button class="search-pill"><span>Спросите что-нибудь о системе...</span><svg><use href="#i-search"/></svg></button>
+          <button class="concept-pill">Концепт интерфейса <span>ⓘ</span></button>
+          <button class="bell" aria-label="Уведомления">♧<b>3</b></button>
+          <button class="profile"><span class="avatar">Н</span><span><strong>Ника</strong><small>Founder</small></span><span>⌄</span></button>
+        </div>
+      </header>
+
+      <section class="doc-kpis">
+        <article class="card doc-kpi"><div class="doc-kpi-icon"><svg><use href="#i-doc"/></svg></div><div><small>Documents</small><strong>428</strong><span>durable / indexed</span><em>live</em></div></article>
+        <article class="card doc-kpi"><div class="doc-kpi-icon"><svg><use href="#i-stack"/></svg></div><div><small>Manual review required</small><strong>12</strong><span>CANONICAL_REVIEW + UNKNOWN only</span><em>live, REV_FLOW split</em></div><b class="doc-chip watch">очередь</b></article>
+        <article class="card doc-kpi"><div class="doc-kpi-icon"><svg><use href="#i-clock"/></svg></div><div><small>Oldest manual review</small><strong>3ч 18м</strong><span>возраст</span><em>live</em></div></article>
+        <article class="card doc-kpi"><div class="doc-kpi-icon"><svg><use href="#i-link"/></svg></div><div><small>Связность</small><strong>97%</strong><span>файлы ↔ объекты</span><em>4 требуют связи</em></div></article>
+        <article class="card doc-kpi"><div class="doc-kpi-icon"><svg><use href="#i-shield"/></svg></div><div><small>Unknown classification</small><strong>0</strong><span>не удалось классифицировать</span><em>live, REV_FLOW split</em></div></article>
+      </section>
+
+      <section class="doc-grid">
+        <article class="card doc-panel queue-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-clock"/></svg>Очередь документов</h2><small>входящие файлы до принятия в lifecycle</small></div><span class="quiet-label"></span></div>
+          <div class="queue-head"><span>Файл</span><span>Источник</span><span>Возраст</span><span>Статус</span></div>
+          <div class="queue-row"><p><b>RD1_15_validation_pack.zip</b><small>FND-003 · Research</small></p><span>Chat Update</span><time>18 мин</time><em class="state new">новый</em></div>
+          <div class="queue-row"><p><b>BP_wave1_content_manifest.json</b><small>FND-007 · BrazilPortal</small></p><span>Branch</span><time>41 мин</time><em class="state review">review</em></div>
+          <div class="queue-row"><p><b>ORCH_observer_notes.md</b><small>FND-006 · Orchestrator</small></p><span>Drive</span><time>1ч 12м</time><em class="state review">review</em></div>
+          <div class="queue-row"><p><b>foundation_integrity_receipt.json</b><small>FND-002 · Foundation</small></p><span>Control Plane</span><time>3ч 18м</time><em class="state hold">hold</em></div>
+          <button class="text-link">Открыть очередь целиком →</button>
+        </article>
+
+        <article class="card doc-panel lifecycle-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-stack"/></svg>Жизненный цикл</h2><small>статусы публикационного пути</small></div></div>
+          <div class="life-flow">
+            <div><span>MASTER</span><b>64</b><small>рабочая истина</small></div><i></i>
+            <div><span>FROZEN</span><b>21</b><small>зафиксировано</small></div><i></i>
+            <div><span>SUBMITTED</span><b>9</b><small>отправлено</small></div><i></i>
+            <div><span>PUBLIC</span><b>37</b><small>публично</small></div>
+          </div>
+          <div class="life-note">Переходы отражают состояние файла. Они не создают authority и не заменяют owner/reviewer gates.</div>
+          <button class="text-link">Открыть lifecycle view →</button>
+        </article>
+
+        <article class="card doc-panel recent-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-doc"/></svg>Последние документы</h2><small>новые и изменённые файлы</small></div><span class="quiet-label">24 часа</span></div>
+          <ul class="recent-list">
+            <li><time>12 мин</time><p><b>ICAM_FOUNDATION_CURRENT_STATE.json</b><span>Foundation · current state</span></p><em>MASTER</em></li>
+            <li><time>48 мин</time><p><b>RD1_12_protocol_v2.1.pdf</b><span>Research · protocol</span></p><em>FROZEN</em></li>
+            <li><time>2 ч</time><p><b>BrazilPortal_Wave1_manifest.md</b><span>BrazilPortal · rollout</span></p><em>MASTER</em></li>
+            <li><time>4 ч</time><p><b>ICAM_Operational_Certification.pdf</b><span>Foundation · certification</span></p><em>PUBLIC</em></li>
+            <li><time>7 ч</time><p><b>Observer_Pilot_Receipt.json</b><span>Orchestrator · receipt</span></p><em>FROZEN</em></li>
+          </ul>
+          <button class="text-link">Открыть последние изменения →</button>
+        </article>
+
+        <article class="card doc-panel provenance-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-link"/></svg>Происхождение и связи</h2><small>файл → объект → ветка → gate</small></div></div>
+          <div class="prov-map">
+            <div class="prov-file">RD1_15_protocol.pdf</div><i></i><div class="prov-node">OBJ-0009</div><i></i><div class="prov-node">RD1-15</div><i></i><div class="prov-node gate">GATE-23</div>
+          </div>
+          <div class="prov-stats"><span><b>416</b><small>привязаны к объектам</small></span><span><b>421</b><small>имеют источник</small></span><span><b>409</b><small>имеют ветку</small></span></div>
+          <button class="text-link">Открыть граф связей →</button>
+        </article>
+
+        <article class="card doc-panel attention-docs-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-alert"/></svg>Требует внимания</h2><small>только реальные документные разрывы</small></div></div>
+          <div class="doc-alert"><span>1</span><p><b>Нет связи с объектом</b><small>4 файла ожидают привязку к Registry</small></p><em>средний</em></div>
+          <div class="doc-alert"><span>2</span><p><b>Источник устарел</b><small>1 ссылка требует refresh</small></p><em>средний</em></div>
+          <div class="doc-alert soft"><span>3</span><p><b>Review queue</b><small>12 файлов ожидают ручной разбор</small></p><em>низкий</em></div>
+          <div class="read-only-note">Founder Panel показывает очередь и состояние. Принятие/отклонение остаётся в reviewer path.</div>
+          <button class="text-link">Открыть список внимания →</button>
+        </article>
+
+        <article class="card doc-panel type-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-stack"/></svg>Структура хранилища</h2><small>распределение по типам</small></div></div>
+          <div class="type-rows">
+            <div class="type-row"><b>Research / evidence</b><span><i style="--p:82%"></i></span><em>148</em></div>
+            <div class="type-row"><b>Foundation / receipts</b><span><i style="--p:65%"></i></span><em>103</em></div>
+            <div class="type-row"><b>Operations / updates</b><span><i style="--p:51%"></i></span><em>81</em></div>
+            <div class="type-row"><b>Public / submitted</b><span><i style="--p:37%"></i></span><em>58</em></div>
+            <div class="type-row"><b>Other linked</b><span><i style="--p:25%"></i></span><em>38</em></div>
+          </div>
+          <button class="text-link">Открыть структуру →</button>
+        </article>
+      </section>
+
+      <section class="card doc-bottom">
+        <div><small>NEXT MOVE</small><h3>Свести document lifecycle с Registry и durability telemetry</h3><p>Визуальный слой показывает правду о состоянии файлов; автоматическое принятие документов не вводится.</p></div>
+        <div class="doc-owner"><span>Владелец контура</span><b>Control Plane / Registry / Reviewer</b></div>
+        <div class="doc-gate"><span>Следующий gate</span><b>Document lifecycle integrity</b></div>
+        <button class="text-link">Детали контура →</button>
+      </section>
+      <div class="demo-note">BROWSER WORKBENCH · mock/reference data only · visual layer only</div>
+    </main>
+  </div>
+
+
+<script>
+(function(){
+  function setupCardArrows(){
+    document.querySelectorAll('.text-link').forEach(function(link){
+      var card = link.closest('.card') || link.closest('.foundation-footer-card') || link.closest('.bp-bottom') || link.closest('.doc-bottom') || link.closest('.sig-bottom') || link.closest('.ops-bottom') || link.closest('.state-contract');
+      if(!card) return;
+      var head = card.querySelector('.panel-head, .state-head');
+      if(!head || head.querySelector('.top-corner-arrow')) return;
+
+      var href = link.tagName === 'A' ? link.getAttribute('href') : null;
+      var arrow;
+      if(href && href !== '#'){
+        arrow = document.createElement('a');
+        arrow.href = href;
+        arrow.setAttribute('aria-label', link.textContent.trim().replace(/\s*→\s*$/,''));
+      } else {
+        arrow = document.createElement('span');
+        arrow.setAttribute('aria-hidden','true');
+      }
+      arrow.className = 'top-corner-arrow';
+      arrow.textContent = '→';
+      head.appendChild(arrow);
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupCardArrows);
+  else setupCardArrows();
+})();
+</script>
+
+
+  <script src="docs-live.js"></script>
+<script src="truth-guard.js"></script>
+<script id="rd1-guard">
+(function(){function w(){document.querySelectorAll('tr,li,article,.card,div').forEach(function(el){
+ if(el.dataset.tg||el.children.length>6)return;
+ if(/RD1-\d\d/.test(el.textContent||'')) TG.mark(el,'демо-строка · нет в каноническом реестре');});}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',w);else w();
+ setTimeout(w,1400);})();
+</script>
+<script src="semantic.js"></script>
+<script src="panel-fit.js"></script>
+<script defer src="panel-cards.js"></script>
+<script defer src="panel-scroll.js"></script>
+</body>
+</html>

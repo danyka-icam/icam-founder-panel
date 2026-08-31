@@ -1,0 +1,196 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   ЧИТАЕМОСТЬ ПАНЕЛИ · 2026-08-27
+   Правка по замечанию Niki: текст мелкий и не влезает, из-за чего его просто
+   не видно. Решение то же, что сработало на «Источниках и связях»: содержимое
+   не ужимается под карточку, а получает прокрутку — тогда шрифт можно
+   спокойно увеличить, ничего не ломая.
+   Отдельно чинятся наложения: плашки состояния лежали ПОВЕРХ текста.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root{
+  --pr-body: 12.5px;      /* было ~7.5-8px — основной текст карточек */
+  --pr-small: 11px;       /* подписи */
+  --pr-tiny: 10px;        /* служебное */
+  --pr-scroll: 190px;     /* высота окна прокрутки внутри карточки */
+}
+
+/* ── 1. КРУПНЕЕ ─────────────────────────────────────────────────────────── */
+.home-list li, .recent-list li, .decision-list li,
+.changed-body p, .changed-col p,
+.r-row, .a-row, .queue-head, .r-head, .a-head,
+.lin-tbl td, .lin-tbl th, .lin-kv, .lin-rev p,
+[data-f="evidence-rows"], [data-f="identity-block"],
+[data-f="attention-rows"], [data-f="queue-rows"],
+.live3-box, .prov-map, .type-row{
+  font-size: var(--pr-body) !important;
+  line-height: 1.55 !important;
+}
+.home-list li small, .a-row small, .r-row small,
+.lin-tbl .lin-mono, .live3-box span[style*="font-size"]{
+  font-size: var(--pr-small) !important;
+}
+.panel-head small{ font-size: var(--pr-small) !important; }
+
+/* ── 2. ПРОКРУТКА ВМЕСТО ОБРЕЗКИ ────────────────────────────────────────
+   Содержимое больше не должно диктовать высоту карточки: карточка держит
+   форму, а текст листается. Это и позволило поднять шрифт. */
+.home-list, .recent-list, .decision-list, .changed-body,
+[data-f="objects-table"], [data-f="active-table"],
+[data-f="queue-rows"], [data-f="attention-rows"],
+[data-f="evidence-rows"], [data-f="recent-list"],
+[data-f="lin-chain"], .live3-box{
+  max-height: var(--pr-scroll);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #3a463c transparent;
+}
+.home-list::-webkit-scrollbar, .changed-body::-webkit-scrollbar,
+.live3-box::-webkit-scrollbar, [data-f]::-webkit-scrollbar{ width:7px }
+.home-list::-webkit-scrollbar-thumb, .changed-body::-webkit-scrollbar-thumb,
+.live3-box::-webkit-scrollbar-thumb, [data-f]::-webkit-scrollbar-thumb{
+  background:#3a463c; border-radius:4px }
+
+/* ── 3. НАЛОЖЕНИЯ: плашки состояния ─────────────────────────────────────
+   Были absolute поверх содержимого и закрывали текст. Теперь плашка живёт
+   в потоке (внизу карточки) и раздвигает содержимое, а не прячет его. */
+.tg-note{
+  position: static !important;
+  display: block;
+  margin-top: 8px;
+  border-top: 1px solid #4a3a20;
+  background: #2a1f14;
+  color: #c6a35f;
+  font: 600 var(--pr-tiny)/1.6 -apple-system, sans-serif;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 0 0 4px 4px;
+}
+/* карточка должна уметь прижать плашку вниз, а не наехать на неё */
+/* Здесь стояло `display:flex; flex-direction:column` для всех карточек.
+   Это правило стирало собственный строй каждой карточки: нижняя полоса
+   экрана свёрстана сеткой из четырёх колонок и превращалась в кучку,
+   верхние карточки теряли ряд «иконка — название». Одна строка тянула за
+   собой всё остальное — ровно та связь, из-за которой правка одного места
+   ломала другое. Раскладку задаёт вёрстка самой карточки. */
+article.card > .tg-note, section.card > .tg-note{ margin-top: auto }
+
+/* плашка LIVE/DEMO контракта — не поверх заголовка, а рядом с ним */
+.panel-head{ position: relative; display:flex; align-items:flex-start; gap:8px }
+.panel-head .tc-badge{ position: static !important; margin-left: auto; flex: 0 0 auto }
+.tc-badge{ font-size: var(--pr-tiny) !important; }
+
+/* ── 4а. Сетка таблиц под увеличенный шрифт ─────────────────────────────
+   Колонка ID в исходной раскладке — 22px: она задумана под КРУЖОК с цифрой
+   (.r-row>b — окружность 18×18). Живой модуль пишет туда полный «FND-001»,
+   поэтому идентификатор наезжал на название. Чиню шириной колонки и снимаю
+   круглую форму, а не разрешаю перелив: перелив прячет проблему, а не решает. */
+.r-head, .r-row{
+  grid-template-columns: 66px minmax(0,1fr) 54px 96px !important;
+  gap: 9px !important;
+}
+.r-row > b{
+  width: auto !important; height: auto !important;
+  border-radius: 5px !important;
+  padding: 3px 6px !important;
+  place-items: center;
+  font-size: var(--pr-small) !important;
+  white-space: nowrap;
+}
+.a-head, .a-row{
+  grid-template-columns: 68px 76px 78px minmax(0,1.05fr) minmax(0,1.35fr) !important;
+  gap: 9px !important;
+}
+.state, .stage, .evidence{ font-size: var(--pr-small) !important; line-height:1.35 !important }
+.decision-list li{ grid-template-columns: 24px minmax(0,1fr) 42px 66px !important }
+.decision-list p{ font-size: var(--pr-body) !important }
+
+/* ── 4. ТАБЛИЦЫ: колонки больше не налезают друг на друга ───────────────
+   На экране Исследований «стадия» наезжала на «статус», а next_move на
+   next_gate. Причина — фиксированные узкие колонки без обработки перелива. */
+.r-row, .a-row, .r-head, .a-head{
+  align-items: start;
+  gap: 10px;
+}
+.r-row > *, .a-row > *, .r-head > *, .a-head > *{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.r-row > strong, .a-row > span, .a-row > em{
+  white-space: normal;
+  word-break: break-word;
+}
+/* строка растёт под содержимое, а лишнее уезжает в прокрутку таблицы,
+   а не обрезается по нижнему краю ячейки */
+.r-row, .a-row{ height: auto !important; min-height: 0; padding-bottom: 6px }
+.r-row .state, .a-row .stage, .a-row .evidence{
+  max-width: 100%;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── 5. Узкие колонки главной: текст не должен рваться по одному слову ── */
+.home-panel .home-list li > span{ min-width: 0; word-break: break-word }
+.changed-col{ min-width: 0 }
+.changed-body{ display: block !important }
+.changed-col.after{ width: 100% !important }
+
+
+/* ── 6. Строки списков главной больше не наезжают друг на друга ─────────
+   Исходные .home-list li / .priority-list li имеют min-height:25px и
+   align-items:center. При увеличенном шрифте содержимое из этой высоты
+   вылезало и ложилось ПОВЕРХ соседней строки — это и было видно на скрине
+   «1. СЕЙЧАС». Высота теперь по содержимому, а список листается. */
+.home-list li, .priority-list li, .recent-list li{
+  min-height: 0 !important;
+  align-items: start !important;
+  padding: 7px 0 !important;
+  line-height: 1.5 !important;
+}
+.home-list li > span:nth-child(2),
+.priority-list li > span:nth-child(2){ min-width: 0; word-break: break-word }
+
+/* Заменённая строка «синтетический список удалён» не вписывается в
+   четырёхколоночную сетку приоритетов (18px 40px 1fr 29px): её текст
+   попадал в колонку 40px и рвался по одному слову. Для неё — простая
+   раскладка во всю ширину. */
+.priority-list li.pl-note{ display: flex !important; align-items: flex-start; gap: 9px }
+.priority-list li.pl-note > span:nth-child(2){ flex: 1 1 auto }
+.priority-list li.pl-note > .status-pill{ flex: 0 0 auto; align-self: center }
+
+/* колонка «что изменилось» — одна широкая, а не три узких */
+.changed-body{ grid-template-columns: 1fr !important }
+
+/* ── 7. Запрет сжатия строк ─────────────────────────────────────────────
+   Списки главной — flex-колонки внутри панели фиксированной высоты, и по
+   умолчанию flex-элементы СЖИМАЮТСЯ (flex-shrink:1). Строка получала высоту
+   меньше своего содержимого, и текст вылезал за её границы, ложась поверх
+   соседней. Именно это Niki и увидела в «1. СЕЙЧАС». Запрещаем сжатие —
+   лишнее уходит в прокрутку списка, а не в наложение. */
+.home-list > li, .priority-list > li, .recent-list > li,
+.decision-list > li, .radar-list > li, .health-list > li{
+  flex: 0 0 auto !important;
+  overflow: visible;
+}
+.home-list, .priority-list, .recent-list, .decision-list{
+  justify-content: flex-start !important;
+}
+
+/* ── СМЫСЛОВОЙ СЛОЙ ─────────────────────────────────────────────────────── */
+.sem-box{ padding:8px 12px; max-height:200px; overflow-y:auto; overscroll-behavior:contain;
+  scrollbar-width:thin; scrollbar-color:#3a463c transparent }
+.sem-row{ padding:8px 0; border-bottom:1px solid rgba(234,238,234,.05) }
+.sem-row:last-child{ border-bottom:0 }
+.sem-row.mine{ border-left:2px solid #3f7d55; padding-left:9px }
+.sem-main{ font-size:12.8px; line-height:1.45; color:#e2e8e2 }
+.sem-sub{ font-size:11px; line-height:1.45; color:#8d968f; margin-top:3px }
+.sem-sub b{ color:#c2c9c4 }
+.sem-warn{ color:#c6a35f }
+.sem-was{ color:#79837a; text-decoration:line-through }
+.sem-ok{ font-size:12.8px; color:#8fd6a6; padding:6px 0 }
+.sem-empty{ font-size:12.5px; color:#79837a; padding:6px 0 }

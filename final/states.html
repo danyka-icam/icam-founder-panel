@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ICAM Founder Panel — Системные состояния</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="states.css">
+  <link rel="stylesheet" href="shell-normalize.css">
+<link rel="stylesheet" href="panel-readability.css">
+<link rel="stylesheet" href="panel-polish.css">
+<link rel="stylesheet" href="panel-system.css">
+<link rel="stylesheet" href="panel-layout.css">
+<link rel="stylesheet" href="panel-final.css">
+</head>
+<body class="states-page">
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11 12 3l9 8v9H14v-6h-4v6H3z"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24"><path d="m3 9 9-5 9 5M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M8 14h8"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></symbol>
+    <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V4h6v3M3 12h18"/></symbol>
+    <symbol id="i-reg" viewBox="0 0 24 24"><circle cx="6" cy="7" r="2"/><circle cx="18" cy="7" r="2"/><circle cx="12" cy="17" r="2"/><path d="M8 8.5 11 15M16 8.5 13 15M8 7h8"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24"><path d="M5 19a10 10 0 0 1 14-14M8 19a7 7 0 0 1 11-11M11 19a4 4 0 0 1 8-4M18 19h.01"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 12h6M9 16h6"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 13.5v-3l-2-.7a7 7 0 0 0-.8-1.8l.9-1.9-2.2-2.2-1.9.9a7 7 0 0 0-1.8-.8L10.5 2h-3l-.7 2a7 7 0 0 0-1.8.8l-1.9-.9L.9 6.1 1.8 8a7 7 0 0 0-.8 1.8l-2 .7v3l2 .7a7 7 0 0 0 .8 1.8l-.9 1.9 2.2 2.2 1.9-.9a7 7 0 0 0 1.8.8l.7 2h3l.7-2a7 7 0 0 0 1.8-.8l1.9.9 2.2-2.2-.9-1.9a7 7 0 0 0 .8-1.8z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3 22 20H2z"/><path d="M12 9v5M12 17h.01"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></symbol>
+    <symbol id="i-error" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M7 7a7 7 0 0 1 11 2M17 17a7 7 0 0 1-11-2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand" aria-label="ICAM Lab"><div class="brand-logo-fallback"><span>ICAM</span><i>/</i><b>LAB</b></div></div>
+      <nav class="nav">
+        <a href="index.html"><svg><use href="#i-home"/></svg><span>Главная</span></a>
+        <a href="foundation.html"><svg><use href="#i-bank"/></svg><span>Фундамент</span></a>
+        <a href="research.html"><svg><use href="#i-flask"/></svg><span>Исследования</span></a>
+        <a href="brazilportal.html"><svg><use href="#i-globe"/></svg><span>BrazilPortal</span></a>
+        <a href="operations.html"><svg><use href="#i-brief"/></svg><span>Операции</span></a>
+        <a href="registry.html"><svg><use href="#i-reg"/></svg><span>Реестр</span></a>
+        <a href="signals.html"><svg><use href="#i-signal"/></svg><span>Сигналы</span></a>
+        <a href="documents.html"><svg><use href="#i-doc"/></svg><span>Документы</span></a>
+        <a href="testing.html"><svg><use href="#i-check"/></svg><span>Тестирование</span></a>
+        <a class="active" href="settings.html"><svg><use href="#i-gear"/></svg><span>Настройки</span></a>
+      </nav>
+      <div class="manifesto"><p class="side-quote">«Сильная система не требует героя. Она умеет держать форму сама.»</p><div class="leaf-art">⌁</div></div>
+    </aside>
+
+    <main class="main states-main">
+      <header class="topbar states-topbar">
+        <div><h1>Системные состояния</h1><p>единый визуальный язык для неполных, устаревших и аварийных данных</p></div>
+        <div class="top-actions">
+          <button class="search-pill"><span>Спросите что-нибудь о системе...</span><svg><use href="#i-search"/></svg></button>
+          <a class="concept-pill state-back" href="settings.html">← Настройки</a>
+          <button class="profile"><span class="avatar">Н</span><span><strong>Ника</strong><small>Founder</small></span><span>⌄</span></button>
+        </div>
+      </header>
+
+      <section class="state-token-strip">
+        <article class="card token-card empty"><span></span><div><small>EMPTY</small><b>Пусто</b></div><em>нейтрально</em></article>
+        <article class="card token-card degraded"><span></span><div><small>DEGRADED</small><b>Деградация</b></div><em>частично</em></article>
+        <article class="card token-card warning"><span></span><div><small>WARNING</small><b>Внимание</b></div><em>порог</em></article>
+        <article class="card token-card legacy"><span></span><div><small>LEGACY</small><b>Устарело</b></div><em>архивно</em></article>
+        <article class="card token-card error"><span></span><div><small>ERROR</small><b>Ошибка</b></div><em>hard fail</em></article>
+        <article class="card token-card recovery"><span></span><div><small>RECOVERY</small><b>Восстановлено</b></div><em>healthy again</em></article>
+      </section>
+
+      <section class="state-grid">
+        <article class="card state-card empty-state">
+          <div class="state-head"><div class="state-icon"><svg><use href="#i-circle"/></svg></div><div><small>EMPTY</small><h2>Данных пока нет</h2></div><b>нейтрально</b></div>
+          <p class="state-copy">Источник существует, но валидное состояние ещё не получено. Пустота не должна выглядеть как ошибка.</p>
+          <div class="state-example"><span>Текущее значение</span><strong>—</strong><small>ожидаем первую подтверждённую запись</small></div>
+          <div class="state-meta"><span><i>Последняя попытка</i><b>18:42</b></span><span><i>Последнее хорошее</i><b>нет</b></span></div>
+          <div class="state-rule">Показывать причину отсутствия данных и следующий безопасный путь.</div>
+          <a class="text-link state-action" href="settings.html">Открыть источник →</a>
+        </article>
+
+        <article class="card state-card degraded-state">
+          <div class="state-head"><div class="state-icon"><svg><use href="#i-clock"/></svg></div><div><small>DEGRADED</small><h2>Часть данных недоступна</h2></div><b>частично</b></div>
+          <p class="state-copy">Контур отвечает не полностью. Панель сохраняет последний подтверждённый state и явно показывает его возраст.</p>
+          <div class="state-example split"><span>Доступно <strong>4/6</strong></span><span>Freshness <strong>27 мин</strong></span></div>
+          <div class="state-meta"><span><i>Последнее хорошее</i><b>18:16</b></span><span><i>Источник</i><b>2 missing</b></span></div>
+          <div class="state-rule">Не скрывать деградацию и не подменять отсутствующие значения догадкой.</div>
+          <a class="text-link state-action" href="signals.html">Показать недоступные поля →</a>
+        </article>
+
+        <article class="card state-card warning-state">
+          <div class="state-head"><div class="state-icon"><svg><use href="#i-warn"/></svg></div><div><small>WARNING</small><h2>Требует внимания</h2></div><b>порог</b></div>
+          <p class="state-copy">Система работает, но один из наблюдаемых порогов вышел за нормальный диапазон.</p>
+          <div class="state-example warning-line"><span>Очередь документов</span><strong>18</strong><small>порог внимания: 15</small></div>
+          <div class="state-meta"><span><i>Состояние</i><b>работает</b></span><span><i>Возраст</i><b>11 мин</b></span></div>
+          <div class="state-rule">Amber означает внимание, а не аварийность. Не эскалировать цветом сильнее факта.</div>
+          <a class="text-link state-action" href="documents.html">Открыть контекст →</a>
+        </article>
+
+        <article class="card state-card legacy-state">
+          <div class="state-head"><div class="state-icon"><svg><use href="#i-clock"/></svg></div><div><small>LEGACY</small><h2>Устаревший источник</h2></div><b>архивно</b></div>
+          <p class="state-copy">Данные исторически валидны, но больше не являются current truth. Они остаются видимыми только как контекст.</p>
+          <div class="state-example"><span>Версия</span><strong>v0.4</strong><small>заменена текущей проекцией</small></div>
+          <div class="state-meta"><span><i>Последняя верификация</i><b>12 авг</b></span><span><i>Режим</i><b>read only</b></span></div>
+          <div class="state-rule">Legacy никогда не должен визуально конкурировать с current state.</div>
+          <a class="text-link state-action" href="documents.html">Открыть историю →</a>
+        </article>
+
+        <article class="card state-card error-state">
+          <div class="state-head"><div class="state-icon"><svg><use href="#i-error"/></svg></div><div><small>ERROR</small><h2>Контур недоступен</h2></div><b>hard fail</b></div>
+          <p class="state-copy">Нет подтверждённого текущего ответа. Панель показывает факт отказа, время и последнее хорошее состояние — без догадок.</p>
+          <div class="state-example error-line"><span>Registry projection</span><strong>OFFLINE</strong><small>read timeout</small></div>
+          <div class="state-meta"><span><i>Ошибка с</i><b>18:31</b></span><span><i>Последнее хорошее</i><b>18:29</b></span></div>
+          <div class="state-rule">Красный — только для фактической потери функции или подтверждённого hard failure.</div>
+          <a class="text-link state-action" href="operations.html">Открыть диагностику →</a>
+        </article>
+
+        <article class="card state-card recovery-state">
+          <div class="state-head"><div class="state-icon"><svg><use href="#i-refresh"/></svg></div><div><small>RECOVERY</small><h2>Работа восстановлена</h2></div><b>healthy again</b></div>
+          <p class="state-copy">После инцидента источник снова стабилен. Панель показывает восстановление и сохраняет след предыдущего сбоя.</p>
+          <div class="state-example recovery-line"><span>Continuity</span><strong>RESTORED</strong><small>3 успешные проверки подряд</small></div>
+          <div class="state-meta"><span><i>Восстановлено</i><b>18:40</b></span><span><i>Инцидент</i><b>9 мин</b></span></div>
+          <div class="state-rule">Recovery не стирает историю: предыдущий инцидент остаётся доступен в контексте.</div>
+          <a class="text-link state-action" href="foundation.html">Открыть receipt →</a>
+        </article>
+      </section>
+
+      <section class="card state-contract">
+        <div><small>STATE CONTRACT</small><h3>Каждое специальное состояние должно отвечать на четыре вопроса</h3><p>Что произошло · насколько это влияет на работу · когда было последнее хорошее состояние · куда безопасно перейти за деталями.</p></div>
+        <div class="contract-points"><span><b>01</b>Факт, не догадка</span><span><b>02</b>Возраст состояния</span><span><b>03</b>Последнее хорошее</span><span><b>04</b>Безопасный action path</span></div>
+        <a class="text-link" href="settings.html">Вернуться в Настройки →</a>
+      </section>
+      <div class="demo-note">SPECIAL STATE REFERENCE · mock/reference data only · implementation contract</div>
+    </main>
+  </div>
+
+
+<script>
+(function(){
+  function setupCardArrows(){
+    document.querySelectorAll('.text-link').forEach(function(link){
+      var card = link.closest('.card') || link.closest('.foundation-footer-card') || link.closest('.bp-bottom') || link.closest('.doc-bottom') || link.closest('.sig-bottom') || link.closest('.ops-bottom') || link.closest('.state-contract');
+      if(!card) return;
+      var head = card.querySelector('.panel-head, .state-head');
+      if(!head || head.querySelector('.top-corner-arrow')) return;
+
+      var href = link.tagName === 'A' ? link.getAttribute('href') : null;
+      var arrow;
+      if(href && href !== '#'){
+        arrow = document.createElement('a');
+        arrow.href = href;
+        arrow.setAttribute('aria-label', link.textContent.trim().replace(/\s*→\s*$/,''));
+      } else {
+        arrow = document.createElement('span');
+        arrow.setAttribute('aria-hidden','true');
+      }
+      arrow.className = 'top-corner-arrow';
+      arrow.textContent = '→';
+      head.appendChild(arrow);
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupCardArrows);
+  else setupCardArrows();
+})();
+</script>
+
+
+<script src="panel-fit.js"></script>
+<script defer src="panel-cards.js"></script>
+<script defer src="panel-scroll.js"></script>
+</body>
+</html>

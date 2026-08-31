@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ICAM Founder Panel — Исследования</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="research.css" />
+  <link rel="stylesheet" href="shell-normalize.css">
+<script src="trust-contract.js"></script>
+<link rel="stylesheet" href="panel-readability.css">
+<link rel="stylesheet" href="panel-polish.css">
+<link rel="stylesheet" href="panel-system.css">
+<link rel="stylesheet" href="panel-layout.css">
+<link rel="stylesheet" href="panel-final.css">
+</head>
+<body class="research-page">
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H4.5A1.5 1.5 0 0 1 3 19.5z"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9h18M5 9v9m4-9v9m6-9v9m4-9v9M3 20h18M12 3l9 4H3z"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.5 9.2A1.8 1.8 0 0 0 6 21h12a1.8 1.8 0 0 0 1.5-2.8L14 9V3M7.5 15h9"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></symbol>
+    <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7M3 12h18"/></symbol>
+    <symbol id="i-reg" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0M7 12a5 5 0 0 1 10 0M10 12a2 2 0 0 1 4 0M12 14v7"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-dna" viewBox="0 0 24 24"><path d="M7 3c0 5 10 5 10 10s-10 5-10 8M17 3c0 5-10 5-10 10s10 5 10 8M8 6h8M8 18h8M7 12h10"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M22 12h-3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 22 20H2z"/><path d="M12 9v5M12 17h.01"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4m0 1h11l-2 3 2 3H5"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v6c0 5-3.2 8-8 9-4.8-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand" aria-label="ICAM Lab"><div class="brand-logo-fallback"><span>ICAM</span><i>/</i><b>LAB</b></div></div>
+      <nav class="nav">
+        <a href="index.html"><svg><use href="#i-home"/></svg><span>Главная</span></a>
+        <a href="foundation.html"><svg><use href="#i-bank"/></svg><span>Фундамент</span></a>
+        <a class="active" href="research.html"><svg><use href="#i-flask"/></svg><span>Исследования</span></a>
+        <a href="brazilportal.html"><svg><use href="#i-globe"/></svg><span>BrazilPortal</span></a>
+        <a href="operations.html"><svg><use href="#i-brief"/></svg><span>Операции</span></a>
+        <a href="registry.html"><svg><use href="#i-reg"/></svg><span>Реестр</span></a>
+        <a href="signals.html"><svg><use href="#i-signal"/></svg><span>Сигналы</span></a>
+        <a href="documents.html"><svg><use href="#i-doc"/></svg><span>Документы</span></a>
+        <a href="testing.html"><svg><use href="#i-check"/></svg><span>Тестирование</span></a>
+        <a href="settings.html"><svg><use href="#i-gear"/></svg><span>Настройки</span></a>
+      </nav>
+      <div class="manifesto"><p class="side-quote">«Сильная система не требует героя. Она умеет держать форму сама.»</p><div class="leaf-art">⌁</div></div>
+    </aside>
+
+    <main class="main research-main">
+      <header class="topbar research-topbar">
+        <div><h1>Исследования</h1><p>доказательная база и контуры RD1</p></div>
+        <div class="top-actions">
+          <button class="search-pill"><span>Спросите что-нибудь о системе...</span><svg><use href="#i-search"/></svg></button>
+          <button class="concept-pill">Концепт интерфейса <span>ⓘ</span></button>
+          <button class="bell" aria-label="Уведомления">♧<b>3</b></button>
+          <button class="profile"><span class="avatar">Н</span><span><strong>Ника</strong><small>Founder</small></span><span>⌄</span></button>
+        </div>
+      </header>
+
+      <section class="research-kpis">
+        <article class="card research-kpi"><div class="rk-icon"><svg><use href="#i-dna"/></svg></div><div><small>Объекты реестра</small><strong data-f="kpi-total">—</strong><span>в каноническом Continuity</span><em>live</em></div></article>
+        <article class="card research-kpi"><div class="rk-icon"><svg><use href="#i-target"/></svg></div><div><small>Активные</small><strong data-f="kpi-active">—</strong><span>в активной работе</span><em>live</em></div></article>
+        <article class="card research-kpi"><div class="rk-icon"><svg><use href="#i-user"/></svg></div><div><small>Требует решения Founder</small><strong data-f="kpi-needs-nika">—</strong><span>ждут вашего решения</span><em>live</em></div></article>
+        <article class="card research-kpi"><div class="rk-icon"><svg><use href="#i-gear"/></svg></div><div><small>Park / Preparing</small><strong data-f="kpi-parked">—</strong><span>на паузе или готовятся</span><em>live</em></div></article>
+        <article class="card research-kpi amber"><div class="rk-icon amber"><svg><use href="#i-alert"/></svg></div><div><small>Identity unresolved</small><strong data-f="kpi-unresolved">—</strong><span>нет ни одного подтверждённого события</span><em class="amber-text">честная пометка</em></div></article>
+      </section>
+
+      <section class="research-grid">
+        <article class="card research-panel priorities-panel">
+          <div class="panel-head"><h2><svg><use href="#i-target"/></svg>Объекты — статус и стадия</h2></div>
+          <div class="research-table"><div class="r-head"><span>ID</span><span>Название</span><span>Стадия</span><span>Статус</span></div>
+            <div data-f="objects-table"></div>
+          </div><button class="text-link">Открыть Реестр →</button>
+        </article>
+
+        <article class="card research-panel active-panel">
+          <div class="panel-head"><h2><svg><use href="#i-flask"/></svg>Ход по объектам</h2></div>
+          <div class="active-table"><div class="a-head"><span>ID</span><span>У кого ход</span><span>Свежесть</span><span>Следующий ход</span><span>Условие перехода</span></div>
+            <div data-f="active-table"></div>
+          </div><button class="text-link">Открыть RD1 (Continuity) →</button>
+        </article>
+
+        <article class="card research-panel decision-panel">
+          <div class="panel-head"><h2><svg><use href="#i-user"/></svg>Требует внимания</h2></div>
+          <ul class="decision-list" data-f="decision-list"></ul>
+          <button class="text-link">Все объекты →</button>
+        </article>
+
+        <article class="card research-panel roadmap-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-flag"/></svg>Дорожная карта</h2><small>канонические вехи по кварталам</small></div></div>
+          <div style="padding:24px 14px;font-size:8px;line-height:1.6;color:#a9b2ac">
+            <b style="color:#dfad59">not available</b><br>
+            Continuity не хранит milestone/квартальную дорожную карту как canonical данные — только object_id/status/stage/owner/next_move/next_gate. Показывать вымышленные вехи не стал (PANEL_CONN2: never fabricate a roadmap).
+          </div>
+        </article>
+
+        <article class="card research-panel evidence-panel">
+          <div class="panel-head"><h2><svg><use href="#i-shield"/></svg>Доказательства и верификация</h2></div>
+          <div style="padding:24px 14px;font-size:8px;line-height:1.6;color:#a9b2ac">
+            <b style="color:#dfad59">not available</b><br>
+            Оценки уровня доверия/валидации доказательств не являются canonical полем Continuity сейчас. Не выдумываю проценты — см. Testing Department (Тестирование) для реальных frozen-прогонов с sha256.
+          </div>
+        </article>
+
+        <article class="card research-panel experiments-panel">
+          <div class="panel-head"><h2><svg><use href="#i-flask"/></svg>Следующие эксперименты</h2></div>
+          <div style="padding:24px 14px;font-size:8px;line-height:1.6;color:#a9b2ac">
+            <b style="color:#dfad59">not available</b><br>
+            Плана экспериментов/зависимостей как canonical поля в Continuity нет. Реальные независимые прогоны — на экране «Тестирование».
+          </div>
+        </article>
+      </section>
+
+      <section class="card research-changes">
+        <div class="changes-title"><h2>Последнее материальное изменение</h2><span>по last_event_at объектов реестра, live</span></div>
+        <div class="changes-feed" data-f="changes-feed"></div>
+        <button class="text-link">Открыть Реестр →</button>
+      </section>
+
+      <footer class="demo-note">BROWSER WORKBENCH • reference state • visual layer only</footer>
+    </main>
+  </div>
+  <script src="app.js"></script>
+
+
+<script>
+(function(){
+  function setupCardArrows(){
+    document.querySelectorAll('.text-link').forEach(function(link){
+      var card = link.closest('.card') || link.closest('.foundation-footer-card') || link.closest('.bp-bottom') || link.closest('.doc-bottom') || link.closest('.sig-bottom') || link.closest('.ops-bottom') || link.closest('.state-contract');
+      if(!card) return;
+      var head = card.querySelector('.panel-head, .state-head');
+      if(!head || head.querySelector('.top-corner-arrow')) return;
+
+      var href = link.tagName === 'A' ? link.getAttribute('href') : null;
+      var arrow;
+      if(href && href !== '#'){
+        arrow = document.createElement('a');
+        arrow.href = href;
+        arrow.setAttribute('aria-label', link.textContent.trim().replace(/\s*→\s*$/,''));
+      } else {
+        arrow = document.createElement('span');
+        arrow.setAttribute('aria-hidden','true');
+      }
+      arrow.className = 'top-corner-arrow';
+      arrow.textContent = '→';
+      head.appendChild(arrow);
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupCardArrows);
+  else setupCardArrows();
+})();
+</script>
+
+
+  <script src="research-live.js"></script>
+<script src="truth-guard.js"></script>
+<script src="panel-fit.js"></script>
+<script defer src="panel-cards.js"></script>
+<script defer src="panel-scroll.js"></script>
+</body>
+</html>

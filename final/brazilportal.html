@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ICAM Founder Panel — BrazilPortal</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="brazilportal.css" />
+  <link rel="stylesheet" href="shell-normalize.css">
+<script src="trust-contract.js"></script>
+<link rel="stylesheet" href="panel-readability.css">
+<link rel="stylesheet" href="panel-polish.css">
+<link rel="stylesheet" href="panel-system.css">
+<link rel="stylesheet" href="panel-layout.css">
+<link rel="stylesheet" href="panel-final.css">
+</head>
+<body class="bp-page">
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H4.5A1.5 1.5 0 0 1 3 19.5z"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9h18M5 9v9m4-9v9m6-9v9m4-9v9M3 20h18M12 3l9 4H3z"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.5 9.2A1.8 1.8 0 0 0 6 21h12a1.8 1.8 0 0 0 1.5-2.8L14 9V3M7.5 15h9"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></symbol>
+    <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7M3 12h18"/></symbol>
+    <symbol id="i-reg" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0M7 12a5 5 0 0 1 10 0M10 12a2 2 0 0 1 4 0M12 14v7"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 12 18 8M12 4v2M20 12h-2M12 20v-2M4 12h2"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6h5a3 3 0 0 1 3 3v1a3 3 0 0 0 3 3h1M5 8v8a2 2 0 0 0 2 2h10"/></symbol>
+    <symbol id="i-content" viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5zM15 4v5h5M8 13h8M8 17h6"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2"/><path d="M3 20a6 6 0 0 1 12 0M14 20a4 4 0 0 1 8 0"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V5M16 20v-8M22 20V3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 22 20H2z"/><path d="M12 9v5M12 17h.01"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand" aria-label="ICAM Lab"><div class="brand-logo-fallback"><span>ICAM</span><i>/</i><b>LAB</b></div></div>
+      <nav class="nav">
+        <a href="index.html"><svg><use href="#i-home"/></svg><span>Главная</span></a>
+        <a href="foundation.html"><svg><use href="#i-bank"/></svg><span>Фундамент</span></a>
+        <a href="research.html"><svg><use href="#i-flask"/></svg><span>Исследования</span></a>
+        <a class="active" href="brazilportal.html"><svg><use href="#i-globe"/></svg><span>BrazilPortal</span></a>
+        <a href="operations.html"><svg><use href="#i-brief"/></svg><span>Операции</span></a>
+        <a href="registry.html"><svg><use href="#i-reg"/></svg><span>Реестр</span></a>
+        <a href="signals.html"><svg><use href="#i-signal"/></svg><span>Сигналы</span></a>
+        <a href="documents.html"><svg><use href="#i-doc"/></svg><span>Документы</span></a>
+        <a href="testing.html"><svg><use href="#i-check"/></svg><span>Тестирование</span></a>
+        <a href="settings.html"><svg><use href="#i-gear"/></svg><span>Настройки</span></a>
+      </nav>
+      <div class="manifesto"><p class="side-quote">«Сильная система не требует героя. Она умеет держать форму сама.»</p><div class="leaf-art">⌁</div></div>
+    </aside>
+
+    <main class="main bp-main">
+      <header class="topbar bp-topbar">
+        <div><h1>BrazilPortal</h1><p>живой коммерческий и миграционный контур</p></div>
+        <div class="top-actions">
+          <button class="search-pill"><span>Спросите что-нибудь о системе...</span><svg><use href="#i-search"/></svg></button>
+          <button class="concept-pill">Концепт интерфейса <span>ⓘ</span></button>
+          <button class="bell" aria-label="Уведомления">♧<b>3</b></button>
+          <button class="profile"><span class="avatar">Н</span><span><strong>Ника</strong><small>Founder</small></span><span>⌄</span></button>
+        </div>
+      </header>
+
+      <section class="bp-kpis">
+        <article class="card bp-kpi"><div class="bp-kpi-icon"><svg><use href="#i-globe"/></svg></div><div><small>Состояние контура</small><strong>ACTIVE</strong><span>автономная сборка</span><em>FND-007 · P0 BUSINESS</em></div><b class="bp-chip good">активно</b></article>
+        <article class="card bp-kpi"><div class="bp-kpi-icon"><svg><use href="#i-radar"/></svg></div><div><small>Radar</small><strong>18</strong><span>сигналов в очереди</span><em>4 новых за сутки</em></div></article>
+        <article class="card bp-kpi"><div class="bp-kpi-icon"><svg><use href="#i-route"/></svg></div><div><small>Funnel Router</small><strong>7</strong><span>активных маршрутов</span><em>shadow decisions logged</em></div></article>
+        <article class="card bp-kpi"><div class="bp-kpi-icon"><svg><use href="#i-content"/></svg></div><div><small>Content Factory</small><strong>12</strong><span>единиц в цикле</span><em>brief → publish</em></div></article>
+        <article class="card bp-kpi"><div class="bp-kpi-icon amber"><svg><use href="#i-alert"/></svg></div><div><small>Требует внимания</small><strong>1</strong><span>препятствий</span><em class="amber-text">не блокирует контур</em></div></article>
+      </section>
+
+      <section class="bp-grid">
+        <article class="card bp-panel loop-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-route"/></svg>Операционный цикл</h2><small>автономная машина BrazilPortal</small></div><span class="live-tag">● LIVE LOOP</span></div>
+          <div class="loop-track">
+            <div class="loop-node"><span><svg><use href="#i-radar"/></svg></span><b>RADAR</b><small>сигналы</small></div><i>→</i>
+            <div class="loop-node"><span>◇</span><b>DECISION</b><small>классификация</small></div><i>→</i>
+            <div class="loop-node"><span><svg><use href="#i-route"/></svg></span><b>ROUTER</b><small>маршрут</small></div><i>→</i>
+            <div class="loop-node"><span><svg><use href="#i-content"/></svg></span><b>BRIEF</b><small>задача</small></div><i>→</i>
+            <div class="loop-node"><span>✦</span><b>FACTORY</b><small>контент</small></div><i>→</i>
+            <div class="loop-node"><span>↗</span><b>PUBLISH</b><small>выход</small></div>
+          </div>
+          <div class="loop-return"><span>ATTRIBUTION / EVENTS</span><i></i><span>LEAD + FUNNEL STATE</span><i></i><span>FEEDBACK</span></div>
+          <button class="text-link">Открыть архитектуру цикла →</button>
+        </article>
+
+        <article class="card bp-panel state-panel">
+          <div class="panel-head"><h2><svg><use href="#i-users"/></svg>Лиды и воронки</h2></div>
+          <div class="funnel-head"><span>Контур</span><span>Состояние</span><span>События</span><span>Конверсия</span></div>
+          <div class="funnel-row"><b>Relocation</b><span class="state live">активен</span><em>42</em><strong>8.4%</strong></div>
+          <div class="funnel-row"><b>Residency</b><span class="state live">активен</span><em>31</em><strong>6.7%</strong></div>
+          <div class="funnel-row"><b>Property</b><span class="state watch">наблюдение</span><em>18</em><strong>4.9%</strong></div>
+          <div class="funnel-row"><b>Business</b><span class="state live">активен</span><em>23</em><strong>7.1%</strong></div>
+          <button class="text-link">Открыть состояние воронок →</button>
+        </article>
+
+        <article class="card bp-panel brazil-visual-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-globe"/></svg>Живой слой</h2><small>реальный рынок и пользовательский контур</small></div></div>
+          <div class="bp-scene-wrap">
+            <svg class="bp-scene" viewBox="0 0 420 150" aria-hidden="true">
+              <path d="M0 108 C40 88 64 91 95 70 S153 61 181 79 S236 92 277 72 S346 66 420 78"/>
+              <path d="M0 122 C58 104 105 115 147 93 S239 97 287 88 S360 89 420 96" opacity=".55"/>
+              <circle cx="333" cy="31" r="16" opacity=".55"/>
+              <path d="M42 124V82M42 95c-11-17-25-11-31 0M42 91c13-17 28-12 34 1M43 108c-8-9-17-8-23-2M43 106c8-9 18-7 23-2"/>
+              <path d="M96 125V90M96 101c-9-13-20-9-25 0M96 99c10-13 22-9 27 1" opacity=".8"/>
+              <path d="M190 116h133M205 116l21-47 21 47M268 116l21-47 21 47M226 69h63M218 90h82M211 104h99"/>
+              <path d="M174 116c23-19 47-19 72 0M289 116c24-18 49-18 74 0" opacity=".7"/>
+            </svg>
+            <div class="scene-caption"><b>BrazilPortal</b><span>рынок → контент → лид → событие → обратная связь</span></div>
+          </div>
+          <button class="text-link">Открыть live layer →</button>
+        </article>
+
+        <article class="card bp-panel radar-panel">
+          <div class="panel-head"><h2><svg><use href="#i-radar"/></svg>Радар</h2><span class="quiet-label">последние сигналы</span></div>
+          <ul class="radar-feed">
+            <li><i class="dot hot"></i><p><b>Регуляторный сдвиг</b><span>миграционный контур · Бразилия</span></p><em>высокий</em></li>
+            <li><i class="dot"></i><p><b>Рост спроса</b><span>relocation / residency</span></p><em>высокий</em></li>
+            <li><i class="dot soft"></i><p><b>Партнёрский сигнал</b><span>локальный сервисный контур</span></p><em>средний</em></li>
+            <li><i class="dot soft"></i><p><b>Контентный паттерн</b><span>вопросы по документам</span></p><em>средний</em></li>
+          </ul>
+          <button class="text-link">Открыть весь радар →</button>
+        </article>
+
+        <article class="card bp-panel content-panel">
+          <div class="panel-head"><h2><svg><use href="#i-content"/></svg>Content Factory</h2></div>
+          <div class="content-flow"><div><span>1</span><p><b>Brief</b><small>4 готово</small></p></div><i></i><div><span>2</span><p><b>Draft</b><small>3 в работе</small></p></div><i></i><div><span>3</span><p><b>Review</b><small>2 ожидают</small></p></div><i></i><div><span>4</span><p><b>Publish</b><small>3 запланировано</small></p></div></div>
+          <div class="factory-notes"><span>RU-first</span><span>public-safe</span><span>attribution tagged</span><span>feedback loop</span></div>
+          <button class="text-link">Открыть фабрику →</button>
+        </article>
+
+        <article class="card bp-panel attribution-panel">
+          <div class="panel-head"><h2><svg><use href="#i-chart"/></svg>Attribution / Events</h2></div>
+          <div class="event-bars">
+            <div><b>Identity links</b><span><i style="--p:92%"></i></span><em>92%</em></div>
+            <div><b>Tracked CTA</b><span><i style="--p:84%"></i></span><em>84%</em></div>
+            <div><b>Structured signals</b><span><i style="--p:76%"></i></span><em>76%</em></div>
+            <div><b>Outcome feedback</b><span><i style="--p:61%"></i></span><em>61%</em></div>
+          </div>
+          <div class="source-note">Цель gate: стабильный автономный цикл + надёжная attribution/state/outcome telemetry.</div>
+          <button class="text-link">Открыть события →</button>
+        </article>
+      </section>
+
+      <section class="card bp-bottom">
+        <div><small>NEXT MOVE</small><h3>Funnel Router + Content Factory + event-attribution integration</h3><p>Продолжаем внутри замороженных архитектурных guardrails; новая системная логика в Founder Panel не создаётся.</p></div>
+        <div class="bp-owner"><span>Владелец контура</span><b>Strategy / Revenue Machine / Growth Center</b></div>
+        <div class="bp-gate"><span>Следующий gate</span><b>Stable autonomous operating loop</b></div>
+        <button class="text-link">Детали контура →</button>
+      </section>
+      <div class="demo-note">BROWSER WORKBENCH · mock/reference data only · visual layer only</div>
+    </main>
+  </div>
+
+
+<script>
+(function(){
+  function setupCardArrows(){
+    document.querySelectorAll('.text-link').forEach(function(link){
+      var card = link.closest('.card') || link.closest('.foundation-footer-card') || link.closest('.bp-bottom') || link.closest('.doc-bottom') || link.closest('.sig-bottom') || link.closest('.ops-bottom') || link.closest('.state-contract');
+      if(!card) return;
+      var head = card.querySelector('.panel-head, .state-head');
+      if(!head || head.querySelector('.top-corner-arrow')) return;
+
+      var href = link.tagName === 'A' ? link.getAttribute('href') : null;
+      var arrow;
+      if(href && href !== '#'){
+        arrow = document.createElement('a');
+        arrow.href = href;
+        arrow.setAttribute('aria-label', link.textContent.trim().replace(/\s*→\s*$/,''));
+      } else {
+        arrow = document.createElement('span');
+        arrow.setAttribute('aria-hidden','true');
+      }
+      arrow.className = 'top-corner-arrow';
+      arrow.textContent = '→';
+      head.appendChild(arrow);
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupCardArrows);
+  else setupCardArrows();
+})();
+</script>
+
+
+<script src="truth-guard.js"></script>
+<script>
+// Страница целиком не подключена к живым источникам: ни одного запроса к API.
+// По P0-контракту показывать правдоподобные числа здесь нельзя.
+document.querySelectorAll('article.card, section.card, .card').forEach(el=>{
+  if((el.innerText||'').replace(/\s/g,'').length>3) TG.mark(el,'источник не подключён');});
+</script>
+<script src="live3.js"></script>
+<script src="semantic.js"></script>
+<script src="panel-fit.js"></script>
+<script defer src="panel-cards.js"></script>
+<script defer src="panel-scroll.js"></script>
+</body>
+</html>

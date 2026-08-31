@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ICAM Founder Panel — Настройки</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="settings.css">
+  <link rel="stylesheet" href="shell-normalize.css">
+<script src="trust-contract.js"></script>
+<link rel="stylesheet" href="panel-readability.css">
+<link rel="stylesheet" href="panel-polish.css">
+<link rel="stylesheet" href="panel-system.css">
+<link rel="stylesheet" href="panel-layout.css">
+<link rel="stylesheet" href="panel-final.css">
+</head>
+<body class="settings-page">
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11 12 3l9 8v9H14v-6h-4v6H3z"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24"><path d="m3 9 9-5 9 5M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M8 14h8"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></symbol>
+    <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V4h6v3M3 12h18"/></symbol>
+    <symbol id="i-reg" viewBox="0 0 24 24"><circle cx="6" cy="7" r="2"/><circle cx="18" cy="7" r="2"/><circle cx="12" cy="17" r="2"/><path d="M8 8.5 11 15M16 8.5 13 15M8 7h8"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24"><path d="M5 19a10 10 0 0 1 14-14M8 19a7 7 0 0 1 11-11M11 19a4 4 0 0 1 8-4M18 19h.01"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 12h6M9 16h6"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 13.5v-3l-2-.7a7 7 0 0 0-.8-1.8l.9-1.9-2.2-2.2-1.9.9a7 7 0 0 0-1.8-.8L10.5 2h-3l-.7 2a7 7 0 0 0-1.8.8l-1.9-.9L.9 6.1 1.8 8a7 7 0 0 0-.8 1.8l-2 .7v3l2 .7a7 7 0 0 0 .8 1.8l-.9 1.9 2.2 2.2 1.9-.9a7 7 0 0 0 1.8.8l.7 2h3l.7-2a7 7 0 0 0 1.8-.8l1.9.9 2.2-2.2-.9-1.9a7 7 0 0 0 .8-1.8z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17h12l-1.5-2V10a4.5 4.5 0 0 0-9 0v5zM10 20h4"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v6c0 5-3.3 8-8 9-4.7-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h8M16 6h4M4 12h3M11 12h9M4 18h10M18 18h2"/><circle cx="14" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="16" cy="18" r="2"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand" aria-label="ICAM Lab"><div class="brand-logo-fallback"><span>ICAM</span><i>/</i><b>LAB</b></div></div>
+      <nav class="nav">
+        <a href="index.html"><svg><use href="#i-home"/></svg><span>Главная</span></a>
+        <a href="foundation.html"><svg><use href="#i-bank"/></svg><span>Фундамент</span></a>
+        <a href="research.html"><svg><use href="#i-flask"/></svg><span>Исследования</span></a>
+        <a href="brazilportal.html"><svg><use href="#i-globe"/></svg><span>BrazilPortal</span></a>
+        <a href="operations.html"><svg><use href="#i-brief"/></svg><span>Операции</span></a>
+        <a href="registry.html"><svg><use href="#i-reg"/></svg><span>Реестр</span></a>
+        <a href="signals.html"><svg><use href="#i-signal"/></svg><span>Сигналы</span></a>
+        <a href="documents.html"><svg><use href="#i-doc"/></svg><span>Документы</span></a>
+        <a href="testing.html"><svg><use href="#i-check"/></svg><span>Тестирование</span></a>
+        <a class="active" href="settings.html"><svg><use href="#i-gear"/></svg><span>Настройки</span></a>
+      </nav>
+      <div class="manifesto"><p class="side-quote">«Сильная система не требует героя. Она умеет держать форму сама.»</p><div class="leaf-art">⌁</div></div>
+    </aside>
+
+    <main class="main settings-main">
+      <header class="topbar settings-topbar">
+        <div><h1>Настройки</h1><p>интерфейс, уведомления и подключённые контуры</p></div>
+        <div class="top-actions">
+          <button class="search-pill"><span>Спросите что-нибудь о системе...</span><svg><use href="#i-search"/></svg></button>
+          <button class="concept-pill">Концепт интерфейса <span>ⓘ</span></button>
+          <button class="bell" aria-label="Уведомления">♧<b>3</b></button>
+          <button class="profile"><span class="avatar">Н</span><span><strong>Ника</strong><small>Founder</small></span><span>⌄</span></button>
+        </div>
+      </header>
+
+      <section class="settings-kpis">
+        <article class="card set-kpi"><div class="set-kpi-icon"><svg><use href="#i-eye"/></svg></div><div><small>Режим панели</small><strong>READ ONLY</strong><span>визуальный Founder layer</span><em>write-actions вне панели</em></div></article>
+        <article class="card set-kpi"><div class="set-kpi-icon"><svg><use href="#i-sliders"/></svg></div><div><small>Интерфейс</small><strong>RU</strong><span>основной язык</span><em>единый shell активен</em></div></article>
+        <article class="card set-kpi"><div class="set-kpi-icon"><svg><use href="#i-bell"/></svg></div><div><small>Уведомления</small><strong>4</strong><span>категории внимания</span><em>Founder-visible</em></div></article>
+        <article class="card set-kpi"><div class="set-kpi-icon"><svg><use href="#i-link"/></svg></div><div><small>Подключения</small><strong>7/7</strong><span>визуальные источники</span><em>mock/reference layer</em></div></article>
+        <article class="card set-kpi"><div class="set-kpi-icon"><svg><use href="#i-shield"/></svg></div><div><small>Сессия</small><strong>OK</strong><span>Founder profile</span><em>без write-authority</em></div></article>
+      </section>
+
+      <section class="settings-grid">
+        <article class="card settings-panel interface-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-sliders"/></svg>Интерфейс</h2><small>визуальные параметры Founder Panel</small></div></div>
+          <div class="setting-row"><div><b>Язык интерфейса</b><span>основной язык панели</span></div><em class="value-pill">Русский</em></div>
+          <div class="setting-row"><div><b>Плотность</b><span>компактная рабочая раскладка</span></div><em class="value-pill">Компактная</em></div>
+          <div class="setting-row"><div><b>Тема</b><span>дымчато-серая матовая</span></div><em class="value-pill">ICAM Dark</em></div>
+          <div class="setting-row"><div><b>Движение и подсветка</b><span>эффекты будут настраиваться после deployment</span></div><em class="value-pill muted-pill">Выключено</em></div>
+          <button class="text-link">Открыть параметры интерфейса →</button>
+        </article>
+
+        <article class="card settings-panel notifications-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-bell"/></svg>Уведомления</h2><small>что поднимать до Founder attention</small></div></div>
+          <div class="toggle-row"><span><b>Founder gates</b><small>решения, требующие владельца</small></span><i class="toggle on"><u></u></i></div>
+          <div class="toggle-row"><span><b>Integrity / freshness</b><small>устаревшие или расходящиеся состояния</small></span><i class="toggle on"><u></u></i></div>
+          <div class="toggle-row"><span><b>Document queue</b><small>порог очереди и возраста</small></span><i class="toggle on"><u></u></i></div>
+          <div class="toggle-row"><span><b>Низкий приоритет</b><small>обычные информационные события</small></span><i class="toggle off"><u></u></i></div>
+          <button class="text-link">Открыть правила внимания →</button>
+        </article>
+
+        <article class="card settings-panel sources-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-link"/></svg>Источники и связи</h2><small>визуальное состояние подключённых контуров</small></div><span class="quiet-label"></span></div>
+          <div class="source-setting"><span class="source-dot good"></span><p><b>ICAM Control Plane</b><small>current state / events</small></p><em>подключён</em></div>
+          <div class="source-setting"><span class="source-dot good"></span><p><b>Research Hub</b><small>updates / files</small></p><em>подключён</em></div>
+          <div class="source-setting"><span class="source-dot good"></span><p><b>Google Drive</b><small>documents / references</small></p><em>подключён</em></div>
+          <div class="source-setting"><span class="source-dot good"></span><p><b>Registry projection</b><small>objects / relations</small></p><em>подключён</em></div>
+          <button class="text-link">Открыть карту источников →</button>
+        </article>
+
+        <article class="card settings-panel access-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-shield"/></svg>Доступ и безопасность</h2><small>границы этого визуального слоя</small></div></div>
+          <div class="access-hero"><div class="role-ring"><svg><use href="#i-user"/></svg></div><div><span>Текущая роль</span><b>Founder</b><small>обзор состояния и внимания</small></div></div>
+          <div class="access-line"><span>Режим панели</span><b>read-only</b></div>
+          <div class="access-line"><span>Reviewer actions</span><b>в отдельном path</b></div>
+          <div class="access-line"><span>Write authority</span><b>owning systems</b></div>
+          <div class="access-note">Этот workbench не создаёт права, токены, подтверждения или системные переходы.</div>
+          <button class="text-link">Открыть envelope →</button>
+        </article>
+
+        <article class="card settings-panel display-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-eye"/></svg>Отображение</h2><small>принятые визуальные правила</small></div></div>
+          <div class="display-grid">
+            <div><span>Sidebar</span><b>184 px</b><small>фиксирован</small></div>
+            <div><span>Карточки</span><b>Matte</b><small>единый материал</small></div>
+            <div><span>Язык</span><b>RU-first</b><small>англ. только где нужно</small></div>
+            <div><span>Motion</span><b>OFF</b><small>до deployment</small></div>
+          </div>
+          <div class="display-note"><svg><use href="#i-check"/></svg><span>Все основные экраны используют один стабилизированный shell.</span></div>
+          <a class="text-link" href="states.html">Открыть special states →</a>
+        </article>
+
+        <article class="card settings-panel version-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-gear"/></svg>О панели</h2><small>текущая визуальная сборка</small></div></div>
+          <div class="version-mark"><span>ICAM</span><b>Founder Panel</b><em>Workbench v1.7</em></div>
+          <div class="version-facts"><span><b>9</b><small>верхнеуровневых экранов</small></span><span><b>1</b><small>общий shell</small></span><span><b>RU</b><small>основной язык</small></span></div>
+          <p class="version-copy">Mock/reference data only · frontend visual layer only. Финальная интеграция с живыми источниками и системными действиями выполняется отдельно.</p>
+          <button class="text-link">Открыть сведения о сборке →</button>
+        </article>
+      </section>
+
+      <section class="card settings-bottom">
+        <div><small>NEXT MOVE</small><h3>Final QA + implementation handoff</h3><p>Special states и типографика сведены. Дальше — проверка целостности экранов, крайних состояний и пакет для deployment.</p></div>
+        <div class="settings-owner"><span>Владелец визуального слоя</span><b>Founder Panel UI branch</b></div>
+        <div class="settings-gate"><span>Следующий gate</span><b>Visual QA / implementation handoff</b></div>
+        <a class="text-link" href="states.html">Открыть состояния →</a>
+      </section>
+      <div class="demo-note">BROWSER WORKBENCH · mock/reference data only · visual layer only</div>
+    </main>
+  </div>
+
+
+<script>
+(function(){
+  function setupCardArrows(){
+    document.querySelectorAll('.text-link').forEach(function(link){
+      var card = link.closest('.card') || link.closest('.foundation-footer-card') || link.closest('.bp-bottom') || link.closest('.doc-bottom') || link.closest('.sig-bottom') || link.closest('.ops-bottom') || link.closest('.state-contract');
+      if(!card) return;
+      var head = card.querySelector('.panel-head, .state-head');
+      if(!head || head.querySelector('.top-corner-arrow')) return;
+
+      var href = link.tagName === 'A' ? link.getAttribute('href') : null;
+      var arrow;
+      if(href && href !== '#'){
+        arrow = document.createElement('a');
+        arrow.href = href;
+        arrow.setAttribute('aria-label', link.textContent.trim().replace(/\s*→\s*$/,''));
+      } else {
+        arrow = document.createElement('span');
+        arrow.setAttribute('aria-hidden','true');
+      }
+      arrow.className = 'top-corner-arrow';
+      arrow.textContent = '→';
+      head.appendChild(arrow);
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupCardArrows);
+  else setupCardArrows();
+})();
+</script>
+
+
+<script src="truth-guard.js"></script>
+<script>
+// Страница не делает ни одного запроса к API: заявленное здоровье подключений
+// (в т.ч. "7/7") не может быть правдой, потому что ничем не измеряется.
+document.querySelectorAll('article.card, section.card, .card').forEach(function(el){
+  if((el.innerText||'').replace(/\s/g,'').length>3) TG.mark(el,'состояние не измеряется · не подключено');
+});
+</script>
+<script src="live3.js"></script>
+<script src="panel-fit.js"></script>
+<script defer src="panel-cards.js"></script>
+<script defer src="panel-scroll.js"></script>
+</body>
+</html>

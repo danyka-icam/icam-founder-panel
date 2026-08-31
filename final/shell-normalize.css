@@ -1,0 +1,604 @@
+/* ICAM Founder Panel — shared shell normalization v1.2.2
+   One physical frame for every screen. Must load LAST. */
+:root{
+  --icam-sidebar-w:184px;
+  --icam-shell-gap:10px;
+  --icam-main-pad-x:18px;
+  --icam-main-pad-top:14px;
+  --icam-main-pad-bottom:10px;
+}
+
+/* Stable horizontal geometry: no page jump on navigation. */
+.app-shell,
+.home-page .app-shell,
+.foundation-page .app-shell,
+.research-page .app-shell,
+.bp-page .app-shell,
+.ops-page .app-shell,
+.signals-page .app-shell,
+.documents-page .app-shell,
+.settings-page .app-shell,
+.states-page .app-shell{
+  grid-template-columns:var(--icam-sidebar-w) minmax(0,1fr) !important;
+  padding-left:0 !important;
+  min-height:100vh;
+}
+
+/* Same floating matte rail everywhere, including Registry and Operations. */
+.sidebar,
+.home-page .sidebar,
+.foundation-page .sidebar,
+.research-page .sidebar,
+.bp-page .sidebar,
+.ops-page .sidebar,
+.signals-page .sidebar,
+.documents-page .sidebar,
+.settings-page .sidebar,
+.states-page .sidebar{
+  position:sticky !important;
+  top:10px !important;
+  height:calc(100vh - 20px) !important;
+  margin:0 0 0 10px !important;
+  padding:16px 12px 12px !important;
+  border:1px solid var(--line) !important;
+  border-radius:14px !important;
+  background:
+    radial-gradient(115% 95% at 18% 0%,rgba(255,255,255,.045),transparent 48%),
+    linear-gradient(180deg,rgba(55,64,68,.66),rgba(35,43,47,.72)) !important;
+  box-shadow:0 14px 30px rgba(7,11,13,.13),inset 0 1px 0 rgba(255,255,255,.035),inset 0 -1px 0 rgba(0,0,0,.10) !important;
+  backdrop-filter:blur(16px) !important;
+}
+.brand,
+.home-page .brand,.foundation-page .brand,.research-page .brand,.bp-page .brand,.ops-page .brand,.signals-page .brand,.documents-page .brand,.settings-page .brand,.states-page .brand{
+  height:80px !important;
+  padding-left:10px !important;
+}
+.nav{gap:3px !important}
+.nav a,
+.home-page .nav a,.foundation-page .nav a,.research-page .nav a,.bp-page .nav a,.ops-page .nav a,.signals-page .nav a,.documents-page .nav a,.settings-page .nav a,.states-page .nav a{
+  padding:8px 11px !important;
+  gap:9px !important;
+  font-size:11.1px !important;
+  line-height:1.15 !important;
+}
+
+/* Same content origin. This fixes Operations feeling squeezed/up-stretched. */
+.main,
+.home-page .main,
+.foundation-page .main,
+.research-page .main,
+.bp-page .main,
+.ops-page .main,
+.signals-page .main,
+.documents-page .main,
+.settings-page .main,
+.states-page .main{
+  padding:var(--icam-main-pad-top) var(--icam-main-pad-x) var(--icam-main-pad-bottom) !important;
+}
+
+/* Common header cadence. */
+.topbar,
+.home-topbar,.foundation-topbar,.research-topbar,.bp-topbar,.ops-topbar,.signals-topbar,.documents-topbar,.settings-topbar,.states-topbar{
+  height:58px !important;
+}
+
+/* Operations was the only screen still sitting on the older visual shell. */
+.ops-page{
+  --surface:rgba(69,78,82,.58);
+  --surface-2:rgba(78,87,90,.54);
+  --surface-3:rgba(86,95,96,.46);
+}
+.ops-page .card{
+  background:
+    radial-gradient(120% 110% at 14% 0%,rgba(255,255,255,.062),transparent 48%),
+    linear-gradient(180deg,rgba(255,255,255,.026),rgba(255,255,255,.008) 32%,rgba(0,0,0,.025)),
+    var(--surface) !important;
+  border-color:var(--line) !important;
+  box-shadow:var(--shadow) !important;
+}
+
+/* Keep the frame stable at common laptop widths too. */
+@media(max-width:1450px){
+  :root{--icam-sidebar-w:184px;--icam-main-pad-x:18px}
+}
+@media(max-width:1180px){
+  :root{--icam-sidebar-w:184px}
+  .main,.home-page .main,.foundation-page .main,.research-page .main,.bp-page .main,.ops-page .main,
+.signals-page .main,
+.documents-page .main,
+.settings-page .main,
+.states-page .main{min-width:1030px}
+}
+
+
+/* v1.6 — global typography and sidebar normalization pass */
+:root{
+  --icam-panel-title:12.9px;
+  --icam-panel-meta:8px;
+  --icam-card-text:8.1px;
+  --icam-card-text-2:7.2px;
+  --icam-link-size:8.9px;
+}
+.brand,
+.home-page .brand,.foundation-page .brand,.research-page .brand,.bp-page .brand,.ops-page .brand,.signals-page .brand,.documents-page .brand,.settings-page .brand,.states-page .brand{
+  justify-content:flex-end !important;
+  text-align:right !important;
+  padding:0 2px 2px 0 !important;
+  height:72px !important;
+}
+.brand-logo-fallback,
+.brand-logo-fallback:not([hidden]){
+  display:flex !important;
+  align-items:flex-end !important;
+  justify-content:flex-end !important;
+  width:100% !important;
+  text-align:right !important;
+}
+.brand-logo-fallback span{font-size:19px !important;line-height:1 !important}
+.brand-logo-fallback i{font-size:12px !important;line-height:1 !important}
+.brand-logo-fallback b{font-size:9px !important;line-height:1 !important}
+.nav{margin-top:2px !important}
+.manifesto,
+.home-page .manifesto,.foundation-page .manifesto,.research-page .manifesto,.bp-page .manifesto,.ops-page .manifesto,.signals-page .manifesto,.documents-page .manifesto,.settings-page .manifesto,.states-page .manifesto{
+  margin-top:auto !important;
+  min-height:120px !important;
+  padding:14px 10px 10px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:flex-end !important;
+  align-items:center !important;
+  text-align:center !important;
+}
+.side-quote{
+  max-width:118px !important;
+  margin:0 auto 8px !important;
+  font-size:10.2px !important;
+  line-height:1.42 !important;
+  letter-spacing:0 !important;
+  text-wrap:balance;
+}
+.leaf-art{margin-top:4px !important;font-size:32px !important;line-height:1 !important;opacity:.78 !important}
+
+/* common content rhythm */
+.panel-head,
+.home-page .panel-head,.foundation-page .panel-head,.research-page .panel-head,.bp-page .panel-head,.ops-page .panel-head,.signals-page .panel-head,.documents-page .panel-head,.settings-page .panel-head,.states-page .panel-head{
+  min-height:42px !important;
+}
+.panel-head h2,
+.head-title h2{
+  font-size:var(--icam-panel-title) !important;
+  line-height:1.15 !important;
+  letter-spacing:0 !important;
+}
+.panel-head small,
+.head-title small,
+.panel-head .quiet-label,
+.mission-note,
+.settings-bottom small,
+.version-mark em,
+.state,
+.status-pill,
+.deadline,
+.score,
+.value-pill,
+.toggle-row span small,
+.source-setting small,
+.access-hero span,
+.access-hero small,
+.display-grid span,
+.display-grid small,
+.display-note,
+.version-facts small,
+.version-copy,
+.settings-owner span,
+.settings-gate span,
+.settings-owner b,
+.settings-gate b,
+.demo-note{
+  font-size:var(--icam-panel-meta) !important;
+  line-height:1.28 !important;
+}
+.text-link,
+.panel-foot button,
+.panel-foot,
+.settings-bottom .text-link,
+.version-panel>.text-link,
+.settings-panel>.text-link{
+  font-size:var(--icam-link-size) !important;
+  line-height:1.2 !important;
+}
+.card p,
+.card li,
+.card td,
+.card th,
+.card span,
+.card small,
+.card em,
+.card b,
+.card strong{
+  text-wrap:pretty;
+}
+.home-list li,
+.priority-list li,
+.radar-list li,
+.health-list li,
+.rules-row small,
+.event-list li,
+.attention li,
+.relation-diagram,
+.changed-col p,
+.bp-step p,
+.bp-feed li,
+.lead-row,
+.funnel-row,
+.queue-list li,
+.doc-row,
+.signal-row,
+.cluster-row,
+.gate-row,
+.ops-row,
+.load-row,
+.rule-row,
+.setting-row,
+.toggle-row,
+.source-setting,
+.access-line,
+.display-note,
+.settings-bottom p,
+.version-copy,
+.file-chips span,
+.facts,
+.next-move,
+.truth-status,
+.integrity p,
+.type-row,
+.source-row,
+.experiment-row{
+  font-size:var(--icam-card-text) !important;
+  line-height:1.32 !important;
+}
+.changed-col h4,
+.growth-copy h3,
+.settings-bottom h3,
+.access-hero b,
+.display-grid b,
+.version-mark b,
+.version-mark span{
+  line-height:1.1 !important;
+}
+.home-list li,
+.priority-list li,
+.radar-list li,
+.health-list li,
+.bp-feed li,
+.queue-list li,
+.signal-row,
+.cluster-row,
+.ops-row,
+.gate-row,
+.setting-row,
+.toggle-row,
+.source-setting,
+.access-line,
+.type-row,
+.source-row,
+.experiment-row{
+  align-items:center !important;
+}
+.home-panel .text-link,
+.bp-panel .text-link,
+.doc-panel .text-link,
+.sig-panel .text-link,
+.settings-panel>.text-link,
+.object-card .text-link,
+.integrity>.text-link,
+.relations>.text-link,
+.events>.text-link,
+.attention>.text-link{
+  margin-top:auto !important;
+}
+
+
+/* v1.7.4 rollback — freeze all motion until domain deployment */
+*, *::before, *::after{
+  animation:none !important;
+  transition:none !important;
+  scroll-behavior:auto !important;
+}
+
+
+/* RC1 clean P1 — user marked polish pass */
+/* 1) remove left logo completely and lift menu upward */
+.brand,
+.home-page .brand,.foundation-page .brand,.research-page .brand,.bp-page .brand,.ops-page .brand,.signals-page .brand,.documents-page .brand,.settings-page .brand,.states-page .brand{
+  display:none !important;
+}
+.sidebar,
+.home-page .sidebar,.foundation-page .sidebar,.research-page .sidebar,.bp-page .sidebar,.ops-page .sidebar,.signals-page .sidebar,.documents-page .sidebar,.settings-page .sidebar,.states-page .sidebar{
+  padding-top:12px !important;
+}
+.nav{margin-top:0 !important;}
+
+/* 2) larger quote box + neutral symbol in lower area */
+.manifesto,
+.home-page .manifesto,.foundation-page .manifesto,.research-page .manifesto,.bp-page .manifesto,.ops-page .manifesto,.signals-page .manifesto,.documents-page .manifesto,.settings-page .manifesto,.states-page .manifesto{
+  min-height:158px !important;
+  padding:16px 12px 14px !important;
+  background:
+    radial-gradient(115% 90% at 16% 0%,rgba(255,255,255,.038),transparent 48%),
+    linear-gradient(180deg,rgba(58,67,71,.50),rgba(36,44,48,.56)) !important;
+}
+.side-quote{
+  max-width:126px !important;
+  margin:0 auto 10px !important;
+  font-size:10.6px !important;
+  line-height:1.46 !important;
+}
+.leaf-art,
+.home-page .leaf-art,.foundation-page .leaf-art,.research-page .leaf-art,.bp-page .leaf-art,.ops-page .leaf-art,.signals-page .leaf-art,.documents-page .leaf-art,.settings-page .leaf-art,.states-page .leaf-art{
+  width:46px !important;
+  height:46px !important;
+  margin-top:8px !important;
+  font-size:0 !important;
+  line-height:0 !important;
+  opacity:.82 !important;
+  background-repeat:no-repeat !important;
+  background-position:center !important;
+  background-size:contain !important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23d6bb78' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' opacity='.92'%3E%3Ccircle cx='18' cy='20' r='6'/%3E%3Ccircle cx='46' cy='19' r='6'/%3E%3Ccircle cx='32' cy='44' r='6.5'/%3E%3Cpath d='M23.5 23.5 28.7 36'/%3E%3Cpath d='M40.5 23.2 35.2 36'/%3E%3Cpath d='M24 20h16'/%3E%3C/g%3E%3C/svg%3E") !important;
+}
+
+/* 3) uppercase only titles / names of cards, not body text */
+.panel-head h2,
+.head-title h2{
+  text-transform:uppercase !important;
+  letter-spacing:.03em !important;
+}
+
+/* 4) make only the smallest supporting text slightly larger */
+:root{
+  --icam-panel-meta:8.45px;
+  --icam-card-text:8.35px;
+  --icam-card-text-2:7.55px;
+}
+.panel-head small,
+.head-title small,
+.panel-head .quiet-label,
+.mission-note,
+.settings-bottom small,
+.version-mark em,
+.state,
+.status-pill,
+.deadline,
+.score,
+.value-pill,
+.toggle-row span small,
+.source-setting small,
+.access-hero span,
+.access-hero small,
+.display-grid span,
+.display-grid small,
+.display-note,
+.version-facts small,
+.version-copy,
+.settings-owner span,
+.settings-gate span,
+.settings-owner b,
+.settings-gate b,
+.demo-note{
+  font-size:var(--icam-panel-meta) !important;
+}
+.system-card .state{font-size:9.45px !important;line-height:1.18 !important;}
+.system-card p{font-size:9.05px !important;line-height:1.42 !important;}
+.home-list .status-pill,
+.home-list .deadline,
+.priority-list .score,
+.radar-list b,
+.health-list em,
+.integrity-meter small,
+.legend,
+.road-labels,
+.pilot-pill{
+  font-size:8.05px !important;
+}
+
+/* keep side menu labels a touch clearer after logo removal */
+.nav a,
+.home-page .nav a,.foundation-page .nav a,.research-page .nav a,.bp-page .nav a,.ops-page .nav a,.signals-page .nav a,.documents-page .nav a,.settings-page .nav a,.states-page .nav a{
+  font-size:11.3px !important;
+}
+
+
+/* RC1 clean P2 — typography + top-right arrows consistency pass */
+/* A) main page as typography reference for panel heads */
+.panel-head,
+.head-title,
+.state-head{position:relative;}
+.panel-head h2,
+.head-title h2,
+.state-head h2{
+  font:400 12.9px/1.08 Georgia,"Times New Roman",serif !important;
+  text-transform:uppercase !important;
+  letter-spacing:.02em !important;
+}
+.panel-head small,
+.head-title small,
+.state-head small{
+  font-size:8.55px !important;
+  line-height:1.24 !important;
+  letter-spacing:0 !important;
+}
+.mission-note,
+.quiet-label,
+.live-tag,
+.live-dot,
+.attention-count,
+.counter,
+.state-head>b{
+  font-size:8px !important;
+}
+
+/* B) unify the top KPI strips across pages to the home-page tone */
+.research-kpi small,
+.ops-kpi small,
+.foundation-kpi small,
+.bp-kpi small,
+.sig-kpi small,
+.doc-kpi small,
+.set-kpi small,
+.state-token-strip .token-card small,
+.kpis .kpi>div>span{
+  display:block !important;
+  margin:0 0 4px !important;
+  font:400 12.6px/1.08 Georgia,"Times New Roman",serif !important;
+  color:#e6e0d4 !important;
+  text-transform:none !important;
+  letter-spacing:0 !important;
+}
+.research-kpi span,
+.ops-kpi span,
+.bp-kpi span,
+.sig-kpi span,
+.doc-kpi span,
+.set-kpi span,
+.foundation-kpi em,
+.research-kpi em,
+.ops-kpi em,
+.bp-kpi em,
+.sig-kpi em,
+.doc-kpi em,
+.set-kpi em,
+.kpis .kpi>div>small,
+.kpis .kpi>div>em,
+.state-token-strip .token-card em{
+  font-size:8.45px !important;
+  line-height:1.28 !important;
+}
+.research-kpi strong,
+.ops-kpi strong,
+.foundation-kpi strong,
+.bp-kpi strong,
+.sig-kpi strong,
+.doc-kpi strong,
+.set-kpi strong,
+.kpis .kpi strong,
+.state-token-strip .token-card b{
+  line-height:1.02 !important;
+}
+
+/* C) slightly lift the smallest in-card text on the secondary pages */
+.queue-head,
+.queue-row,
+.queue-row p,
+.queue-row span,
+.state-copy,
+.state-example>span,
+.state-example>small,
+.state-meta i,
+.state-meta b,
+.state-rule,
+.bp-owner span,.bp-gate span,
+.doc-owner span,.doc-gate span,
+.sig-owner span,.sig-gate span,
+.ops-owner span,.ops-gate span,
+.settings-owner span,.settings-gate span,
+.answer-owner span,.answer-owner b,
+.changes-feed p,
+.changes-feed small,
+.experiment-row,
+.type-row,
+.source-row,
+.signal-row,
+.cluster-row,
+.doc-row,
+.gate-row,
+.ops-row,
+.load-row,
+.lead-row,
+.funnel-row,
+.version-copy,
+.settings-bottom p,
+.next-move,
+.truth-status,
+.integrity p,
+.relation-diagram,
+.file-chips span,
+.facts,
+.growth-copy p,
+.legend,
+.road-labels,
+.home-list li,
+.priority-list li,
+.radar-list li,
+.health-list li{
+  font-size:8.45px !important;
+  line-height:1.32 !important;
+}
+
+/* D) remove clipped bottom link rows and replace with a clean top-right arrow */
+.text-link,
+.state-action,
+.growth-card>.text-link,
+.brazil-card>.text-link,
+.home-panel>.text-link,
+.foundation-panel>.text-link,
+.research-panel>.text-link,
+.bp-panel>.text-link,
+.ops-panel>.text-link,
+.sig-panel>.text-link,
+.doc-panel>.text-link,
+.settings-panel>.text-link,
+.version-panel>.text-link,
+.object-card>.text-link,
+.integrity>.text-link,
+.relations>.text-link,
+.events>.text-link,
+.attention>.text-link,
+.state-card>.text-link,
+.bp-bottom .text-link,
+.doc-bottom .text-link,
+.ops-bottom .text-link,
+.sig-bottom .text-link,
+.foundation-footer-card .text-link,
+.state-contract>.text-link{
+  display:none !important;
+}
+.top-corner-arrow{
+  position:absolute;
+  top:11px;
+  right:12px;
+  color:#b8cf8d;
+  font-size:13px;
+  line-height:1;
+  opacity:.95;
+  pointer-events:none;
+}
+.panel-head{padding-right:28px !important;}
+.state-head{padding-right:28px !important;}
+
+/* some cards keep a header wrapped inside head-title */
+.head-title{padding-right:20px !important;}
+
+/* E) home page remains the visual reference; avoid title overflow in the top strip */
+.system-card h3{font:400 12.7px/1.08 Georgia,"Times New Roman",serif !important;}
+.system-card .state{font-size:9.2px !important;line-height:1.18 !important;}
+.system-card p{font-size:8.6px !important;line-height:1.38 !important;}
+
+
+/* FINAL — sidebar vertical alignment preserved; full-card click deferred to Klim */
+.nav,
+.home-page .nav,.foundation-page .nav,.research-page .nav,.bp-page .nav,.ops-page .nav,.signals-page .nav,.documents-page .nav,.settings-page .nav,.states-page .nav{
+  margin-top:58px !important;
+}
+
+
+/* FINAL TRANSFER — arrow-only navigation; full-card click intentionally disabled */
+.top-corner-arrow{
+  pointer-events:none !important;
+  text-decoration:none !important;
+  z-index:5;
+}
+a.top-corner-arrow{
+  pointer-events:auto !important;
+  cursor:pointer !important;
+}

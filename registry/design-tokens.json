@@ -1,0 +1,36 @@
+{
+  "name": "ICAM Founder Panel Material System",
+  "version": "0.1",
+  "status": "visual-reference-implementation-candidate",
+  "principle": "smoky graphite layered matte surface, not flat dark UI",
+  "colors": {
+    "background.deep": "#222a30",
+    "background.main": "#2b3338",
+    "background.soft": "#313a3f",
+    "text.primary": "#e5e5df",
+    "text.secondary": "#a8aeaa",
+    "text.muted": "#858d89",
+    "accent.sage": "#a9c47f",
+    "accent.sageDark": "#7f9d67",
+    "accent.gold": "#d6bb78",
+    "accent.amber": "#d7a144",
+    "accent.coral": "#d47563",
+    "accent.steel": "#7da3b9"
+  },
+  "surface": {
+    "card": "rgba(69,78,82,.58)",
+    "cardAlternative": "rgba(78,87,90,.54)",
+    "border": "rgba(237,241,237,.105)",
+    "borderSoft": "rgba(235,239,235,.06)",
+    "radius": 14,
+    "backdropBlurPx": 14
+  },
+  "materialRules": [
+    "No large flat single-color dark surfaces",
+    "Use subtle radial haze on the page background",
+    "Cards receive a soft top/internal fill rather than glossy reflections",
+    "Keep border contrast low and shadows broad/soft",
+    "Semantic color occupies small areas only",
+    "Green is a semantic status accent, not the interface base color"
+  ]
+}

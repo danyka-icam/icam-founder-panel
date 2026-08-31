@@ -1,0 +1,168 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   ЕДИНАЯ СИСТЕМА КАРТОЧЕК · 2026-08-27
+   Замечание Niki: «весь визуал читается не как одна панель, а как разные».
+   Причина — у каждой группы карточек своя иконка, свой кегль значения и своё
+   место у плашки состояния. Сводим к одному строю:
+     иконка (одного размера, одного места) · заголовок · стрелка перехода
+     ниже — текст, который переносится и НЕ раздвигает окно
+     числа одного размера везде
+   Состояние — цветом кольца вокруг иконки, а не подписью.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root{
+  --icon:26px;            /* один размер иконки на всю панель */
+  --val-num:22px;         /* крупное число — везде одинаково */
+  --val-text:15px;        /* длинное текстовое значение — своя ступень */
+  --ring:2px;
+}
+
+/* ── 1. ИКОНКИ: один размер, одно место ───────────────────────────────── */
+.doc-kpi-icon, .rk-icon, .f-kpi-icon, .bp-kpi-icon, .sig-kpi-icon,
+.set-kpi-icon, .kpi-icon, .system-icon, .panel-head > svg,
+.panel-head h2 > svg{
+  width:var(--icon) !important; height:var(--icon) !important;
+  min-width:var(--icon); min-height:var(--icon);
+  flex:0 0 var(--icon);
+  display:inline-grid !important; place-items:center;
+  border-radius:50%;
+  background:rgba(140,160,145,.10);
+  border:1px solid rgba(150,170,155,.16);
+  box-sizing:border-box;
+}
+.doc-kpi-icon svg, .rk-icon svg, .f-kpi-icon svg, .bp-kpi-icon svg,
+.sig-kpi-icon svg, .set-kpi-icon svg, .kpi-icon svg, .system-icon svg,
+.panel-head h2 > svg{
+  width:14px !important; height:14px !important; display:block;
+}
+.panel-head h2 > svg{ border:0; background:none; border-radius:0 }
+
+/* ── 2. КОЛЬЦО СОСТОЯНИЯ вместо текстовой плашки ──────────────────────── */
+.tc-badge{ display:none !important }              /* подписи «ЖИВО/ДЕМО» убраны */
+.state-ring{ position:relative }
+.st-live  .state-ring{ box-shadow:0 0 0 var(--ring) #3f7d55, 0 0 8px rgba(63,125,85,.35) }
+.st-part  .state-ring{ box-shadow:0 0 0 var(--ring) #a8823c }
+.st-none  .state-ring{ box-shadow:0 0 0 var(--ring) #7a4a4a }
+.st-demo  .state-ring{ box-shadow:0 0 0 var(--ring) #4b4470 }
+
+/* ── 3. ШАПКА: иконка · заголовок · стрелка ───────────────────────────── */
+.panel-head{
+  display:flex !important; align-items:center; gap:10px;
+  padding:11px 12px 9px !important;
+}
+.panel-head > div:first-child{ flex:1 1 auto; min-width:0 }
+.panel-head h2{
+  display:flex; align-items:center; gap:8px; margin:0;
+  font-size:var(--t-h2) !important; line-height:1.25;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.panel-head small{ display:block; margin-top:2px; white-space:normal }
+.panel-head > button, .panel-head > a, .panel-head .arrow,
+.panel-head > svg:last-child{
+  flex:0 0 auto; margin-left:auto; opacity:.6;
+}
+.panel-head .quiet-label, .panel-head .mission-note{ display:none }
+
+/* ── 4. ЗНАЧЕНИЯ: числа одного размера, длинный текст — своей ступенью ─ */
+.doc-kpi strong, .research-kpi strong, .kpi strong, .f-kpi strong,
+.bp-kpi strong, .sig-kpi strong, .set-kpi strong, .now-strip b{
+  font-size:var(--val-num) !important; line-height:1.15 !important;
+  font-weight:600 !important; display:block;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+/* длинное текстовое значение (ACTIVE_SERVICE, FIRST7_LIMITED…) не должно
+   набираться кеглем числа — иначе оно распирает карточку */
+.val-long{ font-size:var(--val-text) !important; letter-spacing:.01em }
+
+/* ── 5. КАРТОЧКА: текст переносится и не раздвигает окно ──────────────── */
+/* Сплошной display:flex для всех карточек убран: он стирал собственную
+   сетку карточки (нижняя полоса экрана — четыре колонки) и превращал её
+   в кучку. Тот же приём стоял ещё в двух листах — одна и та же ошибка
+   трижды, поэтому правка в одном месте ничего не меняла. */
+article.card, section.card{
+    overflow:hidden;
+  min-width:0; box-sizing:border-box;
+}
+article.card *, section.card *{ min-width:0; max-width:100% }
+.doc-kpi, .research-kpi, .kpi, .f-kpi, .bp-kpi, .sig-kpi, .set-kpi{
+  flex-direction:row !important; align-items:flex-start; gap:10px;
+  padding:12px !important;
+}
+.doc-kpi > div, .research-kpi > div, .kpi > div, .f-kpi > div,
+.bp-kpi > div, .sig-kpi > div, .set-kpi > div{ flex:1 1 auto; min-width:0 }
+.doc-kpi em, .research-kpi em, .kpi em, .f-kpi em, .bp-kpi em,
+.sig-kpi em, .set-kpi em{
+  display:block; font-style:normal; font-size:var(--t-small) !important;
+  color:#8d968f; white-space:normal; word-break:break-word;
+}
+
+/* ── 6. Плотные демо-сетки, поехавшие от увеличенного шрифта ──────────
+   На Фундаменте «Опорные контуры» и «Восстановление» рассчитаны на кегль 7px;
+   при 12.5px их подписи легли друг на друга. Эти блоки без источника —
+   возвращаем им их собственный мелкий кегль и запрещаем перелив. */
+.st-demo .prov-map, .st-demo .type-row, .st-demo .track,
+.prov-map, .type-row{
+  font-size:10px !important; line-height:1.3 !important;
+}
+.prov-map *, .type-row *{
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+
+/* ── 7. Все текстовые плашки состояния убраны ──────────────────────────
+   Состояние теперь несёт кольцо вокруг иконки. Оставлять рядом ещё и
+   надписи («ИСТОЧНИК НЕ ПОДКЛЮЧЁН», «LIVE LOOP», «reference only») —
+   значит показывать одно и то же дважды и ломать общий строй. Смысл не
+   теряется: полная расшифровка состояния висит в подсказке иконки. */
+.tg-note{ display:none !important }
+.panel-head .quiet-label, .panel-head .mission-note,
+.live-chip, .loop-chip, .state-chip.static{ display:none !important }
+/* карточки без источника — приглушены целиком, надпись не нужна */
+.st-none, .st-demo{ opacity:.55 }
+.st-none .state-ring, .st-demo .state-ring{ opacity:1 }
+
+/* ── 8. Длинное значение: перебиваем кегль числа надёжно ──────────────── */
+.doc-kpi strong.val-long, .research-kpi strong.val-long, .kpi strong.val-long,
+.f-kpi strong.val-long, .bp-kpi strong.val-long, .sig-kpi strong.val-long,
+.set-kpi strong.val-long, strong.val-long{
+  font-size:var(--val-text) !important;
+  line-height:1.25 !important;
+  white-space:normal !important;
+  word-break:break-word;
+}
+
+/* ── 9. Содержимое карточки прокручивается, а не выпирает ─────────────── */
+.sem-box, .live3-box, .home-list, .priority-list, .recent-list,
+.decision-list, .changed-body, [data-f="objects-table"], [data-f="active-table"]{
+  max-height:none;
+  flex:1 1 auto;
+  overflow-y:auto;
+  min-height:0;
+}
+article.card{ max-height:100% }
+
+/* ── 10. Специфичность ────────────────────────────────────────────────
+   Правило `article.card strong{20px}` из предыдущего файла специфичнее, чем
+   `strong.val-long`, и перебивало его даже при равной важности. Поднимаем
+   вес селектора, а не добавляем ещё один !important поверх. */
+article.card strong.val-long, section.card strong.val-long,
+article.card .val-long, section.card .val-long{
+  font-size:var(--val-text) !important;
+  line-height:1.3 !important;
+  white-space:normal !important;
+  word-break:break-word;
+  letter-spacing:.01em;
+}
+/* оставшиеся статические подписи состояния в разметке */
+.live-tag, .live-chip, .demo-tag, .ref-tag{ display:none !important }
+
+/* ── 11. Кольцо не может «растянуться» ─────────────────────────────────
+   Страховка от повторения: даже если кольцо попадёт на неподходящий
+   элемент, оно останется квадратом 26×26, а не полосой во всю ширину. */
+.state-ring{
+  width:var(--icon) !important; height:var(--icon) !important;
+  min-width:var(--icon); max-width:var(--icon);
+  flex:0 0 var(--icon) !important;
+  border-radius:50% !important;
+  display:inline-grid !important; place-items:center;
+  box-sizing:border-box;
+}
+.panel-head h2 > svg.state-ring{ padding:5px }

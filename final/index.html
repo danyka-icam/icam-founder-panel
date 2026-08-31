@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ICAM Founder Panel — Главная</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="home.css" />
+  <link rel="stylesheet" href="shell-normalize.css">
+<script src="trust-contract.js"></script>
+<link rel="stylesheet" href="panel-readability.css">
+<link rel="stylesheet" href="panel-polish.css">
+<link rel="stylesheet" href="panel-system.css">
+<link rel="stylesheet" href="panel-layout.css">
+<link rel="stylesheet" href="panel-final.css">
+</head>
+<body class="home-page">
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H4.5A1.5 1.5 0 0 1 3 19.5z"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9h18M5 9v9m4-9v9m6-9v9m4-9v9M3 20h18M12 3l9 4H3z"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.5 9.2A1.8 1.8 0 0 0 6 21h12a1.8 1.8 0 0 0 1.5-2.8L14 9V3M7.5 15h9"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></symbol>
+    <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7M3 12h18"/></symbol>
+    <symbol id="i-reg" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0M7 12a5 5 0 0 1 10 0M10 12a2 2 0 0 1 4 0M12 14v7"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v6c0 5-3.2 8-8 9-4.8-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5M6.5 8A7 7 0 0 1 18 7l2 5M4 12l2 5a7 7 0 0 0 11.5 1"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M4 19c8-1 13-6 16-15-9 1-15 6-16 15Z"/><path d="M5 18c4-4 8-7 13-10"/></symbol>
+    <symbol id="i-dna" viewBox="0 0 24 24"><path d="M7 3c0 5 10 5 10 10s-10 5-10 8M17 3c0 5-10 5-10 10s10 5 10 8M8 6h8M8 18h8M7 12h10"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M22 12h-3"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand" aria-label="ICAM Lab"><div class="brand-logo-fallback"><span>ICAM</span><i>/</i><b>LAB</b></div></div>
+      <nav class="nav">
+        <a class="active" href="index.html"><svg><use href="#i-home"/></svg><span>Главная</span></a>
+        <a href="foundation.html"><svg><use href="#i-bank"/></svg><span>Фундамент</span></a>
+        <a href="research.html"><svg><use href="#i-flask"/></svg><span>Исследования</span></a>
+        <a href="brazilportal.html"><svg><use href="#i-globe"/></svg><span>BrazilPortal</span></a>
+        <a href="operations.html"><svg><use href="#i-brief"/></svg><span>Операции</span></a>
+        <a href="registry.html"><svg><use href="#i-reg"/></svg><span>Реестр</span></a>
+        <a href="signals.html"><svg><use href="#i-signal"/></svg><span>Сигналы</span></a>
+        <a href="documents.html"><svg><use href="#i-doc"/></svg><span>Документы</span></a>
+        <a href="testing.html"><svg><use href="#i-check"/></svg><span>Тестирование</span></a>
+        <a href="settings.html"><svg><use href="#i-gear"/></svg><span>Настройки</span></a>
+      </nav>
+      <div class="manifesto"><p class="side-quote">«Сильная система не требует героя. Она умеет держать форму сама.»</p><div class="leaf-art">⌁</div></div>
+    </aside>
+
+    <main class="main home-main">
+      <header class="topbar home-topbar">
+        <div><h1>ICAM Founder Panel</h1><p>единая управляющая среда</p></div>
+        <div class="top-actions">
+          <button class="search-pill"><span>Спросите что-нибудь о системе...</span><svg><use href="#i-search"/></svg></button>
+          <button class="concept-pill">Концепт интерфейса <span>ⓘ</span></button>
+          <button class="bell" aria-label="Уведомления">♧<b>3</b></button>
+          <button class="profile"><span class="avatar">Н</span><span><strong>Ника</strong><small>Founder</small></span><span>⌄</span></button>
+        </div>
+      </header>
+
+      <section class="system-strip">
+        <article class="card system-card"><div class="system-icon"><svg><use href="#i-bank"/></svg></div><div><h3>Foundation</h3><div class="state">стабилизируется</div></div><p>Система выровнена<br>и усиливает опоры</p><span class="mini-check">✓</span></article>
+        <article class="card system-card"><div class="system-icon"><svg><use href="#i-flask"/></svg></div><div><h3>Research</h3><div class="state">готово к росту</div></div><p>Контуры RD1 собраны.<br>Готовы к масштабированию</p><span class="mini-check">✓</span></article>
+        <article class="card system-card"><div class="system-icon"><svg><use href="#i-globe"/></svg></div><div><h3>BrazilPortal</h3><div class="state">активно</div></div><p>Параллельно запускаем<br>живой слой</p><span class="mini-check">✓</span></article>
+        <article class="card system-card"><div class="system-icon"><svg><use href="#i-leaf"/></svg></div><div><h3>Steward</h3><div class="state">тихо / без тревог</div></div><p>Целостность системы<br>под контролем</p><span class="mini-check">✓</span></article>
+        <article class="card system-card"><div class="system-icon"><svg><use href="#i-dna"/></svg></div><div><h3>RD1</h3><div class="state amber">в работе</div></div><p>Исследования движутся<br>по приоритетам</p><span class="mini-check amber">•</span></article>
+        <article class="card system-card"><div class="system-icon"><svg><use href="#i-shield"/></svg></div><div><h3>Control Plane</h3><div class="state">тихо / без тревог</div></div><p>Система стабильна.<br>Мониторинг в норме</p><span class="mini-check">✓</span></article>
+      </section>
+
+      <style>
+        .now-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:#1d2320;border:1px solid #1d2320;border-radius:6px;overflow:hidden;margin:0 0 10px}
+        .now-strip>div{background:#11150f;padding:9px 10px}
+        .now-strip small{display:block;font-size:6.3px;letter-spacing:.09em;text-transform:uppercase;color:#7d877f;margin-bottom:4px;line-height:1.3}
+        .now-strip b{font-size:15px;font-weight:600;color:#e6ece7;line-height:1;display:block}
+        .now-strip em{display:block;font-style:normal;font-size:6.4px;color:#6f786f;margin-top:3px}
+        .now-strip>div.hot b{color:#e08d8d}
+        .now-strip>div.warn b{color:#c6a35f}
+        .now-strip>div.calm b{color:#8fd6a6}
+      </style>
+      <section class="now-strip" data-f="now-strip">
+        <div><small>Активные маршруты</small><b>—</b><em>live</em></div>
+        <div><small>Исследовательские линии</small><b>—</b><em>live</em></div>
+        <div><small>Активные тесты</small><b>—</b><em>live</em></div>
+        <div><small>Ручной разбор</small><b>—</b><em>live</em></div>
+        <div><small>Системные проблемы</small><b>—</b><em>live</em></div>
+        <div><small>Требует Niki</small><b>—</b><em>live</em></div>
+      </section>
+
+      <section class="home-grid">
+        <article class="card home-panel">
+          <div class="panel-head"><div class="head-title"><h2><svg><use href="#i-clock"/></svg>1. СЕЙЧАС</h2><small>Фокус на текущие приоритеты</small></div></div>
+          <ol class="home-list">
+            <li><span class="rank">1</span><span>Завершить контуры RD1-12 и RD1-15</span><b class="status-pill">в работе</b></li>
+            <li><span class="rank">2</span><span>Запуск живого слоя BrazilPortal (пилот)</span><b class="status-pill">в работе</b></li>
+            <li><span class="rank">3</span><span>Синхронизация Реестра и Steward</span><b class="status-pill">в работе</b></li>
+            <li><span class="rank">4</span><span>Финализация манифеста ICAM</span><b class="status-pill amber">на подходе</b></li>
+          </ol><button class="text-link">Смотреть все задачи →</button>
+        </article>
+
+        <article class="card home-panel">
+          <div class="panel-head"><div class="head-title"><h2><svg><use href="#i-user"/></svg>2. ТРЕБУЕТ ВНИМАНИЯ</h2><small>Решения, требующие вашего выбора</small></div></div>
+          <ul class="home-list">
+            <li><span class="decision-icon">!</span><span>Утвердить фокус RD1 на следующие 90 дней</span><b class="deadline">до 25 мая</b></li>
+            <li><span class="decision-icon">!</span><span>Одобрить запуск живого слоя BrazilPortal (пилот)</span><b class="deadline">до 24 мая</b></li>
+            <li><span class="decision-icon info">i</span><span>Подтвердить манифест ICAM (версия 1.0)</span><b class="deadline">до 26 мая</b></li>
+          </ul><button class="text-link">Все решения →</button>
+        </article>
+
+        <article class="card home-panel">
+          <div class="panel-head"><div class="head-title"><h2><svg><use href="#i-target"/></svg>3. ПРИОРИТЕТЫ RD1</h2><small>Ранжированные исследовательские ходы</small></div></div>
+          <ol class="priority-list">
+            <li><span class="rank">1</span><span class="code">RD1-12</span><span>Протокол доверия и верифицируемость</span><b class="score">9.2</b></li>
+            <li><span class="rank">2</span><span class="code">RD1-15</span><span>Экономика устойчивых сообществ</span><b class="score">8.7</b></li>
+            <li><span class="rank">3</span><span class="code">RD1-09</span><span>Модель композабельных репутаций</span><b class="score">8.1</b></li>
+            <li><span class="rank">4</span><span class="code">RD1-07</span><span>Правовые примитивы и согласие</span><b class="score">7.6</b></li>
+          </ol><button class="text-link">Открыть дорожную карту RD1 →</button>
+        </article>
+
+        <article class="card home-panel">
+          <div class="panel-head"><div class="head-title"><h2><svg><use href="#i-refresh"/></svg>4. ЧТО ИЗМЕНИЛОСЬ</h2><small>Ключевые сдвиги и результаты</small></div></div>
+          <div class="changed-body"><div class="changed-col"><h4>Было</h4><p>Фрагментированные контуры</p><p>Ручные процессы</p><p>Слабая связность данных</p><p>Риски в невидимых слепых зонах</p></div><span class="changed-arrow">→</span><div class="changed-col after"><h4>Стало</h4><p>Единая архитектурная линия</p><p>Автоматизация и правила</p><p>Связанные реестры и сигналы</p><p>Целостность под контролем</p></div></div>
+          <button class="text-link">Смотреть всё подробнее →</button>
+        </article>
+
+        <article class="card home-panel">
+          <div class="panel-head"><div class="head-title"><h2><svg><use href="#i-signal"/></svg>5. РАДАР</h2><small>Высокоценные сигналы</small></div></div>
+          <ul class="radar-list"><li><i class="signal-dot"></i><span>Сигнал: рост интереса к суверенным данным</span><b>высокий</b></li><li><i class="signal-dot"></i><span>Сигнал: партнёрство в Лат. Америке</span><b>высокий</b></li><li><i class="signal-dot mid"></i><span>Сигнал: запрос на пилот от фонда</span><b>средний</b></li><li><i class="signal-dot mid"></i><span>Сигнал: регуляторный сдвиг в Бразилии</span><b>средний</b></li></ul>
+          <button class="text-link">Открыть радар →</button>
+        </article>
+
+        <article class="card home-panel">
+          <div class="panel-head"><div class="head-title"><h2><svg><use href="#i-shield"/></svg>6. STEWARD — КОНТРОЛЬ ЦЕЛОСТНОСТИ</h2><small>Состояние системы</small></div></div>
+          <div class="steward-body"><div class="integrity-meter"><div class="donut big"><i style="--p:98%"></i><strong>98%</strong></div><small>Индекс целостности<br>отлично</small></div><ul class="health-list"><li><span class="ok">✓</span><span>Архитектура</span><em>в норме</em></li><li><span class="ok">✓</span><span>Данные и Реестр</span><em>в норме</em></li><li><span class="ok">✓</span><span>Процессы</span><em>в норме</em></li><li><span class="ok">✓</span><span>Безопасность</span><em>в норме</em></li><li><span class="ok">✓</span><span>Соответствие</span><em>в норме</em></li></ul></div>
+          <button class="text-link">Открыть панель Steward →</button>
+        </article>
+      </section>
+
+      <section class="home-bottom">
+        <article class="card growth-card"><div class="panel-head"><div class="head-title"><h2>КАРТА РОСТА ICAM</h2><small>Дорожная карта и прогресс по направлениям</small></div></div><div class="growth-body"><div class="growth-copy"><h3>Карта роста</h3><p>Движение от опор к живому управляемому контуру.</p><div class="legend"><span><i></i>Завершено</span><span><i></i>В процессе</span><span><i></i>Планируется</span></div></div><div><div class="roadmap"><div class="road-row"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="hot"></i><i class="hot"></i><i class="hot"></i></div><div class="road-row"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="hot"></i><i class="hot"></i><i class="hot"></i><i class="future"></i><i class="future"></i><i class="future"></i></div><div class="road-row"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="hot"></i><i class="hot"></i><i class="hot"></i><i class="future"></i><i class="future"></i><i class="future"></i><i class="future"></i><i class="future"></i><i class="future"></i></div></div><div class="road-labels"><span>Фундамент</span><span>Исследования (RD1)</span><span>BrazilPortal</span><span>Операции</span><span>Реестр</span><span>Steward</span><span>Контроль</span></div></div></div><button class="text-link">Открыть полную карту →</button></article>
+        <article class="card brazil-card"><div class="panel-head"><h2><svg><use href="#i-globe"/></svg>BRAZILPORTAL — ЖИВОЙ СЛОЙ</h2></div><div class="brazil-body"><div class="brazil-visual" aria-hidden="true">
+          <svg class="brazil-scene" viewBox="0 0 260 110" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="sceneFade" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#d9c58a" stop-opacity=".10"/>
+                <stop offset="1" stop-color="#d9c58a" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <circle cx="205" cy="28" r="13" fill="none" stroke="currentColor" stroke-opacity=".24"/>
+            <path d="M0 73 C24 54 42 58 63 67 C78 46 100 38 126 64 C144 48 166 50 184 66 C207 50 229 56 260 71" fill="url(#sceneFade)" stroke="currentColor" stroke-opacity=".28"/>
+            <path d="M0 82 C28 76 58 80 84 78 C112 76 141 79 168 77 C195 75 224 79 260 75" stroke="currentColor" stroke-opacity=".18"/>
+            <path d="M72 80 C91 63 111 63 131 80 M77 80 V94 M126 80 V94 M86 80 L104 65 L121 80" stroke="currentColor" stroke-opacity=".46"/>
+            <path d="M22 86 C30 77 34 68 35 58 M35 69 C29 63 24 61 19 61 M35 69 C41 63 47 61 52 62 M35 61 C30 56 27 54 23 54 M35 61 C39 56 44 54 48 55" stroke="currentColor" stroke-opacity=".38"/>
+            <path d="M225 91 C229 80 230 70 229 61 M229 72 C223 67 218 65 213 66 M229 72 C235 67 241 65 246 66" stroke="currentColor" stroke-opacity=".32"/>
+          </svg>
+          <span class="bridge"></span>
+        </div><div class="brazil-copy"><p>Параллельно запускаем живой слой для реальных пользователей и партнёров.</p><span class="pilot-pill">Пилот: старт в июне ↗</span></div></div><button class="text-link">Перейти в BrazilPortal →</button></article>
+      </section>
+      <footer class="demo-note">BROWSER WORKBENCH • mock data only • visual layer only</footer>
+    </main>
+  </div>
+  <script src="app.js"></script>
+
+
+<script>
+(function(){
+  function setupCardArrows(){
+    document.querySelectorAll('.text-link').forEach(function(link){
+      var card = link.closest('.card') || link.closest('.foundation-footer-card') || link.closest('.bp-bottom') || link.closest('.doc-bottom') || link.closest('.sig-bottom') || link.closest('.ops-bottom') || link.closest('.state-contract');
+      if(!card) return;
+      var head = card.querySelector('.panel-head, .state-head');
+      if(!head || head.querySelector('.top-corner-arrow')) return;
+
+      var href = link.tagName === 'A' ? link.getAttribute('href') : null;
+      var arrow;
+      if(href && href !== '#'){
+        arrow = document.createElement('a');
+        arrow.href = href;
+        arrow.setAttribute('aria-label', link.textContent.trim().replace(/\s*→\s*$/,''));
+      } else {
+        arrow = document.createElement('span');
+        arrow.setAttribute('aria-hidden','true');
+      }
+      arrow.className = 'top-corner-arrow';
+      arrow.textContent = '→';
+      head.appendChild(arrow);
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupCardArrows);
+  else setupCardArrows();
+})();
+</script>
+
+
+  <script src="panel-live.js"></script>
+<script src="truth-guard.js"></script>
+<script>
+// Список «Приоритеты RD1» с RD1-07/09/12/15 и синтетическими баллами — мок:
+// в каноническом реестре таких объектов нет (там FND-*/CMP-*/H008).
+document.querySelectorAll('.home-panel').forEach(p=>{
+ if(/ПРИОРИТЕТЫ RD1/i.test(p.textContent)){
+   const list=p.querySelector('.home-list, .priority-list, ul, ol');
+   if(list) list.innerHTML='<li class="pl-note"><span class="rank">—</span><span>Синтетический список RD1 удалён: '+
+     'таких объектов в каноническом реестре нет. Реальные приоритеты — на экране «Исследования».'+
+     '</span><b class="status-pill">н/д</b></li>';
+ }});
+// Радар и карта роста провенанса не имеют
+document.querySelectorAll('.home-panel, .growth-card').forEach(p=>{
+ if(/РАДАР|КАРТА РОСТА/i.test(p.textContent)) TG.mark(p);});
+</script>
+<script src="semantic.js"></script>
+<script src="panel-fit.js"></script>
+<script defer src="panel-cards.js"></script>
+<script defer src="panel-scroll.js"></script>
+</body>
+</html>

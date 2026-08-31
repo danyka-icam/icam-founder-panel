@@ -1,0 +1,186 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   РАСКЛАДКА КАРТОЧЕК · финальный проход · 2026-08-27
+   Образец — верхние карточки Исследований: иконка слева, текст рядом, всё
+   помещается. Приводим к нему все страницы.
+   Правила: иконка не в углу · текст не липнет к стенкам · длинная строка
+   уезжает горизонтальной прокруткой, а не рвётся посреди слова · окно может
+   стать чуть шире, но не раздувается содержимым.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root{ --pad:14px; --gap:12px; --icon:26px; }
+
+/* ── 1. КАРТОЧКА: воздух со всех сторон ───────────────────────────────── */
+/* Сплошной display:flex для всех карточек убран: он стирал собственную
+   сетку карточки (нижняя полоса экрана — четыре колонки) и превращал её
+   в кучку. Тот же приём стоял ещё в двух листах — одна и та же ошибка
+   трижды, поэтому правка в одном месте ничего не меняла. */
+article.card, section.card{
+  padding:0 !important;
+  border-radius:8px;
+  overflow:hidden;
+   
+  min-width:0;
+}
+
+/* ── 2. KPI: иконка слева, текст рядом — как в Исследованиях ──────────── */
+.doc-kpi, .research-kpi, .kpi, .f-kpi, .bp-kpi, .sig-kpi, .set-kpi{
+  display:flex !important; flex-direction:row !important;
+  align-items:flex-start !important;
+  gap:var(--gap) !important;
+  padding:var(--pad) !important;
+}
+.doc-kpi > div, .research-kpi > div, .kpi > div, .f-kpi > div,
+.bp-kpi > div, .sig-kpi > div, .set-kpi > div{
+  flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px;
+}
+/* иконка: строго круг, не в углу, не сплющивается */
+.doc-kpi-icon, .rk-icon, .f-kpi-icon, .bp-kpi-icon, .sig-kpi-icon,
+.set-kpi-icon, .kpi-icon, .system-icon, .state-ring{
+  width:var(--icon) !important; height:var(--icon) !important;
+  min-width:var(--icon) !important; max-width:var(--icon) !important;
+  min-height:var(--icon) !important; max-height:var(--icon) !important;
+  aspect-ratio:1/1 !important;
+  border-radius:50% !important;
+  flex:0 0 var(--icon) !important;
+  display:inline-grid !important; place-items:center !important;
+  padding:0 !important; margin:0 !important; box-sizing:border-box;
+}
+
+/* ── 3. ТЕКСТ НЕ РВЁТСЯ ПОСРЕДИ СЛОВА ─────────────────────────────────
+   Раньше стояло break-word/anywhere, и «ACTIVE_BUILD» разъезжался на
+   «ACTIVE_BU / ILD». Слова не режем; если строка длиннее места — она
+   уезжает горизонтальной прокруткой своей ячейки. */
+article.card *, section.card *{
+  word-break:normal !important;
+  overflow-wrap:normal !important;
+  hyphens:none;
+}
+/* значение KPI — горизонтальный свайп вместо разрыва */
+.doc-kpi strong, .research-kpi strong, .kpi strong, .f-kpi strong,
+.bp-kpi strong, .sig-kpi strong, .set-kpi strong{
+  white-space:nowrap !important;
+  overflow-x:auto; overflow-y:hidden;
+  scrollbar-width:none; max-width:100%;
+}
+.doc-kpi strong::-webkit-scrollbar, .kpi strong::-webkit-scrollbar,
+.f-kpi strong::-webkit-scrollbar, .bp-kpi strong::-webkit-scrollbar{ height:0 }
+/* обычные абзацы переносим по словам */
+.sem-main, .sem-sub, .live3-box, .home-list li, .priority-list li,
+.recent-list li, .changed-col p, .r-row span, .a-row span{
+  white-space:normal !important;
+  overflow-wrap:break-word !important;
+}
+
+/* ── 4. ШАПКА ПАНЕЛИ: иконка · заголовок · стрелка ────────────────────── */
+.panel-head{
+  display:flex !important; align-items:flex-start !important;
+  gap:var(--gap) !important;
+  padding:var(--pad) var(--pad) 10px !important;
+}
+.panel-head h2{
+  display:flex !important; align-items:center; gap:9px;
+  margin:0 !important; min-width:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.panel-head small{ white-space:normal; margin-top:3px }
+.panel-head > button, .panel-head > a, .panel-head .arrow{
+  margin-left:auto; flex:0 0 auto; opacity:.55;
+}
+
+/* ── 5. СОДЕРЖИМОЕ ПРОКРУЧИВАЕТСЯ, ОКНО НЕ РАЗДУВАЕТСЯ ───────────────── */
+article.card > *:not(.panel-head):not(button){
+  padding-left:var(--pad); padding-right:var(--pad);
+  box-sizing:border-box;
+}
+.sem-box, .live3-box, .home-list, .priority-list, .recent-list,
+.decision-list, .changed-body, .attention-list, .queue-list,
+[data-f]:not(.now-strip){
+  flex:1 1 auto; min-height:0;
+  overflow-y:auto; overflow-x:hidden;
+  overscroll-behavior:contain;
+  scrollbar-width:thin; scrollbar-color:#3a463c transparent;
+}
+::-webkit-scrollbar{ width:7px; height:7px }
+::-webkit-scrollbar-thumb{ background:#3a463c; border-radius:4px }
+::-webkit-scrollbar-track{ background:transparent }
+
+/* ── 6. Окна могут стать чуть шире, если текст не влезает ─────────────── */
+.doc-kpis, .research-kpis, .foundation-kpis, .bp-kpis, .sig-kpis,
+.settings-kpis, .kpis{
+  display:grid !important;
+  /* Здесь стояло repeat(auto-fit, minmax(228px,1fr)) — «сколько влезет».
+     На узком окне пятая карточка срывалась во второй ряд и рядом
+     оставалась пустота. Верхний ряд Главной свёрстан жёстким числом
+     колонок и потому держится: карточки сужаются, но остаются в ряд.
+     Число колонок задаёт вёрстка самого экрана — здесь не навязываем. */
+  gap:10px !important; align-items:stretch !important;
+}
+
+/* ── 7. Крупный текст в статических блоках приводим к общей шкале ──────
+   На «Операциях» в «Требует внимания» текст шёл ~16px и вылезал за окно
+   без прокрутки. Он не в .card-контенте, поэтому общий сброс его не достал. */
+.attention-item, .attention-item *, .att-row, .att-row *,
+.gate-row, .gate-row *, .exec-row, .exec-row *{
+  font-size:var(--t-body, 12.5px) !important;
+  line-height:1.45 !important;
+}
+.attention-item strong, .att-row strong{ font-size:var(--t-body,12.5px) !important }
+
+/* ── 8. Иконки — по признаку, а не поимённо ────────────────────────────
+   Я перечислял классы списком и пропустил ops-kpi-icon (Операции),
+   component-icon и state-icon (Фундамент), run-icon, decision-icon —
+   их иконки схлопывались в точку. Перечисление здесь неверный приём:
+   любое новое имя снова выпадет. Правило по вхождению «-icon» закрывает
+   и нынешние, и будущие. */
+[class*="-icon"]{
+  width:var(--icon) !important; height:var(--icon) !important;
+  min-width:var(--icon) !important; max-width:var(--icon) !important;
+  min-height:var(--icon) !important; max-height:var(--icon) !important;
+  aspect-ratio:1/1 !important;
+  border-radius:50% !important;
+  flex:0 0 var(--icon) !important;
+  display:inline-grid !important; place-items:center !important;
+  padding:0 !important;
+  background:rgba(140,160,145,.10);
+  border:1px solid rgba(150,170,155,.16);
+  box-sizing:border-box;
+}
+[class*="-icon"] > svg{ width:14px !important; height:14px !important; display:block }
+/* мелкие маркеры в списках оставляем маркерами, не раздуваем до иконок */
+.decision-icon, .change-icon, .lin-chip [class*="-icon"]{
+  width:18px !important; height:18px !important;
+  min-width:18px !important; max-width:18px !important;
+  min-height:18px !important; max-height:18px !important;
+  flex:0 0 18px !important;
+}
+.decision-icon > svg, .change-icon > svg{ width:10px !important; height:10px !important }
+
+/* KPI-карточка по признаку, а не по имени */
+[class*="kpi"]:not([class*="kpis"]):not([class*="-icon"]){
+  display:flex !important; flex-direction:row !important;
+  align-items:flex-start !important; gap:var(--gap) !important;
+  padding:var(--pad) !important;
+}
+[class*="kpi"]:not([class*="kpis"]):not([class*="-icon"]) > div{
+  flex:1 1 auto; min-width:0;
+}
+
+/* ── 9. Чип состояния — на свою строку, а не рядом со значением ────────
+   Строчная раскладка карточки поставила чип («есть блокеры», «в норме»)
+   третьей колонкой рядом с текстом: содержимое сжалось, и значение
+   «ACTIVE_SERVICE» вылезло прямо под чип. Чип переносим вниз во всю ширину. */
+[class*="kpi"]:not([class*="kpis"]):not([class*="-icon"]){
+  flex-wrap:wrap !important;
+}
+[class*="kpi"]:not([class*="kpis"]) > .state-chip,
+[class*="kpi"]:not([class*="kpis"]) > b:last-child{
+  flex:0 0 auto !important;
+  order:9;
+  margin-top:8px;
+  margin-left:calc(var(--icon) + var(--gap));
+  align-self:flex-start;
+}
+/* содержимое занимает всю ширину строки рядом с иконкой */
+[class*="kpi"]:not([class*="kpis"]):not([class*="-icon"]) > div{
+  flex:1 1 calc(100% - var(--icon) - var(--gap)) !important;
+}

@@ -1,0 +1,179 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   ВИЗУАЛЬНОЕ ВЫРАВНИВАНИЕ · 2026-08-27
+   Правка по замечанию Niki: чёрные полосы, разнобой шрифтов, текст наезжает
+   друг на друга и «уезжает» из окошек.
+
+   Принципы прохода:
+   1. Ни одного почти-чёрного фона — везде тёмно-серый из одной шкалы.
+   2. Четыре размера текста на всю панель вместо 14–25 случайных.
+   3. Длинная строка НЕ накладывается на соседа: либо переносится, либо
+      уезжает в горизонтальную прокрутку своей ячейки.
+   4. Плашки состояния не лежат поверх текста — под них зарезервировано место.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root{
+  /* серая шкала — вместо near-black */
+  --g-900:#1b201c;   /* самый тёмный фон, бывший почти-чёрный */
+  --g-850:#20261f;   /* полосы и служебные ленты */
+  --g-800:#242b24;   /* карточки */
+  --g-line:#333b34;  /* линии */
+  /* типографика: ровно четыре ступени */
+  --t-h1:19px; --t-h2:14.5px; --t-body:12.5px; --t-small:11px; --t-micro:9.6px;
+}
+
+/* ── 1. ЧЁРНЫЕ ПОЛОСЫ → ТЁМНО-СЕРЫЕ ───────────────────────────────────── */
+.now-strip{ background:var(--g-line) !important; border-color:var(--g-line) !important }
+.now-strip > div{ background:var(--g-850) !important }
+.doc-bottom, .home-bottom, .research-bottom, .bp-bottom,
+.demo-note, .read-only-note, .life-note{
+  background:var(--g-850) !important; color:#9aa39c !important;
+}
+.tg-note{ background:var(--g-850) !important; border-top-color:var(--g-line) !important;
+  color:#c6a35f !important }
+.tc-badge{ background:var(--g-850) !important }
+.lin-card, .lin-top > div{ background:var(--g-800) !important }
+.lin-top{ background:var(--g-line) !important }
+
+/* ── 2. ЕДИНАЯ ТИПОГРАФИКА ────────────────────────────────────────────── */
+h1{ font-size:var(--t-h1) !important; line-height:1.2 !important }
+.panel-head h2, h2{ font-size:var(--t-h2) !important; line-height:1.25 !important }
+.panel-head small, .sub, .quiet-label{ font-size:var(--t-small) !important; line-height:1.35 !important }
+
+/* тело карточек — один размер */
+.home-list li, .priority-list li, .recent-list li, .decision-list li,
+.changed-col p, .sem-main, .live3-box, .r-row, .a-row,
+.queue-row, .type-row, .lin-tbl td, .prov-map,
+[data-f] > div, [data-f] > p{
+  font-size:var(--t-body) !important; line-height:1.5 !important;
+}
+/* подписи — один размер */
+.sem-sub, .home-list li small, .r-row small, .a-row small,
+.lin-mono, .malbum, .mt, .badge, .state, .stage, .evidence,
+.r-head, .a-head, .queue-head, .lin-tbl th{
+  font-size:var(--t-small) !important; line-height:1.4 !important;
+}
+/* служебные метки — один размер */
+.tg-note, .tc-badge, .lin-tag, .status-pill, .state-chip{
+  font-size:var(--t-micro) !important; line-height:1.5 !important;
+}
+/* крупные числа KPI — один размер */
+.doc-kpi strong, .research-kpi strong, .kpi strong, .f-kpi strong,
+.bp-kpi strong, .sig-kpi strong, .set-kpi strong, .now-strip b{
+  font-size:20px !important; line-height:1.1 !important; font-weight:600 !important;
+}
+
+/* ── 3. ТЕКСТ НЕ НАКЛАДЫВАЕТСЯ ────────────────────────────────────────
+   Длинные машинные значения (FOUNDATION_FINALIZATION, ACTIVE_SERVICE…)
+   раньше вылезали за ячейку на 80+px и ложились на соседнюю колонку.
+   Теперь такая ячейка получает СВОЮ горизонтальную прокрутку. */
+.r-row > *, .a-row > *, .queue-row > *, .lin-tbl td{
+  min-width:0;
+  max-width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  white-space:nowrap;
+  scrollbar-width:none;
+}
+.r-row > *::-webkit-scrollbar, .a-row > *::-webkit-scrollbar,
+.lin-tbl td::-webkit-scrollbar{ height:0 }
+/* многострочные описания — переносим, а не режем */
+.r-row > span, .a-row > span, .sem-main, .sem-sub,
+.home-list li > span, .priority-list li > span, .live3-box{
+  white-space:normal !important;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  overflow-x:visible;
+}
+
+/* ── 4. ПЛАШКИ НЕ ПОВЕРХ ТЕКСТА ───────────────────────────────────────
+   Резервируем под них место в шапке, а не кладём абсолютом на содержимое. */
+.panel-head{ padding-right:8px }
+.panel-head .tc-badge{ position:static !important; margin-left:auto }
+article.card > .tc-badge, section.card > .tc-badge{
+  position:absolute; top:6px; right:6px;
+}
+/* KPI-карточка: место под плашку сверху справа */
+.doc-kpi, .research-kpi, .kpi, .f-kpi, .bp-kpi, .sig-kpi, .set-kpi{
+  padding-top:22px !important; position:relative;
+}
+.doc-kpi > .tc-badge, .research-kpi > .tc-badge, .kpi > .tc-badge,
+.f-kpi > .tc-badge, .bp-kpi > .tc-badge, .sig-kpi > .tc-badge, .set-kpi > .tc-badge{
+  top:5px; right:6px;
+}
+
+/* ── 5. ВЫРАВНИВАНИЕ ──────────────────────────────────────────────────── */
+article.card, section.card{ padding:0; overflow:hidden }
+.panel-head{ padding:10px 12px 8px !important; min-height:0 !important; height:auto !important }
+.sem-box, .live3-box{ padding:8px 12px 10px !important }
+.home-list, .priority-list, .recent-list, .decision-list{ padding:6px 12px 4px !important }
+.r-row, .a-row{ padding:7px 0 !important; align-items:start !important }
+.r-head, .a-head{ padding-bottom:6px !important; height:auto !important; align-items:end !important }
+/* одинаковый вертикальный ритм внутри карточек */
+.sem-row{ padding:8px 0 !important }
+.sem-row:first-child{ padding-top:2px !important }
+
+/* ── 6. СБРОС РАЗНОБОЯ ВНУТРИ КАРТОЧЕК ─────────────────────────────────
+   На панели жило 14–26 разных кеглей: безымянные span/td/em/small по 6–9px.
+   Перечислить их селекторами нереально, поэтому внутри карточки всё
+   наследует базовый размер, а исключения задаются ниже явно. Так шкала
+   становится проверяемой: любой новый элемент по умолчанию попадает в неё. */
+article.card, section.card{ font-size:var(--t-body); line-height:1.5 }
+article.card *:not(script):not(style), section.card *:not(script):not(style){
+  font-size:inherit;
+}
+/* исключения — ровно четыре ступени */
+article.card h1, section.card h1{ font-size:var(--t-h1) !important }
+article.card h2, section.card h2, .panel-head h2{ font-size:var(--t-h2) !important }
+article.card .panel-head small, section.card .panel-head small,
+article.card .sem-sub, article.card .lin-mono, article.card .mt,
+article.card .badge, article.card .state, article.card .stage,
+article.card .evidence, article.card .r-head, article.card .a-head,
+article.card small:not(.panel-head small){ font-size:var(--t-small) !important }
+article.card .tg-note, article.card .tc-badge, article.card .lin-tag,
+article.card .status-pill, article.card .state-chip,
+section.card .tg-note, section.card .tc-badge{ font-size:var(--t-micro) !important }
+article.card strong:not(.sem-main strong):not(.state):not(.stage):not(.status-pill):not(.evidence):not(.badge), .now-strip b{
+  font-size:20px !important; line-height:1.15 !important }
+article.card .sem-main strong, article.card .sem-main b{ font-size:inherit !important }
+/* KPI-подпись над числом */
+.doc-kpi small, .research-kpi small, .kpi small, .f-kpi small,
+.bp-kpi small, .sig-kpi small, .set-kpi small{ font-size:var(--t-small) !important }
+.doc-kpi em, .research-kpi em, .kpi em, .f-kpi em,
+.bp-kpi em, .sig-kpi em, .set-kpi em{ font-size:var(--t-small) !important; font-style:normal }
+.text-link{ font-size:var(--t-small) !important }
+
+/* ── 7. Шапка панели: заголовок · плашка · стрелка — в один ряд ────────
+   Плашка «ЖИВО» налезала на стрелку «→», потому что обе позиционировались
+   независимо. Делаем шапку сеткой с явными местами. */
+.panel-head{
+  display:flex !important; align-items:flex-start; gap:10px; flex-wrap:nowrap;
+}
+.panel-head > div:first-child{ min-width:0; flex:1 1 auto }
+.panel-head h2{ display:flex; align-items:center; gap:6px; margin:0 }
+.panel-head .tc-badge{ flex:0 0 auto; align-self:flex-start; margin-left:auto }
+.panel-head > button, .panel-head > a, .panel-head .arrow{
+  flex:0 0 auto; align-self:flex-start; margin-left:4px;
+}
+.tc-badge{ white-space:nowrap !important }
+/* KPI-карточка: плашка сверху справа, значение ниже — не под ней */
+.kpi, .doc-kpi, .research-kpi, .f-kpi, .bp-kpi, .sig-kpi, .set-kpi{
+  position:relative; padding-top:24px !important;
+}
+
+/* ── 8. Мелочи выравнивания ────────────────────────────────────────────
+   Одинаковые отступы у KPI-рядов и одинаковая высота строк-подписей,
+   чтобы карточки в ряду не «уезжали» друг относительно друга. */
+.doc-kpis, .research-kpis, .foundation-kpis, .bp-kpis,
+.sig-kpis, .settings-kpis, .kpis{
+  align-items:stretch !important; gap:10px !important;
+}
+.doc-kpi, .research-kpi, .kpi, .f-kpi, .bp-kpi, .sig-kpi, .set-kpi{
+  display:flex !important; flex-direction:row; align-items:flex-start; gap:10px;
+  padding:24px 12px 12px !important; min-height:0 !important;
+}
+.doc-kpi > div, .research-kpi > div, .kpi > div, .f-kpi > div,
+.bp-kpi > div, .sig-kpi > div, .set-kpi > div{ min-width:0; flex:1 1 auto }
+.doc-kpi small, .research-kpi small, .kpi small, .f-kpi small,
+.bp-kpi small, .sig-kpi small, .set-kpi small{
+  display:block; margin-bottom:3px; color:#9aa39c;
+}

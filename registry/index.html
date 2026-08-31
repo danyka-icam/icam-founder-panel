@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ICAM Founder Panel — Реестр</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H4.5A1.5 1.5 0 0 1 3 19.5z"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9h18M5 9v9m4-9v9m6-9v9m4-9v9M3 20h18M12 3l9 4H3z"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.5 9.2A1.8 1.8 0 0 0 6 21h12a1.8 1.8 0 0 0 1.5-2.8L14 9V3M7.5 15h9"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></symbol>
+    <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7M3 12h18"/></symbol>
+    <symbol id="i-reg" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0M7 12a5 5 0 0 1 10 0M10 12a2 2 0 0 1 4 0M12 14v7"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></symbol>
+    <symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v6c0 5-3.2 8-8 9-4.8-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-5"/></symbol>
+    <symbol id="i-node" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="m8 11 8-4M8 13l8 4"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 22 20H2z"/><path d="M12 9v5M12 17h.01"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1.1-1.1"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-label="ICAM logo"><span></span><span></span><span></span><span></span></div>
+        <div class="brand-word">ICAM</div>
+      </div>
+
+      <nav class="nav">
+        <a href="#"><svg><use href="#i-home"/></svg><span>Главная</span></a>
+        <a href="#"><svg><use href="#i-bank"/></svg><span>Фундамент</span></a>
+        <a href="#"><svg><use href="#i-flask"/></svg><span>Исследования</span></a>
+        <a href="#"><svg><use href="#i-globe"/></svg><span>BrazilPortal</span></a>
+        <a href="#"><svg><use href="#i-brief"/></svg><span>Операции</span></a>
+        <a class="active" href="#"><svg><use href="#i-reg"/></svg><span>Реестр</span></a>
+        <a href="#"><svg><use href="#i-signal"/></svg><span>Сигналы</span></a>
+        <a href="#"><svg><use href="#i-doc"/></svg><span>Документы</span></a>
+        <a href="#"><svg><use href="#i-gear"/></svg><span>Настройки</span></a>
+      </nav>
+
+      <div class="manifesto">
+        <p>Мы строим<br>не проект.</p>
+        <p>Мы строим систему,<br>которая переживёт нас.</p>
+        <div class="leaf-art">⌁</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1>Реестр</h1>
+          <p>Единый источник правды системы ICAM</p>
+        </div>
+        <div class="top-actions">
+          <button class="search-pill"><span>Спросите что-нибудь о системе...</span><svg><use href="#i-search"/></svg></button>
+          <button class="concept-pill">Концепт интерфейса <span>ⓘ</span></button>
+          <button class="bell" aria-label="Уведомления">♧<b>3</b></button>
+          <button class="profile"><span class="avatar">Н</span><span><strong>Ника</strong><small>Founder</small></span><span>⌄</span></button>
+        </div>
+      </header>
+
+      <section class="kpis">
+        <article class="kpi card"><div class="kpi-icon"><svg><use href="#i-cube"/></svg></div><div><span>Объекты</span><strong>342</strong><small>активных</small><em>+12 за неделю ↗</em></div><div class="spark">╱╲╱╲╱</div></article>
+        <article class="kpi card"><div class="kpi-icon gold"><svg><use href="#i-shield"/></svg></div><div><span>Истина реестра</span><strong>98%</strong><small>соответствие</small><em>+2% за неделю ↗</em></div><div class="donut"><i style="--p:98%"></i></div></article>
+        <article class="kpi card"><div class="kpi-icon sage"><svg><use href="#i-node"/></svg></div><div><span>Связность</span><strong>96%</strong><small>узлов связаны</small><em>+1% за неделю ↗</em></div><div class="donut"><i style="--p:96%"></i></div></article>
+        <article class="kpi card"><div class="kpi-icon"><svg><use href="#i-clock"/></svg></div><div><span>Последние изменения</span><strong>24</strong><small>за 24 часа</small><em>8 объектов затронуто</em></div><div class="bars"><b></b><b></b><b></b><b></b><b></b></div></article>
+        <article class="kpi card"><div class="kpi-icon warn"><svg><use href="#i-alert"/></svg></div><div><span>Предупреждения</span><strong>7</strong><small>требуют внимания</small><em class="danger">3 критичных ↗</em></div></article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="card panel registry-table">
+          <div class="panel-head"><h2><svg><use href="#i-cube"/></svg>Объекты реестра</h2><div class="panel-tools"><button><svg><use href="#i-search"/></svg>Поиск</button><button><svg><use href="#i-filter"/></svg></button></div></div>
+          <div class="table-wrap">
+            <table><thead><tr><th>ID объекта</th><th>Название</th><th>Ветка</th><th>Владелец</th><th>Статус</th><th>Обновлено</th></tr></thead>
+              <tbody>
+                <tr><td>OBJ-0012</td><td>Протокол верификации RD1-12</td><td>RD1-12</td><td>Research</td><td><span class="truth">● Истина</span></td><td>22 мин назад</td></tr>
+                <tr class="selected"><td>OBJ-0009</td><td>Экономика устойчивых сообществ</td><td>RD1-15</td><td>Steward</td><td><span class="truth">● Истина</span></td><td>1 ч назад</td></tr>
+                <tr><td>OBJ-0020</td><td>Пилот BrazilPortal (этап 1)</td><td>BrazilPortal</td><td>Operations</td><td><span class="truth">● Истина</span></td><td>2 ч назад</td></tr>
+                <tr><td>OBJ-0017</td><td>Архитектура живой системы</td><td>Foundation</td><td>Founder</td><td><span class="draft">● Черновик</span></td><td>3 ч назад</td></tr>
+                <tr><td>OBJ-0011</td><td>Модель композабельных репутаций</td><td>RD1-09</td><td>Research</td><td><span class="truth">● Истина</span></td><td>4 ч назад</td></tr>
+                <tr><td>OBJ-0004</td><td>Манифест ICAM (версия 1.0)</td><td>Foundation</td><td>Founder</td><td><span class="truth">● Истина</span></td><td>5 ч назад</td></tr>
+                <tr><td>OBJ-0013</td><td>Правовые примитивы и согласие</td><td>RD1-07</td><td>Research</td><td><span class="truth">● Истина</span></td><td>6 ч назад</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="panel-foot"><span>Показано 7 из 342 объектов</span><button>Смотреть все объекты →</button></div>
+        </article>
+
+        <article class="card panel object-card">
+          <div class="panel-head"><h2><svg><use href="#i-gear"/></svg>Карточка объекта</h2><span class="truth">● Истина</span></div>
+          <div class="facts"><span>ID объекта</span><strong>OBJ-0009 ⧉</strong><span>Ветка</span><strong>RD1-15</strong><span>Текущее состояние</span><strong class="truth">● Истина</strong><span>Источник истины</span><strong>⌾ Протокол RD1-15 v2.1</strong></div>
+          <div class="section-label">Связанные файлы</div>
+          <div class="file-chips"><span>▣ RD1-15_Protocol_v2.1.pdf <small>PDF</small></span><span>▣ Economy_Model_v1.3.xlsx <small>XLSX</small></span><span>▣ Proof_RD1-15_2026-05-18.json <small>JSON</small></span></div>
+          <button class="ghost-btn">＋ Добавить файл</button>
+          <div class="next-move"><span><small>Следующий ход</small>Полное внедрение в рамках BrazilPortal (этап 1)</span><b>до 24 мая</b></div>
+          <div class="section-label">Граф связей</div>
+          <div class="mini-graph">
+            <div class="node branch">RD1-15<small>(Ветка)</small></div><div class="node obj">OBJ-0009</div><div class="node platform">BrazilPortal<small>(Платформа)</small></div>
+            <div class="node sub">OBJ-0011<small>(Объект)</small></div><div class="node gate">GATE-23<small>(Проверка)</small></div>
+            <svg viewBox="0 0 560 120" preserveAspectRatio="none"><path d="M100 30 C180 30 190 50 260 55"/><path d="M100 88 C180 88 190 65 260 60"/><path d="M320 56 C400 50 410 30 470 30"/><path d="M320 62 C400 70 410 86 470 86"/></svg>
+          </div>
+          <button class="text-link">Открыть полную карту связей →</button>
+        </article>
+
+        <article class="card panel integrity">
+          <div class="panel-head"><h2><svg><use href="#i-shield"/></svg>Проверки целостности</h2></div>
+          <div class="integrity-grid">
+            <div><h3>Проверки соответствия</h3><p>Соответствие источнику истины <span class="truth">✓ Пройдено</span></p><p>Целостность файлов <span class="truth">✓ Пройдено</span></p><p>Связность объекта <span class="truth">✓ Пройдено</span></p><p>Актуальность данных <span class="truth">✓ Пройдено</span></p></div>
+            <div><h3>Расхождения <b class="counter">2</b></h3><p>Несоответствие схемы <span class="danger">RD1-15 v1.2</span></p><p>Устаревшая ссылка <span class="danger">OBJ-0041</span></p><h3>Нерешённые поля <b class="counter">1</b></h3><p>Метрика: ROI долгосрочная <span class="warn-text">Не заполнено</span></p></div>
+          </div>
+          <div class="truth-status"><div class="donut big"><i style="--p:98%"></i><strong>98%</strong></div><div><h3>Статус истины</h3><p>Объект соответствует источнику истины</p></div><div><small>Последняя проверка</small><p>22 мин назад</p><p>Проверено системой<br>ICAM Validator v2.3</p></div></div>
+          <button class="text-link">Открыть полный отчёт →</button>
+        </article>
+
+        <article class="card panel relations">
+          <div class="panel-head"><h2><svg><use href="#i-node"/></svg>Связи</h2><button><svg><use href="#i-filter"/></svg>Фильтр</button></div>
+          <div class="relation-diagram"><span>Ветки</span><span>Объекты</span><span>Файлы</span><span>Проверки (Gates)</span><span>События</span>
+            <div class="row r1"><b>RD1-12</b><b>OBJ-0009</b><b>▣ Файлы</b><b>GATE-23</b><b>EVT-210</b></div>
+            <div class="row r2"><b class="focus">RD1-15</b><b>OBJ-0011</b><b></b><b>GATE-17</b><b>EVT-198</b></div>
+            <div class="row r3"><b>RD1-09</b><b>+5</b><b></b><b>+3</b><b>+12</b></div>
+          </div>
+          <button class="text-link">Открыть карту связей →</button>
+        </article>
+
+        <article class="card panel events">
+          <div class="panel-head"><h2><svg><use href="#i-clock"/></svg>Последние события</h2><button><svg><use href="#i-filter"/></svg>Фильтр</button></div>
+          <ul class="event-list"><li><time>22 мин назад</time><b>OBJ-0009</b><span>Проверка целостности пройдена</span><em class="truth">● Истина</em></li><li><time>1 ч назад</time><b>RD1-15_Protocol_v2.1.pdf</b><span>Файл обновлён</span><em>▣</em></li><li><time>2 ч назад</time><b>GATE-23</b><span>Проверка пройдена</span><em>✓</em></li><li><time>3 ч назад</time><b>OBJ-0011</b><span>Связь установлена с OBJ-0009</span><em>↗</em></li><li><time>4 ч назад</time><b>OBJ-0009</b><span>Статус изменён: Черновик → <span class="truth">Истина</span></span><em class="truth">●</em></li></ul>
+          <button class="text-link">Смотреть все события →</button>
+        </article>
+
+        <article class="card panel attention">
+          <div class="panel-head"><h2><svg class="warn-svg"><use href="#i-alert"/></svg>Требует внимания</h2></div>
+          <ol><li><span>OBJ-0021</span><p>Отсутствует сопоставление источника истины</p><b class="sev high">Высокий</b></li><li><span>OBJ-0017</span><p>Не подтверждено владение</p><b class="sev med">Средний</b></li><li><span>OBJ-0032</span><p>Устаревший файл в связях</p><b class="sev med">Средний</b></li><li><span>OBJ-0028</span><p>Нерешённые поля (3)</p><b class="sev low">Низкий</b></li><li><span>OBJ-0006</span><p>Ожидается подтверждение Gate-19</p><b class="sev low">Низкий</b></li></ol>
+          <button class="text-link">Открыть список целиком →</button>
+        </article>
+      </section>
+
+      <section class="rules card panel">
+        <div class="panel-head"><h2><svg><use href="#i-shield"/></svg>Правила реестра</h2><button>Смотреть все правила →</button></div>
+        <div class="rules-row"><div><span>✹</span><p><strong>Истина одна</strong><small>Каждый объект имеет единственный источник истины</small></p></div><div><span>⌘</span><p><strong>След неизменяем</strong><small>Все изменения фиксируются в событийной ленте</small></p></div><div><span>▣</span><p><strong>Связи обязательны</strong><small>Объекты, файлы и проверки связаны явно</small></p></div><div><span>⌾</span><p><strong>Проверки непрерывны</strong><small>Целостность проверяется автоматически</small></p></div><div><span>⌕</span><p><strong>Прозрачность по умолчанию</strong><small>Каждое решение объяснимо и проверяемо</small></p></div></div>
+      </section>
+
+      <footer class="demo-note">UI scaffold • mock data only • no authority / backend semantics implemented</footer>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ICAM Founder Panel — Операции</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="operations.css" />
+  <link rel="stylesheet" href="shell-normalize.css">
+<script src="trust-contract.js"></script>
+<link rel="stylesheet" href="panel-readability.css">
+<link rel="stylesheet" href="panel-polish.css">
+<link rel="stylesheet" href="panel-system.css">
+<link rel="stylesheet" href="panel-layout.css">
+<link rel="stylesheet" href="panel-final.css">
+</head>
+<body class="ops-page">
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H4.5A1.5 1.5 0 0 1 3 19.5z"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9h18M5 9v9m4-9v9m6-9v9m4-9v9M3 20h18M12 3l9 4H3z"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.5 9.2A1.8 1.8 0 0 0 6 21h12a1.8 1.8 0 0 0 1.5-2.8L14 9V3M7.5 15h9"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></symbol>
+    <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7M3 12h18"/></symbol>
+    <symbol id="i-reg" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0M7 12a5 5 0 0 1 10 0M10 12a2 2 0 0 1 4 0M12 14v7"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-gate" viewBox="0 0 24 24"><path d="M5 20V7h14v13M8 20V10h8v10M4 20h16"/></symbol>
+    <symbol id="i-stack" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5zM3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 22 20H2z"/><path d="M12 9v5M12 17h.01"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand" aria-label="ICAM Lab"><div class="brand-logo-fallback"><span>ICAM</span><i>/</i><b>LAB</b></div></div>
+      <nav class="nav">
+        <a href="index.html"><svg><use href="#i-home"/></svg><span>Главная</span></a>
+        <a href="foundation.html"><svg><use href="#i-bank"/></svg><span>Фундамент</span></a>
+        <a href="research.html"><svg><use href="#i-flask"/></svg><span>Исследования</span></a>
+        <a href="brazilportal.html"><svg><use href="#i-globe"/></svg><span>BrazilPortal</span></a>
+        <a class="active" href="operations.html"><svg><use href="#i-brief"/></svg><span>Операции</span></a>
+        <a href="registry.html"><svg><use href="#i-reg"/></svg><span>Реестр</span></a>
+        <a href="signals.html"><svg><use href="#i-signal"/></svg><span>Сигналы</span></a>
+        <a href="documents.html"><svg><use href="#i-doc"/></svg><span>Документы</span></a>
+        <a href="testing.html"><svg><use href="#i-check"/></svg><span>Тестирование</span></a>
+        <a href="settings.html"><svg><use href="#i-gear"/></svg><span>Настройки</span></a>
+      </nav>
+      <div class="manifesto"><p class="side-quote">«Сильная система не требует героя. Она умеет держать форму сама.»</p><div class="leaf-art">⌁</div></div>
+    </aside>
+
+    <main class="main ops-main">
+      <header class="topbar ops-topbar">
+        <div><h1>Операции</h1><p>исполнение, очереди, gates и текущая нагрузка</p></div>
+        <div class="top-actions">
+          <button class="search-pill"><span>Спросите что-нибудь о системе...</span><svg><use href="#i-search"/></svg></button>
+          <button class="concept-pill">Концепт интерфейса <span>ⓘ</span></button>
+          <button class="bell" aria-label="Уведомления">♧<b>3</b></button>
+          <button class="profile"><span class="avatar">Н</span><span><strong>Ника</strong><small>Founder</small></span><span>⌄</span></button>
+        </div>
+      </header>
+
+      <section class="ops-kpis">
+        <article class="card ops-kpi"><div class="ops-kpi-icon"><svg><use href="#i-play"/></svg></div><div><small>Активные ходы</small><strong>14</strong><span>в исполнении</span><em>без критических сбоев</em></div><b class="ops-chip good">LIVE</b></article>
+        <article class="card ops-kpi"><div class="ops-kpi-icon"><svg><use href="#i-stack"/></svg></div><div><small>Очередь</small><strong>27</strong><span>операционных задач</span><em>6 готовы к запуску</em></div></article>
+        <article class="card ops-kpi"><div class="ops-kpi-icon"><svg><use href="#i-gate"/></svg></div><div><small>Gates</small><strong>5</strong><span>в текущем окне</span><em>4 system · 1 owner</em></div></article>
+        <article class="card ops-kpi"><div class="ops-kpi-icon"><svg><use href="#i-clock"/></svg></div><div><small>За 24 часа</small><strong>39</strong><span>завершённых ходов</span><em>median cycle 18 мин</em></div></article>
+        <article class="card ops-kpi"><div class="ops-kpi-icon amber"><svg><use href="#i-alert"/></svg></div><div><small>Требует внимания</small><strong>2</strong><span>операционных узла</span><em class="amber-text">не блокируют систему</em></div></article>
+      </section>
+
+      <section class="ops-grid">
+        <article class="card ops-panel queue-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-stack"/></svg>Текущая очередь</h2><small>приоритетные операционные ходы</small></div><span class="quiet-label"></span></div>
+          <div class="queue-head"><span>#</span><span>Контур</span><span>Ход</span><span>Владелец</span><span>Статус</span></div>
+          <div class="queue-row"><i>1</i><b>Foundation</b><p>Синхронизировать Registry → Steward projection</p><span>ICAM</span><em class="state live">в работе</em></div>
+          <div class="queue-row"><i>2</i><b>BrazilPortal</b><p>Пропустить следующий пакет через Funnel Router</p><span>Operations</span><em class="state live">в работе</em></div>
+          <div class="queue-row"><i>3</i><b>Research</b><p>Собрать evidence packet для RD1-12</p><span>Research</span><em class="state ready">готово</em></div>
+          <div class="queue-row"><i>4</i><b>Control Plane</b><p>Проверка проекции current-state mirror</p><span>Steward</span><em class="state watch">наблюдение</em></div>
+          <div class="queue-row"><i>5</i><b>Documents</b><p>Обновить связность master / frozen документов</p><span>ICAM</span><em class="state ready">готово</em></div>
+          <button class="text-link">Открыть полную очередь →</button>
+        </article>
+
+        <article class="card ops-panel action-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-alert"/></svg>Требует внимания</h2><small>только действия, которые нельзя закрыть автоматически</small></div></div>
+          <div class="attention-card"><span class="attention-mark">!</span><div><b>Owner gate</b><p>Подтвердить окно запуска следующего контролируемого rollout.</p><small>не блокирует текущие ходы</small></div><em>до 26 авг</em></div>
+          <div class="attention-card"><span class="attention-mark soft">i</span><div><b>Review</b><p>Проверить один неоднозначный operational mapping перед закреплением.</p><small>можно отложить</small></div><em>низкий</em></div>
+          <button class="text-link">Открыть все owner actions →</button>
+        </article>
+
+        <article class="card ops-panel runs-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-play"/></svg>Исполнение</h2><small>последние запуски и результаты</small></div><span class="live-tag">● RUNNING</span></div>
+          <ul class="run-list">
+            <li><span class="run-icon good">✓</span><p><b>Continuity ingest</b><small>event packet → projection</small></p><em>PASS</em><time>3 мин</time></li>
+            <li><span class="run-icon good">✓</span><p><b>Registry integrity check</b><small>objects + relations</small></p><em>PASS</em><time>11 мин</time></li>
+            <li><span class="run-icon active">↻</span><p><b>BrazilPortal live loop</b><small>router → content → attribution</small></p><em>RUN</em><time>сейчас</time></li>
+            <li><span class="run-icon good">✓</span><p><b>Research evidence sync</b><small>RD1 packet refresh</small></p><em>PASS</em><time>24 мин</time></li>
+            <li><span class="run-icon warn">•</span><p><b>Mirror freshness audit</b><small>1 field queued for review</small></p><em>WATCH</em><time>37 мин</time></li>
+          </ul>
+          <button class="text-link">Открыть журнал исполнений →</button>
+        </article>
+
+        <article class="card ops-panel load-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-clock"/></svg>Нагрузка системы</h2><small>операционные контуры</small></div></div>
+          <div class="load-row"><b>Foundation</b><span><i style="--p:72%"></i></span><em>72%</em></div>
+          <div class="load-row"><b>Research</b><span><i style="--p:58%"></i></span><em>58%</em></div>
+          <div class="load-row"><b>BrazilPortal</b><span><i style="--p:81%"></i></span><em>81%</em></div>
+          <div class="load-row"><b>Registry</b><span><i style="--p:44%"></i></span><em>44%</em></div>
+          <div class="load-row"><b>Steward</b><span><i style="--p:37%"></i></span><em>37%</em></div>
+          <div class="capacity-note"><span>Свободный резерв</span><b>24%</b><small>контур не перегружен</small></div>
+        </article>
+
+        <article class="card ops-panel gates-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-gate"/></svg>Gate board</h2><small>переходы, которые определяют следующий этап</small></div></div>
+          <div class="gate-row"><span class="gate-id">GATE-23</span><p><b>Registry integrity</b><small>система</small></p><em class="gate-pass">PASS</em></div>
+          <div class="gate-row"><span class="gate-id">GATE-31</span><p><b>Research evidence</b><small>RD1</small></p><em class="gate-pass">PASS</em></div>
+          <div class="gate-row"><span class="gate-id">GATE-44</span><p><b>BrazilPortal rollout</b><small>живой слой</small></p><em class="gate-run">OPEN</em></div>
+          <div class="gate-row"><span class="gate-id">OWNER</span><p><b>Controlled autonomy</b><small>Founder decision</small></p><em class="gate-owner">WAIT</em></div>
+          <button class="text-link">Открыть все gates →</button>
+        </article>
+
+        <article class="card ops-panel health-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-check"/></svg>Service health</h2><small>операционная готовность</small></div></div>
+          <div class="health-body"><div class="health-donut"><div class="donut big"><i style="--p:97%"></i><strong>97%</strong></div><small>общая готовность</small></div><ul><li><span>✓</span><b>Continuity</b><em>норма</em></li><li><span>✓</span><b>Registry</b><em>норма</em></li><li><span>✓</span><b>Steward</b><em>норма</em></li><li><span>✓</span><b>Control Plane</b><em>норма</em></li><li><span>•</span><b>Mirror freshness</b><em class="watch-text">watch</em></li></ul></div>
+          <button class="text-link">Открыть operational health →</button>
+        </article>
+      </section>
+
+      <section class="card ops-bottom">
+        <div><small>NEXT MOVE</small><h3>Свести execution layer и current-state mirror в один устойчивый операционный ритм.</h3><p>UI показывает только оболочку; реальные источники и действия подключаются внутренним контуром.</p></div>
+        <div class="ops-owner"><span>Owner</span><b>ICAM / Operations</b></div>
+        <div class="ops-gate"><span>Next gate</span><b>Operational convergence</b></div>
+        <button class="text-link">Открыть master view →</button>
+      </section>
+      <div class="demo-note">BROWSER WORKBENCH · mock data only · visual layer only</div>
+    </main>
+  </div>
+
+
+<script>
+(function(){
+  function setupCardArrows(){
+    document.querySelectorAll('.text-link').forEach(function(link){
+      var card = link.closest('.card') || link.closest('.foundation-footer-card') || link.closest('.bp-bottom') || link.closest('.doc-bottom') || link.closest('.sig-bottom') || link.closest('.ops-bottom') || link.closest('.state-contract');
+      if(!card) return;
+      var head = card.querySelector('.panel-head, .state-head');
+      if(!head || head.querySelector('.top-corner-arrow')) return;
+
+      var href = link.tagName === 'A' ? link.getAttribute('href') : null;
+      var arrow;
+      if(href && href !== '#'){
+        arrow = document.createElement('a');
+        arrow.href = href;
+        arrow.setAttribute('aria-label', link.textContent.trim().replace(/\s*→\s*$/,''));
+      } else {
+        arrow = document.createElement('span');
+        arrow.setAttribute('aria-hidden','true');
+      }
+      arrow.className = 'top-corner-arrow';
+      arrow.textContent = '→';
+      head.appendChild(arrow);
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupCardArrows);
+  else setupCardArrows();
+})();
+</script>
+
+
+  <script src="ops-live.js"></script>
+<script src="truth-guard.js"></script>
+<script>
+// «39 завершённых за 24 часа» противоречит наблюдателю (closed_7d = 0 за неделю).
+// «median cycle», блок ИСПОЛНЕНИЕ и жёстко вшитые даты источника не имеют.
+(function(){
+ const kill=[/За 24 часа/i,/median cycle/i,/ИСПОЛНЕНИЕ/i,/Gates/i];
+ document.querySelectorAll('article,section,.card').forEach(el=>{
+   const t=(el.innerText||'');
+   if(kill.some(rx=>rx.test(t)) && !/Активные ходы|ТЕКУЩАЯ ОЧЕРЕДЬ/i.test(t)) TG.mark(el);
+ });
+ document.querySelectorAll('*').forEach(el=>{
+   if(el.children.length===0 && /до 2[0-9] авг/.test(el.textContent||'')) el.textContent='срок не задан';
+ });
+})();
+</script>
+<script src="panel-fit.js"></script>
+<script defer src="panel-cards.js"></script>
+<script defer src="panel-scroll.js"></script>
+</body>
+</html>

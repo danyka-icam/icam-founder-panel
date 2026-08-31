@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ICAM Founder Panel — Тестирование</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="testing.css" />
+  <link rel="stylesheet" href="shell-normalize.css" />
+<script src="trust-contract.js"></script>
+<link rel="stylesheet" href="panel-readability.css">
+<link rel="stylesheet" href="panel-polish.css">
+<link rel="stylesheet" href="panel-system.css">
+<link rel="stylesheet" href="panel-layout.css">
+<link rel="stylesheet" href="panel-final.css">
+</head>
+<body class="documents-page">
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H4.5A1.5 1.5 0 0 1 3 19.5z"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9h18M5 9v9m4-9v9m6-9v9m4-9v9M3 20h18M12 3l9 4H3z"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.5 9.2A1.8 1.8 0 0 0 6 21h12a1.8 1.8 0 0 0 1.5-2.8L14 9V3M7.5 15h9"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></symbol>
+    <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7M3 12h18"/></symbol>
+    <symbol id="i-reg" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0M7 12a5 5 0 0 1 10 0M10 12a2 2 0 0 1 4 0M12 14v7"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v6c0 5-3.3 8-8 9-4.7-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-stack" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5zM3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 22 20H2z"/><path d="M12 9v5M12 17h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand" aria-label="ICAM Lab"><div class="brand-logo-fallback"><span>ICAM</span><i>/</i><b>LAB</b></div></div>
+      <nav class="nav">
+        <a href="index.html"><svg><use href="#i-home"/></svg><span>Главная</span></a>
+        <a href="foundation.html"><svg><use href="#i-bank"/></svg><span>Фундамент</span></a>
+        <a href="research.html"><svg><use href="#i-flask"/></svg><span>Исследования</span></a>
+        <a href="brazilportal.html"><svg><use href="#i-globe"/></svg><span>BrazilPortal</span></a>
+        <a href="operations.html"><svg><use href="#i-brief"/></svg><span>Операции</span></a>
+        <a href="registry.html"><svg><use href="#i-reg"/></svg><span>Реестр</span></a>
+        <a href="signals.html"><svg><use href="#i-signal"/></svg><span>Сигналы</span></a>
+        <a href="documents.html"><svg><use href="#i-doc"/></svg><span>Документы</span></a>
+        <a class="active" href="testing.html"><svg><use href="#i-check"/></svg><span>Тестирование</span></a>
+        <a href="settings.html"><svg><use href="#i-gear"/></svg><span>Настройки</span></a>
+      </nav>
+      <div class="manifesto"><p class="side-quote">«Сильная система не требует героя. Она умеет держать форму сама.»</p><div class="leaf-art">⌁</div></div>
+    </aside>
+
+    <main class="main documents-main">
+      <header class="topbar documents-topbar">
+        <div><h1>Тестирование</h1><p>ICAM Testing Department — очередь, независимые прогоны, состояние раннера</p></div>
+        <div class="top-actions">
+          <button class="search-pill"><span>Спросите что-нибудь о системе...</span><svg><use href="#i-search"/></svg></button>
+          <button class="concept-pill">Концепт интерфейса <span>ⓘ</span></button>
+          <button class="bell" aria-label="Уведомления">♧<b>3</b></button>
+          <button class="profile"><span class="avatar">Н</span><span><strong>Ника</strong><small>Founder</small></span><span>⌄</span></button>
+        </div>
+      </header>
+
+      <section class="doc-kpis">
+        <article class="card doc-kpi"><div class="doc-kpi-icon"><svg><use href="#i-doc"/></svg></div><div><small>Очередь</small><strong data-f="total">—</strong><span>тестов всего</span><em>live</em></div></article>
+        <article class="card doc-kpi"><div class="doc-kpi-icon"><svg><use href="#i-clock"/></svg></div><div><small>Ожидают</small><strong data-f="waiting">—</strong><span>requested/ready</span><em>live</em></div></article>
+        <article class="card doc-kpi"><div class="doc-kpi-icon"><svg><use href="#i-flask"/></svg></div><div><small>Активные</small><strong data-f="active">—</strong><span>в исполнении</span><em>live</em></div></article>
+        <article class="card doc-kpi"><div class="doc-kpi-icon"><svg><use href="#i-stack"/></svg></div><div><small>Ретесты</small><strong data-f="rerun">—</strong><span>RERUN_REQUIRED</span><em>live</em></div></article>
+        <article class="card doc-kpi"><div class="doc-kpi-icon"><svg><use href="#i-shield"/></svg></div><div><small>Раннер</small><strong data-f="runner">—</strong><span>провайдеры раннера</span><em data-f="runner-note">live</em></div></article>
+      </section>
+
+      <style>
+        .lin-card{margin:0 0 10px;padding:0;overflow:hidden}
+        .lin-top{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#1d2320;border-top:1px solid #1d2320;border-bottom:1px solid #1d2320}
+        .lin-top>div{background:#11150f;padding:9px 11px}
+        .lin-top small{display:block;font-size:6.4px;letter-spacing:.09em;text-transform:uppercase;color:#7d877f;margin-bottom:3px}
+        .lin-top b{font-size:8.4px;color:#e6ece7;font-weight:600;line-height:1.35;display:block;word-break:break-word}
+        .lin-sec{padding:10px 12px;border-bottom:1px solid #1d2320}
+        .lin-sec>h4{margin:0 0 7px;font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:#8d968f;font-weight:600}
+        .lin-flow{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:9px}
+        .lin-chip{border:1px solid #2a322c;border-radius:3px;padding:3px 6px;font-size:7px;color:#c2c9c4;background:#141812;white-space:nowrap}
+        .lin-chip.done{border-color:#2f5f3f;color:#8fd6a6}
+        .lin-chip.sup{border-color:#4a4230;color:#c6a35f;text-decoration:line-through;opacity:.72}
+        .lin-chip.wait{border-color:#33506b;color:#87b5da;border-style:dashed}
+        .lin-chip.fail{border-color:#5f3030;color:#e08d8d}
+        .lin-arrow{color:#4a534c;font-size:7px}
+        .lin-tbl{width:100%;border-collapse:collapse;font-size:7px;color:#c2c9c4}
+        .lin-tbl th{text-align:left;font-size:6.3px;letter-spacing:.08em;text-transform:uppercase;color:#7d877f;font-weight:600;padding:4px 6px;border-bottom:1px solid #232a25}
+        .lin-tbl td{padding:4px 6px;border-bottom:1px solid #1a1f1b;vertical-align:top;line-height:1.4}
+        .lin-tbl tr.superseded td{opacity:.6}
+        .lin-mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:6.6px;color:#9aa39c}
+        .lin-tag{display:inline-block;border-radius:2px;padding:1px 4px;font-size:6.2px;letter-spacing:.04em;border:1px solid #2a322c;color:#9aa39c}
+        .lin-tag.ok{border-color:#2f5f3f;color:#8fd6a6}.lin-tag.warn{border-color:#4a4230;color:#c6a35f}
+        .lin-tag.bad{border-color:#5f3030;color:#e08d8d}.lin-tag.info{border-color:#33506b;color:#87b5da}
+        .lin-cols{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#1d2320}
+        .lin-cols>div{background:#11150f}
+        .lin-kv{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid #1a1f1b;font-size:7.2px}
+        .lin-kv span{color:#8d968f}.lin-kv b{color:#e6ece7;font-weight:600}
+        .lin-rev{border-left:2px solid #2a322c;padding:6px 0 6px 9px;margin-bottom:2px}
+        .lin-rev.cur{border-left-color:#3f7d55}
+        .lin-rev h5{margin:0 0 3px;font-size:7.4px;color:#e6ece7;font-weight:600}
+        .lin-rev p{margin:1px 0;font-size:7px;color:#a9b2ab;line-height:1.45}
+        .lin-note{font-size:6.8px;color:#7d877f;line-height:1.5;padding:7px 12px;background:#0e1210}
+      </style>
+      <section class="card lin-card">
+        <div class="panel-head"><div><h2><svg><use href="#i-flask"/></svg>Живой кейс — цепочка попыток и ревизии результата</h2><small data-f="lin-subtitle">read-only проекция существующего execution state</small></div><span class="quiet-label">live</span></div>
+        <div class="lin-top" data-f="lin-top"></div>
+        <div class="lin-sec" data-f="lin-chain"></div>
+        <div class="lin-cols">
+          <div class="lin-sec" data-f="lin-isolation" style="border-bottom:none"></div>
+          <div class="lin-sec" data-f="lin-results" style="border-bottom:none"></div>
+        </div>
+        <div class="lin-sec" data-f="lin-findings" style="border-top:1px solid #1d2320"></div>
+        <div class="lin-note">Панель ничего не запускает и не пишет. Содержимое withheld master, промпты, входные файлы и ключи сюда не выводятся — только метаданные происхождения и вынесенные вердикты.</div>
+      </section>
+
+      <section class="doc-grid">
+        <article class="card doc-panel queue-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-clock"/></svg>Очередь тестов</h2><small>active + recent, live из ICAM Testing API</small></div><span class="quiet-label"></span></div>
+          <div class="queue-head"><span>Test ID</span><span>Ветка</span><span>Возраст</span><span>Статус</span></div>
+          <div data-f="queue-rows"></div>
+          <button class="text-link">Открыть очередь целиком →</button>
+        </article>
+
+        <article class="card doc-panel lifecycle-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-stack"/></svg>Результаты</h2><small>распределение по статусу (live)</small></div></div>
+          <div class="life-flow" data-f="status-flow">
+            <div><span>COMPLETED</span><b>—</b><small>завершён</small></div><i></i>
+            <div><span>ADJUDICATION</span><b>—</b><small>ждёт ветку</small></div><i></i>
+            <div><span>BLOCKED</span><b>—</b><small>блок</small></div><i></i>
+            <div><span>RERUN</span><b>—</b><small>требует повтора</small></div>
+          </div>
+          <div class="life-note">Universal dispatcher v0.1 замораживает независимые прогоны, но не выполняет доменную adjudication сам.</div>
+          <button class="text-link">Открыть журнал →</button>
+        </article>
+
+        <article class="card doc-panel recent-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-doc"/></svg>Последние результаты</h2><small>по updated_at</small></div><span class="quiet-label">live</span></div>
+          <ul class="recent-list" data-f="recent-list"></ul>
+          <button class="text-link">Открыть последние изменения →</button>
+        </article>
+
+        <article class="card doc-panel provenance-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-link"/></svg>Durable evidence</h2><small>frozen output → sha256 по каждому role-прогону</small></div></div>
+          <div data-f="evidence-rows" style="padding:10px 12px;font-size:7.6px;color:#c2c9c4;line-height:1.5"></div>
+          <button class="text-link">Открыть все прогоны →</button>
+        </article>
+
+        <article class="card doc-panel attention-docs-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-alert"/></svg>Требует внимания</h2><small>только реальное состояние системы</small></div></div>
+          <div data-f="attention-rows"></div>
+          <div class="read-only-note">Founder Panel показывает состояние Testing Department. Диспетчер и раннер запускаются штатным путём (systemd/timer), не отсюда.</div>
+          <button class="text-link">Открыть детали →</button>
+        </article>
+
+        <article class="card doc-panel type-panel">
+          <div class="panel-head"><div><h2><svg><use href="#i-stack"/></svg>Идентичность</h2><small>канонический object_id этого контура</small></div></div>
+          <div data-f="identity-block" style="padding:16px 12px;font-size:8px;line-height:1.5;color:#c2c9c4"></div>
+          <button class="text-link">Открыть Реестр →</button>
+        </article>
+      </section>
+
+      <section class="card doc-bottom">
+        <div><small>NEXT MOVE</small><h3>Раннер настроен: 6 провайдеров (OpenAI · Groq · Gemini · Cerebras · Mistral · NVIDIA). Внешние инструменты отключены на всех.</h3><p>UI показывает только реальное состояние; приём/отклонение тестов остаётся в дистанционном dispatcher-контуре.</p></div>
+        <div class="doc-owner"><span>Владелец контура</span><b>ICAM Testing Department</b></div>
+        <div class="doc-gate"><span>Следующий gate</span><b>Zero-courier operational v1</b></div>
+        <button class="text-link">Детали контура →</button>
+      </section>
+      <div class="demo-note">LIVE PANEL · только реально поддерживаемые поля · без визуального редизайна</div>
+    </main>
+  </div>
+
+
+<script>
+(function(){
+  function setupCardArrows(){
+    document.querySelectorAll('.text-link').forEach(function(link){
+      var card = link.closest('.card') || link.closest('.foundation-footer-card') || link.closest('.bp-bottom') || link.closest('.doc-bottom') || link.closest('.sig-bottom') || link.closest('.ops-bottom') || link.closest('.state-contract');
+      if(!card) return;
+      var head = card.querySelector('.panel-head, .state-head');
+      if(!head || head.querySelector('.top-corner-arrow')) return;
+
+      var href = link.tagName === 'A' ? link.getAttribute('href') : null;
+      var arrow;
+      if(href && href !== '#'){
+        arrow = document.createElement('a');
+        arrow.href = href;
+        arrow.setAttribute('aria-label', link.textContent.trim().replace(/\s*→\s*$/,''));
+      } else {
+        arrow = document.createElement('span');
+        arrow.setAttribute('aria-hidden','true');
+      }
+      arrow.className = 'top-corner-arrow';
+      arrow.textContent = '→';
+      head.appendChild(arrow);
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupCardArrows);
+  else setupCardArrows();
+})();
+</script>
+
+
+  <script src="testing-live.js"></script>
+<script src="truth-guard.js"></script>
+<script src="semantic.js"></script>
+<script src="panel-fit.js"></script>
+<script defer src="panel-cards.js"></script>
+<script defer src="panel-scroll.js"></script>
+</body>
+</html>

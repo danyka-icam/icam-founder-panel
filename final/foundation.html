@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ICAM Founder Panel — Фундамент</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="foundation.css" />
+  <link rel="stylesheet" href="shell-normalize.css">
+<script src="trust-contract.js"></script>
+<link rel="stylesheet" href="panel-readability.css">
+<link rel="stylesheet" href="panel-polish.css">
+<link rel="stylesheet" href="panel-system.css">
+<link rel="stylesheet" href="panel-layout.css">
+<link rel="stylesheet" href="panel-final.css">
+</head>
+<body class="foundation-page">
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H4.5A1.5 1.5 0 0 1 3 19.5z"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9h18M5 9v9m4-9v9m6-9v9m4-9v9M3 20h18M12 3l9 4H3z"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.5 9.2A1.8 1.8 0 0 0 6 21h12a1.8 1.8 0 0 0 1.5-2.8L14 9V3M7.5 15h9"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></symbol>
+    <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7M3 12h18"/></symbol>
+    <symbol id="i-reg" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0M7 12a5 5 0 0 1 10 0M10 12a2 2 0 0 1 4 0M12 14v7"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v6c0 5-3.2 8-8 9-4.8-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1.1-1.1"/></symbol>
+    <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="18" cy="19" r="2"/><path d="M6 7v3a4 4 0 0 0 4 4h4a4 4 0 0 1 4 4v-1"/></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24"><path d="M4 7h16v13H4zM3 4h18v3H3zM9 11h6"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand" aria-label="ICAM Lab"><div class="brand-logo-fallback"><span>ICAM</span><i>/</i><b>LAB</b></div></div>
+      <nav class="nav">
+        <a href="index.html"><svg><use href="#i-home"/></svg><span>Главная</span></a>
+        <a class="active" href="foundation.html"><svg><use href="#i-bank"/></svg><span>Фундамент</span></a>
+        <a href="research.html"><svg><use href="#i-flask"/></svg><span>Исследования</span></a>
+        <a href="brazilportal.html"><svg><use href="#i-globe"/></svg><span>BrazilPortal</span></a>
+        <a href="operations.html"><svg><use href="#i-brief"/></svg><span>Операции</span></a>
+        <a href="registry.html"><svg><use href="#i-reg"/></svg><span>Реестр</span></a>
+        <a href="signals.html"><svg><use href="#i-signal"/></svg><span>Сигналы</span></a>
+        <a href="documents.html"><svg><use href="#i-doc"/></svg><span>Документы</span></a>
+        <a href="testing.html"><svg><use href="#i-check"/></svg><span>Тестирование</span></a>
+        <a href="settings.html"><svg><use href="#i-gear"/></svg><span>Настройки</span></a>
+      </nav>
+      <div class="manifesto"><p class="side-quote">«Сильная система не требует героя. Она умеет держать форму сама.»</p><div class="leaf-art">⌁</div></div>
+    </aside>
+
+    <main class="main foundation-main">
+      <header class="topbar foundation-topbar">
+        <div><h1>Фундамент</h1><p>устойчивость, восстановление и целостность ICAM</p></div>
+        <div class="top-actions">
+          <button class="search-pill"><span>Спросите что-нибудь о системе...</span><svg><use href="#i-search"/></svg></button>
+          <button class="concept-pill">Концепт интерфейса <span>ⓘ</span></button>
+          <button class="bell" aria-label="Уведомления">♧<b>3</b></button>
+          <button class="profile"><span class="avatar">Н</span><span><strong>Ника</strong><small>Founder</small></span><span>⌄</span></button>
+        </div>
+      </header>
+
+      <section class="foundation-kpis">
+        <article class="card foundation-kpi"><span class="f-kpi-icon"><svg><use href="#i-shield"/></svg></span><div><small>Общий статус</small><strong>READY</strong><em>daily-use blockers: 0</em></div><b class="state-chip good">стабильно</b></article>
+        <article class="card foundation-kpi"><span class="f-kpi-icon"><svg><use href="#i-route"/></svg></span><div><small>Continuity</small><strong>LIVE</strong><em>обычный путь работает</em></div><b class="state-chip good">в норме</b></article>
+        <article class="card foundation-kpi"><span class="f-kpi-icon"><svg><use href="#i-database"/></svg></span><div><small>Recovery</small><strong>PASS</strong><em>backup + restore verified</em></div><b class="state-chip good">проверено</b></article>
+        <article class="card foundation-kpi"><span class="f-kpi-icon"><svg><use href="#i-archive"/></svg></span><div><small>Durability</small><strong>ACTIVE</strong><em>store / readback / receipts</em></div><b class="state-chip good">активно</b></article>
+        <article class="card foundation-kpi"><span class="f-kpi-icon"><svg><use href="#i-eye"/></svg></span><div><small>Founder view</small><strong>READ</strong><em>truth + freshness visible</em></div><b class="state-chip good">чисто</b></article>
+      </section>
+
+      <section class="foundation-grid">
+        <article class="card foundation-panel health-panel">
+          <div class="panel-head"><div class="head-title"><h2><svg><use href="#i-shield"/></svg>СОСТОЯНИЕ ФУНДАМЕНТА</h2><small>Можно ли безопасно строить следующий слой</small></div><span class="live-dot">● live</span></div>
+          <div class="foundation-health-body">
+            <div class="foundation-score"><div class="donut big"><i style="--p:100%"></i><strong>100%</strong></div><p><b>Stable baseline</b><span>критических блокеров нет</span></p></div>
+            <ul class="foundation-checks">
+              <li><span>Архитектура истины</span><b>PASS</b></li>
+              <li><span>Обычный event path</span><b>PASS</b></li>
+              <li><span>Rollback / recovery</span><b>PASS</b></li>
+              <li><span>Projection integrity</span><b>PASS</b></li>
+              <li><span>Privacy boundary</span><b>PASS</b></li>
+            </ul>
+          </div>
+          <button class="text-link">Открыть полный health view →</button>
+        </article>
+
+        <article class="card foundation-panel next-panel">
+          <div class="panel-head"><div class="head-title"><h2><svg><use href="#i-route"/></svg>СЛЕДУЮЩИЙ ХОД</h2><small>Что сейчас действительно нужно делать</small></div></div>
+          <div class="next-stack">
+            <div class="next-primary"><span class="step-number">1</span><div><small>Текущий приоритет</small><h3>Founder Panel Product Sprint</h3><p>Довести внешний слой до готовой рабочей оболочки без вмешательства в runtime.</p></div></div>
+            <div class="next-row"><span>Owner</span><b>UI / Product layer</b></div>
+            <div class="next-row"><span>Следующий gate</span><b>Visual + UX acceptance</b></div>
+            <div class="next-row"><span>После gate</span><b>Implementation handoff</b></div>
+          </div>
+          <button class="text-link">Открыть дорожную карту →</button>
+        </article>
+
+        <article class="card foundation-panel residue-panel">
+          <div class="panel-head"><div class="head-title"><h2><svg><use href="#i-signal"/></svg>СИСТЕМНОЕ ВНИМАНИЕ</h2><small>Не блокирует ежедневную работу</small></div><span class="attention-count">6</span></div>
+          <ul class="residue-list">
+            <li><i class="residue-dot controlled"></i><span>Контролируемый test residue</span><b>не production fault</b></li>
+            <li><i class="residue-dot"></i><span>R007</span><b>unresolved / nonblocking</b></li>
+            <li><i class="residue-dot"></i><span>B002</span><b>unresolved / nonblocking</b></li>
+            <li><i class="residue-dot"></i><span>PANEL_SYNC_INFRA</span><b>unresolved / nonblocking</b></li>
+            <li><i class="residue-dot"></i><span>UNRESOLVED</span><b>identity cleanup</b></li>
+          </ul>
+          <button class="text-link">Открыть системный список →</button>
+        </article>
+
+        <article class="card foundation-panel components-panel">
+          <div class="panel-head"><div class="head-title"><h2><svg><use href="#i-link"/></svg>ОПОРНЫЕ КОНТУРЫ</h2><small>Текущее состояние ключевых компонентов</small></div></div>
+          <div class="component-matrix">
+            <div class="component-item"><span class="component-icon"><svg><use href="#i-route"/></svg></span><p><strong>Continuity</strong><small>canonical operational truth</small></p><b class="state-chip good">Operational</b></div>
+            <div class="component-item"><span class="component-icon"><svg><use href="#i-eye"/></svg></span><p><strong>Founder Panel</strong><small>read path / product layer</small></p><b class="state-chip warm">Building</b></div>
+            <div class="component-item"><span class="component-icon"><svg><use href="#i-archive"/></svg></span><p><strong>Artifact Durability</strong><small>store + readback</small></p><b class="state-chip good">Operational</b></div>
+            <div class="component-item"><span class="component-icon"><svg><use href="#i-check"/></svg></span><p><strong>Founder Actions</strong><small>bounded A2 approvals</small></p><b class="state-chip good">Pass</b></div>
+            <div class="component-item"><span class="component-icon"><svg><use href="#i-shield"/></svg></span><p><strong>Steward</strong><small>integrity / attention</small></p><b class="state-chip good">Quiet</b></div>
+            <div class="component-item"><span class="component-icon"><svg><use href="#i-globe"/></svg></span><p><strong>Public projection</strong><small>privacy-safe propagation</small></p><b class="state-chip good">Verified</b></div>
+          </div>
+          <button class="text-link">Открыть Component Directory →</button>
+        </article>
+
+        <article class="card foundation-panel recovery-panel">
+          <div class="panel-head"><div class="head-title"><h2><svg><use href="#i-database"/></svg>ВОССТАНОВЛЕНИЕ И СОХРАННОСТЬ</h2><small>Система умеет восстановиться и доказать хранение</small></div></div>
+          <div class="recovery-body">
+            <div class="recovery-track"><span class="recovery-node ok"><svg><use href="#i-database"/></svg></span><p><b>Backup</b><small>fresh dump</small></p><i></i><span class="recovery-node ok"><svg><use href="#i-check"/></svg></span><p><b>Restore</b><small>isolated proof</small></p><i></i><span class="recovery-node ok"><svg><use href="#i-archive"/></svg></span><p><b>Readback</b><small>durable receipt</small></p></div>
+            <div class="recovery-note"><b>Production untouched</b><span>Проверки восстановления идут через изолированный контур.</span></div>
+          </div>
+          <button class="text-link">Открыть recovery evidence →</button>
+        </article>
+
+        <article class="card foundation-panel freshness-panel">
+          <div class="panel-head"><div class="head-title"><h2><svg><use href="#i-clock"/></svg>ИСТОЧНИКИ И СВЕЖЕСТЬ</h2><small>Откуда берётся текущая правда</small></div></div>
+          <ul class="freshness-list">
+            <li><span><b>Continuity</b><small>operational state</small></span><em class="fresh">свежо</em></li>
+            <li><span><b>Steward</b><small>integrity / incidents</small></span><em class="fresh">свежо</em></li>
+            <li><span><b>Artifact layer</b><small>durability / receipts</small></span><em class="fresh">свежо</em></li>
+            <li><span><b>Panel synthesis</b><small>presentation only</small></span><em class="neutral">не authority</em></li>
+          </ul>
+          <div class="source-law">Панель может синтезировать, но не становится вторым источником истины.</div>
+        </article>
+      </section>
+
+      <section class="card foundation-footer-card">
+        <div><small>FOUNDER ANSWER</small><h3>Фундамент сейчас стабилен?</h3><p>Да. Для ежедневной работы критических блокеров нет; остаточные SYSTEM issues контролируемы и не являются production faults.</p></div>
+        <div class="answer-owner"><span>Кому принадлежит ход</span><b>NO ACTION</b></div>
+        <button class="text-link">Показать evidence →</button>
+      </section>
+
+      <footer class="demo-note">BROWSER WORKBENCH • reference state • visual layer only</footer>
+    </main>
+  </div>
+  <script src="app.js"></script>
+
+
+<script>
+(function(){
+  function setupCardArrows(){
+    document.querySelectorAll('.text-link').forEach(function(link){
+      var card = link.closest('.card') || link.closest('.foundation-footer-card') || link.closest('.bp-bottom') || link.closest('.doc-bottom') || link.closest('.sig-bottom') || link.closest('.ops-bottom') || link.closest('.state-contract');
+      if(!card) return;
+      var head = card.querySelector('.panel-head, .state-head');
+      if(!head || head.querySelector('.top-corner-arrow')) return;
+
+      var href = link.tagName === 'A' ? link.getAttribute('href') : null;
+      var arrow;
+      if(href && href !== '#'){
+        arrow = document.createElement('a');
+        arrow.href = href;
+        arrow.setAttribute('aria-label', link.textContent.trim().replace(/\s*→\s*$/,''));
+      } else {
+        arrow = document.createElement('span');
+        arrow.setAttribute('aria-hidden','true');
+      }
+      arrow.className = 'top-corner-arrow';
+      arrow.textContent = '→';
+      head.appendChild(arrow);
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupCardArrows);
+  else setupCardArrows();
+})();
+</script>
+
+
+<script src="truth-guard.js"></script>
+<script>
+// Страница целиком не подключена к живым источникам: ни одного запроса к API.
+// По P0-контракту показывать правдоподобные числа здесь нельзя.
+document.querySelectorAll('article.card, section.card, .card').forEach(el=>{
+  if((el.innerText||'').replace(/\s/g,'').length>3) TG.mark(el,'источник не подключён');});
+</script>
+<script src="live3.js"></script>
+<script src="panel-fit.js"></script>
+<script defer src="panel-cards.js"></script>
+<script defer src="panel-scroll.js"></script>
+</body>
+</html>

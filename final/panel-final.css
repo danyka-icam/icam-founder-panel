@@ -1,0 +1,200 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   ТОЧЕЧНЫЕ ПРАВКИ ПО ЗАМЕРУ · 2026-08-27
+   Не «ещё один слой стилей», а три конкретные починки по найденным причинам:
+     1) статус-плашки раздувались до 20px, потому что свёрстаны тегом <strong>,
+        а моё правило задавало 20px любому <strong> внутри карточки;
+     2) длинный текст в узких ячейках (76–96px) переносился и сыпался
+        каскадом по несколько букв — вместо этого он должен уезжать вбок;
+     3) подзаголовок шапки налезал на первую строку содержимого.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── 1. СТАТУС-ПЛАШКИ: размер по роли, а не по тегу ───────────────────── */
+.state, .stage, .evidence, .status-pill, .state-chip,
+[class*="chip"], [class*="pill"], .tag, .badge,
+strong.state, strong.stage, strong.status-pill,
+article.card strong.state, article.card strong.stage,
+article.card .state, article.card .stage, article.card .evidence,
+article.card .status-pill, article.card .state-chip{
+  font-size:11px !important;
+  line-height:1.35 !important;
+  font-weight:600 !important;
+  padding:3px 7px !important;
+  border-radius:5px !important;
+  white-space:nowrap !important;
+  max-width:100%;
+  overflow-x:auto; overflow-y:hidden;
+  display:inline-block !important;
+  vertical-align:middle;
+}
+.state::-webkit-scrollbar, .stage::-webkit-scrollbar,
+.status-pill::-webkit-scrollbar{ height:0 }
+
+/* ── 2. КАСКАД → ГОРИЗОНТАЛЬНЫЙ СВАЙП ─────────────────────────────────
+   Правило: если ячейка узкая, текст в ней НЕ переносится. Он остаётся
+   одной строкой и листается вбок. Каскад из трёх букв в строке — хуже,
+   чем строка, которую можно домотать. */
+.r-row > *, .a-row > *, .r-head > *, .a-head > *,
+.r-row small, .a-row small, .r-row span, .a-row span,
+.queue-row > *, .lin-tbl td, .lin-tbl th,
+.evidence-row > *, .experiment-row > *, .roadmap-row > *{
+  white-space:nowrap !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  overflow-wrap:normal !important;
+  word-break:normal !important;
+  text-overflow:clip;
+  scrollbar-width:none;
+  min-width:0;
+}
+.r-row > *::-webkit-scrollbar, .a-row > *::-webkit-scrollbar,
+.queue-row > *::-webkit-scrollbar, .lin-tbl td::-webkit-scrollbar{ height:0 }
+/* широкие смысловые абзацы по-прежнему переносятся по словам */
+.sem-main, .sem-sub, .live3-box p, .changed-col p,
+.home-list li > span, .priority-list li > span{
+  white-space:normal !important;
+  overflow-x:visible !important;
+  overflow-wrap:break-word !important;
+}
+
+/* ── 3. ШАПКА НЕ НАЛЕЗАЕТ НА СОДЕРЖИМОЕ ───────────────────────────────
+   Высота шапки была фиксированной; подзаголовок в две строки выходил
+   за неё и ложился на первую строку таблицы. */
+.panel-head{
+  height:auto !important; min-height:0 !important;
+  align-items:flex-start !important;
+  flex:0 0 auto;
+}
+.panel-head small{
+  display:block; white-space:normal !important;
+  overflow-wrap:break-word; line-height:1.35;
+}
+.panel-head + *{ margin-top:0 }
+
+/* ── 4. Иконка и заголовок на одном уровне ────────────────────────────
+   Заголовок центрируется по иконке, а не висит выше неё. */
+.panel-head h2{ align-items:center !important; min-height:var(--icon,26px) }
+[class*="kpi"]:not([class*="kpis"]):not([class*="-icon"]) > div > small:first-child{
+  min-height:var(--icon,26px);
+  display:flex; align-items:center;
+}
+
+/* ── 5. ЕДИНАЯ СЕТКА ВЕРХНИХ КАРТОЧЕК ─────────────────────────────────
+   Строка 1: иконка и название на одном уровне.
+   Строка 2: значение и пояснение во всю ширину — им больше не тесно.
+   Строка 3: плашка состояния, отдельно, чтобы не наезжать на значение. */
+article.card.kpi-laid{
+  display:grid !important;
+  grid-template-columns:var(--icon,26px) 1fr;
+  grid-template-areas:"icon title" "body body" "chip chip";
+  column-gap:10px; row-gap:7px;
+  align-items:center;
+  padding:15px 17px !important;
+  min-width:0;
+}
+article.card.kpi-laid > [class*="-icon"]{
+  grid-area:icon; margin:0 !important; align-self:center;
+}
+article.card.kpi-laid > .kpi-title{
+  grid-area:title; align-self:center; margin:0 !important;
+  white-space:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:none;
+  min-width:0; line-height:1.25 !important;
+}
+article.card.kpi-laid > .kpi-title::-webkit-scrollbar{ height:0 }
+article.card.kpi-laid > div{
+  grid-area:body; display:flex; flex-direction:column; gap:5px; min-width:0;
+}
+article.card.kpi-laid > b, article.card.kpi-laid > .state-chip,
+article.card.kpi-laid > [class*="chip"]{
+  grid-area:chip; justify-self:start; margin:0 !important;
+}
+/* значение может быть длинной машинной строкой — тогда листается вбок */
+article.card.kpi-laid > div > strong{
+  min-width:0; max-width:100%;
+  overflow-x:auto; overflow-y:hidden; scrollbar-width:none;
+}
+article.card.kpi-laid > div > strong::-webkit-scrollbar{ height:0 }
+
+/* карточке нужен пол — иначе колонка названия сжимается до 70px */
+article.card.kpi-laid{ min-width:0 }
+article.card.kpi-laid > .kpi-title, article.card.kpi-laid > div > *{
+  min-width:0; max-width:100%;
+}
+
+/* ── 6. НАЗВАНИЯ КАРТОЧЕК НЕ ЛОМАЮТСЯ ПО БУКВАМ ───────────────────────
+   Правила выше проигрывали нижним слоям, где стоит !important, поэтому
+   «Очередь» рассыпалась на три строки по паре букв. Здесь — тем же весом.
+   Длинное название не переносится, а листается вбок: так просила Niki. */
+/* Нижний порог ширины карточки тоже выталкивал её из ряда на узком окне.
+   Карточке нужно уметь сужаться: название и значение листаются вбок. */
+article.card.kpi-laid{ min-width:0 !important }
+article.card.kpi-laid > .kpi-title{
+  white-space:nowrap !important;
+  word-break:normal !important;
+  overflow-wrap:normal !important;
+  hyphens:none !important;
+  overflow-x:auto !important; overflow-y:hidden !important;
+  line-height:1.3 !important;
+  text-align:left !important;
+}
+article.card.kpi-laid > div > *{
+  word-break:normal !important;
+  overflow-wrap:normal !important;
+}
+article.card.kpi-laid > div > span, article.card.kpi-laid > div > em{
+  white-space:normal !important;      /* пояснение может занять две строки */
+  overflow-wrap:break-word !important;
+}
+
+.kpi-laid *::-webkit-scrollbar{ height:0 !important; width:0 !important }
+.kpi-laid *{ scrollbar-width:none }
+
+/* ── 7. SERVICE HEALTH ────────────────────────────────────────────────
+   Экран прячет эту панель своей же вёрсткой (.health-panel{display:none}).
+   Видна она была только из-за сплошного display:flex — то есть по ошибке,
+   и показывала мок-донут «97%». Но в панель пишется живой ход по объекту,
+   поэтому открываем её явно, а выдуманные цифры убираем. */
+.health-panel{ display:flex !important; flex-direction:column }
+.health-panel .health-body{ display:none !important }
+
+/* ── 8. СОДЕРЖИМОЕ НЕ ВЫЛЕЗАЕТ ИЗ КАРТОЧКИ ────────────────────────────
+   Все оставшиеся наложения были одного рода: у карточки высота от сетки
+   ряда, а содержимого больше — и лишнее ложилось на соседнюю карточку.
+   Карточка теперь держит своё содержимое внутри; длинное прокручивается. */
+article.card, section.card{
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+}
+/* верхние карточки короткие — им прокрутка не нужна и мешает */
+article.card.kpi-laid{ overflow:hidden !important }
+article.card::-webkit-scrollbar, section.card::-webkit-scrollbar{ width:6px }
+article.card::-webkit-scrollbar-thumb, section.card::-webkit-scrollbar-thumb{
+  background:rgba(200,210,204,.18); border-radius:3px;
+}
+
+/* ── 9. ПОЯСНЕНИЕ ВНИЗУ КАРТОЧКИ ──────────────────────────────────────
+   Сноска «панель только показывает» ложилась поверх последней строки
+   списка. Карточка с такой сноской строится колонкой: список занимает
+   свободное место и прокручивается, сноска стоит под ним. */
+article.card:has(> .read-only-note){
+  display:flex !important; flex-direction:column !important;
+}
+article.card:has(> .read-only-note) > .read-only-note{
+  order:99; flex:0 0 auto; margin-top:auto; position:relative; z-index:1;
+}
+article.card:has(> .read-only-note) > :not(.panel-head):not(.read-only-note){
+  min-height:0; overflow-y:auto;
+}
+
+/* ── 10. ВЕРХНИЙ РЯД ДЕРЖИТСЯ ОДНОЙ СТРОКОЙ ───────────────────────────
+   Ряд карточек не переносится: колонки сужаются, как на Главной. */
+.doc-kpis, .research-kpis, .foundation-kpis, .bp-kpis, .sig-kpis,
+.settings-kpis, .ops-kpis, .reg-kpis, .kpis{
+  grid-auto-flow:column !important;
+  grid-auto-columns:minmax(0,1fr) !important;
+}
+.doc-kpis > *, .research-kpis > *, .foundation-kpis > *, .bp-kpis > *,
+.sig-kpis > *, .settings-kpis > *, .ops-kpis > *, .reg-kpis > *, .kpis > *{
+  min-width:0 !important;
+}
