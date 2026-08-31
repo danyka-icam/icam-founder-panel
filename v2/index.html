@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>ICAM Панель Основателя v2</title>
+<title>ICAM — Панель Основателя v2</title>
 <style>
     :root{
       --bg-0:#222a30;
@@ -43,14 +43,14 @@
         linear-gradient(145deg,#2e373c 0%,#283137 44%,#222a30 100%);
     }
     body:before{
-      content:"";position:fixed;inset:0;pointer-events:none;opacity:.17;
+      content:"";position:fixed;inset:0;pointer-событиеs:none;opacity:.17;
       background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
       mix-blend-mode:soft-light
     }
 
     button,a,input,select{font:inherit}
     button{color:inherit}
-    .app-shell{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);min-height:100vh}
+    .app-оболочка{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);min-height:100vh}
 
     .sidebar{
       position:sticky;top:0;height:100vh;padding:21px 14px 18px;
@@ -126,7 +126,7 @@
       box-shadow:var(--shadow);backdrop-filter:blur(14px);overflow:hidden
     }
     .card:after{
-      content:"";position:absolute;inset:0;pointer-events:none;
+      content:"";position:absolute;inset:0;pointer-событиеs:none;
       background:linear-gradient(112deg,rgba(255,255,255,.018),transparent 32%,transparent 72%,rgba(255,255,255,.009));
       mix-blend-mode:screen
     }
@@ -307,7 +307,7 @@
     }
     @media(max-width:850px){
       :root{--sidebar:0px}
-      .app-shell{display:block}
+      .app-оболочка{display:block}
       .sidebar{position:relative;height:auto}
       .nav{display:grid;grid-template-columns:1fr 1fr}
       .main{padding:18px}
@@ -336,7 +336,7 @@
     .progress-row em{font-style:normal;color:#969f99;font-size:9.5px}
     .demo-critical b,.demo-critical em{color:#df9180}
     .dependency-graph{position:relative;min-height:250px;overflow:hidden}
-    .dependency-graph svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .dependency-graph svg{position:absolute;inset:0;width:100%;height:100%;pointer-событиеs:none}
     .dep-node{position:absolute;z-index:2;min-width:76px;padding:11px 13px;border-radius:13px;border:1px solid rgba(169,196,127,.26);background:rgba(51,63,60,.82);color:#dce1dc;text-align:center;font:13px Georgia,"Times New Roman",serif;box-shadow:0 8px 20px rgba(5,9,10,.14)}
     .dep-node.critical{border-color:rgba(212,117,99,.65);background:rgba(84,43,40,.72);color:#efb0a5;box-shadow:0 0 20px rgba(212,117,99,.16)}
     .dep-caption{position:absolute;left:12px;right:12px;bottom:9px;color:#858e89;font-size:9px;line-height:1.35}
@@ -353,7 +353,7 @@
 </style>
 </head>
 <body>
-<div class="app-shell">
+<div class="app-оболочка">
 <aside class="sidebar">
 <div class="side-head"><strong>ICAM <span>/ ЛАБОРАТОРИЯ</span></strong></div>
 <nav class="nav" id="nav">
@@ -376,39 +376,39 @@
 <main class="main">
 <section class="page" data-page-panel="home">
 <header class="topbar">
-<div><h1>ICAM Панель Основателя</h1><p>единая управляющая среда</p></div>
+<div><h1>ICAM — Панель Основателя</h1><p>единая управляющая среда</p></div>
 <div class="top-actions">
 <button class="search-pill" disabled=""><span>Спросите что-нибудь о системе...</span><span>⌕</span></button>
-<span class="quiet-pill">v2 · draft</span>
-<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div>
+<span class="quiet-pill">v2 · черновик</span>
+<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
 </header>
 <section class="strip">
 <article class="card"><small>Маршруты</small><strong>Источник не подключён</strong><span>Оркестратор станет владельцем порядка действий.</span></article>
-<article class="card"><small>Внимание Основателя</small><strong>Источник не подключён</strong><span>Только решения, действительно требующие Founder.</span></article>
-<article class="card"><small>Testing</small><strong>Источник не подключён</strong><span>Failed / rerun попадут в риск после wiring.</span></article>
-<article class="card"><small>Актуальность</small><strong>Источник не подключён</strong><span>Никаких подставных current-state значений.</span></article>
+<article class="card"><small>Внимание Основателя</small><strong>Источник не подключён</strong><span>Только решения, действительно требующие Основатель.</span></article>
+<article class="card"><small>Тестирование</small><strong>Источник не подключён</strong><span>Непройденные и перезапущенные тесты попадут в риск после подключения.</span></article>
+<article class="card"><small>Актуальность</small><strong>Источник не подключён</strong><span>Никаких подставных значений текущего состояния.</span></article>
 </section>
 <section class="home-grid">
 <article class="card home-panel now">
 <div class="panel-head"><div class="head-title"><h2>1. СЕЙЧАС</h2><small>Что действительно двигаем</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="body"><div class="empty-copy"><strong>Маршруты ещё не подключены</strong><span>Здесь будет explainable порядок Оркестратора: <b>следующий ход → почему сейчас → у кого мяч</b>.</span></div></div>
+<div class="body"><div class="empty-copy"><strong>Маршруты ещё не подключены</strong><span>Здесь будет объяснимый порядок Оркестратора: <b>следующий ход → почему сейчас → у кого мяч</b>.</span></div></div>
 </article>
 <article class="card home-panel need">
-<div class="panel-head"><div class="head-title"><h2>2. НУЖНО ОТ МЕНЯ</h2><small>Только Founder-only решения</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="body"><div class="empty-copy"><strong>Источник внимания ещё не подключён</strong><span>Здесь не будет общих системных задач — только то, что нельзя решить без Founder.</span></div></div>
+<div class="panel-head"><div class="head-title"><h2>2. НУЖНО ОТ МЕНЯ</h2><small>Только решения Основателя</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="body"><div class="empty-copy"><strong>Источник внимания ещё не подключён</strong><span>Здесь не будет общих системных задач — только то, что нельзя решить без Основатель.</span></div></div>
 </article>
 <article class="card home-panel changed">
 <div class="panel-head"><div class="head-title"><h2>3. ЧТО ИЗМЕНИЛОСЬ</h2><small>С прошлого захода</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="body"><div class="empty-copy"><strong>Материальный diff ещё не подключён</strong><span>Статус, этап, gate, смена владельца хода, решение, важный результат — без event-шумов.</span></div></div>
+<div class="body"><div class="empty-copy"><strong>Сводка существенных изменений ещё не подключена</strong><span>Статус, этап, проверка, смена владельца хода, решение, важный результат — без шума технических событий.</span></div></div>
 </article>
 <article class="card home-panel risk">
 <div class="panel-head"><div class="head-title"><h2>4. ЗАСТОЙ / РИСК</h2><small>Где система теряет движение</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="body"><div class="empty-copy"><strong>Риски ещё не подключены</strong><span>Здесь сойдутся stalled routes, blockers и failed/rerun tests.</span></div></div>
+<div class="body"><div class="empty-copy"><strong>Риски ещё не подключены</strong><span>Здесь сойдутся застоявшиеся маршруты, блокеры и непройденные или перезапущенные тесты.</span></div></div>
 </article>
 <article class="card health">
 <div class="panel-head"><div class="head-title"><h2>СОСТОЯНИЕ СИСТЕМЫ</h2><small>Компактно, без второй Главной внутри Главной</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p>После wiring здесь останется только короткая полоса здоровья ключевых контуров и freshness. Глубокая диагностика живёт отдельно.</p></div>
+<div class="panel-body"><p>После подключения здесь останется только короткая полоса состояния ключевых контуров и актуальности данных. Глубокая диагностика живёт отдельно.</p></div>
 </article>
 </section>
 </section>
@@ -465,7 +465,7 @@
 <select disabled=""><option>Приоритет</option></select>
 <button disabled="">Добавить</button>
 </div>
-<div class="micro-note">Привязка к маршруту будет необязательной. Запись включим отдельным безопасным gate, без второго хранилища истины.</div>
+<div class="micro-note">Привязка к маршруту будет необязательной. Запись включим после отдельной безопасной проверки, без второго источника истины.</div>
 </div>
 </article>
 </section>
@@ -517,28 +517,28 @@
 <section class="page" data-page-panel="atlas">
 <header class="topbar">
 <div><h1>Атлас</h1><p>Наблюдатель мира / Навигатор</p></div>
-<div class="top-actions"><span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div></div>
+<div class="top-actions"><span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div></div>
 </header>
 <div class="flow">
-<div><b>ЧТО Я НАБЛЮДАЮ</b><span>Атлас NOW / World Cells</span></div>
-<div><b>ЧТО Я СЧИТАЮ ПРОИСХОДЯЩИМ</b><span>Current Model</span></div>
-<div><b>ЧТО Я ОЖИДАЮ</b><span>Forecasts</span></div>
-<div><b>ЧТО ПРОИЗОШЛО</b><span>Outcomes</span></div>
-<div><b>ЧТО МЕНЯ УДИВИЛО</b><span>Surprises</span></div>
-<div><b>КАК Я ИЗМЕНИЛСЯ</b><span>Model changes</span></div>
+<div><b>ЧТО Я НАБЛЮДАЮ</b><span>Атлас сейчас / Миры</span></div>
+<div><b>ЧТО Я СЧИТАЮ ПРОИСХОДЯЩИМ</b><span>Текущая модель</span></div>
+<div><b>ЧТО Я ОЖИДАЮ</b><span>Прогнозы</span></div>
+<div><b>ЧТО ПРОИЗОШЛО</b><span>Исходы</span></div>
+<div><b>ЧТО МЕНЯ УДИВИЛО</b><span>Неожиданности</span></div>
+<div><b>КАК Я ИЗМЕНИЛСЯ</b><span>Изменения модели</span></div>
 </div>
 <section class="atlas-grid">
 <article class="card atlas-now">
-<div class="panel-head"><div class="head-title"><h2>Атлас NOW</h2><small>3–8 активных линий внимания, не поток новостей</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><div class="empty-copy"><strong>Нормализованный Атлас source ещё не подключён</strong><span>До `/api/atlas/overview` здесь не будет фальшивых миров, версий или линий внимания.</span></div></div>
+<div class="panel-head"><div class="head-title"><h2>АТЛАС СЕЙЧАС</h2><small>3–8 активных линий внимания, не поток новостей</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><div class="empty-copy"><strong>Нормализованный источник Атласа ещё не подключён</strong><span>До появления нормализованного источника здесь не будет выдуманных миров, версий или линий внимания.</span></div></div>
 </article>
 <article class="card worlds">
 <div class="panel-head"><div class="head-title"><h2>МИРЫ</h2><small>Динамические модели участков мира</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p>State · confidence · active hypotheses · material change · last contradiction · freshness.</p></div>
+<div class="panel-body"><p>Состояние · уверенность · активные гипотезы · существенное изменение · последнее противоречие · актуальность.</p></div>
 </article>
 <article class="card model">
 <div class="panel-head"><div class="head-title"><h2>ТЕКУЩАЯ МОДЕЛЬ</h2><small>Что Атлас считает происходящим</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p>NEW / STRENGTHENING / STABLE / WEAKENING / CONTESTED / UNRESOLVED / REJECTED.</p></div>
+<div class="panel-body"><p>НОВАЯ / УСИЛИВАЕТСЯ / СТАБИЛЬНА / ОСЛАБЕВАЕТ / ОСПАРИВАЕТСЯ / НЕ РАЗРЕШЕНА / ОТКЛОНЕНА.</p></div>
 </article>
 <article class="card forecasts">
 <div class="panel-head"><div class="head-title"><h2>ПРОГНОЗЫ</h2><small>ОТКРЫТЫЕ / ЗАВЕРШЁННЫЕ</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
@@ -546,14 +546,14 @@
 </article>
 <article class="card performance">
 <div class="panel-head"><div class="head-title"><h2>КАЧЕСТВО</h2><small>Как развивается Наблюдатель</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p>Calibration · Brier · Forecast Improvement · Time to Contradiction · Candidate vs Canonical.</p></div>
+<div class="panel-body"><p>Калибровка · оценка Брайера · улучшение прогнозов · время до противоречия · кандидат против канона.</p></div>
 </article>
 <article class="card surprises">
 <div class="panel-head"><div class="head-title"><h2>НЕОЖИДАННОСТИ</h2><small>Где реальность сильно нарушила ожидания</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p>Не каждая ошибка — только material surprise.</p></div>
+<div class="panel-body"><p>Не каждая ошибка — только существенная неожиданность.</p></div>
 </article>
 <article class="card changing">
-<div class="panel-head"><div class="head-title"><h2>HOW Атлас IS CHANGING</h2><small>История изменений модели</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>КАК МЕНЯЕТСЯ АТЛАС</h2><small>История изменений модели</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
 <div class="panel-body"><p>ПРЕДЛОЖЕНО / ТЕСТИРУЕТСЯ / ПРОЙДЕНО / НЕ ПРОЙДЕНО / ОТКЛОНЕНО / ПРИНЯТО. Отклонённые изменения остаются видимыми.</p></div>
 </article>
 </section>
@@ -561,12 +561,12 @@
 <section class="page" data-page-panel="digital-twin">
 <header class="topbar">
 <div><h1>Цифровой двойник</h1><p>Динамика человека → Люди → Популяция → Живой мир</p></div>
-<div class="top-actions"><span class="state lab">ЛАБОРАТОРИЯ</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div></div>
+<div class="top-actions"><span class="state lab">ЛАБОРАТОРИЯ</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div></div>
 </header>
 <div class="workspace-switcher"><button class="active">Обзор</button><button>Люди</button><button>Популяция</button><button>Живой мир</button><button>Эксперименты</button></div>
 <section class="dt-grid">
 <article class="card dt-overview">
-<div class="panel-head"><div class="head-title"><h2>ДИНАМИКА ЧЕЛОВЕКА</h2><small>Perception · memory · decision · revision</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>ДИНАМИКА ЧЕЛОВЕКА</h2><small>Восприятие · память · решение · пересмотр</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
 <div class="panel-body"><div class="empty-copy"><strong>Проекция исследования ещё не подключена</strong><span>Атлас остаётся отдельной верхнеуровневой вкладкой. Здесь будут люди и популяции, а не вторая копия Атлас.</span></div></div>
 </article>
 <article class="card dt-gates">
@@ -583,16 +583,16 @@
 </div>
 </article>
 <article class="card humans">
-<div class="panel-head"><div class="head-title"><h2>ЛЮДИ</h2><small>Individual synthetic humans / Twin candidates</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p>Perception, Report, Intention, Behavior, Agency attribution, Narrative, Memory и Updating не будут смешиваться в «личность».</p></div>
+<div class="panel-head"><div class="head-title"><h2>ЛЮДИ</h2><small>Синтетические люди / кандидаты цифрового двойника</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><p>Восприятие, отчёт, намерение, поведение, атрибуция агентности, нарратив, память и обновление не будут смешиваться в одно поле «личность».</p></div>
 </article>
 <article class="card population">
-<div class="panel-head"><div class="head-title"><h2>ПОПУЛЯЦИЯ</h2><small>Derived macro dynamics</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p><strong>DERIVED ПОПУЛЯЦИЯ STATE ≠ STORED HUMAN STATE.</strong> Популяционная статистика не превращается молча в свойство каждого человека.</p></div>
+<div class="panel-head"><div class="head-title"><h2>ПОПУЛЯЦИЯ</h2><small>Производная макродинамика</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><p><strong>ПРОИЗВОДНОЕ СОСТОЯНИЕ ПОПУЛЯЦИИ ≠ СОХРАНЁННОЕ СОСТОЯНИЕ ЧЕЛОВЕКА.</strong> Популяционная статистика не превращается молча в свойство каждого человека.</p></div>
 </article>
 <article class="card liveworld">
-<div class="panel-head"><div class="head-title"><h2>ЖИВОЙ МИР / THRONGLETS</h2><small>Будущий живой синтетический мир</small></div><span class="state lab">ЛАБОРАТОРИЯ</span></div>
-<div class="panel-body"><div class="empty-copy"><strong>Event stream ещё не существует в Panel v2</strong><span>Никакой декоративной анимации. Движение появится только когда есть реальные события, replay и контрольные точки мира.</span></div></div>
+<div class="panel-head"><div class="head-title"><h2>ЖИВОЙ МИР / ТРОНГЛЕТС</h2><small>Будущий живой синтетический мир</small></div><span class="state lab">ЛАБОРАТОРИЯ</span></div>
+<div class="panel-body"><div class="empty-copy"><strong>Поток событий ещё не подключён к Панели v2</strong><span>Никакой декоративной анимации. Движение появится только при реальных событиях, воспроизведении истории и контрольных точках мира.</span></div></div>
 </article>
 </section>
 </section>
@@ -610,16 +610,16 @@
 </div>
 <aside class="drawer" id="drawer">
 <button id="drawerClose">← Закрыть</button>
-<h2>Inspector</h2>
-<p>Единый правый drawer для глубины. Он не превращает первый экран обратно в техническую консоль.</p>
+<h2>Инспектор</h2>
+<p>Единая правая панель подробностей. Она не превращает первый экран обратно в техническую консоль.</p>
 <dl>
-<dt>Object ID</dt><dd>—</dd>
-<dt>Owning branch</dt><dd>—</dd>
-<dt>Source</dt><dd>—</dd>
+<dt>ID объекта</dt><dd>—</dd>
+<dt>Владеющая ветка</dt><dd>—</dd>
+<dt>Источник</dt><dd>—</dd>
 <dt>Актуальность</dt><dd>—</dd>
-<dt>Next move</dt><dd>—</dd>
-<dt>Gate</dt><dd>—</dd>
-<dt>Blockers</dt><dd>—</dd>
+<dt>Следующий ход</dt><dd>—</dd>
+<dt>Проверка</dt><dd>—</dd>
+<dt>Блокеры</dt><dd>—</dd>
 </dl>
 </aside>
 <script>
@@ -631,9 +631,9 @@
     research:["Исследования","активные исследовательские линии и их реальное состояние"],
     brazilportal:["BrazilPortal","живой коммерческий и миграционный контур"],
     operations:["Операции","исполнение и операционные контуры"],
-    registry:["Реестр","объекты, identity debt и canonical ownership"],
+    registry:["Реестр","объекты, долг идентификации и каноническая принадлежность"],
     signals:["Сигналы","внимание и системные сигналы"],
-    documents:["Документы","manual review, canonical lifecycle и durability"],
+    documents:["Документы","ручной разбор, канонический жизненный цикл и долговечность"],
     testing:["Тестирование","смысл тестов для Основателя и история происхождения"],
     diagnostics:["Диагностика","источники, состояние браузера и режимы деградации"]
   };
@@ -645,7 +645,7 @@
       '<div class="top-actions"><span class="state unavailable">НЕ ПЕРЕНЕСЕНО</span>'+
       '<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div></div></header>'+
       '<article class="card migration"><div><h2>Экран ещё не перенесён в v2</h2>'+
-      '<p>Старый production workbench остаётся нетронутым. Этот экран перенесём после визуальной приёмки shell, Главной, Оркестратора, Атлас и Цифровой двойник.</p></div></article>';
+      '<p>Старый рабочая production-панель остаётся нетронутым. Этот экран перенесём после визуальной приёмки оболочка, Главной, Оркестратора, Атлас и Цифровой двойник.</p></div></article>';
   });
 
   function route(){
