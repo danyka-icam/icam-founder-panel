@@ -1,10 +1,11 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ICAM Founder Panel v2</title>
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>ICAM Панель Основателя v2</title>
+<style>
     :root{
       --bg-0:#222a30;
       --bg-1:#2b3338;
@@ -317,236 +318,310 @@
       .gate-grid{grid-template-columns:1fr 1fr}
       .step-form{grid-template-columns:1fr}
     }
-  </style>
+  
+    .dependency-card{min-height:360px}
+    .dependency-layout{display:grid;grid-template-columns:1.55fr .9fr .75fr;gap:12px;align-items:stretch}
+    .progress-board,.dependency-graph,.attention-scale{border:1px solid var(--line-soft);border-radius:11px;background:rgba(18,24,26,.16);padding:12px;min-width:0}
+    .progress-head,.progress-row{display:grid;grid-template-columns:1.5fr repeat(5,.65fr) 1.2fr;gap:6px;align-items:center}
+    .progress-head{color:#8f9893;font-size:9px;padding:0 0 9px;border-bottom:1px solid var(--line-soft)}
+    .progress-row{padding:11px 0;border-bottom:1px solid var(--line-soft)}
+    .progress-row:last-child{border-bottom:0}
+    .progress-row b{font-size:11px;font-weight:500}
+    .progress-row i{position:relative;height:10px;border-top:2px solid rgba(210,216,212,.18)}
+    .progress-row i:before{content:"";position:absolute;left:50%;top:-5px;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:#35403b;border:1px solid rgba(220,225,221,.18)}
+    .progress-row i.done{border-top-color:rgba(169,196,127,.55)}
+    .progress-row i.done:before{background:var(--sage);box-shadow:0 0 8px rgba(169,196,127,.3)}
+    .progress-row i.stuck{border-top-color:rgba(212,117,99,.8)}
+    .progress-row i.stuck:before{background:var(--coral);box-shadow:0 0 10px rgba(212,117,99,.4)}
+    .progress-row em{font-style:normal;color:#969f99;font-size:9.5px}
+    .demo-critical b,.demo-critical em{color:#df9180}
+    .dependency-graph{position:relative;min-height:250px;overflow:hidden}
+    .dependency-graph svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .dep-node{position:absolute;z-index:2;min-width:76px;padding:11px 13px;border-radius:13px;border:1px solid rgba(169,196,127,.26);background:rgba(51,63,60,.82);color:#dce1dc;text-align:center;font:13px Georgia,"Times New Roman",serif;box-shadow:0 8px 20px rgba(5,9,10,.14)}
+    .dep-node.critical{border-color:rgba(212,117,99,.65);background:rgba(84,43,40,.72);color:#efb0a5;box-shadow:0 0 20px rgba(212,117,99,.16)}
+    .dep-caption{position:absolute;left:12px;right:12px;bottom:9px;color:#858e89;font-size:9px;line-height:1.35}
+    .attention-scale h3{margin:0 0 10px;font:400 13px Georgia,"Times New Roman",serif}
+    .attention{padding:10px 0;border-top:1px solid var(--line-soft)}
+    .attention:first-of-type{border-top:0}
+    .attention span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+    .attention b{display:block;font-size:11px;font-weight:500}
+    .attention small{display:block;color:#8f9792;font-size:9.5px;line-height:1.4;margin-top:3px}
+    .attention.critical span{color:#df846f}
+    .attention.return span{color:var(--gold)}
+    .attention.stable span{color:var(--sage)}
+    @media(max-width:1180px){.dependency-layout{grid-template-columns:1fr}.dependency-graph{min-height:280px}}
+</style>
 </head>
 <body>
 <div class="app-shell">
-  <aside class="sidebar">
-    <div class="side-head"><strong>ICAM <span>/ LAB</span></strong></div>
-    <nav class="nav" id="nav">
-      <a href="#home" data-page="home"><span class="dot">01</span><span>Главная</span></a>
-      <a href="#orchestrator" data-page="orchestrator"><span class="dot">02</span><span>Оркестратор</span></a>
-      <a href="#foundation" data-page="foundation"><span class="dot">03</span><span>Фундамент</span></a>
-      <a href="#research" data-page="research"><span class="dot">04</span><span>Исследования</span></a>
-      <a href="#atlas" data-page="atlas"><span class="dot">05</span><span>ATLAS</span></a>
-      <a href="#digital-twin" data-page="digital-twin"><span class="dot">06</span><span>Digital Twin</span></a>
-      <a href="#brazilportal" data-page="brazilportal"><span class="dot">07</span><span>BrazilPortal</span></a>
-      <a href="#operations" data-page="operations"><span class="dot">08</span><span>Операции</span></a>
-      <a href="#registry" data-page="registry"><span class="dot">09</span><span>Реестр</span></a>
-      <a href="#signals" data-page="signals"><span class="dot">10</span><span>Сигналы</span></a>
-      <a href="#documents" data-page="documents"><span class="dot">11</span><span>Документы</span></a>
-      <a href="#testing" data-page="testing"><span class="dot">12</span><span>Тестирование</span></a>
-      <a href="#diagnostics" data-page="diagnostics"><span class="dot">13</span><span>Диагностика</span></a>
-    </nav>
-    <div class="side-note">«Сильная система не требует героя. Она умеет держать форму сама.»</div>
-  </aside>
-
-  <main class="main">
-
-    <section class="page" data-page-panel="home">
-      <header class="topbar">
-        <div><h1>ICAM Founder Panel</h1><p>единая управляющая среда</p></div>
-        <div class="top-actions">
-          <button class="search-pill" disabled><span>Спросите что-нибудь о системе...</span><span>⌕</span></button>
-          <span class="quiet-pill">v2 · draft</span>
-          <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div>
-        </div>
-      </header>
-
-      <section class="strip">
-        <article class="card"><small>Маршруты</small><strong>Источник не подключён</strong><span>Оркестратор станет владельцем порядка действий.</span></article>
-        <article class="card"><small>Founder attention</small><strong>Источник не подключён</strong><span>Только решения, действительно требующие Founder.</span></article>
-        <article class="card"><small>Testing</small><strong>Источник не подключён</strong><span>Failed / rerun попадут в риск после wiring.</span></article>
-        <article class="card"><small>Freshness</small><strong>Источник не подключён</strong><span>Никаких подставных current-state значений.</span></article>
-      </section>
-
-      <section class="home-grid">
-        <article class="card home-panel now">
-          <div class="panel-head"><div class="head-title"><h2>1. СЕЙЧАС</h2><small>Что действительно двигаем</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="body"><div class="empty-copy"><strong>Маршруты ещё не подключены</strong><span>Здесь будет explainable порядок Оркестратора: <b>следующий ход → почему сейчас → у кого мяч</b>.</span></div></div>
-        </article>
-        <article class="card home-panel need">
-          <div class="panel-head"><div class="head-title"><h2>2. НУЖНО ОТ МЕНЯ</h2><small>Только Founder-only решения</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="body"><div class="empty-copy"><strong>Источник внимания ещё не подключён</strong><span>Здесь не будет общих системных задач — только то, что нельзя решить без Founder.</span></div></div>
-        </article>
-        <article class="card home-panel changed">
-          <div class="panel-head"><div class="head-title"><h2>3. ЧТО ИЗМЕНИЛОСЬ</h2><small>С прошлого захода</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="body"><div class="empty-copy"><strong>Материальный diff ещё не подключён</strong><span>Статус, этап, gate, смена владельца хода, решение, важный результат — без event-шумов.</span></div></div>
-        </article>
-        <article class="card home-panel risk">
-          <div class="panel-head"><div class="head-title"><h2>4. ЗАСТОЙ / РИСК</h2><small>Где система теряет движение</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="body"><div class="empty-copy"><strong>Риски ещё не подключены</strong><span>Здесь сойдутся stalled routes, blockers и failed/rerun tests.</span></div></div>
-        </article>
-        <article class="card health">
-          <div class="panel-head"><div class="head-title"><h2>СОСТОЯНИЕ СИСТЕМЫ</h2><small>Компактно, без второй Главной внутри Главной</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><p>После wiring здесь останется только короткая полоса здоровья ключевых контуров и freshness. Глубокая диагностика живёт отдельно.</p></div>
-        </article>
-      </section>
-    </section>
-
-    <section class="page" data-page-panel="orchestrator">
-      <header class="topbar">
-        <div><h1>Оркестратор</h1><p>маршруты, следующий ход, рекомендации и память решений</p></div>
-        <div class="top-actions"><span class="state unavailable">READ SOURCE NOT WIRED</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div></div>
-      </header>
-
-      <div class="workspace-switcher"><button class="active">Обзор</button><button>Маршруты</button><button>Рекомендации</button><button>Решения</button><button>Журнал</button><button>Деньги</button><button>Закрыто</button></div>
-
-      <section class="orchestrator-grid">
-        <article class="card mine">
-          <div class="panel-head"><div class="head-title"><h2>СЕЙЧАС / МОЙ ХОД</h2><small>Только Founder-owned routes</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><div class="empty-copy"><strong>Маршруты пока не подключены</strong><span>Frontend не рассчитывает собственный рейтинг. Здесь появится порядок, который отдаёт Оркестратор.</span></div></div>
-        </article>
-        <article class="card waiting">
-          <div class="panel-head"><div class="head-title"><h2>ЖДЁМ</h2><small>Не считать внешнее ожидание моей нагрузкой</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><p>Покажем: кого/чего ждём → с какого момента → условие возврата → дата пересмотра.</p></div>
-        </article>
-        <article class="card recommendations">
-          <div class="panel-head"><div class="head-title"><h2>РЕКОМЕНДАЦИИ</h2><small>Что делать, почему и когда пересмотреть</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body">
-            <div class="empty-copy"><strong>Рекомендации ещё не подключены</strong><span>Здесь будут evidence balance, downside, confidence и revision condition — не просто «совет».</span></div>
-          </div>
-        </article>
-        <article class="card orch-risk">
-          <div class="panel-head"><div class="head-title"><h2>ЗАСТОЙ / РИСК</h2><small>Что стоит и почему</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><p>Stale route, missing owner, missing next move, blocker или сработавший revision trigger.</p></div>
-        </article>
-        <article class="card capture">
-          <div class="panel-head"><div class="head-title"><h2>＋ ШАГ</h2><small>Один ввод → Оркестратор → Главная</small></div></div>
-          <div class="panel-body">
-            <div class="step-form">
-              <input disabled value="Что сделать?">
-              <select disabled><option>Маршрут / проект</option></select>
-              <select disabled><option>У кого ход</option></select>
-              <button disabled>Добавить</button>
-            </div>
-            <div class="micro-note">Write отключён до отдельного gate. Будем переиспользовать существующий bounded Orchestrator write path, а не создавать второй task store.</div>
-          </div>
-        </article>
-      </section>
-    </section>
-
-    <section class="page" data-page-panel="atlas">
-      <header class="topbar">
-        <div><h1>ATLAS</h1><p>World Observer / Navigator</p></div>
-        <div class="top-actions"><span class="state unavailable">RUNTIME UNAVAILABLE</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div></div>
-      </header>
-
-      <div class="flow">
-        <div><b>WHAT I WATCH</b><span>ATLAS NOW / World Cells</span></div>
-        <div><b>WHAT I THINK</b><span>Current Model</span></div>
-        <div><b>WHAT I EXPECT</b><span>Forecasts</span></div>
-        <div><b>WHAT HAPPENED</b><span>Outcomes</span></div>
-        <div><b>WHAT SURPRISED ME</b><span>Surprises</span></div>
-        <div><b>HOW I CHANGED</b><span>Model changes</span></div>
-      </div>
-
-      <section class="atlas-grid">
-        <article class="card atlas-now">
-          <div class="panel-head"><div class="head-title"><h2>ATLAS NOW</h2><small>3–8 активных линий внимания, не поток новостей</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><div class="empty-copy"><strong>Нормализованный ATLAS source ещё не подключён</strong><span>До `/api/atlas/overview` здесь не будет фальшивых миров, версий или линий внимания.</span></div></div>
-        </article>
-        <article class="card worlds">
-          <div class="panel-head"><div class="head-title"><h2>WORLD CELLS</h2><small>Динамические модели участков мира</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><p>State · confidence · active hypotheses · material change · last contradiction · freshness.</p></div>
-        </article>
-        <article class="card model">
-          <div class="panel-head"><div class="head-title"><h2>CURRENT MODEL</h2><small>Что ATLAS считает происходящим</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><p>NEW / STRENGTHENING / STABLE / WEAKENING / CONTESTED / UNRESOLVED / REJECTED.</p></div>
-        </article>
-        <article class="card forecasts">
-          <div class="panel-head"><div class="head-title"><h2>FORECASTS</h2><small>OPEN / RESOLVED</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><div class="rows"><div class="row"><div><strong>Original forecast immutable</strong><small>Probability · horizon · model version · outcome · score</small></div><span class="state unavailable">UNAVAILABLE</span></div></div></div>
-        </article>
-        <article class="card performance">
-          <div class="panel-head"><div class="head-title"><h2>PERFORMANCE</h2><small>Как развивается Наблюдатель</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><p>Calibration · Brier · Forecast Improvement · Time to Contradiction · Candidate vs Canonical.</p></div>
-        </article>
-        <article class="card surprises">
-          <div class="panel-head"><div class="head-title"><h2>SURPRISES</h2><small>Где реальность сильно нарушила ожидания</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><p>Не каждая ошибка — только material surprise.</p></div>
-        </article>
-        <article class="card changing">
-          <div class="panel-head"><div class="head-title"><h2>HOW ATLAS IS CHANGING</h2><small>Candidate history</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><p>PROPOSED / TESTING / PASS / FAIL / REJECTED / PROMOTED. Rejected changes остаются видимыми.</p></div>
-        </article>
-      </section>
-    </section>
-
-    <section class="page" data-page-panel="digital-twin">
-      <header class="topbar">
-        <div><h1>Digital Twin</h1><p>Human Dynamics → Humans → Population → Live World</p></div>
-        <div class="top-actions"><span class="state lab">LAB</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div></div>
-      </header>
-
-      <div class="workspace-switcher"><button class="active">Overview</button><button>Humans</button><button>Population</button><button>Live World</button><button>Experiments</button></div>
-
-      <section class="dt-grid">
-        <article class="card dt-overview">
-          <div class="panel-head"><div class="head-title"><h2>HUMAN DYNAMICS</h2><small>Perception · memory · decision · revision</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><div class="empty-copy"><strong>Research projection ещё не подключена</strong><span>ATLAS остаётся отдельной верхнеуровневой вкладкой. Здесь будут люди и популяции, а не вторая копия ATLAS.</span></div></div>
-        </article>
-
-        <article class="card dt-gates">
-          <div class="panel-head"><div class="head-title"><h2>EXPERIMENTS</h2><small>H0 → H8.1</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body">
-            <div class="gate-grid">
-              <div class="gate"><b>H0</b><span>UNAVAILABLE</span></div><div class="gate"><b>H1</b><span>UNAVAILABLE</span></div>
-              <div class="gate"><b>H2</b><span>UNAVAILABLE</span></div><div class="gate"><b>H3</b><span>UNAVAILABLE</span></div>
-              <div class="gate"><b>H4</b><span>UNAVAILABLE</span></div><div class="gate"><b>H5</b><span>UNAVAILABLE</span></div>
-              <div class="gate"><b>H6</b><span>UNAVAILABLE</span></div><div class="gate"><b>H7</b><span>UNAVAILABLE</span></div>
-              <div class="gate"><b>H7.1</b><span>UNAVAILABLE</span></div><div class="gate"><b>H8</b><span>UNAVAILABLE</span></div>
-              <div class="gate"><b>H8.1</b><span>UNAVAILABLE</span></div>
-            </div>
-          </div>
-        </article>
-
-        <article class="card humans">
-          <div class="panel-head"><div class="head-title"><h2>HUMANS</h2><small>Individual synthetic humans / Twin candidates</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><p>Perception, Report, Intention, Behavior, Agency attribution, Narrative, Memory и Updating не будут смешиваться в «личность».</p></div>
-        </article>
-
-        <article class="card population">
-          <div class="panel-head"><div class="head-title"><h2>POPULATION</h2><small>Derived macro dynamics</small></div><button class="top-corner-arrow" data-drawer>→</button></div>
-          <div class="panel-body"><p><strong>DERIVED POPULATION STATE ≠ STORED HUMAN STATE.</strong> Macro не превращается молча в свойство каждого человека.</p></div>
-        </article>
-
-        <article class="card liveworld">
-          <div class="panel-head"><div class="head-title"><h2>LIVE WORLD / THRONGLETS</h2><small>Будущий живой синтетический мир</small></div><span class="state lab">LAB</span></div>
-          <div class="panel-body"><div class="empty-copy"><strong>Event stream ещё не существует в Panel v2</strong><span>Никакой декоративной анимации. Движение появится только когда есть реальные события, replay и world checkpoints.</span></div></div>
-        </article>
-      </section>
-    </section>
-
-    <section class="page" data-page-panel="foundation"></section>
-    <section class="page" data-page-panel="research"></section>
-    <section class="page" data-page-panel="brazilportal"></section>
-    <section class="page" data-page-panel="operations"></section>
-    <section class="page" data-page-panel="registry"></section>
-    <section class="page" data-page-panel="signals"></section>
-    <section class="page" data-page-panel="documents"></section>
-    <section class="page" data-page-panel="testing"></section>
-    <section class="page" data-page-panel="diagnostics"></section>
-
-    <div class="footer-note">Founder Panel v2 · branch prototype · no canonical writes · no fabricated current-state data</div>
-  </main>
-</div>
-
-<aside class="drawer" id="drawer">
-  <button id="drawerClose">← Закрыть</button>
-  <h2>Inspector</h2>
-  <p>Единый правый drawer для глубины. Он не превращает первый экран обратно в техническую консоль.</p>
-  <dl>
-    <dt>Object ID</dt><dd>—</dd>
-    <dt>Owning branch</dt><dd>—</dd>
-    <dt>Source</dt><dd>—</dd>
-    <dt>Freshness</dt><dd>—</dd>
-    <dt>Next move</dt><dd>—</dd>
-    <dt>Gate</dt><dd>—</dd>
-    <dt>Blockers</dt><dd>—</dd>
-  </dl>
+<aside class="sidebar">
+<div class="side-head"><strong>ICAM <span>/ ЛАБОРАТОРИЯ</span></strong></div>
+<nav class="nav" id="nav">
+<a data-page="home" href="#home"><span class="dot">01</span><span>Главная</span></a>
+<a data-page="orchestrator" href="#orchestrator"><span class="dot">02</span><span>Оркестратор</span></a>
+<a data-page="foundation" href="#foundation"><span class="dot">03</span><span>Фундамент</span></a>
+<a data-page="research" href="#research"><span class="dot">04</span><span>Исследования</span></a>
+<a data-page="atlas" href="#atlas"><span class="dot">05</span><span>Атлас</span></a>
+<a data-page="digital-twin" href="#digital-twin"><span class="dot">06</span><span>Цифровой двойник</span></a>
+<a data-page="brazilportal" href="#brazilportal"><span class="dot">07</span><span>BrazilPortal</span></a>
+<a data-page="operations" href="#operations"><span class="dot">08</span><span>Операции</span></a>
+<a data-page="registry" href="#registry"><span class="dot">09</span><span>Реестр</span></a>
+<a data-page="signals" href="#signals"><span class="dot">10</span><span>Сигналы</span></a>
+<a data-page="documents" href="#documents"><span class="dot">11</span><span>Документы</span></a>
+<a data-page="testing" href="#testing"><span class="dot">12</span><span>Тестирование</span></a>
+<a data-page="diagnostics" href="#diagnostics"><span class="dot">13</span><span>Диагностика</span></a>
+</nav>
+<div class="side-note">«Сильная система не требует героя. Она умеет держать форму сама.»</div>
 </aside>
-
+<main class="main">
+<section class="page" data-page-panel="home">
+<header class="topbar">
+<div><h1>ICAM Панель Основателя</h1><p>единая управляющая среда</p></div>
+<div class="top-actions">
+<button class="search-pill" disabled=""><span>Спросите что-нибудь о системе...</span><span>⌕</span></button>
+<span class="quiet-pill">v2 · draft</span>
+<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div>
+</div>
+</header>
+<section class="strip">
+<article class="card"><small>Маршруты</small><strong>Источник не подключён</strong><span>Оркестратор станет владельцем порядка действий.</span></article>
+<article class="card"><small>Внимание Основателя</small><strong>Источник не подключён</strong><span>Только решения, действительно требующие Founder.</span></article>
+<article class="card"><small>Testing</small><strong>Источник не подключён</strong><span>Failed / rerun попадут в риск после wiring.</span></article>
+<article class="card"><small>Актуальность</small><strong>Источник не подключён</strong><span>Никаких подставных current-state значений.</span></article>
+</section>
+<section class="home-grid">
+<article class="card home-panel now">
+<div class="panel-head"><div class="head-title"><h2>1. СЕЙЧАС</h2><small>Что действительно двигаем</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="body"><div class="empty-copy"><strong>Маршруты ещё не подключены</strong><span>Здесь будет explainable порядок Оркестратора: <b>следующий ход → почему сейчас → у кого мяч</b>.</span></div></div>
+</article>
+<article class="card home-panel need">
+<div class="panel-head"><div class="head-title"><h2>2. НУЖНО ОТ МЕНЯ</h2><small>Только Founder-only решения</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="body"><div class="empty-copy"><strong>Источник внимания ещё не подключён</strong><span>Здесь не будет общих системных задач — только то, что нельзя решить без Founder.</span></div></div>
+</article>
+<article class="card home-panel changed">
+<div class="panel-head"><div class="head-title"><h2>3. ЧТО ИЗМЕНИЛОСЬ</h2><small>С прошлого захода</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="body"><div class="empty-copy"><strong>Материальный diff ещё не подключён</strong><span>Статус, этап, gate, смена владельца хода, решение, важный результат — без event-шумов.</span></div></div>
+</article>
+<article class="card home-panel risk">
+<div class="panel-head"><div class="head-title"><h2>4. ЗАСТОЙ / РИСК</h2><small>Где система теряет движение</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="body"><div class="empty-copy"><strong>Риски ещё не подключены</strong><span>Здесь сойдутся stalled routes, blockers и failed/rerun tests.</span></div></div>
+</article>
+<article class="card health">
+<div class="panel-head"><div class="head-title"><h2>СОСТОЯНИЕ СИСТЕМЫ</h2><small>Компактно, без второй Главной внутри Главной</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><p>После wiring здесь останется только короткая полоса здоровья ключевых контуров и freshness. Глубокая диагностика живёт отдельно.</p></div>
+</article>
+</section>
+</section>
+<section class="page" data-page-panel="orchestrator">
+<header class="topbar">
+<div>
+<h1>Оркестратор</h1>
+<p>маршруты, отдельные задачи, зависимости и возврат внимания в нужную линию</p>
+</div>
+<div class="top-actions">
+<span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
+<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
+</div>
+</header>
+<div class="workspace-switcher">
+<button class="active">Обзор</button>
+<button>Маршруты</button>
+<button>Отдельные задачи</button>
+<button>Рекомендации</button>
+<button>Решения</button>
+<button>Журнал</button>
+<button>Деньги</button>
+<button>Закрыто</button>
+</div>
+<section class="strip">
+<article class="card"><small>Активные маршруты</small><strong>Источник не подключён</strong><span>Линии с этапом, следующим ходом и владельцем.</span></article>
+<article class="card"><small>Отдельные задачи</small><strong>Источник не подключён</strong><span>Разовые и промежуточные задачи без обязательной привязки к маршруту.</span></article>
+<article class="card"><small>Риск отставания</small><strong>Источник не подключён</strong><span>Линии, которые давно не двигались или тормозят зависимые ветки.</span></article>
+<article class="card"><small>Узлы зависимости</small><strong>Источник не подключён</strong><span>Что от чего зависит и где образовалось бутылочное горлышко.</span></article>
+</section>
+<section class="orchestrator-grid">
+<article class="card mine">
+<div class="panel-head"><div class="head-title"><h2>МАРШРУТЫ</h2><small>по каким линиям мы движемся</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><div class="empty-copy"><strong>Маршруты ещё не подключены</strong><span>После подключения здесь появится: этап → следующий ход → у кого ход → блокеры → условие пересмотра → сколько времени без движения.</span></div></div>
+</article>
+<article class="card recommendations">
+<div class="panel-head"><div class="head-title"><h2>ОТДЕЛЬНЫЕ ЗАДАЧИ</h2><small>не обязаны принадлежать маршруту</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><div class="empty-copy"><strong>Задачи пока не подключены</strong><span>Здесь будут разовые задачи, промежуточные шаги, напоминания, входящие и идеи. Связь с маршрутом — только по желанию.</span></div></div>
+</article>
+<article class="card waiting">
+<div class="panel-head"><div class="head-title"><h2>ЖДЁМ</h2><small>внешний владелец или условие</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><p>Кого или чего ждём → с какого момента → что вернёт линию в работу → когда пересмотреть.</p></div>
+</article>
+<article class="card orch-risk">
+<div class="panel-head"><div class="head-title"><h2>ЗАСТОЙ / РИСК</h2><small>где система теряет движение</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><p>Без движения, отсутствует следующий шаг, блокер, зависимые линии, сработавший триггер пересмотра.</p></div>
+</article>
+<article class="card capture">
+<div class="panel-head"><div class="head-title"><h2>＋ ДОБАВИТЬ ЗАДАЧУ</h2><small>самостоятельно, без маршрута</small></div></div>
+<div class="panel-body">
+<div class="step-form">
+<input disabled="" value="Что нужно сделать?"/>
+<select disabled=""><option>Тип задачи</option></select>
+<select disabled=""><option>Приоритет</option></select>
+<button disabled="">Добавить</button>
+</div>
+<div class="micro-note">Привязка к маршруту будет необязательной. Запись включим отдельным безопасным gate, без второго хранилища истины.</div>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div><h2>Карта прогресса и зависимостей</h2><p>визуальный слой: где линия находится, сколько она стоит и кого задерживает</p></div>
+<span class="state lab">ДЕМО-КАРКАС</span>
+</div>
+<section class="card dependency-card">
+<div class="panel-head"><div class="head-title"><h2>ЛИНИИ И ЗАВИСИМОСТИ</h2><small>демонстрационный каркас — не текущие данные</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body">
+<div class="dependency-layout">
+<div class="progress-board">
+<div class="progress-head"><span>Линия</span><span>Старт</span><span>Исследование</span><span>Проектирование</span><span>Реализация</span><span>Запуск</span><span>Смысл</span></div>
+<div class="progress-row demo-critical"><b>CVC · пример</b><i class="done"></i><i class="done"></i><i class="done"></i><i class="stuck"></i><i></i><em>отстаёт · задерживает 2 линии</em></div>
+<div class="progress-row"><b>Атлас · пример</b><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i></i><em>движется</em></div>
+<div class="progress-row"><b>BrazilPortal · пример</b><i class="done"></i><i class="done"></i><i class="done"></i><i></i><i></i><em>требует возврата</em></div>
+<div class="progress-row"><b>HSA · пример</b><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i></i><em>стабильно</em></div>
+</div>
+<div class="dependency-graph">
+<div class="dep-node critical" style="left:9%;top:36%;">CVC</div>
+<div class="dep-node" style="left:61%;top:10%;">Атлас</div>
+<div class="dep-node" style="left:65%;top:56%;">BrazilPortal</div>
+<div class="dep-node" style="left:35%;top:74%;">HSA</div>
+<svg aria-hidden="true" preserveaspectratio="none" viewbox="0 0 100 100">
+<defs>
+<marker id="arrowRisk" markerheight="6" markerwidth="6" orient="auto" refx="5" refy="3"><path d="M0,0 L6,3 L0,6 z" fill="rgba(212,117,99,.9)"></path></marker>
+<marker id="arrowSoft" markerheight="6" markerwidth="6" orient="auto" refx="5" refy="3"><path d="M0,0 L6,3 L0,6 z" fill="rgba(214,187,120,.65)"></path></marker>
+</defs>
+<line marker-end="url(#arrowRisk)" stroke="rgba(212,117,99,.9)" stroke-dasharray="3 2" stroke-width="1.2" x1="24" x2="64" y1="44" y2="24"></line>
+<line marker-end="url(#arrowRisk)" stroke="rgba(212,117,99,.9)" stroke-dasharray="3 2" stroke-width="1.2" x1="25" x2="69" y1="49" y2="66"></line>
+<line marker-end="url(#arrowSoft)" stroke="rgba(214,187,120,.55)" stroke-width=".9" x1="48" x2="68" y1="80" y2="68"></line>
+</svg>
+<div class="dep-caption">Красная пунктирная связь = линия задерживает зависимую ветку</div>
+</div>
+<aside class="attention-scale">
+<h3>ШКАЛА ВНИМАНИЯ</h3>
+<div class="attention critical"><span>Критично</span><b>CVC · пример</b><small>долго без движения, задерживает 2 линии</small></div>
+<div class="attention return"><span>Вернуться</span><b>BrazilPortal · пример</b><small>есть зависимость и незакрытый шаг</small></div>
+<div class="attention stable"><span>Стабильно</span><b>HSA · пример</b><small>можно не трогать сейчас</small></div>
+</aside>
+</div>
+</div>
+</section>
+<div class="section-title"><div><h2>Рекомендации</h2><p>что система предлагает вернуть в фокус и почему</p></div></div>
+<article class="card">
+<div class="panel-body"><div class="empty-copy"><strong>Рекомендации ещё не подключены</strong><span>Когда источник появится, Оркестратор сможет объяснить: какая линия отстала → какие ветки она тормозит → какой минимальный шаг вернёт поток.</span></div></div>
+</article>
+</section>
+<section class="page" data-page-panel="atlas">
+<header class="topbar">
+<div><h1>Атлас</h1><p>Наблюдатель мира / Навигатор</p></div>
+<div class="top-actions"><span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div></div>
+</header>
+<div class="flow">
+<div><b>ЧТО Я НАБЛЮДАЮ</b><span>Атлас NOW / World Cells</span></div>
+<div><b>ЧТО Я СЧИТАЮ ПРОИСХОДЯЩИМ</b><span>Current Model</span></div>
+<div><b>ЧТО Я ОЖИДАЮ</b><span>Forecasts</span></div>
+<div><b>ЧТО ПРОИЗОШЛО</b><span>Outcomes</span></div>
+<div><b>ЧТО МЕНЯ УДИВИЛО</b><span>Surprises</span></div>
+<div><b>КАК Я ИЗМЕНИЛСЯ</b><span>Model changes</span></div>
+</div>
+<section class="atlas-grid">
+<article class="card atlas-now">
+<div class="panel-head"><div class="head-title"><h2>Атлас NOW</h2><small>3–8 активных линий внимания, не поток новостей</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><div class="empty-copy"><strong>Нормализованный Атлас source ещё не подключён</strong><span>До `/api/atlas/overview` здесь не будет фальшивых миров, версий или линий внимания.</span></div></div>
+</article>
+<article class="card worlds">
+<div class="panel-head"><div class="head-title"><h2>МИРЫ</h2><small>Динамические модели участков мира</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><p>State · confidence · active hypotheses · material change · last contradiction · freshness.</p></div>
+</article>
+<article class="card model">
+<div class="panel-head"><div class="head-title"><h2>ТЕКУЩАЯ МОДЕЛЬ</h2><small>Что Атлас считает происходящим</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><p>NEW / STRENGTHENING / STABLE / WEAKENING / CONTESTED / UNRESOLVED / REJECTED.</p></div>
+</article>
+<article class="card forecasts">
+<div class="panel-head"><div class="head-title"><h2>ПРОГНОЗЫ</h2><small>ОТКРЫТЫЕ / ЗАВЕРШЁННЫЕ</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><div class="rows"><div class="row"><div><strong>Исходный прогноз неизменяем</strong><small>Вероятность · горизонт · версия модели · исход · оценка</small></div><span class="state unavailable">НЕДОСТУПНО</span></div></div></div>
+</article>
+<article class="card performance">
+<div class="panel-head"><div class="head-title"><h2>КАЧЕСТВО</h2><small>Как развивается Наблюдатель</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><p>Calibration · Brier · Forecast Improvement · Time to Contradiction · Candidate vs Canonical.</p></div>
+</article>
+<article class="card surprises">
+<div class="panel-head"><div class="head-title"><h2>НЕОЖИДАННОСТИ</h2><small>Где реальность сильно нарушила ожидания</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><p>Не каждая ошибка — только material surprise.</p></div>
+</article>
+<article class="card changing">
+<div class="panel-head"><div class="head-title"><h2>HOW Атлас IS CHANGING</h2><small>История изменений модели</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><p>ПРЕДЛОЖЕНО / ТЕСТИРУЕТСЯ / ПРОЙДЕНО / НЕ ПРОЙДЕНО / ОТКЛОНЕНО / ПРИНЯТО. Отклонённые изменения остаются видимыми.</p></div>
+</article>
+</section>
+</section>
+<section class="page" data-page-panel="digital-twin">
+<header class="topbar">
+<div><h1>Цифровой двойник</h1><p>Динамика человека → Люди → Популяция → Живой мир</p></div>
+<div class="top-actions"><span class="state lab">ЛАБОРАТОРИЯ</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div></div>
+</header>
+<div class="workspace-switcher"><button class="active">Обзор</button><button>Люди</button><button>Популяция</button><button>Живой мир</button><button>Эксперименты</button></div>
+<section class="dt-grid">
+<article class="card dt-overview">
+<div class="panel-head"><div class="head-title"><h2>ДИНАМИКА ЧЕЛОВЕКА</h2><small>Perception · memory · decision · revision</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><div class="empty-copy"><strong>Проекция исследования ещё не подключена</strong><span>Атлас остаётся отдельной верхнеуровневой вкладкой. Здесь будут люди и популяции, а не вторая копия Атлас.</span></div></div>
+</article>
+<article class="card dt-gates">
+<div class="panel-head"><div class="head-title"><h2>ЭКСПЕРИМЕНТЫ</h2><small>H0 → H8.1</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body">
+<div class="gate-grid">
+<div class="gate"><b>H0</b><span>НЕДОСТУПНО</span></div><div class="gate"><b>H1</b><span>НЕДОСТУПНО</span></div>
+<div class="gate"><b>H2</b><span>НЕДОСТУПНО</span></div><div class="gate"><b>H3</b><span>НЕДОСТУПНО</span></div>
+<div class="gate"><b>H4</b><span>НЕДОСТУПНО</span></div><div class="gate"><b>H5</b><span>НЕДОСТУПНО</span></div>
+<div class="gate"><b>H6</b><span>НЕДОСТУПНО</span></div><div class="gate"><b>H7</b><span>НЕДОСТУПНО</span></div>
+<div class="gate"><b>H7.1</b><span>НЕДОСТУПНО</span></div><div class="gate"><b>H8</b><span>НЕДОСТУПНО</span></div>
+<div class="gate"><b>H8.1</b><span>НЕДОСТУПНО</span></div>
+</div>
+</div>
+</article>
+<article class="card humans">
+<div class="panel-head"><div class="head-title"><h2>ЛЮДИ</h2><small>Individual synthetic humans / Twin candidates</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><p>Perception, Report, Intention, Behavior, Agency attribution, Narrative, Memory и Updating не будут смешиваться в «личность».</p></div>
+</article>
+<article class="card population">
+<div class="panel-head"><div class="head-title"><h2>ПОПУЛЯЦИЯ</h2><small>Derived macro dynamics</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-body"><p><strong>DERIVED ПОПУЛЯЦИЯ STATE ≠ STORED HUMAN STATE.</strong> Популяционная статистика не превращается молча в свойство каждого человека.</p></div>
+</article>
+<article class="card liveworld">
+<div class="panel-head"><div class="head-title"><h2>ЖИВОЙ МИР / THRONGLETS</h2><small>Будущий живой синтетический мир</small></div><span class="state lab">ЛАБОРАТОРИЯ</span></div>
+<div class="panel-body"><div class="empty-copy"><strong>Event stream ещё не существует в Panel v2</strong><span>Никакой декоративной анимации. Движение появится только когда есть реальные события, replay и контрольные точки мира.</span></div></div>
+</article>
+</section>
+</section>
+<section class="page" data-page-panel="foundation"></section>
+<section class="page" data-page-panel="research"></section>
+<section class="page" data-page-panel="brazilportal"></section>
+<section class="page" data-page-panel="operations"></section>
+<section class="page" data-page-panel="registry"></section>
+<section class="page" data-page-panel="signals"></section>
+<section class="page" data-page-panel="documents"></section>
+<section class="page" data-page-panel="testing"></section>
+<section class="page" data-page-panel="diagnostics"></section>
+<div class="footer-note">Панель Основателя v2 · прототип ветки · без канонических записей · без выдуманных текущих данных</div>
+</main>
+</div>
+<aside class="drawer" id="drawer">
+<button id="drawerClose">← Закрыть</button>
+<h2>Inspector</h2>
+<p>Единый правый drawer для глубины. Он не превращает первый экран обратно в техническую консоль.</p>
+<dl>
+<dt>Object ID</dt><dd>—</dd>
+<dt>Owning branch</dt><dd>—</dd>
+<dt>Source</dt><dd>—</dd>
+<dt>Актуальность</dt><dd>—</dd>
+<dt>Next move</dt><dd>—</dd>
+<dt>Gate</dt><dd>—</dd>
+<dt>Blockers</dt><dd>—</dd>
+</dl>
+</aside>
 <script>
 (function(){
   "use strict";
@@ -559,18 +634,18 @@
     registry:["Реестр","объекты, identity debt и canonical ownership"],
     signals:["Сигналы","внимание и системные сигналы"],
     documents:["Документы","manual review, canonical lifecycle и durability"],
-    testing:["Тестирование","Founder-facing смысл тестов и lineage"],
-    diagnostics:["Диагностика","источники, browser health и degraded states"]
+    testing:["Тестирование","смысл тестов для Основателя и история происхождения"],
+    diagnostics:["Диагностика","источники, состояние браузера и режимы деградации"]
   };
 
   Object.entries(placeholder).forEach(([key,val])=>{
     const p=document.querySelector('[data-page-panel="'+key+'"]');
     p.innerHTML =
       '<header class="topbar"><div><h1>'+val[0]+'</h1><p>'+val[1]+'</p></div>'+
-      '<div class="top-actions"><span class="state unavailable">NOT MIGRATED</span>'+
-      '<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Founder</small></span></div></div></header>'+
+      '<div class="top-actions"><span class="state unavailable">НЕ ПЕРЕНЕСЕНО</span>'+
+      '<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div></div></header>'+
       '<article class="card migration"><div><h2>Экран ещё не перенесён в v2</h2>'+
-      '<p>Старый production workbench остаётся нетронутым. Этот экран перенесём после визуальной приёмки shell, Главной, Оркестратора, ATLAS и Digital Twin.</p></div></article>';
+      '<p>Старый production workbench остаётся нетронутым. Этот экран перенесём после визуальной приёмки shell, Главной, Оркестратора, Атлас и Цифровой двойник.</p></div></article>';
   });
 
   function route(){
