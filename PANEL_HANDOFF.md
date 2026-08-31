@@ -1,80 +1,124 @@
-# ICAM Founder Panel — Handoff
+ICAM Founder Panel — Public Handoff
 
-One-time handoff so this panel's visual/product work can continue without pulling Klim off BrazilPortal. Everything below is current as of 2026-08-31.
+Current as of: 2026-08-31
 
-## Repo / branch
+Repository and branches
 
-- **Repo**: `github.com/danyka-icam/icam-founder-panel` (private)
-- **Branch**: `main` — this is also production. Push/merge to `main` **auto-deploys** (see below) — no manual step needed for normal edits.
-- **Contents**: `registry/` (older scaffold, kept but not actively used) and `final/` (the live 9-screen workbench — this is what you'll be editing).
+- Repository: `github.com/danyka-icam/icam-founder-panel`
+- Repository visibility: **public**
+- `main` = production branch
+- `panel-v2` = current v2 development branch
+- Push/merge to `main` triggers the existing production deployment workflow.
+- Work in `panel-v2` must not be treated as production until Founder review and merge.
 
-Until this handoff, these files lived ONLY on the server (`/opt/icam/preview/founder-ui-preview/`, no git anywhere) — this repo is the first version-controlled copy.
+Repository structure
 
-## Production
+Current production workbench:
+- `registry/` — older scaffold / reference material
+- `final/` — current production Founder Panel frontend
+- `.github/workflows/deploy.yml` — production deploy workflow
+- `smoke.mjs` — production browser smoke check
 
-- **Public URL**: `https://console.attentionmechanics.institute/founder-ui-preview/final/index.html` (HTTP Basic Auth, separate creds from the main Research Console — ask Niki)
-- **Server path**: `/opt/icam/preview/founder-ui-preview/` on `klim-new` (187.127.32.207)
-- **Server role**: served directly by nginx from disk as static files (`icam-preview.conf`, loopback `127.0.0.1:8083`, publicly reverse-proxied by `console.attentionmechanics.institute`'s nginx block in `icam.conf`).
+Founder Panel v2 is being built separately so current production remains stable.
 
-## Deploy — automatic, via GitHub Actions (no restart needed)
+Safe operating boundary
 
-Because these are static files read straight off disk on every request, **deploying is just copying files — nginx never needs a restart or reload for content changes.**
+This repository owns the Founder Panel frontend and its read-only presentation logic.
 
-**Normal flow: just push/merge to `main`.** `.github/workflows/deploy.yml` runs automatically:
-1. rsyncs `registry/` + `final/` to the server (via the scoped deploy key, from `ICAM_PANEL_DEPLOY_KEY` secret);
-2. runs a headless-browser smoke check (`smoke.mjs`, Playwright) against the real production URL and **fails the workflow** if there's a console error, a failed request, or a non-200 response.
+Normal frontend work may include:
+- HTML
+- CSS
+- JavaScript
+- shared shell/navigation
+- read-only API consumption
+- Founder-facing information architecture
+- browser-side diagnostics
 
-Watch the run under the repo's **Actions** tab. Green = deployed and verified live; red = it did NOT go live as shown (check the smoke-check log for what broke).
+This repository does **not** grant authority to:
+- change backend service semantics
+- change canonical research state
+- widen system authority
+- modify infrastructure configuration
+- expose credentials
+- create a second truth store
 
-**Manual/local deploy** (fallback only — e.g. testing before pushing): `brew install rsync` (macOS ships an incompatible rsync by default), then `./deploy.sh` with a copy of the deploy key placed next to it or pointed to via `ICAM_PANEL_DEPLOY_KEY`. The key itself lives only in the GitHub Secret — ask Klim or Niki if you genuinely need a local copy for manual testing.
+Any backend/network/auth/infrastructure change requires the appropriate owning system and approval path.
 
-**Rollback**: `git revert` (or `git checkout <older-commit> -- registry final && git commit`) and push to `main` — same auto-deploy path redeploys the older tree. No separate rollback mechanism to learn.
+Production deployment
 
-## Scoped deploy access (no root, no shell)
+The existing GitHub Actions workflow deploys only from `main`.
 
-A dedicated OS user, `icam-panel-deploy`, was created on the server specifically for this:
+Normal safe flow:
 
-- **Can do**: rsync files into/out of `/opt/icam/preview/founder-ui-preview/` only.
-- **Cannot do**: anything else. No shell (SSH forced-command via `rrsync`, `restrict` flag), no sudo, no access to any other path, no systemctl, nothing. Verified: an interactive SSH session with this key gets refused a shell outright.
-- The private key lives **only** in this repo's GitHub Secret (`ICAM_PANEL_DEPLOY_KEY`) — not in git history, not in this doc. (An earlier version of this key was pasted directly in chat during the initial handoff and has since been rotated/revoked — the one now in the Secret is the only valid one.)
-- The smoke check uses its own separate, read-only Basic Auth credential (`ci-smoke`, in the `ICAM_PANEL_SMOKE_BASIC_AUTH` secret) — not Niki's real founder-panel password.
+`panel-v2 → review → PR → Founder acceptance → merge to main → deploy → smoke check`
 
-## One manual step Klim couldn't do for you
+Do not edit production directly during v2 work.
 
-GitHub doesn't allow granting an already-installed GitHub App access to a new repo via API/token — only the account owner, in the web UI. To let the ChatGPT GitHub App see/edit this repo:
-1. github.com/settings/installations (while logged in as `danyka-icam`)
-2. Find the ChatGPT app → **Configure**
-3. Under "Repository access", add `danyka-icam/icam-founder-panel`
-4. Save
+Source map
 
-Takes about 30 seconds.
+Founder Panel uses same-origin read paths under:
 
-If you ever need to change the **nginx config itself** (a genuinely new backend/API route, not just editing existing screens) — that's a root-only step outside this key's scope. Ping Klim or Niki for that specific change; everything else (HTML/CSS/JS on the 9 screens, including the live-data wiring) is yours to edit freely.
+`/founder-ui-preview/api/...`
 
-## Map: screen → JS file → API path → backend service
+Primary source systems:
 
-Every screen's "live" data goes through the SAME nginx layer (`icam-preview.conf`, GET-only enforced — `limit_except GET { deny all; }` on every one of these locations, independent of what the backend itself would allow). No screen currently talks to anything write-capable.
+| Founder Panel area | Frontend source | Same-origin API family | Source system |
+|---|---|---|---|
+| Home / Foundation / Registry | `panel-live.js`, `semantic.js`, `live3.js` | `continuity/*`, `continuity-health` | Continuity |
+| Research | `research-live.js` | `continuity/objects`, `continuity/blockers`, `continuity/rd1-projection/*` | Continuity / RD1 projection |
+| Operations / Orchestrator read surface | `ops-live.js` + v2 adapters | `observer/routes`, `observer/metrics`, `observer/summary` | Orchestrator / Observer |
+| Documents | `docs-live.js` | `hub/sync-health` | ICAM Hub |
+| Testing | `testing-live.js` | `testing/*`, `testing-health`, `testing-runner-health` | ICAM Testing |
+| Shared trust / UI | `truth-guard.js`, `trust-contract.js`, `panel-*.js`, CSS | presentation only | no new truth source |
 
-| Screen | File | Calls (`/founder-ui-preview/api/...`) | Real backend | systemd unit |
-|---|---|---|---|---|
-| Home | `panel-live.js` | `continuity/founder-inbox`, `continuity-health` | Continuity CORE | `context-steward.service` (:8793) |
-| Research | `research-live.js` | `continuity/blockers`, `continuity/objects`, `continuity/rd1-projection/` | Continuity CORE | `context-steward.service` (:8793) |
-| Operations | `ops-live.js` | `observer/metrics`, `observer/routes`, `observer/summary` | ICAM Observer | `icam-observer.service` (:8789) |
-| Documents | `docs-live.js` | `hub/sync-health` | ICAM Hub API | `icam-hub-api.service` (:8788) |
-| Testing | `testing-live.js` | `testing/summary`, `testing/tests`, `testing/lineage/`, `testing-health`, `testing-runner-health`, `continuity/objects` | ICAM Testing API + runner | `icam-testing-api.service` (:8801), `icam-testing-local-runner.service` (:8802) |
-| Foundation, Signals, Settings, +1 more | `live3.js` | reuses all of the above (`continuity/*`, `observer/*`, `hub/sync-health`, `testing/*`) — no new backend surface | (same four services) | (same as above) |
-| Everything else (nav shell, layout, cards) | `app.js`, `panel-*.js`, `*.css`, `truth-guard.js`, `trust-contract.js`, `semantic.js` | none (pure visual/shell logic) | — | — |
+All new v2 data wiring must continue to use explicit source ownership and freshness.
 
-**Not wired yet** (shipped as mock, intentionally — see comments in `app.js` and the two collapsed home-screen cards): "ПРИОРИТЕТЫ RD1", "РАДАР", the "Карта роста ICAM" and "BrazilPortal — живой слой" home-screen blocks. These are real, open product-buildout items, not accidental gaps.
+Founder Panel v2 direction
 
-## Render check (done as part of this handoff, 2026-08-31)
+The existing `final/` workbench remains intact while v2 is built in parallel.
 
-Loaded the live production URL headlessly (Playwright, via the server's own `icam-panel-watchdog` tooling): **0 JS console errors**, live cards populate with real current data (e.g. Steward integrity index, a real Research Hub sync-health alert). Screenshot kept for reference.
+v2 principles:
+- live-first, not mock-first
+- no plausible current-state facts embedded in static HTML
+- one data client
+- one writer per UI zone
+- shared shell
+- shared state vocabulary
+- compact unavailable/degraded states
+- detail drawer for depth
+- RU-first Founder semantics
+- no authority widening
 
-One small honesty gap found and left for you to fix: the page footer still says *"BROWSER WORKBENCH • mock data only • visual layer only"* — no longer fully true now that several screens are live-wired. Small copy fix, not urgent.
+Planned top-level v2 navigation:
 
-## What Klim still owns
+1. Главная
+2. Оркестратор
+3. Фундамент
+4. Исследования
+5. ATLAS
+6. Digital Twin
+7. BrazilPortal
+8. Операции
+9. Реестр
+10. Сигналы
+11. Документы
+12. Тестирование
+13. Диагностика
 
-- The **live production backend services** themselves (Continuity, Observer, Hub, Testing) — this handoff only covers the panel's own frontend files and its read-only wiring to them.
-- Any change to the **nginx config** (new proxy routes, new screens needing a new backend connection).
-- The write-capable path (`context-steward-actions`) is not exposed to this panel at all and is out of scope here.
+Known product boundary
+
+Founder Panel is a Founder-facing read/decision surface.
+
+Local product state may exist in owning systems such as Orchestrator route memory, but Founder Panel itself must not become a parallel canonical database.
+
+Consequential/canonical writes continue through the existing authority/approval path.
+
+Review rule
+
+A green browser smoke check confirms technical loading only.
+
+Founder Panel is not considered daily-use ready until:
+- required live sources are trustworthy,
+- key screens are semantically clear,
+- no fake current-state data is visible,
+- Founder visually accepts the production interface.
