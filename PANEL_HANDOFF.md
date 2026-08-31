@@ -1,7 +1,7 @@
 ICAM Founder Panel — Public Handoff
 
 Current as of: 2026-08-31
-
+ 
 Repository and branches
 
 - Repository: `github.com/danyka-icam/icam-founder-panel`
