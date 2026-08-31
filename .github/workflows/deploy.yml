@@ -1,0 +1,47 @@
+name: Deploy Founder Panel
+
+on:
+  push:
+    branches: [main]
+
+# Only ever needs to read this repo's own code and write nothing back to
+# GitHub — no elevated permissions requested.
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write deploy key
+        run: |
+          umask 077
+          printf '%s\n' "${{ secrets.ICAM_PANEL_DEPLOY_KEY }}" > deploy_key
+          chmod 600 deploy_key
+
+      - name: Deploy (rsync into the panel's own restricted deploy account)
+        env:
+          ICAM_PANEL_DEPLOY_KEY: deploy_key
+        run: ./deploy.sh
+
+      - name: Remove deploy key
+        if: always()
+        run: rm -f deploy_key
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright (Chromium only)
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save playwright@1
+          npx playwright install --with-deps chromium
+
+      - name: Browser smoke check
+        env:
+          PANEL_SMOKE_BASIC_AUTH: ${{ secrets.ICAM_PANEL_SMOKE_BASIC_AUTH }}
+        run: node smoke.mjs
