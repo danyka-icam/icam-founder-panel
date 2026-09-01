@@ -845,6 +845,90 @@
       .registry-table-head{display:none}
       .registry-fact-grid,.registry-lower-grid,.registry-boundary-grid{grid-template-columns:1fr}
     }
+
+    .signals-hero-grid{
+      display:grid;grid-template-columns:1.45fr .55fr;gap:10px
+    }
+    .signals-now-card{min-height:340px}
+    .signals-empty{
+      min-height:230px;display:flex;flex-direction:column;justify-content:center;
+      color:#9ea6a1;line-height:1.55
+    }
+    .signals-empty.hero{align-items:center;text-align:center;padding:14px 28px}
+    .signals-empty.compact{min-height:130px;padding:4px 0;align-items:flex-start;text-align:left}
+    .signals-empty strong{font:400 17px Georgia,"Times New Roman",serif;color:#dfe2dc;margin-bottom:7px}
+    .signals-empty span,.signals-empty p{font-size:10.5px!important}
+    .signal-pulse{
+      width:120px;height:120px;position:relative;margin-bottom:18px
+    }
+    .signal-pulse span,.signal-pulse i,.signal-pulse b{
+      position:absolute;border-radius:50%;border:1px solid rgba(169,196,127,.22)
+    }
+    .signal-pulse span{inset:0}
+    .signal-pulse i{inset:20px;border-color:rgba(214,187,120,.24)}
+    .signal-pulse b{
+      inset:45px;background:radial-gradient(circle,rgba(169,196,127,.18),rgba(169,196,127,.02));
+      box-shadow:0 0 24px rgba(169,196,127,.08)
+    }
+    .signal-type-grid{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px
+    }
+    .signal-type-card{min-height:255px}
+    .signal-type-mark{
+      display:grid;place-items:center;width:38px;height:38px;border-radius:50%;
+      border:1px solid var(--line);font:400 20px Georgia,"Times New Roman",serif;margin-bottom:14px
+    }
+    .signal-type-card.change .signal-type-mark{color:var(--sage)}
+    .signal-type-card.risk .signal-type-mark{color:#df9180}
+    .signal-type-card.opportunity .signal-type-mark{color:var(--gold)}
+    .signal-type-card.watch .signal-type-mark{color:#91a4af}
+    .signal-type-card small{color:#858e89;font-size:8.5px;letter-spacing:.08em}
+    .signal-type-card h3{margin:7px 0 0!important;font-size:17px!important}
+    .signal-type-card p{margin-top:9px!important;font-size:10px!important;min-height:86px}
+    .signal-type-card em{
+      display:inline-block;margin-top:10px;padding:5px 7px;border:1px solid var(--line);
+      border-radius:999px;color:#858e89;font-size:8.5px;font-style:normal
+    }
+    .signal-flow-card{margin-bottom:10px}
+    .signal-flow{
+      display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:8px;align-items:stretch
+    }
+    .signal-flow>div{
+      min-height:132px;padding:12px;border:1px solid var(--line-soft);border-radius:11px;
+      background:rgba(18,24,26,.13)
+    }
+    .signal-flow>div span{display:block;color:var(--gold);font-size:8.5px}
+    .signal-flow>div b{display:block;margin-top:6px;font:400 14px Georgia,"Times New Roman",serif}
+    .signal-flow>div small{display:block;margin-top:7px;color:#858e89;font-size:9px;line-height:1.45}
+    .signal-flow>i{align-self:center;color:#727b76;font-style:normal}
+    .signal-flow-note{
+      margin-top:10px;padding:9px 11px;border-left:2px solid rgba(214,187,120,.28);
+      color:#858e89;font-size:9.5px;line-height:1.45
+    }
+    .signals-lower-grid{
+      display:grid;grid-template-columns:1fr 1fr;gap:10px
+    }
+    .signals-lower-grid>.card{min-height:225px}
+    .signals-noise-grid{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px
+    }
+    .signals-noise-grid .panel-body{min-height:135px}
+    .signals-noise-grid b{display:block;font:400 15px Georgia,"Times New Roman",serif}
+    .signals-noise-grid span{display:block;margin-top:8px;color:#8f9792;font-size:9.5px;line-height:1.5}
+    .signals-boundary-note{
+      margin-top:10px;padding:10px 12px;border:1px solid rgba(214,187,120,.14);border-radius:10px;
+      background:rgba(18,24,26,.12);color:#858e89;font-size:9.5px;line-height:1.45
+    }
+    .signals-boundary-note b{color:#c0c6c1}
+    @media(max-width:1100px){
+      .signals-hero-grid{grid-template-columns:1fr}
+      .signal-type-grid,.signals-noise-grid{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:760px){
+      .signal-type-grid,.signals-lower-grid,.signals-noise-grid{grid-template-columns:1fr}
+      .signal-flow{grid-template-columns:1fr 1fr}
+      .signal-flow>i{display:none}
+    }
 </style>
 </head>
 <body>
@@ -1927,7 +2011,251 @@
     если Object ID неизвестен — показываем «не определён», а не выбираем ближайший похожий ID. Это особенно важно для Testing Department и Path Legibility.
   </div>
 </section>
-<section class="page" data-page-panel="signals"></section>
+<section class="page" data-page-panel="signals">
+<header class="topbar">
+<div>
+<h1>Сигналы</h1>
+<p>только изменения, которые заслуживают внимания и могут изменить следующий ход</p>
+</div>
+<div class="top-actions">
+<span class="state unavailable">ИСТОЧНИКИ НЕ ПОДКЛЮЧЕНЫ</span>
+<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
+</div>
+</header>
+<div class="workspace-switcher signals-switcher">
+<button class="active">Обзор</button>
+<button>Требует меня</button>
+<button>Изменения</button>
+<button>Риски</button>
+<button>Возможности</button>
+<button>История</button>
+</div>
+<section class="strip signals-kpis-v2">
+<article class="card">
+<small>Требует меня</small>
+<strong>—</strong>
+<span>сигналы с явным запросом решения Основателя</span>
+</article>
+<article class="card">
+<small>Материальные изменения</small>
+<strong>—</strong>
+<span>события, которые реально меняют состояние линии</span>
+</article>
+<article class="card">
+<small>Риск / отклонение</small>
+<strong>—</strong>
+<span>подтверждённые проблемы из источников, а не вычисленный страх</span>
+</article>
+<article class="card">
+<small>Возможности</small>
+<strong>—</strong>
+<span>только подтверждённые внешние или портфельные возможности</span>
+</article>
+</section>
+<section class="signals-hero-grid">
+<article class="card signals-now-card">
+<div class="panel-head">
+<div class="head-title">
+<h2>ЧТО ЗАСЛУЖИВАЕТ ВНИМАНИЯ СЕЙЧАС</h2>
+<small>сигнал появляется здесь только если источник подтверждает изменение или необходимость реакции</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="signals-empty hero">
+<div class="signal-pulse">
+<span></span><i></i><b></b>
+</div>
+<strong>Сигнальный слой ещё не подключён</strong>
+<p>Панель не показывает демонстрационные «возможности», корреляции или угрозы. После интеграции здесь будут только реальные Founder-attention события, существенные изменения, подтверждённые риски и внешние сигналы из разрешённых источников.</p>
+</div>
+</div>
+</article>
+<article class="card signals-founder-card">
+<div class="panel-head">
+<div class="head-title">
+<h2>ТРЕБУЕТ МЕНЯ</h2>
+<small>что нельзя закрыть без решения Основателя</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="signals-empty compact">
+<strong>Нет подключённого Founder inbox</strong>
+<span>Когда источник будет подключён, сюда попадут только реальные `needs_founder`, а не все уведомления системы.</span>
+</div>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Типы сигналов</h2>
+<p>разные причины внимания не смешиваем в одну красную ленту</p>
+</div>
+</div>
+<section class="signal-type-grid">
+<article class="card signal-type-card change">
+<div class="panel-body">
+<span class="signal-type-mark">Δ</span>
+<small>ИЗМЕНЕНИЕ</small>
+<h3>Что-то реально стало другим</h3>
+<p>Смена статуса или этапа, новый результат проверки, внешний ответ, новый файл с каноническим значением, изменение владельца хода или другого материального поля.</p>
+<em>не каждое событие</em>
+</div>
+</article>
+<article class="card signal-type-card risk">
+<div class="panel-body">
+<span class="signal-type-mark">!</span>
+<small>РИСК / ОТКЛОНЕНИЕ</small>
+<h3>Источник сообщает о проблеме</h3>
+<p>Открытый блокер, деградация, просрочка, неудачный тест, нарушение целостности или другой подтверждённый источник риска.</p>
+<em>без собственных домыслов панели</em>
+</div>
+</article>
+<article class="card signal-type-card opportunity">
+<div class="panel-body">
+<span class="signal-type-mark">↗</span>
+<small>ВОЗМОЖНОСТЬ</small>
+<h3>Появилось окно для действия</h3>
+<p>Внешний ответ, рыночное изменение, новый контакт, грант, партнёрство или другой шанс — только если его факт действительно пришёл из подключённого источника.</p>
+<em>не прогноз без данных</em>
+</div>
+</article>
+<article class="card signal-type-card watch">
+<div class="panel-body">
+<span class="signal-type-mark">○</span>
+<small>НАБЛЮДАТЬ</small>
+<h3>Решение пока не требуется</h3>
+<p>Изменение важно помнить, но оно ещё не требует действия. Такой сигнал не должен попадать на Главную как срочная задача.</p>
+<em>контекст, не тревога</em>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Путь сигнала</h2>
+<p>Панель не создаёт факты — она только отбирает и объясняет то, что уже существует в источниках</p>
+</div>
+</div>
+<section class="card signal-flow-card">
+<div class="panel-body">
+<div class="signal-flow">
+<div>
+<span>01</span>
+<b>Событие</b>
+<small>реальное событие в Continuity, Testing, Orchestrator, Atlas или другом разрешённом источнике</small>
+</div>
+<i>→</i>
+<div>
+<span>02</span>
+<b>Материальность</b>
+<small>изменяет ли оно состояние, решение, риск, возможность или следующий ход</small>
+</div>
+<i>→</i>
+<div>
+<span>03</span>
+<b>Сигнал</b>
+<small>читаемая проекция с источником, объектом, временем и причиной внимания</small>
+</div>
+<i>→</i>
+<div>
+<span>04</span>
+<b>Маршрут</b>
+<small>если требуется действие — оно уходит в Оркестратор или Founder attention, а не живёт второй задачей здесь</small>
+</div>
+</div>
+<div class="signal-flow-note">
+        «Сигналы» — это слой внимания, а не второй event store и не второй список задач.
+      </div>
+</div>
+</section>
+<section class="signals-lower-grid">
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ПОСЛЕДНИЕ МАТЕРИАЛЬНЫЕ ИЗМЕНЕНИЯ</h2><small>что изменилось в системе или внешней среде</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="signals-empty compact">
+<strong>История изменений ещё не подключена</strong>
+<span>Показываем событие, объект, источник, время и человеческое объяснение «было → стало → почему важно».</span>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>РИСКИ И ОТКЛОНЕНИЯ</h2><small>только подтверждённые проблемы</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="signals-empty compact">
+<strong>Источник рисков ещё не подключён</strong>
+<span>Приоритет или severity берётся из источника. Если источник не оценил тяжесть, Панель показывает «без оценки», а не рассчитывает собственный красный балл.</span>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ВНЕШНИЕ ВОЗМОЖНОСТИ</h2><small>факт возможности, а не декоративный бизнес-радар</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="signals-empty compact">
+<strong>Внешний поток ещё не подключён</strong>
+<span>Позже сюда могут приходить подтверждённые сигналы от внешних исследовательских, рыночных и продуктовых источников. До подключения блок остаётся пустым.</span>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>НАБЛЮДАТЬ</h2><small>важно помнить, но сейчас ничего не делать</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="signals-empty compact">
+<strong>Наблюдаемых сигналов пока нет в проекции</strong>
+<span>Это отдельная полка, чтобы несрочный контекст не превращался в ложное «Требует меня».</span>
+</div>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Что здесь специально не делаем</h2>
+<p>убираем шум, который в старой панели выглядел убедительно, но не имел источника</p>
+</div>
+</div>
+<section class="signals-noise-grid">
+<article class="card">
+<div class="panel-body">
+<b>Не считаем «активные сигналы» сами</b>
+<span>Нет канонического сигнального store — нет красивой цифры 26 или «+5 за сутки».</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Не рисуем корреляции</b>
+<span>Совпадение по времени не становится причинной связью или кластером без явного источника.</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Не создаём свой рейтинг</b>
+<span>Панель не объявляет сигнал №1, если источник не даёт явного приоритета или severity.</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Не дублируем задачи</b>
+<span>Если сигнал требует действия, действием управляет Оркестратор или Founder attention. Здесь остаётся источник и смысл сигнала.</span>
+</div>
+</article>
+</section>
+<div class="signals-boundary-note">
+<b>Граница:</b>
+    Главная отвечает «что мне делать сейчас», Оркестратор — «как движутся маршруты и действия», Тестирование — «что показала проверка», а Сигналы — «какое изменение заслуживает внимания и почему».
+  </div>
+</section>
 <section class="page" data-page-panel="documents"></section>
 <section class="page" data-page-panel="testing">
 <header class="topbar">
@@ -2180,7 +2508,6 @@
   const placeholder = {
     brazilportal:["BrazilPortal","живой коммерческий и миграционный контур"],
     operations:["Операции","исполнение и операционные контуры"],
-    signals:["Сигналы","внимание и системные сигналы"],
     documents:["Документы","ручной разбор, канонический жизненный цикл и долговечность"],
     diagnostics:["Диагностика","источники, состояние браузера и режимы деградации"]
   };
