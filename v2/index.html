@@ -1188,6 +1188,128 @@
       .bp-commercial-cycle{grid-template-columns:1fr}
       .bp-state-orbit{transform:scale(.86);margin-top:-15px;margin-bottom:-15px}
     }
+
+    .field-movement-card{margin-bottom:10px}
+    .field-movement-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
+    .field-movement-grid>div{
+      min-height:88px;padding:11px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(18,24,26,.13)
+    }
+    .field-movement-grid small{display:block;color:#858e89;font-size:8.5px}
+    .field-movement-grid strong{display:block;margin-top:7px;font:400 20px Georgia,"Times New Roman",serif}
+    .field-movement-grid span{display:block;margin-top:4px;color:#7f8984;font-size:8px}
+    .field-movement-note,.scanner-rule{
+      margin-top:10px;padding:9px 11px;border-left:2px solid rgba(214,187,120,.28);
+      color:#858e89;font-size:9.5px;line-height:1.45
+    }
+    .signals-scanner-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:10px;margin-bottom:10px}
+    .signals-scanner-grid>.card{min-height:300px}
+    .scanner-filter-row{display:flex;gap:6px;flex-wrap:wrap}
+    .scanner-filter-row span{
+      padding:5px 7px;border:1px solid var(--line);border-radius:999px;color:#8f9792;font-size:8.5px
+    }
+    .scanner-empty{min-height:180px;display:flex;flex-direction:column;justify-content:center}
+    .scanner-empty strong{font:400 17px Georgia,"Times New Roman",serif}
+    .scanner-empty span{margin-top:7px;color:#8f9792;font-size:10px;line-height:1.5}
+    .scanner-contract-fields{display:flex;gap:5px;flex-wrap:wrap}
+    .scanner-contract-fields span{
+      padding:5px 6px;border:1px solid var(--line-soft);border-radius:7px;background:rgba(18,24,26,.13);
+      color:#a7ada9;font-size:8px
+    }
+    .scanner-status-model{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}
+    .scanner-status-model>div{padding:10px;border:1px solid var(--line-soft);border-radius:9px}
+    .scanner-status-model b{display:block;font:400 14px Georgia,"Times New Roman",serif}
+    .scanner-status-model span{display:block;margin-top:4px;color:#858e89;font-size:8.5px}
+    .scanner-bridge-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px}
+    .scanner-bridge-grid .panel-body{min-height:125px}
+    .scanner-bridge-grid b{display:block;font:400 14px Georgia,"Times New Roman",serif}
+    .scanner-bridge-grid span{display:block;margin-top:7px;color:#8f9792;font-size:9px;line-height:1.5}
+
+    .diagnostics-hero-grid{display:grid;grid-template-columns:1.4fr .6fr;gap:10px}
+    .diagnostic-trust-card{min-height:375px}
+    .diagnostic-trust-layout{display:grid;grid-template-columns:285px 1fr;gap:22px;align-items:center;min-height:285px}
+    .diagnostic-trust-orbit{width:250px;height:250px;position:relative;margin:auto}
+    .diag-ring{position:absolute;border-radius:50%;border:1px solid rgba(169,196,127,.14)}
+    .diag-ring.one{inset:18px}.diag-ring.two{inset:51px;border-color:rgba(214,187,120,.14)}
+    .diag-core{
+      position:absolute;inset:80px;border:1px solid var(--line);border-radius:50%;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(19,25,27,.27)
+    }
+    .diag-core small{font-size:7.5px;color:#858e89;letter-spacing:.08em}
+    .diag-core strong{font:400 24px Georgia,"Times New Roman",serif;margin-top:3px}
+    .diag-core span{font-size:8px;color:#7f8984}
+    .diag-node{
+      position:absolute;padding:6px 8px;border:1px solid var(--line-soft);border-radius:999px;
+      background:rgba(42,51,54,.87);color:#aeb5b0;font-size:8.5px
+    }
+    .diag-node.api{left:0;top:42%}.diag-node.source{right:0;top:18%}.diag-node.age{right:5%;bottom:15%}.diag-node.render{left:20%;bottom:0}
+    .diagnostic-principles>div{padding:11px 0;border-top:1px solid var(--line-soft)}
+    .diagnostic-principles>div:first-child{border-top:0}
+    .diagnostic-principles b{display:block;font:400 13px Georgia,"Times New Roman",serif}
+    .diagnostic-principles span{display:block;margin-top:4px;color:#8f9792;font-size:9.5px;line-height:1.45}
+    .runtime-kv{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line-soft);font-size:9.5px}
+    .runtime-kv:first-child{border-top:0}.runtime-kv span{color:#858e89}.runtime-kv b{font-weight:500;color:#cfd3ce}
+    .diagnostics-note{margin-top:10px!important;color:#858e89!important;font-size:9.3px!important}
+    .diagnostics-source-head,.diagnostics-source-list>div{
+      display:grid;grid-template-columns:1fr 1.25fr .75fr .65fr 1.35fr;gap:10px;align-items:center
+    }
+    .diagnostics-source-head{
+      padding:3px 10px 10px;border-bottom:1px solid var(--line-soft);color:#858e89;font-size:8.5px;text-transform:uppercase;letter-spacing:.05em
+    }
+    .diagnostics-source-list>div{padding:11px 10px;border-top:1px solid var(--line-soft)}
+    .diagnostics-source-list>div:first-child{border-top:0}
+    .diagnostics-source-list b{font:400 12px Georgia,"Times New Roman",serif}
+    .diagnostics-source-list span{color:#8f9792;font-size:9px}
+    .diagnostics-source-list em{font-style:normal;color:#a4aba6;font-size:9px}
+    .diagnostics-source-list small{color:#858e89;font-size:8.5px;line-height:1.35}
+    .diagnostic-state-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+    .diag-state .panel-body{min-height:150px}
+    .diag-state small{display:block;font-size:8px;letter-spacing:.08em;color:#858e89}
+    .diag-state b{display:block;margin-top:8px;font:400 15px Georgia,"Times New Roman",serif}
+    .diag-state span{display:block;margin-top:7px;color:#8f9792;font-size:8.8px;line-height:1.45}
+    .diag-state.degraded{border-color:rgba(214,187,120,.16)}
+    .diag-state.stale{border-color:rgba(215,161,68,.16)}
+    .diag-state.error{border-color:rgba(212,117,99,.18)}
+    .diag-state.recovery{border-color:rgba(169,196,127,.18)}
+    .diagnostics-lower-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .diagnostics-lower-grid>.card{min-height:225px}
+    .diagnostics-empty{min-height:180px;display:flex;flex-direction:column;justify-content:center}
+    .diagnostics-empty.compact{min-height:125px}
+    .diagnostics-empty strong{font:400 17px Georgia,"Times New Roman",serif}
+    .diagnostics-empty span{margin-top:7px;color:#8f9792;font-size:10px;line-height:1.5}
+    .diagnostic-recovery-flow{
+      display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr auto 1fr;gap:6px;align-items:stretch
+    }
+    .diagnostic-recovery-flow>div{padding:10px;border:1px solid var(--line-soft);border-radius:9px;background:rgba(18,24,26,.13)}
+    .diagnostic-recovery-flow span{color:var(--gold);font-size:8px}
+    .diagnostic-recovery-flow b{display:block;margin-top:5px;font:400 11px Georgia,"Times New Roman",serif}
+    .diagnostic-recovery-flow>i{align-self:center;font-style:normal;color:#727b76}
+    .integration-pending>div{padding:10px 0;border-top:1px solid var(--line-soft)}
+    .integration-pending>div:first-child{border-top:0}
+    .integration-pending b{display:block;font:400 13px Georgia,"Times New Roman",serif}
+    .integration-pending span{display:block;margin-top:4px;color:#8f9792;font-size:9.3px;line-height:1.45}
+    .diagnostics-boundary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .diagnostics-boundary-grid .panel-body{min-height:135px}
+    .diagnostics-boundary-grid b{display:block;font:400 15px Georgia,"Times New Roman",serif}
+    .diagnostics-boundary-grid span{display:block;margin-top:8px;color:#8f9792;font-size:9.5px;line-height:1.5}
+    .diagnostics-truth-note{
+      margin-top:10px;padding:10px 12px;border:1px solid rgba(214,187,120,.14);border-radius:10px;
+      background:rgba(18,24,26,.12);color:#858e89;font-size:9.5px;line-height:1.45
+    }
+    .diagnostics-truth-note b{color:#c0c6c1}
+    @media(max-width:1180px){
+      .field-movement-grid{grid-template-columns:repeat(3,1fr)}
+      .signals-scanner-grid,.diagnostics-hero-grid{grid-template-columns:1fr}
+      .scanner-bridge-grid,.diagnostics-boundary-grid{grid-template-columns:1fr 1fr}
+      .diagnostic-state-grid{grid-template-columns:repeat(4,1fr)}
+    }
+    @media(max-width:760px){
+      .field-movement-grid,.scanner-bridge-grid,.diagnostics-boundary-grid,.diagnostic-state-grid,.diagnostics-lower-grid{grid-template-columns:1fr}
+      .diagnostic-trust-layout{grid-template-columns:1fr}
+      .diagnostics-source-head{display:none}
+      .diagnostics-source-list>div{grid-template-columns:1fr 1fr}
+      .diagnostic-recovery-flow{grid-template-columns:1fr}
+      .diagnostic-recovery-flow>i{display:none}
+    }
 </style>
 </head>
 <body>
@@ -2985,7 +3107,97 @@
 </div>
 </article>
 </section>
-<div class="section-title">
+<div class="section-title scanner-section-title">
+<div>
+<h2>Движение поля · 7 дней</h2>
+<p>ATLAS Market Scanner: где внешнее поле сдвинулось по архитектурным осям и почему это важно ATLAS / Twin</p>
+</div>
+<span class="state unavailable">ИСТОЧНИК ОЖИДАЕТ ПОДКЛЮЧЕНИЯ</span>
+</div><section class="card field-movement-card">
+<div class="panel-body">
+<div class="field-movement-grid">
+<div><small>World models</small><strong>—</strong><span>к предыдущим 7 дням</span></div>
+<div><small>Decision intelligence</small><strong>—</strong><span>к предыдущим 7 дням</span></div>
+<div><small>Simulation</small><strong>—</strong><span>к предыдущим 7 дням</span></div>
+<div><small>External sensing</small><strong>—</strong><span>к предыдущим 7 дням</span></div>
+<div><small>Epistemics</small><strong>—</strong><span>к предыдущим 7 дням</span></div>
+<div><small>Agents</small><strong>—</strong><span>к предыдущим 7 дням</span></div>
+</div>
+<div class="field-movement-note">
+      После подключения показываем только агрегат weighted relevance за 7 дней: → / ↑ / ↑↑ / ↑↑↑. Первый scanner-run создаёт baseline и не должен превращаться в поток старых новостей.
+    </div>
+</div>
+</section><section class="signals-scanner-grid">
+<article class="card scanner-feed-card">
+<div class="panel-head">
+<div class="head-title">
+<h2>ATLAS MARKET SCANNER</h2>
+<small>по умолчанию: STRATEGIC 90–100 и IMPORTANT 70–89</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="scanner-filter-row">
+<span>Ось: все</span>
+<span>Сущность: все</span>
+<span>Статус: new / important</span>
+<span>min score: 70</span>
+</div>
+<div class="scanner-empty">
+<strong>Market Scanner ещё не подключён к Панели</strong>
+<span>Когда QA завершится и Signals Bridge будет подключён, здесь появятся реальные `atlas.market-signal.v1`. WATCH 50–69 остаётся в фильтре/дайджесте; &lt;50 архивируется.</span>
+</div>
+</div>
+</article>
+<article class="card scanner-card-contract">
+<div class="panel-head">
+<div class="head-title">
+<h2>КАРТОЧКА СИГНАЛА</h2>
+<small>поля, которые Панель обязана сохранить без потери provenance</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="scanner-contract-fields">
+<span>entity</span><span>type</span><span>relevance 0–100</span><span>title</span>
+<span>summary_ru</span><span>why_it_matters_ru</span><span>axes</span><span>evidence count</span>
+<span>source</span><span>observed_at</span><span>status</span>
+</div>
+<div class="scanner-status-model">
+<div><b>90–100</b><span>STRATEGIC · наверх</span></div>
+<div><b>70–89</b><span>IMPORTANT · основная лента</span></div>
+<div><b>50–69</b><span>WATCH · фильтр / дайджест</span></div>
+<div><b>&lt;50</b><span>ARCHIVE</span></div>
+</div>
+<p class="scanner-rule">Изменение веб-страницы само по себе не является рыночным сигналом. Карточка появляется только при deterministic semantic evidence.</p>
+</div>
+</article>
+</section><section class="scanner-bridge-grid">
+<article class="card">
+<div class="panel-body">
+<b>Signals Bridge → Panel</b>
+<span>Browser не делает ingest. Scanner / bridge отправляет `POST /api/signals/ingest`; Панель читает `GET /api/signals`.</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Статус сигнала</b>
+<span>Позже Панель может менять только `status` через PATCH. До согласования auth/authority эта возможность остаётся отключённой.</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>LLM enrichment</b>
+<span>После QA — только для candidate signal и только поверх deterministic evidence. LLM не создаёт событие самостоятельно.</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Customer worlds</b>
+<span>Scanner относится к Meta/Founder world и не меняет TMK/Graza causal graph автоматически. Promotion — отдельное ручное решение.</span>
+</div>
+</article>
+</section><div class="section-title">
 <div>
 <h2>Что здесь специально не делаем</h2>
 <p>убираем шум, который в старой панели выглядел убедительно, но не имел источника</p>
@@ -3518,7 +3730,222 @@
     не назначаем её по догадке. CMP-000011 относится к Control Plane / инфраструктуре библиотеки и не используется как ID тестирования.
   </div>
 </section>
-<section class="page" data-page-panel="diagnostics"></section>
+<section class="page" data-page-panel="diagnostics">
+<header class="topbar">
+<div>
+<h1>Диагностика</h1>
+<p>почему Панель доверяет или не доверяет данным: источники, свежесть, ошибки и восстановление</p>
+</div>
+<div class="top-actions">
+<span class="state unavailable">ДИАГНОСТИЧЕСКИЙ READ-MODEL НЕ ПОДКЛЮЧЁН</span>
+<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
+</div>
+</header>
+<div class="workspace-switcher diagnostics-switcher">
+<button class="active">Обзор</button>
+<button>Источники</button>
+<button>Свежесть</button>
+<button>Ошибки</button>
+<button>Браузер</button>
+<button>Состояния</button>
+<button>Восстановление</button>
+</div>
+<section class="strip diagnostics-kpis-v2">
+<article class="card">
+<small>Доверие к проекции</small>
+<strong data-x="trust">—</strong>
+<span>может ли Панель безопасно показывать current state</span>
+</article>
+<article class="card">
+<small>Недоступные источники</small>
+<strong data-x="unavailable">—</strong>
+<span>источники, от которых сейчас нет подтверждённого ответа</span>
+</article>
+<article class="card">
+<small>Устаревшие данные</small>
+<strong data-x="stale">—</strong>
+<span>последнее хорошее значение есть, но его возраст превышает контракт</span>
+</article>
+<article class="card">
+<small>Жёсткие ошибки</small>
+<strong data-x="errors">—</strong>
+<span>подтверждённые потери функции или ошибки контракта</span>
+</article>
+</section>
+<section class="diagnostics-hero-grid">
+<article class="card diagnostic-trust-card">
+<div class="panel-head">
+<div class="head-title">
+<h2>ПОЧЕМУ ЭТОМУ ЭКРАНУ МОЖНО / НЕЛЬЗЯ ВЕРИТЬ</h2>
+<small>итоговое доверие зависит от всей цепочки данных, а не от цвета карточки</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="diagnostic-trust-layout">
+<div class="diagnostic-trust-orbit">
+<div class="diag-ring one"></div><div class="diag-ring two"></div>
+<div class="diag-core"><small>TRUST</small><strong>—</strong><span>нет read-model</span></div>
+<span class="diag-node api">API</span>
+<span class="diag-node source">Источник</span>
+<span class="diag-node age">Свежесть</span>
+<span class="diag-node render">Отображение</span>
+</div>
+<div class="diagnostic-principles">
+<div><b>Нет ответа</b><span>не превращается в ноль, PASS или «всё спокойно».</span></div>
+<div><b>Есть последнее хорошее</b><span>можно показать его только вместе с возрастом и явным stale/degraded.</span></div>
+<div><b>Источник восстановился</b><span>RECOVERY появляется только после нового успешного чтения.</span></div>
+<div><b>Экран не доказал current state</b><span>правдоподобная заглушка должна быть перезаписана состоянием «недоступно».</span></div>
+</div>
+</div>
+</div>
+</article>
+<article class="card diagnostic-runtime-card">
+<div class="panel-head">
+<div class="head-title">
+<h2>БРАУЗЕР / RUNTIME</h2>
+<small>технический слой текущей сессии Панели</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="runtime-kv"><span>v2 live module</span><b>—</b></div>
+<div class="runtime-kv"><span>Последний refresh</span><b>—</b></div>
+<div class="runtime-kv"><span>Последний успешный цикл</span><b>—</b></div>
+<div class="runtime-kv"><span>Ошибки текущего цикла</span><b>—</b></div>
+<div class="runtime-kv"><span>Текущая страница</span><b>—</b></div>
+<p class="diagnostics-note">Диагностика может показывать технические детали. Другие страницы должны получать уже нормализованное человеческое состояние.</p>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Источники</h2>
+<p>единая матрица: доступность, свежесть, последнее хорошее состояние и влияние на интерфейс</p>
+</div>
+</div>
+<section class="card diagnostics-source-card">
+<div class="panel-head">
+<div class="head-title">
+<h2>КАРТА READ-ИСТОЧНИКОВ</h2>
+<small>на этом экране можно быть техническими; на рабочих страницах — только результат</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="diagnostics-source-head">
+<span>Источник</span><span>Что даёт</span><span>Состояние</span><span>Свежесть</span><span>Влияние</span>
+</div>
+<div class="diagnostics-source-list">
+<div><b>Continuity</b><span>объекты / inbox / health</span><em>—</em><em>—</em><small>Главная, Реестр, Фундамент, BrazilPortal</small></div>
+<div><b>Orchestrator</b><span>routes / summary / metrics</span><em>—</em><em>—</em><small>Оркестратор и часть Главной</small></div>
+<div><b>Testing</b><span>summary / tests / lineage / runner health</span><em>—</em><em>—</em><small>Тестирование</small></div>
+<div><b>Hub / Durability</b><span>sync health / review queue</span><em>—</em><em>—</em><small>Документы и Фундамент</small></div>
+<div><b>ATLAS Market Scanner</b><span>market signals / field movement</span><em>НЕ ПОДКЛЮЧЁН</em><em>—</em><small>Сигналы после QA</small></div>
+<div><b>ATLAS / Twin</b><span>safe read-models</span><em>—</em><em>—</em><small>собственные экраны после подключения</small></div>
+</div>
+</div>
+</section>
+<div class="section-title">
+<div>
+<h2>Язык системных состояний</h2>
+<p>единый контракт отображения для пустоты, деградации, устаревания, ошибки и восстановления</p>
+</div>
+</div>
+<section class="diagnostic-state-grid">
+<article class="card diag-state empty">
+<div class="panel-body"><small>EMPTY</small><b>Пусто</b><span>Источник существует, но валидное состояние ещё не получено.</span></div>
+</article>
+<article class="card diag-state degraded">
+<div class="panel-body"><small>DEGRADED</small><b>Деградация</b><span>Часть контура доступна, часть — нет. Сохраняем границы достоверного.</span></div>
+</article>
+<article class="card diag-state stale">
+<div class="panel-body"><small>STALE</small><b>Устарело</b><span>Есть последнее хорошее значение, но оно больше не считается current без оговорки.</span></div>
+</article>
+<article class="card diag-state unavailable">
+<div class="panel-body"><small>UNAVAILABLE</small><b>Недоступно</b><span>Нет подтверждённого текущего ответа. Ничего не дорисовываем.</span></div>
+</article>
+<article class="card diag-state error">
+<div class="panel-body"><small>ERROR</small><b>Ошибка</b><span>Подтверждена потеря функции, нарушение контракта или иной hard failure.</span></div>
+</article>
+<article class="card diag-state recovery">
+<div class="panel-body"><small>RECOVERY</small><b>Восстановлено</b><span>После ошибки получено новое успешное чтение и проверена свежесть.</span></div>
+</article>
+<article class="card diag-state legacy">
+<div class="panel-body"><small>LEGACY</small><b>Историческое</b><span>Исторически валидно, но не конкурирует с текущей истиной.</span></div>
+</article>
+</section>
+<section class="diagnostics-lower-grid">
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ПОСЛЕДНИЕ ОШИБКИ</h2><small>что именно сломалось, когда и на каком участке</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="diagnostics-empty compact">
+<strong>Журнал ошибок не подключён</strong>
+<span>Нужны source, operation, timestamp, error class, affected surface и последнее хорошее чтение. Без секретов и credential values.</span>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>СВЕЖЕСТЬ</h2><small>возраст каждого read-model против его собственного контракта</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="diagnostics-empty compact">
+<strong>Freshness-read-model не подключён</strong>
+<span>Порог свежести задаётся источником/контрактом. Панель не придумывает универсальные «15 минут» для всех систем.</span>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ВОССТАНОВЛЕНИЕ</h2><small>ошибка → безопасная деградация → новое чтение → возврат current state</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="diagnostic-recovery-flow">
+<div><span>1</span><b>Зафиксировать отказ</b></div><i>→</i>
+<div><span>2</span><b>Показать degraded / unavailable</b></div><i>→</i>
+<div><span>3</span><b>Получить новый успешный ответ</b></div><i>→</i>
+<div><span>4</span><b>Проверить свежесть</b></div><i>→</i>
+<div><span>5</span><b>Вернуть current state</b></div>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ИНТЕГРАЦИИ, КОТОРЫЕ ЕЩЁ НЕ ГОТОВЫ</h2><small>видим контракт, но не выдаём его за live</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="integration-pending">
+<div><b>ATLAS Market Scanner → Signals</b><span>подключать только после QA scanner/bridge; ingest не выполняется браузером</span></div>
+<div><b>Personal Twin</b><span>до PTC-R0 prospective longitudinal остаётся OFF; read API пока не hard-wire</span></div>
+<div><b>ATLAS safe read-model</b><span>подключить после утверждения реального источника; LAB ≠ canonical</span></div>
+</div>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Что Диагностика не делает</h2>
+<p>это read-only инженерный экран, а не скрытая панель управления системой</p>
+</div>
+</div>
+<section class="diagnostics-boundary-grid">
+<article class="card"><div class="panel-body"><b>Не меняет настройки источников</b><span>конфигурация runtime и deployment остаётся у владеющего сервиса / Клима.</span></div></article>
+<article class="card"><div class="panel-body"><b>Не перезапускает сервисы</b><span>можно показать рекомендуемый recovery path, но не давать скрытую write-authority.</span></div></article>
+<article class="card"><div class="panel-body"><b>Не хранит секреты</b><span>никаких токенов, ключей, credential values или приватных инфраструктурных деталей.</span></div></article>
+<article class="card"><div class="panel-body"><b>Не скрывает отказ</b><span>любая потеря источника должна быть видна на затронутой странице, а не только здесь.</span></div></article>
+</section>
+<div class="diagnostics-truth-note">
+<b>Главное правило:</b>
+    Диагностика объясняет причину деградации. Она не имеет права делать остальные экраны «зелёными» при отсутствии доказанного current state.
+  </div>
+</section>
 <div class="footer-note">Панель Основателя v2 · прототип ветки · без канонических записей · без выдуманных текущих данных</div>
 </main>
 </div>
@@ -3541,7 +3968,6 @@
   "use strict";
 
   const placeholder = {
-    diagnostics:["Диагностика","источники, состояние браузера и режимы деградации"]
   };
 
   Object.entries(placeholder).forEach(([key,val])=>{
