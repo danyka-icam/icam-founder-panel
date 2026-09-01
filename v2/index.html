@@ -350,6 +350,97 @@
     .attention.return span{color:var(--gold)}
     .attention.stable span{color:var(--sage)}
     @media(max-width:1180px){.dependency-layout{grid-template-columns:1fr}.dependency-graph{min-height:280px}}
+
+    .twin-hero{margin-bottom:10px}
+    .twin-status-strip{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px
+    }
+    .twin-status-cell{
+      padding:12px;border:1px solid var(--line-soft);border-radius:11px;background:rgba(20,26,28,.16)
+    }
+    .twin-status-cell small{
+      display:block;color:#8f9893;font-size:9px;text-transform:uppercase;letter-spacing:.07em
+    }
+    .twin-status-cell strong{
+      display:block;margin-top:6px;font:400 16px Georgia,"Times New Roman",serif
+    }
+    .twin-status-cell span{
+      display:block;margin-top:4px;color:#8f9792;font-size:9.5px;line-height:1.35
+    }
+    .twin-main-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .twin-focus-card{
+      padding:14px;border:1px solid var(--line-soft);border-radius:12px;background:rgba(18,24,26,.16)
+    }
+    .twin-focus-head{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:12px
+    }
+    .twin-focus-head small{
+      color:#8f9893;font-size:9px;letter-spacing:.08em
+    }
+    .twin-focus-head h3{
+      margin:4px 0 0;font:400 19px Georgia,"Times New Roman",serif
+    }
+    .twin-focus-card p{
+      margin:12px 0 0;color:#aeb5b0;font-size:11px;line-height:1.55
+    }
+    .twin-focus-card p b{color:#d9ddd8;font-weight:500}
+    .twin-seal-line{
+      display:grid;grid-template-columns:auto 1fr auto 1fr;gap:8px;margin-top:12px;padding-top:10px;
+      border-top:1px solid var(--line-soft);align-items:center
+    }
+    .twin-seal-line span{color:#858e89;font-size:9px}
+    .twin-seal-line b{font-size:10px;font-weight:500}
+    .twin-grid{grid-template-areas:"overview gates" "humans population" "live live"}
+    .twin-compare,.core-confidence{
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px
+    }
+    .twin-compare div,.core-confidence div{
+      padding:10px;border:1px solid var(--line-soft);border-radius:9px;background:rgba(19,25,27,.14)
+    }
+    .twin-compare small,.core-confidence small{
+      display:block;color:#858e89;font-size:9px
+    }
+    .twin-compare strong,.core-confidence strong{
+      display:block;margin-top:5px;font:400 13px Georgia,"Times New Roman",serif
+    }
+    .twin-note{margin-top:10px!important;font-size:10px!important;color:#858e89!important}
+    .empty-copy.compact{min-height:85px}
+    .twin-confirm{
+      margin-top:8px;border:1px solid var(--line);border-radius:9px;background:rgba(19,25,27,.28);
+      color:#707975;padding:9px 11px;font-size:10px;cursor:not-allowed
+    }
+    .twin-research-layers{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px
+    }
+    .twin-research-layers div{
+      padding:11px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(18,24,26,.14)
+    }
+    .twin-research-layers b{
+      display:block;font:400 14px Georgia,"Times New Roman",serif
+    }
+    .twin-research-layers span{
+      display:block;margin-top:5px;color:#8f9792;font-size:9.5px;line-height:1.4
+    }
+    .twin-visibility-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .twin-rule-list{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+    .twin-rule-list span{
+      position:relative;padding:8px 10px 8px 28px;border:1px solid var(--line-soft);
+      border-radius:9px;background:rgba(18,24,26,.13);font-size:10.5px;color:#aeb5b0
+    }
+    .twin-rule-list span:before{
+      position:absolute;left:10px;top:7px;font-size:11px
+    }
+    .twin-rule-list.safe span:before{content:"✓";color:var(--sage)}
+    .twin-rule-list.hidden span:before{content:"●";color:var(--coral)}
+    @media(max-width:1100px){
+      .twin-status-strip{grid-template-columns:1fr 1fr}
+      .twin-main-grid,.twin-visibility-grid{grid-template-columns:1fr}
+      .twin-research-layers{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:700px){
+      .twin-status-strip,.twin-research-layers,.twin-compare,.core-confidence{grid-template-columns:1fr}
+      .twin-seal-line{grid-template-columns:auto 1fr}
+    }
 </style>
 </head>
 <body>
@@ -560,39 +651,184 @@
 </section>
 <section class="page" data-page-panel="digital-twin">
 <header class="topbar">
-<div><h1>Цифровой двойник</h1><p>Динамика человека → Люди → Популяция → Живой мир</p></div>
-<div class="top-actions"><span class="state lab">ЛАБОРАТОРИЯ</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div></div>
+<div>
+<h1>Цифровой двойник</h1>
+<p>личная модель → люди → популяция → живой мир → эксперименты</p>
+</div>
+<div class="top-actions">
+<span class="state lab">ИНЖЕНЕРНЫЙ КАНДИДАТ</span>
+<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
+</div>
 </header>
-<div class="workspace-switcher"><button class="active">Обзор</button><button>Люди</button><button>Популяция</button><button>Живой мир</button><button>Эксперименты</button></div>
-<section class="dt-grid">
+<div class="workspace-switcher">
+<button class="active">Мой двойник</button>
+<button>Люди</button>
+<button>Популяция</button>
+<button>Живой мир</button>
+<button>Эксперименты</button>
+</div>
+<section class="twin-hero card">
+<div class="panel-head">
+<div class="head-title">
+<h2>МОЙ ДВОЙНИК</h2>
+<small>безопасная проекция обучения — без раскрытия текущего скрытого прогноза</small>
+</div>
+<span class="state unavailable">СЕРВИС НЕ ПОДКЛЮЧЁН</span>
+</div>
+<div class="panel-body">
+<div class="twin-status-strip">
+<div class="twin-status-cell">
+<small>Состояние</small>
+<strong>Не подключён</strong>
+<span>серверный runtime появится после интеграции</span>
+</div>
+<div class="twin-status-cell">
+<small>Стадия обучения</small>
+<strong>Инженерный кандидат</strong>
+<span>до серверного gate PTC-R0</span>
+</div>
+<div class="twin-status-cell">
+<small>Проспективные решения</small>
+<strong>—</strong>
+<span>счётчик появится после запуска</span>
+</div>
+<div class="twin-status-cell">
+<small>Текущий прогноз</small>
+<strong>Скрыт до исхода</strong>
+<span>виден только факт: запечатан / нет активного прогноза</span>
+</div>
+</div>
+<div class="twin-main-grid">
+<article class="twin-focus-card">
+<div class="twin-focus-head">
+<div>
+<small>СОСТОЯНИЕ ПРОГНОЗА</small>
+<h3>Проспективный режим выключен</h3>
+</div>
+<span class="state unavailable">PTC-R0 НЕ ПРОЙДЕН</span>
+</div>
+<p>После серверного запуска здесь будет только безопасное состояние seal: <b>запечатан / нет активного прогноза</b> и его возраст. Лидирующий объект, вероятности C0–C7 и ранжированный набор кандидатов до исхода не показываются.</p>
+<div class="twin-seal-line">
+<span>Активный seal</span><b>—</b>
+<span>Возраст</span><b>—</b>
+</div>
+</article>
+<article class="twin-focus-card">
+<div class="twin-focus-head">
+<div>
+<small>ПОСЛЕДНИЙ ИСХОД</small>
+<h3>Данных пока нет</h3>
+</div>
+<span class="state unavailable">НЕТ ОЦЕНКИ</span>
+</div>
+<p>После каждого подтверждённого Founder-действия сначала проверяется запечатанный прогноз и считается score, и только потом модель может обновляться.</p>
+<div class="twin-seal-line">
+<span>Последний объект</span><b>—</b>
+<span>Результат</span><b>—</b>
+</div>
+</article>
+</div>
+</div>
+</section>
+<section class="dt-grid twin-grid">
 <article class="card dt-overview">
-<div class="panel-head"><div class="head-title"><h2>ДИНАМИКА ЧЕЛОВЕКА</h2><small>Восприятие · память · решение · пересмотр</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><div class="empty-copy"><strong>Проекция исследования ещё не подключена</strong><span>Атлас остаётся отдельной верхнеуровневой вкладкой. Здесь будут люди и популяции, а не вторая копия Атлас.</span></div></div>
+<div class="panel-head">
+<div class="head-title"><h2>КАК Я УЧУСЬ</h2><small>что изменилось после последнего оценённого исхода</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="empty-copy">
+<strong>История обучения ещё не подключена</strong>
+<span>Здесь будет краткая Founder-facing сводка: что подтвердилось, что ослабло, что модель пересмотрела — без раскрытия текущего скрытого прогноза.</span>
+</div>
+</div>
 </article>
 <article class="card dt-gates">
-<div class="panel-head"><div class="head-title"><h2>ЭКСПЕРИМЕНТЫ</h2><small>H0 → H8.1</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body">
-<div class="gate-grid">
-<div class="gate"><b>H0</b><span>НЕДОСТУПНО</span></div><div class="gate"><b>H1</b><span>НЕДОСТУПНО</span></div>
-<div class="gate"><b>H2</b><span>НЕДОСТУПНО</span></div><div class="gate"><b>H3</b><span>НЕДОСТУПНО</span></div>
-<div class="gate"><b>H4</b><span>НЕДОСТУПНО</span></div><div class="gate"><b>H5</b><span>НЕДОСТУПНО</span></div>
-<div class="gate"><b>H6</b><span>НЕДОСТУПНО</span></div><div class="gate"><b>H7</b><span>НЕДОСТУПНО</span></div>
-<div class="gate"><b>H7.1</b><span>НЕДОСТУПНО</span></div><div class="gate"><b>H8</b><span>НЕДОСТУПНО</span></div>
-<div class="gate"><b>H8.1</b><span>НЕДОСТУПНО</span></div>
+<div class="panel-head">
+<div class="head-title"><h2>МОЙ ДВОЙНИК И БАЗОВАЯ МОДЕЛЬ</h2><small>сравнение только после достаточного числа исходов</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
 </div>
+<div class="panel-body">
+<div class="twin-compare">
+<div><small>Двойник</small><strong>Недостаточно данных</strong></div>
+<div><small>Базовая модель</small><strong>Недостаточно данных</strong></div>
+<div><small>Преимущество</small><strong>—</strong></div>
+</div>
+<p class="twin-note">Панель не объявляет преимущество до минимального объёма проспективных данных.</p>
 </div>
 </article>
 <article class="card humans">
-<div class="panel-head"><div class="head-title"><h2>ЛЮДИ</h2><small>Отдельные синтетические люди / кандидаты цифрового двойника</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p>Восприятие, отчёт, намерение, поведение, атрибуция агентности, нарратив, память и обновление не будут смешиваться в одну «личность».</p></div>
+<div class="panel-head">
+<div class="head-title"><h2>УВЕРЕННОСТЬ ЯДРА</h2><small>что в Personal Core уже устойчиво, а что ещё гипотеза</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="core-confidence">
+<div><small>Определено</small><strong>—</strong></div>
+<div><small>Предварительно</small><strong>—</strong></div>
+<div><small>Неизвестно</small><strong>—</strong></div>
+</div>
+<p class="twin-note">Только уровень уверенности и изменения. Внутренние веса модели остаются скрытыми.</p>
+</div>
 </article>
 <article class="card population">
-<div class="panel-head"><div class="head-title"><h2>ПОПУЛЯЦИЯ</h2><small>Производная макродинамика</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p><strong>СОСТОЯНИЕ ПОПУЛЯЦИИ ≠ СОХРАНЁННОЕ СОСТОЯНИЕ ЧЕЛОВЕКА.</strong> Популяционная статистика не превращается молча в свойство каждого человека.</p></div>
+<div class="panel-head">
+<div class="head-title"><h2>ТРЕБУЕТ ПОДТВЕРЖДЕНИЯ</h2><small>только если реальный Founder-outcome неоднозначен</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="empty-copy compact">
+<strong>Сейчас ничего подтверждать не нужно</strong>
+<span>После серверной интеграции здесь появится компактный one-click control только для статуса «требует подтверждения». До подтверждения такой исход не обучает модель.</span>
+</div>
+<button class="twin-confirm" disabled="">Подтвердить исход</button>
+</div>
 </article>
 <article class="card liveworld">
-<div class="panel-head"><div class="head-title"><h2>ЖИВОЙ МИР / THRONGLETS</h2><small>Будущий живой синтетический мир</small></div><span class="state lab">ЛАБОРАТОРИЯ</span></div>
-<div class="panel-body"><div class="empty-copy"><strong>Поток событий ещё не подключён к Панели v2</strong><span>Никакой декоративной анимации. Движение появится только при реальных событиях, воспроизведении истории и контрольных точках мира.</span></div></div>
+<div class="panel-head">
+<div class="head-title"><h2>ЛЮДИ · ПОПУЛЯЦИЯ · ЖИВОЙ МИР</h2><small>исследовательские слои остаются отдельно от личного двойника</small></div>
+<span class="state lab">ЛАБОРАТОРИЯ</span>
+</div>
+<div class="panel-body">
+<div class="twin-research-layers">
+<div><b>Люди</b><span>отдельные синтетические люди и кандидаты цифровых двойников</span></div>
+<div><b>Популяция</b><span>производная макродинамика, не свойство каждого человека</span></div>
+<div><b>Живой мир</b><span>события и контрольные точки только из реального потока данных</span></div>
+<div><b>Эксперименты</b><span>H0 → H8.1 без автоматического повышения synthetic PASS до empirical PASS</span></div>
+</div>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Граница видимости</h2>
+<p>что Панель может и не может показывать до фактического исхода</p>
+</div>
+</div>
+<section class="twin-visibility-grid">
+<article class="card">
+<div class="panel-body">
+<h3>МОЖНО ПОКАЗЫВАТЬ</h3>
+<div class="twin-rule-list safe">
+<span>состояние runtime и свежесть</span>
+<span>стадию обучения</span>
+<span>количество уже оценённых решений</span>
+<span>факт наличия активного seal и его возраст</span>
+<span>последний уже разрешённый исход</span>
+<span>уверенность ядра и изменения после исхода</span>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<h3>СКРЫТО ДО ИСХОДА</h3>
+<div class="twin-rule-list hidden">
+<span>какой объект сейчас лидирует</span>
+<span>вероятности C0–C7</span>
+<span>ранжированный набор кандидатов</span>
+<span>веса, по которым можно восстановить текущий прогноз</span>
+</div>
+</div>
 </article>
 </section>
 </section>
