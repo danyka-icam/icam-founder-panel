@@ -1310,6 +1310,15 @@
       .diagnostic-recovery-flow{grid-template-columns:1fr}
       .diagnostic-recovery-flow>i{display:none}
     }
+
+    .workspace-switcher button[disabled]{opacity:.48;cursor:not-allowed}
+    .workspace-switcher button[disabled]:hover{
+      background:rgba(25,31,34,.22);color:#b9bfba;border-color:var(--line)
+    }
+    .dependency-graph>.empty-copy{
+      position:absolute;inset:0;padding:24px;text-align:center;align-items:center
+    }
+    .attention-scale .empty-copy{min-height:160px}
 </style>
 </head>
 <body>
@@ -1322,7 +1331,7 @@
 <a data-page="foundation" href="#foundation"><span class="dot">03</span><span>Фундамент</span></a>
 <a data-page="research" href="#research"><span class="dot">04</span><span>Исследования</span></a>
 <a data-page="atlas" href="#atlas"><span class="dot">05</span><span>Атлас</span></a>
-<a data-page="digital-twin" href="#digital-twin"><span class="dot">06</span><span>Цифровой двойник</span></a>
+<a data-page="digital-twin" href="#digital-twin"><span class="dot">06</span><span>DT</span></a>
 <a data-page="brazilportal" href="#brazilportal"><span class="dot">07</span><span>BrazilPortal</span></a>
 <a data-page="operations" href="#operations"><span class="dot">08</span><span>Операции</span></a>
 <a data-page="registry" href="#registry"><span class="dot">09</span><span>Реестр</span></a>
@@ -1385,13 +1394,13 @@
 </header>
 <div class="workspace-switcher">
 <button class="active">Обзор</button>
-<button>Маршруты</button>
-<button>Отдельные задачи</button>
-<button>Рекомендации</button>
-<button>Решения</button>
-<button>Журнал</button>
-<button>Деньги</button>
-<button>Закрыто</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Маршруты</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Отдельные задачи</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Рекомендации</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Решения</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Журнал</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Деньги</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Закрыто</button>
 </div>
 <section class="strip">
 <article class="card"><small>Активные маршруты</small><strong>Источник не подключён</strong><span>Линии с этапом, следующим ходом и владельцем.</span></article>
@@ -1431,41 +1440,15 @@
 </section>
 <div class="section-title">
 <div><h2>Карта прогресса и зависимостей</h2><p>визуальный слой: где линия находится, сколько она стоит и кого задерживает</p></div>
-<span class="state lab">ДЕМО-КАРКАС</span>
+<span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
 </div>
 <section class="card dependency-card">
-<div class="panel-head"><div class="head-title"><h2>ЛИНИИ И ЗАВИСИМОСТИ</h2><small>демонстрационный каркас — не текущие данные</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>ЛИНИИ И ЗАВИСИМОСТИ</h2><small>визуализация строится только по реальным маршрутам и явным зависимостям</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
 <div class="panel-body">
 <div class="dependency-layout">
-<div class="progress-board">
-<div class="progress-head"><span>Линия</span><span>Старт</span><span>Исследование</span><span>Проектирование</span><span>Реализация</span><span>Запуск</span><span>Смысл</span></div>
-<div class="progress-row demo-critical"><b>CVC · пример</b><i class="done"></i><i class="done"></i><i class="done"></i><i class="stuck"></i><i></i><em>отстаёт · задерживает 2 линии</em></div>
-<div class="progress-row"><b>Атлас · пример</b><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i></i><em>движется</em></div>
-<div class="progress-row"><b>BrazilPortal · пример</b><i class="done"></i><i class="done"></i><i class="done"></i><i></i><i></i><em>требует возврата</em></div>
-<div class="progress-row"><b>HSA · пример</b><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i></i><em>стабильно</em></div>
-</div>
-<div class="dependency-graph">
-<div class="dep-node critical" style="left:9%;top:36%;">CVC</div>
-<div class="dep-node" style="left:61%;top:10%;">Атлас</div>
-<div class="dep-node" style="left:65%;top:56%;">BrazilPortal</div>
-<div class="dep-node" style="left:35%;top:74%;">HSA</div>
-<svg aria-hidden="true" preserveaspectratio="none" viewbox="0 0 100 100">
-<defs>
-<marker id="arrowRisk" markerheight="6" markerwidth="6" orient="auto" refx="5" refy="3"><path d="M0,0 L6,3 L0,6 z" fill="rgba(212,117,99,.9)"></path></marker>
-<marker id="arrowSoft" markerheight="6" markerwidth="6" orient="auto" refx="5" refy="3"><path d="M0,0 L6,3 L0,6 z" fill="rgba(214,187,120,.65)"></path></marker>
-</defs>
-<line marker-end="url(#arrowRisk)" stroke="rgba(212,117,99,.9)" stroke-dasharray="3 2" stroke-width="1.2" x1="24" x2="64" y1="44" y2="24"></line>
-<line marker-end="url(#arrowRisk)" stroke="rgba(212,117,99,.9)" stroke-dasharray="3 2" stroke-width="1.2" x1="25" x2="69" y1="49" y2="66"></line>
-<line marker-end="url(#arrowSoft)" stroke="rgba(214,187,120,.55)" stroke-width=".9" x1="48" x2="68" y1="80" y2="68"></line>
-</svg>
-<div class="dep-caption">Красная пунктирная связь = линия задерживает зависимую ветку</div>
-</div>
-<aside class="attention-scale">
-<h3>ШКАЛА ВНИМАНИЯ</h3>
-<div class="attention critical"><span>Критично</span><b>CVC · пример</b><small>долго без движения, задерживает 2 линии</small></div>
-<div class="attention return"><span>Вернуться</span><b>BrazilPortal · пример</b><small>есть зависимость и незакрытый шаг</small></div>
-<div class="attention stable"><span>Стабильно</span><b>HSA · пример</b><small>можно не трогать сейчас</small></div>
-</aside>
+<div class="progress-board"><div class="empty-copy"><strong>Маршрутные данные ещё не загружены</strong><span>После успешного чтения здесь появится визуальная шкала давности движения. Она не является процентом готовности.</span></div></div>
+<div class="dependency-graph"><div class="empty-copy"><strong>Граф зависимостей недоступен</strong><span>Стрелки будут строиться только из явных dependency-полей источника. Связи по догадке запрещены.</span></div></div>
+<aside class="attention-scale"><h3>ШКАЛА ВНИМАНИЯ</h3><div class="empty-copy"><strong>Нет подтверждённых маршрутных данных</strong><span>После подключения шкала покажет диагностические признаки давности и блокеров, но не будет выдавать их за канонический приоритет.</span></div></aside>
 </div>
 </div>
 </section>
@@ -1521,7 +1504,7 @@
 <section class="page" data-page-panel="digital-twin">
 <header class="topbar">
 <div>
-<h1>Цифровой двойник</h1>
+<h1>DT</h1>
 <p>личная модель → люди → популяция → живой мир → эксперименты</p>
 </div>
 <div class="top-actions">
@@ -1531,10 +1514,10 @@
 </header>
 <div class="workspace-switcher">
 <button class="active">Мой двойник</button>
-<button>Люди</button>
-<button>Популяция</button>
-<button>Живой мир</button>
-<button>Эксперименты</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Люди</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Популяция</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Живой мир</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Эксперименты</button>
 </div>
 <section class="twin-hero card">
 <div class="panel-head">
@@ -1714,10 +1697,10 @@
 </header>
 <div class="workspace-switcher foundation-switcher">
 <button class="active">Обзор</button>
-<button>Контуры</button>
-<button>Полномочия</button>
-<button>Восстановление</button>
-<button>Долговечность</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Контуры</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Полномочия</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Восстановление</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Долговечность</button>
 </div>
 <section class="strip foundation-kpis-v2">
 <article class="card">
@@ -1963,10 +1946,10 @@
 </header>
 <div class="workspace-switcher research-switcher">
 <button class="active">Обзор</button>
-<button>Активные линии</button>
-<button>Проверки</button>
-<button>Доказательства</button>
-<button>История</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Активные линии</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Проверки</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Доказательства</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">История</button>
 </div>
 <section class="strip research-kpis-v2">
 <article class="card">
@@ -2187,7 +2170,7 @@
 </article>
 <article class="card">
 <div class="panel-body">
-<b>Цифровой двойник</b>
+<b>DT</b>
 <span>личное проспективное обучение и динамика людей</span>
 </div>
 </article>
@@ -2206,12 +2189,12 @@
 </header>
 <div class="workspace-switcher bp-switcher-v2">
 <button class="active">Обзор</button>
-<button>Продукт</button>
-<button>Спрос</button>
-<button>Клиентский путь</button>
-<button>Контент</button>
-<button>Карта</button>
-<button>Эксперименты</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Продукт</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Спрос</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Клиентский путь</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Контент</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Карта</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Эксперименты</button>
 </div>
 <section class="strip bp-kpis-v2">
 <article class="card">
@@ -2471,11 +2454,11 @@
 </header>
 <div class="workspace-switcher operations-switcher">
 <button class="active">Обзор</button>
-<button>В исполнении</button>
-<button>Обязательства</button>
-<button>Препятствия</button>
-<button>Движение</button>
-<button>История</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">В исполнении</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Обязательства</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Препятствия</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Движение</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">История</button>
 </div>
 <section class="strip operations-kpis-v2">
 <article class="card">
@@ -2715,10 +2698,10 @@
 </header>
 <div class="workspace-switcher registry-switcher">
 <button class="active">Обзор</button>
-<button>Объекты</button>
-<button>Идентичность</button>
-<button>Владение</button>
-<button>История</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Объекты</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Идентичность</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Владение</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">История</button>
 </div>
 <section class="strip registry-kpis-v2">
 <article class="card">
@@ -2912,11 +2895,11 @@
 </header>
 <div class="workspace-switcher signals-switcher">
 <button class="active">Обзор</button>
-<button>Требует меня</button>
-<button>Изменения</button>
-<button>Риски</button>
-<button>Возможности</button>
-<button>История</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Требует меня</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Изменения</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Риски</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Возможности</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">История</button>
 </div>
 <section class="strip signals-kpis-v2">
 <article class="card">
@@ -3247,11 +3230,11 @@
 </header>
 <div class="workspace-switcher documents-switcher">
 <button class="active">Обзор</button>
-<button>Требует разбора</button>
-<button>Артефакты</button>
-<button>Публикационный путь</button>
-<button>Происхождение</button>
-<button>История</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Требует разбора</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Артефакты</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Публикационный путь</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Происхождение</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">История</button>
 </div>
 <section class="strip documents-kpis-v2">
 <article class="card">
@@ -3517,11 +3500,11 @@
 </header>
 <div class="workspace-switcher testing-switcher">
 <button class="active">Обзор</button>
-<button>Очередь</button>
-<button>Результаты</button>
-<button>Повторные прогоны</button>
-<button>Происхождение</button>
-<button>Раннер</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Очередь</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Результаты</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Повторные прогоны</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Происхождение</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Раннер</button>
 </div>
 <section class="strip testing-kpis-v2">
 <article class="card">
@@ -3743,12 +3726,12 @@
 </header>
 <div class="workspace-switcher diagnostics-switcher">
 <button class="active">Обзор</button>
-<button>Источники</button>
-<button>Свежесть</button>
-<button>Ошибки</button>
-<button>Браузер</button>
-<button>Состояния</button>
-<button>Восстановление</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Источники</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Свежесть</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Ошибки</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Браузер</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Состояния</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Восстановление</button>
 </div>
 <section class="strip diagnostics-kpis-v2">
 <article class="card">
@@ -3946,13 +3929,13 @@
     Диагностика объясняет причину деградации. Она не имеет права делать остальные экраны «зелёными» при отсутствии доказанного current state.
   </div>
 </section>
-<div class="footer-note">Панель Основателя v2 · прототип ветки · без канонических записей · без выдуманных текущих данных</div>
+<div class="footer-note">Панель Основателя v2 · кандидат интеграции · read-only projection · production ещё не переключён</div>
 </main>
 </div>
 <aside class="drawer" id="drawer">
 <button id="drawerClose">← Закрыть</button>
 <h2>Инспектор</h2>
-<p>Единая правая панель для подробностей. Она не превращает основной экран обратно в техническую консоль.</p>
+<p id="drawerContext">Выберите карточку, чтобы увидеть её контекст и технические поля.</p>
 <dl>
 <dt>ID объекта</dt><dd>—</dd>
 <dt>Ветка-владелец</dt><dd>—</dd>
@@ -3967,19 +3950,6 @@
 (function(){
   "use strict";
 
-  const placeholder = {
-  };
-
-  Object.entries(placeholder).forEach(([key,val])=>{
-    const p=document.querySelector('[data-page-panel="'+key+'"]');
-    p.innerHTML =
-      '<header class="topbar"><div><h1>'+val[0]+'</h1><p>'+val[1]+'</p></div>'+
-      '<div class="top-actions"><span class="state unavailable">НЕ ПЕРЕНЕСЕНО</span>'+
-      '<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div></div></header>'+
-      '<article class="card migration"><div><h2>Экран ещё не перенесён в v2</h2>'+
-      '<p>Старая рабочая панель production остаётся нетронутой. Этот экран перенесём после визуальной приёмки оболочки, Главной, Оркестратора, Атласа и Цифрового двойника.</p></div></article>';
-  });
-
   function route(){
     let key=(location.hash||"#home").slice(1);
     let panel=document.querySelector('[data-page-panel="'+key+'"]');
@@ -3990,17 +3960,21 @@
     window.scrollTo(0,0);
   }
 
-  document.querySelectorAll(".workspace-switcher").forEach(sw=>{
-    sw.addEventListener("click",e=>{
-      if(e.target.tagName!=="BUTTON")return;
-      sw.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
-      e.target.classList.add("active");
-    });
-  });
-
   const drawer=document.getElementById("drawer");
+  const drawerTitle=drawer.querySelector("h2");
+  const drawerContext=document.getElementById("drawerContext");
   document.addEventListener("click",e=>{
-    if(e.target.closest("[data-drawer]")) drawer.classList.add("open");
+    const trigger=e.target.closest("[data-drawer]");
+    if(!trigger)return;
+    const card=trigger.closest(".card");
+    const page=trigger.closest(".page");
+    const cardTitle=card&&card.querySelector(".head-title h2");
+    const pageTitle=page&&page.querySelector(".topbar h1");
+    drawerTitle.textContent=cardTitle?cardTitle.textContent.trim():"Инспектор";
+    if(drawerContext){
+      drawerContext.textContent=(pageTitle?pageTitle.textContent.trim()+" · ":"")+"подробности появятся из того же read-model, что и карточка; Панель не создаёт отдельную истину.";
+    }
+    drawer.classList.add("open");
   });
   document.getElementById("drawerClose").addEventListener("click",()=>drawer.classList.remove("open"));
 
