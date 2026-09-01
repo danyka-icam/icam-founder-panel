@@ -764,6 +764,87 @@
       .lineage-chain{grid-template-columns:1fr 1fr}
       .lineage-chain>i{display:none}
     }
+
+    .registry-hero-grid{
+      display:grid;grid-template-columns:1.45fr .55fr;gap:10px
+    }
+    .registry-map-card{min-height:390px}
+    .registry-table-head{
+      display:grid;grid-template-columns:.78fr 1.3fr 1fr .8fr .9fr;gap:10px;
+      padding:3px 10px 10px;border-bottom:1px solid var(--line-soft);
+      color:#858e89;font-size:8.5px;text-transform:uppercase;letter-spacing:.06em
+    }
+    .registry-object-list{min-height:300px}
+    .registry-empty{
+      min-height:275px;display:flex;flex-direction:column;justify-content:center;color:#9ea6a1;line-height:1.55;padding:12px
+    }
+    .registry-empty.compact{min-height:130px;padding:4px 0}
+    .registry-empty strong{font:400 17px Georgia,"Times New Roman",serif;color:#dfe2dc;margin-bottom:7px}
+    .registry-empty span{font-size:10.5px}
+    .identity-orbit{width:190px;height:190px;position:relative;margin:8px auto 2px}
+    .identity-ring{
+      position:absolute;inset:10px;border-radius:50%;border:1px dashed rgba(214,187,120,.2)
+    }
+    .identity-ring:before,.identity-ring:after{
+      content:"";position:absolute;width:7px;height:7px;border-radius:50%;
+      background:rgba(214,187,120,.55)
+    }
+    .identity-ring:before{left:20px;top:22px}.identity-ring:after{right:15px;bottom:34px}
+    .identity-core{
+      position:absolute;inset:48px;border-radius:50%;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;text-align:center;border:1px solid var(--line);background:rgba(19,25,27,.23)
+    }
+    .identity-core small{font-size:7.5px;color:#858e89;letter-spacing:.07em}
+    .identity-core strong{font:400 28px Georgia,"Times New Roman",serif;margin-top:3px}
+    .identity-core span{font-size:8px;color:#7f8984}
+    .registry-note{font-size:9.5px!important;color:#858e89!important;text-align:center}
+    .registry-fact-grid{
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px
+    }
+    .registry-fact-grid>div{
+      min-height:100px;padding:12px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(18,24,26,.13)
+    }
+    .registry-fact-grid small{display:block;color:#858e89;font-size:8.5px;text-transform:uppercase;letter-spacing:.05em}
+    .registry-fact-grid strong{display:block;margin-top:7px;font:400 16px Georgia,"Times New Roman",serif}
+    .registry-fact-grid span{display:block;margin-top:5px;color:#8f9792;font-size:8.8px;line-height:1.4}
+    .registry-card-rule{
+      margin-top:10px;padding:9px 11px;border-left:2px solid rgba(214,187,120,.28);
+      color:#858e89;font-size:9.5px;line-height:1.45
+    }
+    .registry-lower-grid{
+      display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px
+    }
+    .registry-lower-grid>.card{min-height:225px}
+    .registry-relations-card{min-height:250px}
+    .registry-relations-empty{
+      min-height:155px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center
+    }
+    .relations-glyph{display:flex;align-items:center;margin-bottom:13px}
+    .relations-glyph span{
+      width:22px;height:22px;border-radius:50%;border:1px solid rgba(169,196,127,.28);background:rgba(169,196,127,.05)
+    }
+    .relations-glyph i{width:42px;border-top:1px dashed rgba(169,196,127,.18)}
+    .registry-relations-empty strong{font:400 16px Georgia,"Times New Roman",serif}
+    .registry-relations-empty p{max-width:520px;margin-top:7px!important;font-size:9.5px!important}
+    .registry-boundary-grid{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px
+    }
+    .registry-boundary-grid .panel-body{min-height:140px}
+    .registry-boundary-grid b{display:block;font:400 16px Georgia,"Times New Roman",serif}
+    .registry-boundary-grid span{display:block;margin-top:8px;color:#8f9792;font-size:9.5px;line-height:1.5}
+    .registry-warning{
+      margin-top:10px;padding:10px 12px;border:1px solid rgba(214,187,120,.14);border-radius:10px;
+      background:rgba(18,24,26,.12);color:#858e89;font-size:9.5px;line-height:1.45
+    }
+    .registry-warning b{color:#c0c6c1}
+    @media(max-width:1100px){
+      .registry-hero-grid{grid-template-columns:1fr}
+      .registry-boundary-grid{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:760px){
+      .registry-table-head{display:none}
+      .registry-fact-grid,.registry-lower-grid,.registry-boundary-grid{grid-template-columns:1fr}
+    }
 </style>
 </head>
 <body>
@@ -1649,7 +1730,203 @@
 </section>
 <section class="page" data-page-panel="brazilportal"></section>
 <section class="page" data-page-panel="operations"></section>
-<section class="page" data-page-panel="registry"></section>
+<section class="page" data-page-panel="registry">
+<header class="topbar">
+<div>
+<h1>Реестр</h1>
+<p>идентичность объектов, владение и каноническое место каждой линии в ICAM</p>
+</div>
+<div class="top-actions">
+<span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
+<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
+</div>
+</header>
+<div class="workspace-switcher registry-switcher">
+<button class="active">Обзор</button>
+<button>Объекты</button>
+<button>Идентичность</button>
+<button>Владение</button>
+<button>История</button>
+</div>
+<section class="strip registry-kpis-v2">
+<article class="card">
+<small>Объекты</small>
+<strong data-g="count">—</strong>
+<span>зарегистрированные канонические объекты</span>
+</article>
+<article class="card">
+<small>Активные</small>
+<strong data-g="active">—</strong>
+<span>объекты с активным объявленным состоянием</span>
+</article>
+<article class="card">
+<small>Идентичность не подтверждена</small>
+<strong data-g="unresolved">—</strong>
+<span>нет достаточного подтверждения событийной историей</span>
+</article>
+<article class="card">
+<small>Требует Основателя</small>
+<strong data-g="founder">—</strong>
+<span>каноническое решение нельзя завершить без Основателя</span>
+</article>
+</section>
+<section class="registry-hero-grid">
+<article class="card registry-map-card">
+<div class="panel-head">
+<div class="head-title">
+<h2>ЧТО СУЩЕСТВУЕТ В СИСТЕМЕ</h2>
+<small>не красивые названия проектов, а зарегистрированные объекты с устойчивой идентичностью</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="registry-table-head">
+<span>ID объекта</span>
+<span>Название</span>
+<span>Владеющая ветка</span>
+<span>Состояние</span>
+<span>Последнее изменение</span>
+</div>
+<div class="registry-object-list" data-g="objects">
+<div class="registry-empty">
+<strong>Объекты ещё не подключены</strong>
+<span>После интеграции каждая строка будет строиться только из Continuity objects и покажет настоящий Object ID, название, объявленное состояние, владеющую ветку и свежесть последнего события.</span>
+</div>
+</div>
+</div>
+</article>
+<article class="card registry-identity-card">
+<div class="panel-head">
+<div class="head-title">
+<h2>ДОЛГ ИДЕНТИЧНОСТИ</h2>
+<small>где название или работа уже есть, а каноническая идентичность ещё не закреплена</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="identity-orbit">
+<div class="identity-core">
+<small>НЕ ПОДТВЕРЖДЕНО</small>
+<strong>—</strong>
+<span>объектов</span>
+</div>
+<div class="identity-ring"></div>
+</div>
+<p class="registry-note">Панель не придумывает ID для удобства. Если идентичность неизвестна, состояние остаётся unresolved до решения Реестра.</p>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Карточка объекта</h2>
+<p>минимальный набор канонических фактов без копирования всей операционной истории</p>
+</div>
+</div>
+<section class="card registry-object-card">
+<div class="panel-body">
+<div class="registry-fact-grid">
+<div><small>ID объекта</small><strong>—</strong><span>неизменяемая ссылка на объект</span></div>
+<div><small>Название</small><strong>—</strong><span>читаемое имя, не заменяет ID</span></div>
+<div><small>Владеющая ветка</small><strong>—</strong><span>кто отвечает за смысл и решения</span></div>
+<div><small>Объявленное состояние</small><strong>—</strong><span>текущее каноническое состояние объекта</span></div>
+<div><small>Последнее событие</small><strong>—</strong><span>когда идентичность подтверждалась движением</span></div>
+<div><small>Требует Основателя</small><strong>—</strong><span>есть ли незавершённое решение уровня Основателя</span></div>
+</div>
+<div class="registry-card-rule">
+        Следующий ход, контрольная проверка и рабочие блокеры могут отображаться в Инспекторе, но Реестр не превращается в второй Оркестратор или страницу Исследований.
+      </div>
+</div>
+</section>
+<section class="registry-lower-grid">
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ТРЕБУЕТ РЕШЕНИЯ ВЛАДЕЛЬЦА</h2><small>объекты, чья каноническая неопределённость не может закрыться автоматически</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="registry-empty compact">
+<strong>Источник решений ещё не подключён</strong>
+<span>Сюда попадут только реальные объекты с needs_founder / каноническим owner decision, а не общая очередь задач.</span>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ОБЪЕКТЫ С ПРЕПЯТСТВИЯМИ</h2><small>канонические объекты, которым мешает открытый системный или веточный блокер</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="registry-empty compact">
+<strong>Блокеры ещё не подключены</strong>
+<span>Показываем только незакрытые нетестовые блокеры из Continuity и всегда сохраняем связь с Object ID.</span>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ПОСЛЕДНИЕ КАНОНИЧЕСКИЕ ИЗМЕНЕНИЯ</h2><small>какие объекты действительно менялись, а не просто перерисовались в интерфейсе</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="registry-empty compact">
+<strong>История изменений ещё не подключена</strong>
+<span>Сортировка строится по реальному last_event_at. Нет события — нет фиктивного «недавнего изменения».</span>
+</div>
+</div>
+</article>
+<article class="card registry-relations-card">
+<div class="panel-head">
+<div class="head-title"><h2>СВЯЗИ МЕЖДУ ОБЪЕКТАМИ</h2><small>только если источник действительно отдаёт канонические отношения</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="registry-relations-empty">
+<div class="relations-glyph">
+<span></span><i></i><span></span><i></i><span></span>
+</div>
+<strong>Не строим граф по догадкам</strong>
+<p>Текущий контракт Continuity objects не даёт подтверждённой карты отношений. Пока такого поля нет, Реестр показывает объекты без вымышленных стрелок зависимости.</p>
+</div>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Что именно принадлежит Реестру</h2>
+<p>граница нужна, чтобы Реестр не стал ещё одной копией всей системы</p>
+</div>
+</div>
+<section class="registry-boundary-grid">
+<article class="card">
+<div class="panel-body">
+<b>Реестр владеет</b>
+<span>Object ID, идентичностью, типом объекта, каноническим владением и тем, существует ли объект как признанная системная сущность.</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Continuity владеет</b>
+<span>операционным состоянием, событиями, движением, блокерами, вниманием и текущими обязательствами.</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Владеющая ветка владеет</b>
+<span>смыслом объекта, исследовательскими или продуктовыми решениями и интерпретацией результатов.</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Панель только показывает</b>
+<span>нормализованную проекцию. Она не назначает новый Object ID и не создаёт второй источник истины.</span>
+</div>
+</article>
+</section>
+<div class="registry-warning">
+<b>Правило идентичности:</b>
+    если Object ID неизвестен — показываем «не определён», а не выбираем ближайший похожий ID. Это особенно важно для Testing Department и Path Legibility.
+  </div>
+</section>
 <section class="page" data-page-panel="signals"></section>
 <section class="page" data-page-panel="documents"></section>
 <section class="page" data-page-panel="testing">
@@ -1903,7 +2180,6 @@
   const placeholder = {
     brazilportal:["BrazilPortal","живой коммерческий и миграционный контур"],
     operations:["Операции","исполнение и операционные контуры"],
-    registry:["Реестр","объекты, долг идентификации и каноническое владение"],
     signals:["Сигналы","внимание и системные сигналы"],
     documents:["Документы","ручной разбор, канонический жизненный цикл и долговечность"],
     diagnostics:["Диагностика","источники, состояние браузера и режимы деградации"]
