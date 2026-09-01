@@ -1027,6 +1027,85 @@
       .artifact-provenance-chain{grid-template-columns:1fr 1fr}
       .artifact-provenance-chain>i{display:none}
     }
+
+    .operations-hero-grid{display:grid;grid-template-columns:1.45fr .55fr;gap:10px}
+    .operations-execution-card{min-height:390px}
+    .operations-table-head{
+      display:grid;grid-template-columns:1.35fr .95fr .85fr .8fr .65fr;gap:10px;
+      padding:3px 10px 10px;border-bottom:1px solid var(--line-soft);
+      color:#858e89;font-size:8.5px;text-transform:uppercase;letter-spacing:.06em
+    }
+    .operations-execution-list{min-height:300px}
+    .operations-empty{
+      min-height:275px;display:flex;flex-direction:column;justify-content:center;
+      color:#9ea6a1;line-height:1.55;padding:12px
+    }
+    .operations-empty.compact{min-height:130px;padding:4px 0}
+    .operations-empty strong{font:400 17px Georgia,"Times New Roman",serif;color:#dfe2dc;margin-bottom:7px}
+    .operations-empty span{font-size:10.5px}
+    .owner-compass{width:220px;height:220px;position:relative;margin:6px auto 4px}
+    .owner-compass:before,.owner-compass:after{
+      content:"";position:absolute;border-radius:50%;border:1px solid rgba(169,196,127,.14)
+    }
+    .owner-compass:before{inset:20px}.owner-compass:after{inset:55px;border-color:rgba(214,187,120,.14)}
+    .owner-compass-core{
+      position:absolute;inset:73px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      text-align:center;border:1px solid var(--line);background:rgba(19,25,27,.25);z-index:2
+    }
+    .owner-compass-core small{font-size:7px;color:#858e89;letter-spacing:.08em}
+    .owner-compass-core strong{font:400 22px Georgia,"Times New Roman",serif;margin-top:3px}
+    .owner-compass-core span{font-size:7.5px;color:#7f8984}
+    .owner-node{
+      position:absolute;padding:6px 8px;border:1px solid var(--line-soft);border-radius:999px;
+      background:rgba(42,51,54,.85);font-size:8.5px;color:#aeb5b0;z-index:3
+    }
+    .owner-node.founder{left:0;top:44%}.owner-node.system{right:0;top:20%}
+    .owner-node.external{right:3%;bottom:18%}.owner-node.branch{left:22%;bottom:0}
+    .operations-note{font-size:9.4px!important;color:#858e89!important;text-align:center}
+    .operations-flow-card{margin-bottom:10px}
+    .operations-flow{
+      display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:8px;align-items:stretch
+    }
+    .operations-flow>div{
+      min-height:135px;padding:12px;border:1px solid var(--line-soft);border-radius:11px;background:rgba(18,24,26,.13)
+    }
+    .operations-flow>div span{display:block;color:var(--gold);font-size:8.5px}
+    .operations-flow>div b{display:block;margin-top:6px;font:400 14px Georgia,"Times New Roman",serif}
+    .operations-flow>div small{display:block;margin-top:7px;color:#858e89;font-size:9px;line-height:1.45}
+    .operations-flow>i{align-self:center;color:#727b76;font-style:normal}
+    .operations-flow-note{
+      margin-top:10px;padding:9px 11px;border-left:2px solid rgba(214,187,120,.28);
+      color:#858e89;font-size:9.5px;line-height:1.45
+    }
+    .operations-lower-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .operations-lower-grid>.card{min-height:230px}
+    .movement-timeline{position:relative}
+    .movement-line{
+      position:absolute;left:6px;top:12px;bottom:12px;border-left:1px dashed rgba(169,196,127,.18)
+    }
+    .operations-boundary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .operations-boundary-grid .panel-body{min-height:140px}
+    .operations-boundary-grid b{display:block;font:400 16px Georgia,"Times New Roman",serif}
+    .operations-boundary-grid span{display:block;margin-top:8px;color:#8f9792;font-size:9.5px;line-height:1.5}
+    .operations-noise-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .operations-noise-grid .panel-body{min-height:135px}
+    .operations-noise-grid b{display:block;font:400 15px Georgia,"Times New Roman",serif}
+    .operations-noise-grid span{display:block;margin-top:8px;color:#8f9792;font-size:9.5px;line-height:1.5}
+    .operations-contract-note{
+      margin-top:10px;padding:10px 12px;border:1px solid rgba(214,187,120,.14);border-radius:10px;
+      background:rgba(18,24,26,.12);color:#858e89;font-size:9.5px;line-height:1.45
+    }
+    .operations-contract-note b{color:#c0c6c1}
+    @media(max-width:1100px){
+      .operations-hero-grid{grid-template-columns:1fr}
+      .operations-boundary-grid{grid-template-columns:1fr}
+      .operations-noise-grid{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:760px){
+      .operations-table-head{display:none}
+      .operations-flow,.operations-lower-grid,.operations-noise-grid{grid-template-columns:1fr}
+      .operations-flow>i{display:none}
+    }
 </style>
 </head>
 <body>
@@ -1911,7 +1990,250 @@
 </section>
 </section>
 <section class="page" data-page-panel="brazilportal"></section>
-<section class="page" data-page-panel="operations"></section>
+<section class="page" data-page-panel="operations">
+<header class="topbar">
+<div>
+<h1>Операции</h1>
+<p>исполнение утверждённых ходов, обязательства, владельцы и фактическое движение</p>
+</div>
+<div class="top-actions">
+<span class="state unavailable">ОПЕРАЦИОННЫЙ ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
+<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
+</div>
+</header>
+<div class="workspace-switcher operations-switcher">
+<button class="active">Обзор</button>
+<button>В исполнении</button>
+<button>Обязательства</button>
+<button>Препятствия</button>
+<button>Движение</button>
+<button>История</button>
+</div>
+<section class="strip operations-kpis-v2">
+<article class="card">
+<small>В исполнении</small>
+<strong data-o="active">—</strong>
+<span>утверждённые действия, по которым уже идёт исполнение</span>
+</article>
+<article class="card">
+<small>Открытые обязательства</small>
+<strong data-o="commitments">—</strong>
+<span>обещания и договорённости, которые ещё не закрыты</span>
+</article>
+<article class="card">
+<small>Ждём другого владельца</small>
+<strong data-o="waiting">—</strong>
+<span>ход сейчас не у Основателя и не у исполнительного контура</span>
+</article>
+<article class="card">
+<small>Операционные препятствия</small>
+<strong data-o="blockers">—</strong>
+<span>подтверждённые блокеры, которые мешают уже утверждённому действию</span>
+</article>
+</section>
+<section class="operations-hero-grid">
+<article class="card operations-execution-card">
+<div class="panel-head">
+<div class="head-title">
+<h2>ЧТО РЕАЛЬНО ИСПОЛНЯЕТСЯ СЕЙЧАС</h2>
+<small>не весь портфель маршрутов, а только действия, уже перешедшие из решения в исполнение</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="operations-table-head">
+<span>Действие</span>
+<span>Объект / линия</span>
+<span>Владелец хода</span>
+<span>Последнее движение</span>
+<span>Состояние</span>
+</div>
+<div class="operations-execution-list" data-o="execution">
+<div class="operations-empty">
+<strong>Исполнительный поток ещё не подключён</strong>
+<span>После интеграции здесь будут только реальные действия или commitments, у которых есть источник, Object ID, владелец, фактическое состояние исполнения и время последнего движения.</span>
+</div>
+</div>
+</div>
+</article>
+<article class="card operations-owner-card">
+<div class="panel-head">
+<div class="head-title">
+<h2>У КОГО ХОД</h2>
+<small>исполнение должно иметь конкретного владельца</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="owner-compass">
+<div class="owner-compass-core">
+<small>ТЕКУЩИЙ ХОД</small>
+<strong>—</strong>
+<span>источник не подключён</span>
+</div>
+<span class="owner-node founder">Основатель</span>
+<span class="owner-node system">Система</span>
+<span class="owner-node external">Внешний</span>
+<span class="owner-node branch">Ветка</span>
+</div>
+<p class="operations-note">Если ball owner не задан, Панель показывает «не назначен». Она не назначает исполнителя по названию ветки.</p>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Операционный ход</h2>
+<p>как утверждённое действие превращается в проверяемый результат</p>
+</div>
+</div>
+<section class="card operations-flow-card">
+<div class="panel-body">
+<div class="operations-flow">
+<div>
+<span>01</span>
+<b>Утверждено</b>
+<small>есть решение, следующий ход или commitment с понятной границей полномочий</small>
+</div>
+<i>→</i>
+<div>
+<span>02</span>
+<b>Назначено</b>
+<small>понятно, кто держит мяч и что считается выполнением</small>
+</div>
+<i>→</i>
+<div>
+<span>03</span>
+<b>Исполняется</b>
+<small>есть фактическое движение, а не только план или рекомендация</small>
+</div>
+<i>→</i>
+<div>
+<span>04</span>
+<b>Зафиксирован результат</b>
+<small>результат, отказ, блокер или внешний исход попадает в канонический событийный контур</small>
+</div>
+</div>
+<div class="operations-flow-note">
+        Операции не определяют стратегический приоритет маршрута. Они отвечают за прозрачность исполнения уже принятого хода.
+      </div>
+</div>
+</section>
+<section class="operations-lower-grid">
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ОТКРЫТЫЕ ОБЯЗАТЕЛЬСТВА</h2><small>что было обещано или принято на себя и ещё не закрыто</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="operations-empty compact">
+<strong>Commitment-проекция ещё не подключена</strong>
+<span>Показываем только реальные обязательства: что обещано → кем → кому или какой системе → срок/условие → текущее состояние → свидетельство закрытия.</span>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ПРЕПЯТСТВИЯ И ОСТАНОВКИ</h2><small>что мешает уже утверждённому действию двигаться</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="operations-empty compact">
+<strong>Операционные блокеры ещё не подключены</strong>
+<span>Здесь не создаётся собственный риск-балл. Показываем реальный blocker, источник, Object ID, владельца и условие снятия.</span>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ПОСЛЕДНЕЕ ДВИЖЕНИЕ</h2><small>что действительно произошло, а не что было запланировано</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="movement-timeline">
+<div class="movement-line"></div>
+<div class="operations-empty compact">
+<strong>Журнал движения ещё не подключён</strong>
+<span>Сюда попадут только подтверждённые события исполнения: начато, передано другому владельцу, заблокировано, результат получен, обязательство закрыто.</span>
+</div>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ЖДЁМ ВНЕШНИЙ ХОД</h2><small>активное ожидание не должно выглядеть как внутренний застой</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="operations-empty compact">
+<strong>Список ожиданий ещё не подключён</strong>
+<span>Для каждого ожидания показываем: кого ждём → с какого момента → что должно прийти → когда пересмотреть → что произойдёт после ответа.</span>
+</div>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Граница с Оркестратором</h2>
+<p>оба экрана работают с движением, но отвечают на разные вопросы</p>
+</div>
+</div>
+<section class="operations-boundary-grid">
+<article class="card">
+<div class="panel-body">
+<b>Оркестратор</b>
+<span>какие маршруты существуют, что важнее, какой следующий ход, когда пересмотреть и почему маршрут должен двигаться именно так.</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Операции</b>
+<span>что из уже утверждённого реально исполняется, кто держит мяч, что было сделано и где исполнение остановилось.</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Continuity</b>
+<span>хранит канонические события, владельцев хода, commitments, blockers и фактическое движение. Панель читает эту проекцию.</span>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Что не переносим из старой страницы</h2>
+<p>правдоподобные operational-метрики без источника больше не выдаются за живое состояние</p>
+</div>
+</div>
+<section class="operations-noise-grid">
+<article class="card">
+<div class="panel-body">
+<b>Нет выдуманной очереди задач</b>
+<span>27 задач и «6 готовы» не показываются, пока нет реального поля именно с таким смыслом.</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Нет фиктивных gates</b>
+<span>Количество gates не выводится из маршрутов и не считается Панелью самостоятельно.</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Нет fake throughput</b>
+<span>«39 ходов за сутки» и median cycle не существуют без поддерживающего источника.</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Нет декоративных PASS/RUN</b>
+<span>Исполнение считается успешным только после реального события или подтверждённого результата.</span>
+</div>
+</article>
+</section>
+<div class="operations-contract-note">
+<b>Текущий технический факт:</b>
+    старый Operations live-модуль получает только Orchestrator summary / metrics / routes. Этого достаточно для некоторых чисел маршрутов, но недостаточно для полноценной страницы исполнения. Поэтому G11 не маскирует Orchestrator routes под отдельную операционную истину.
+  </div>
+</section>
 <section class="page" data-page-panel="registry">
 <header class="topbar">
 <div>
@@ -2874,7 +3196,6 @@
 
   const placeholder = {
     brazilportal:["BrazilPortal","живой коммерческий и миграционный контур"],
-    operations:["Операции","исполнение и операционные контуры"],
     diagnostics:["Диагностика","источники, состояние браузера и режимы деградации"]
   };
 
