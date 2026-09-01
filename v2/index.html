@@ -520,6 +520,152 @@
       .research-lower-grid,.research-boundaries,.research-evidence-model{grid-template-columns:1fr}
       .research-cycle{grid-template-columns:1fr 1fr}
     }
+
+    .foundation-hero-grid{
+      display:grid;grid-template-columns:1.45fr .75fr;gap:10px
+    }
+    .foundation-readiness-body{
+      display:grid;grid-template-columns:290px 1fr;gap:26px;align-items:center;min-height:310px
+    }
+    .foundation-orbit{
+      width:260px;height:260px;position:relative;margin:auto
+    }
+    .foundation-orbit-ring{
+      position:absolute;border:1px solid rgba(169,196,127,.16);border-radius:50%
+    }
+    .foundation-orbit-ring.ring-a{inset:20px}
+    .foundation-orbit-ring.ring-b{inset:52px;border-color:rgba(214,187,120,.16)}
+    .foundation-orbit-core{
+      position:absolute;inset:82px;border-radius:50%;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;text-align:center;border:1px solid var(--line);
+      background:rgba(21,28,30,.32);box-shadow:0 0 36px rgba(169,196,127,.06)
+    }
+    .foundation-orbit-core small{font-size:8px;color:#858e89;letter-spacing:.1em}
+    .foundation-orbit-core strong{font:400 27px Georgia,"Times New Roman",serif;margin-top:4px}
+    .foundation-orbit-core span{font-size:8.5px;color:#7f8984;margin-top:3px}
+    .orbit-node{
+      position:absolute;padding:7px 9px;border:1px solid var(--line-soft);border-radius:999px;
+      background:rgba(43,52,55,.86);font-size:9px;color:#b5bcb7;box-shadow:0 6px 16px rgba(6,10,11,.12)
+    }
+    .orbit-node.n1{left:0;top:42%}.orbit-node.n2{right:0;top:16%}
+    .orbit-node.n3{right:2%;bottom:17%}.orbit-node.n4{left:19%;bottom:0}
+    .foundation-readiness-copy h3{
+      margin:0 0 9px;font:400 20px/1.25 Georgia,"Times New Roman",serif
+    }
+    .foundation-readiness-copy p{font-size:11.5px!important}
+    .foundation-state-legend{display:flex;gap:6px;flex-wrap:wrap;margin-top:15px}
+    .foundation-state-legend span{
+      padding:5px 7px;border-radius:999px;border:1px solid var(--line);font-size:8.5px
+    }
+    .foundation-state-legend .ok{color:var(--sage)}
+    .foundation-state-legend .warn{color:var(--gold)}
+    .foundation-state-legend .bad{color:#e39a8b}
+    .foundation-state-legend .dim{color:#858e89}
+    .foundation-empty{
+      min-height:190px;display:flex;flex-direction:column;justify-content:center;color:#9ea6a1;line-height:1.55
+    }
+    .foundation-empty.compact{min-height:125px}
+    .foundation-empty strong{font:400 17px Georgia,"Times New Roman",serif;color:#dfe2dc;margin-bottom:7px}
+    .foundation-empty span{font-size:10.5px}
+    .foundation-backbone{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px
+    }
+    .backbone-card{min-height:255px}
+    .backbone-number{
+      position:absolute;right:13px;top:8px;font:400 34px Georgia,"Times New Roman",serif;
+      color:rgba(214,187,120,.12);z-index:1
+    }
+    .backbone-card h3{font-size:17px!important;margin-top:5px!important}
+    .backbone-card strong{display:block;color:#cfd3ce;font-size:10px;font-weight:500;margin:9px 0}
+    .backbone-card p{font-size:10px!important;min-height:95px}
+    .backbone-card .state{margin-top:12px}
+    .authority-card{margin-bottom:10px}
+    .authority-ladder{
+      display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:8px;align-items:stretch
+    }
+    .authority-ladder>i{align-self:center;color:#707974;font-style:normal}
+    .authority-step{
+      min-height:145px;padding:13px;border:1px solid var(--line-soft);border-radius:11px;
+      background:rgba(18,24,26,.14);display:flex;flex-direction:column
+    }
+    .authority-step>span{font:400 22px Georgia,"Times New Roman",serif;color:#8f9893}
+    .authority-step b{display:block;margin-top:9px;font:400 14px Georgia,"Times New Roman",serif}
+    .authority-step small{display:block;margin-top:6px;color:#858e89;font-size:9px;line-height:1.4}
+    .authority-step em{
+      margin-top:auto;padding-top:10px;font-style:normal;font-size:8.5px;letter-spacing:.07em
+    }
+    .authority-step.auto em{color:var(--sage)}
+    .authority-step.founder{border-color:rgba(214,187,120,.22)}
+    .authority-step.founder em{color:var(--gold)}
+    .authority-step.forbidden{border-color:rgba(212,117,99,.2)}
+    .authority-step.forbidden em{color:#df9180}
+    .authority-note{
+      margin-top:10px!important;padding-top:9px;border-top:1px solid var(--line-soft);
+      color:#858e89!important;font-size:9.5px!important
+    }
+    .foundation-lower-grid{
+      display:grid;grid-template-columns:1.15fr .85fr;gap:10px
+    }
+    .foundation-lower-grid>.card{min-height:240px}
+    .recovery-path{
+      display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:7px;align-items:stretch
+    }
+    .recovery-path>div{
+      padding:11px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(18,24,26,.13)
+    }
+    .recovery-path>div span{color:var(--gold);font-size:9px}
+    .recovery-path>div b{display:block;margin-top:5px;font:400 13px Georgia,"Times New Roman",serif}
+    .recovery-path>div small{display:block;margin-top:6px;color:#858e89;font-size:8.8px;line-height:1.4}
+    .recovery-path>i{align-self:center;font-style:normal;color:#737c77}
+    .foundation-live-slot{
+      margin-top:12px;padding:9px 10px;border-left:2px solid rgba(214,187,120,.3);
+      color:#858e89;font-size:9.5px;line-height:1.4
+    }
+    .truth-chain{
+      display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr auto 1fr;gap:6px;align-items:center
+    }
+    .truth-chain>div{
+      padding:10px 7px;border:1px solid var(--line-soft);border-radius:9px;text-align:center;background:rgba(18,24,26,.13)
+    }
+    .truth-chain b{display:block;font:400 12px Georgia,"Times New Roman",serif}
+    .truth-chain small{display:block;margin-top:4px;color:#858e89;font-size:8px;line-height:1.35}
+    .truth-chain>i{font-style:normal;color:#737c77}
+    .foundation-rule{
+      margin-top:11px!important;color:#858e89!important;font-size:9.5px!important
+    }
+    .durability-grid{
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px
+    }
+    .durability-grid div{
+      padding:12px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(18,24,26,.13)
+    }
+    .durability-grid small{display:block;color:#858e89;font-size:9px}
+    .durability-grid strong{display:block;margin-top:6px;font:400 18px Georgia,"Times New Roman",serif}
+    .durability-grid span{display:block;margin-top:5px;color:#8f9792;font-size:9px;line-height:1.35}
+    .foundation-diagnostics-boundary{
+      display:grid;grid-template-columns:1fr 1fr;gap:10px
+    }
+    .foundation-diagnostics-boundary .panel-body{min-height:110px}
+    .foundation-diagnostics-boundary b{display:block;font:400 16px Georgia,"Times New Roman",serif}
+    .foundation-diagnostics-boundary span{display:block;margin-top:8px;color:#8f9792;font-size:10px;line-height:1.5}
+    @media(max-width:1180px){
+      .foundation-hero-grid{grid-template-columns:1fr}
+      .foundation-backbone{grid-template-columns:1fr 1fr}
+      .foundation-readiness-body{grid-template-columns:260px 1fr}
+      .authority-ladder{grid-template-columns:1fr 1fr}
+      .authority-ladder>i{display:none}
+      .foundation-lower-grid{grid-template-columns:1fr}
+    }
+    @media(max-width:760px){
+      .foundation-backbone,.foundation-diagnostics-boundary,.durability-grid{grid-template-columns:1fr}
+      .foundation-readiness-body{grid-template-columns:1fr}
+      .foundation-orbit{transform:scale(.86);margin-top:-15px;margin-bottom:-15px}
+      .authority-ladder{grid-template-columns:1fr}
+      .recovery-path{grid-template-columns:1fr 1fr}
+      .recovery-path>i{display:none}
+      .truth-chain{grid-template-columns:1fr 1fr}
+      .truth-chain>i{display:none}
+    }
 </style>
 </head>
 <body>
@@ -911,7 +1057,255 @@
 </article>
 </section>
 </section>
-<section class="page" data-page-panel="foundation"></section>
+<section class="page" data-page-panel="foundation">
+<header class="topbar">
+<div>
+<h1>Фундамент</h1>
+<p>целостность, восстановление и границы полномочий ICAM</p>
+</div>
+<div class="top-actions">
+<span class="state unavailable">СОСТОЯНИЕ НЕ ПОДКЛЮЧЕНО</span>
+<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
+</div>
+</header>
+<div class="workspace-switcher foundation-switcher">
+<button class="active">Обзор</button>
+<button>Контуры</button>
+<button>Полномочия</button>
+<button>Восстановление</button>
+<button>Долговечность</button>
+</div>
+<section class="strip foundation-kpis-v2">
+<article class="card">
+<small>Общее состояние</small>
+<strong>—</strong>
+<span>можно ли системе безопасно продолжать работу</span>
+</article>
+<article class="card">
+<small>Целостность данных</small>
+<strong>—</strong>
+<span>состояние, проекции и отображение не расходятся</span>
+</article>
+<article class="card">
+<small>Восстановление</small>
+<strong>—</strong>
+<span>есть ли проверенный путь возврата после сбоя</span>
+</article>
+<article class="card">
+<small>Системное внимание</small>
+<strong>—</strong>
+<span>открытые проблемы, которые относятся именно к основанию системы</span>
+</article>
+</section>
+<section class="foundation-hero-grid">
+<article class="card foundation-readiness">
+<div class="panel-head">
+<div class="head-title">
+<h2>МОЖНО ЛИ БЕЗОПАСНО СТРОИТЬ ДАЛЬШЕ?</h2>
+<small>один Founder-facing ответ вместо набора технических метрик</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="foundation-readiness-body">
+<div class="foundation-orbit">
+<div class="foundation-orbit-ring ring-a"></div>
+<div class="foundation-orbit-ring ring-b"></div>
+<div class="foundation-orbit-core">
+<small>СОСТОЯНИЕ</small>
+<strong>—</strong>
+<span>источник не подключён</span>
+</div>
+<span class="orbit-node n1">Истина</span>
+<span class="orbit-node n2">Артефакты</span>
+<span class="orbit-node n3">Восстановление</span>
+<span class="orbit-node n4">Полномочия</span>
+</div>
+<div class="foundation-readiness-copy">
+<h3>Панель не объявляет систему здоровой по отсутствию ошибок на экране</h3>
+<p>Итоговое состояние должно собираться из реального здоровья Continuity, долговечности артефактов, проверенного восстановления, целостности проекций и соблюдения границ полномочий.</p>
+<div class="foundation-state-legend">
+<span class="ok">СТАБИЛЬНО</span>
+<span class="warn">ТРЕБУЕТ ВНИМАНИЯ</span>
+<span class="bad">БЛОКИРУЕТ</span>
+<span class="dim">НЕТ ДАННЫХ</span>
+</div>
+</div>
+</div>
+</div>
+</article>
+<article class="card foundation-attention">
+<div class="panel-head">
+<div class="head-title">
+<h2>ЧТО НАРУШАЕТ ОСНОВАНИЕ</h2>
+<small>только системные проблемы, а не очередь всех проектов</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="foundation-empty compact">
+<strong>Системные проблемы ещё не подключены</strong>
+<span>Здесь появятся только инциденты уровня истины, восстановления, долговечности, полномочий или целостности проекций. Обычные проектные блокеры живут в своих ветках.</span>
+</div>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Несущие контуры</h2>
+<p>не список сервисов, а роль каждого слоя в устойчивости системы</p>
+</div>
+</div>
+<section class="foundation-backbone">
+<article class="card backbone-card">
+<div class="backbone-number">01</div>
+<div class="panel-body">
+<h3>Continuity / Steward</h3>
+<strong>Операционная истина</strong>
+<p>Текущее состояние объектов, события, внимание, владельцы хода, обязательства и блокеры. Остальные слои не должны создавать второй источник истины.</p>
+<span class="state unavailable">СОСТОЯНИЕ —</span>
+</div>
+</article>
+<article class="card backbone-card">
+<div class="backbone-number">02</div>
+<div class="panel-body">
+<h3>Долговечность артефактов</h3>
+<strong>Байты, подтверждение записи и обратное чтение</strong>
+<p>Файл считается сохранённым не потому, что его «отправили», а потому что подтверждены запись, долговечное местоположение и возможность прочитать его обратно.</p>
+<span class="state unavailable">СОСТОЯНИЕ —</span>
+</div>
+</article>
+<article class="card backbone-card">
+<div class="backbone-number">03</div>
+<div class="panel-body">
+<h3>Путь одобрения Основателя</h3>
+<strong>Изменение полномочий только через явное решение</strong>
+<p>Предложение изменения не равно разрешению. Действия, требующие уровня Основателя, остаются заблокированными до явного одобрения.</p>
+<span class="state unavailable">СОСТОЯНИЕ —</span>
+</div>
+</article>
+<article class="card backbone-card">
+<div class="backbone-number">04</div>
+<div class="panel-body">
+<h3>Целостность отображения</h3>
+<strong>Экран не может быть «зелёным» при недоступном источнике</strong>
+<p>Панель обязана различать живые, устаревшие, деградированные и недоступные данные и не подменять отсутствие источника старым спокойным состоянием.</p>
+<span class="state unavailable">СОСТОЯНИЕ —</span>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Границы полномочий</h2>
+<p>что система может делать сама, а где обязательно требуется человек</p>
+</div>
+</div>
+<section class="card authority-card">
+<div class="panel-body">
+<div class="authority-ladder">
+<div class="authority-step auto">
+<span>A0</span>
+<div><b>Наблюдать и читать</b><small>сбор состояния, проверка здоровья, чтение разрешённых источников</small></div>
+<em>АВТОНОМНО</em>
+</div>
+<i>→</i>
+<div class="authority-step auto">
+<span>A1</span>
+<div><b>Действовать внутри утверждённого контура</b><small>ограниченные технические и операционные действия без расширения полномочий</small></div>
+<em>АВТОНОМНО</em>
+</div>
+<i>→</i>
+<div class="authority-step founder">
+<span>A2</span>
+<div><b>Изменять то, что требует Основателя</b><small>канонические изменения, решения и другие действия за границей автономного контура</small></div>
+<em>ТОЛЬКО ОСНОВАТЕЛЬ</em>
+</div>
+<i>→</i>
+<div class="authority-step forbidden">
+<span>A3</span>
+<div><b>Запрещённое действие</b><small>не становится допустимым даже при удобстве или технической возможности</small></div>
+<em>ЗАПРЕЩЕНО</em>
+</div>
+</div>
+<p class="authority-note">Это принятая граница поведения системы, а не кнопка настройки на этой странице. Изменять её из интерфейса Фундамента нельзя.</p>
+</div>
+</section>
+<section class="foundation-lower-grid">
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ВОССТАНОВЛЕНИЕ</h2><small>что произойдёт, если один из несущих слоёв упадёт</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="recovery-path">
+<div><span>1</span><b>Обнаружить</b><small>сбой видим как деградацию, а не скрывается</small></div>
+<i>→</i>
+<div><span>2</span><b>Остановить риск</b><small>не продолжать опасные записи на сомнительном состоянии</small></div>
+<i>→</i>
+<div><span>3</span><b>Восстановить</b><small>использовать проверенный путь резервной копии / повтора / чтения</small></div>
+<i>→</i>
+<div><span>4</span><b>Проверить</b><small>подтвердить целостность после возврата</small></div>
+</div>
+<div class="foundation-live-slot">Текущий статус восстановления появится после подключения реального health/readback-контура.</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ЦЕПОЧКА ИСТИНЫ</h2><small>как состояние доходит до Основателя</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="truth-chain">
+<div><b>Событие</b><small>реальное изменение</small></div>
+<i>→</i>
+<div><b>Continuity</b><small>операционная истина</small></div>
+<i>→</i>
+<div><b>Проекция</b><small>без нового источника истины</small></div>
+<i>→</i>
+<div><b>Панель</b><small>читаемое отображение</small></div>
+<i>→</i>
+<div><b>Основатель</b><small>решение при необходимости</small></div>
+</div>
+<p class="foundation-rule">Если любой участок цепочки недоступен или устарел, конечный экран должен показывать это явно.</p>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ДОЛГОВЕЧНОСТЬ</h2><small>файл существует не тогда, когда его название видно в интерфейсе</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="durability-grid">
+<div><small>Запись</small><strong>—</strong><span>подтверждена ли операция хранения</span></div>
+<div><small>Обратное чтение</small><strong>—</strong><span>можно ли получить те же байты обратно</span></div>
+<div><small>Подтверждение</small><strong>—</strong><span>есть ли проверяемое свидетельство долговечности</span></div>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title"><h2>ПОСЛЕДНЕЕ ИЗМЕНЕНИЕ ФУНДАМЕНТА</h2><small>только существенное изменение основания</small></div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="foundation-empty compact">
+<strong>История основания ещё не подключена</strong>
+<span>Здесь будут только результаты проверок, инциденты, восстановление, изменение границ полномочий или существенное изменение несущего контура.</span>
+</div>
+</div>
+</article>
+</section>
+<div class="section-title">
+<div>
+<h2>Что уходит в «Диагностику»</h2>
+<p>Фундамент отвечает «можно ли доверять основанию», Диагностика — «почему именно сейчас что-то не работает»</p>
+</div>
+</div>
+<section class="foundation-diagnostics-boundary">
+<article class="card"><div class="panel-body"><b>На Фундаменте</b><span>итоговое состояние, системный риск, восстановление, полномочия, долговечность и целостность.</span></div></article>
+<article class="card"><div class="panel-body"><b>В Диагностике</b><span>конкретные источники, запросы, ошибки браузера, задержки, технические коды и подробные журналы.</span></div></article>
+</section>
+</section>
 <section class="page" data-page-panel="research">
 <header class="topbar">
 <div>
@@ -949,7 +1343,7 @@
 <article class="card">
 <small>Проблемы идентичности</small>
 <strong data-r="identity-count">—</strong>
-<span>объект или исследовательская линия требуют уточнения identity</span>
+<span>объект или исследовательская линия требуют уточнения идентичности</span>
 </article>
 </section>
 <section class="research-overview-grid">
@@ -1032,13 +1426,13 @@
 <div>
 <span>03</span>
 <b>Данные</b>
-<small>достаточны ли источник, качество и provenance</small>
+<small>достаточны ли источник, качество и происхождение данных</small>
 </div>
 <i>→</i>
 <div>
 <span>04</span>
 <b>Проверка</b>
-<small>независимый прогон, gate или другой заранее определённый критерий</small>
+<small>независимый прогон, контрольная проверка или другой заранее определённый критерий</small>
 </div>
 <i>→</i>
 <div>
@@ -1054,7 +1448,7 @@
 </div>
 </div>
 <div class="cycle-note">
-        Это навигационная логика Панели, а не новая каноническая стадийность. Панель показывает собственные stage/gate каждой ветки без их переименования.
+        Это навигационная логика Панели, а не новая каноническая стадийность. Панель показывает собственные этапы и контрольные проверки каждой ветки без их переименования.
       </div>
 </div>
 </section>
@@ -1102,7 +1496,7 @@
 <div class="panel-body">
 <div class="research-empty compact">
 <strong>Следующая проверка не подключена</strong>
-<span>Если у ветки есть next gate или test plan — он появляется здесь. Если нет, Панель честно показывает отсутствие определённой проверки.</span>
+<span>Если у ветки есть следующая контрольная проверка или план теста — он появляется здесь. Если нет, Панель честно показывает отсутствие определённой проверки.</span>
 </div>
 </div>
 </article>
@@ -1117,7 +1511,7 @@
 <div class="panel-body">
 <div class="research-empty compact">
 <strong>История изменений не подключена</strong>
-<span>Сюда попадут только решения, gates, смены стадии/статуса, внешние научные ответы и результаты тестов — с object ID и временем.</span>
+<span>Сюда попадут только решения, контрольные проверки, смены этапа или статуса, внешние научные ответы и результаты тестов — с ID объекта и временем.</span>
 </div>
 </div>
 </article>
@@ -1132,13 +1526,13 @@
 <article class="card">
 <div class="panel-body">
 <b>Реестр</b>
-<span>идентичность объекта, тип, ownership и канонические поля</span>
+<span>идентичность объекта, тип, владение и канонические поля</span>
 </div>
 </article>
 <article class="card">
 <div class="panel-body">
 <b>Тестирование</b>
-<span>конкретные прогоны, lineage, hashes, PASS / FAIL / rerun</span>
+<span>конкретные прогоны, происхождение, хэши, ПРОЙДЕНО / НЕ ПРОЙДЕНО / повторный прогон</span>
 </div>
 </article>
 <article class="card">
@@ -1150,7 +1544,7 @@
 <article class="card">
 <div class="panel-body">
 <b>Цифровой двойник</b>
-<span>личный prospective learning и Human Dynamics</span>
+<span>личное проспективное обучение и динамика людей</span>
 </div>
 </article>
 </section>
@@ -1184,7 +1578,6 @@
   "use strict";
 
   const placeholder = {
-    foundation:["Фундамент","устойчивость, восстановление и целостность ICAM"],
     brazilportal:["BrazilPortal","живой коммерческий и миграционный контур"],
     operations:["Операции","исполнение и операционные контуры"],
     registry:["Реестр","объекты, долг идентификации и каноническое владение"],
