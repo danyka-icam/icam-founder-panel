@@ -441,6 +441,85 @@
       .twin-status-strip,.twin-research-layers,.twin-compare,.core-confidence{grid-template-columns:1fr}
       .twin-seal-line{grid-template-columns:auto 1fr}
     }
+
+    .research-overview-grid{
+      display:grid;grid-template-columns:1.6fr .8fr;grid-template-areas:
+        "landscape attention"
+        "landscape waiting";gap:10px
+    }
+    .research-landscape{grid-area:landscape;min-height:390px}
+    .research-attention{grid-area:attention}
+    .research-waiting{grid-area:waiting}
+    .research-column-head{
+      display:grid;grid-template-columns:1.05fr .8fr .72fr 1.2fr .65fr;gap:9px;
+      padding:3px 10px 10px;color:#838c87;font-size:9px;text-transform:uppercase;letter-spacing:.06em;
+      border-bottom:1px solid var(--line-soft)
+    }
+    .research-lines{min-height:285px}
+    .research-empty{
+      min-height:250px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+      padding:16px;color:#9ea6a1;line-height:1.55
+    }
+    .research-empty.compact{min-height:120px;padding:8px 2px}
+    .research-empty strong{font:400 17px Georgia,"Times New Roman",serif;color:#dfe2dc;margin-bottom:7px}
+    .research-empty span{font-size:11px;max-width:760px}
+    .research-cycle-card{overflow:visible}
+    .research-cycle{
+      display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr auto 1fr auto 1fr;
+      gap:7px;align-items:stretch
+    }
+    .research-cycle>div{
+      min-height:118px;padding:12px;border:1px solid var(--line-soft);border-radius:11px;
+      background:rgba(19,25,27,.15)
+    }
+    .research-cycle>div span{display:block;color:var(--gold);font-size:9px;letter-spacing:.09em}
+    .research-cycle>div b{display:block;margin-top:7px;font:400 15px Georgia,"Times New Roman",serif}
+    .research-cycle>div small{display:block;margin-top:7px;color:#8f9792;font-size:9.5px;line-height:1.45}
+    .research-cycle>i{align-self:center;color:#737d77;font-style:normal}
+    .cycle-note{
+      margin-top:10px;padding:9px 11px;border-left:2px solid rgba(214,187,120,.35);
+      color:#858e89;font-size:9.5px;line-height:1.45
+    }
+    .research-lower-grid{
+      display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px
+    }
+    .research-lower-grid>.card{min-height:225px}
+    .research-result-placeholder strong{
+      display:block;font:400 17px Georgia,"Times New Roman",serif;margin-bottom:8px
+    }
+    .research-result-placeholder p{font-size:11px!important}
+    .research-evidence-model{
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px
+    }
+    .research-evidence-model div{
+      padding:11px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(18,24,26,.14)
+    }
+    .research-evidence-model span{display:block;color:#929a95;font-size:9px}
+    .research-evidence-model b{display:block;margin-top:6px;font:400 15px Georgia,"Times New Roman",serif}
+    .research-evidence-model small{display:block;margin-top:5px;color:#7f8984;font-size:9px;line-height:1.4}
+    .research-rule{
+      margin-top:10px!important;padding-top:9px;border-top:1px solid var(--line-soft);
+      color:#858e89!important;font-size:9.5px!important
+    }
+    .research-boundaries{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px
+    }
+    .research-boundaries .panel-body{min-height:100px}
+    .research-boundaries b{display:block;font:400 15px Georgia,"Times New Roman",serif}
+    .research-boundaries span{
+      display:block;margin-top:7px;color:#8f9792;font-size:10px;line-height:1.45
+    }
+    @media(max-width:1180px){
+      .research-overview-grid{grid-template-columns:1fr;grid-template-areas:"landscape" "attention" "waiting"}
+      .research-cycle{grid-template-columns:1fr 1fr 1fr}
+      .research-cycle>i{display:none}
+      .research-boundaries{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:760px){
+      .research-column-head{display:none}
+      .research-lower-grid,.research-boundaries,.research-evidence-model{grid-template-columns:1fr}
+      .research-cycle{grid-template-columns:1fr 1fr}
+    }
 </style>
 </head>
 <body>
@@ -833,7 +912,249 @@
 </section>
 </section>
 <section class="page" data-page-panel="foundation"></section>
-<section class="page" data-page-panel="research"></section>
+<section class="page" data-page-panel="research">
+<header class="topbar">
+<div>
+<h1>Исследования</h1>
+<p>портфель гипотез, доказательств, проверок и переходов между этапами</p>
+</div>
+<div class="top-actions">
+<span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
+<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
+</div>
+</header>
+<div class="workspace-switcher research-switcher">
+<button class="active">Обзор</button>
+<button>Активные линии</button>
+<button>Проверки</button>
+<button>Доказательства</button>
+<button>История</button>
+</div>
+<section class="strip research-kpis-v2">
+<article class="card">
+<small>Активные линии</small>
+<strong data-r="active-count">—</strong>
+<span>исследования, которые сейчас реально движутся</span>
+</article>
+<article class="card">
+<small>Требует моего решения</small>
+<strong data-r="founder-count">—</strong>
+<span>только то, что невозможно продолжить без Основателя</span>
+</article>
+<article class="card">
+<small>Ждём / на паузе</small>
+<strong data-r="waiting-count">—</strong>
+<span>внешний ответ, данные, условие возврата или сознательный парк</span>
+</article>
+<article class="card">
+<small>Проблемы идентичности</small>
+<strong data-r="identity-count">—</strong>
+<span>объект или исследовательская линия требуют уточнения identity</span>
+</article>
+</section>
+<section class="research-overview-grid">
+<article class="card research-landscape">
+<div class="panel-head">
+<div class="head-title">
+<h2>КАРТА ИССЛЕДОВАТЕЛЬСКИХ ЛИНИЙ</h2>
+<small>одним взглядом: что проверяем, где находимся и какой следующий переход</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="research-column-head">
+<span>Линия</span>
+<span>Текущий этап</span>
+<span>У кого ход</span>
+<span>Следующий переход</span>
+<span>Состояние</span>
+</div>
+<div class="research-lines" data-r="lines">
+<div class="research-empty">
+<strong>Исследовательский портфель ещё не подключён</strong>
+<span>После интеграции каждая строка будет строиться только из канонического объекта и RD1-проекции: ID → статус → этап → владелец хода → следующий шаг → следующая проверка → свежесть.</span>
+</div>
+</div>
+</div>
+</article>
+<article class="card research-attention">
+<div class="panel-head">
+<div class="head-title">
+<h2>ГДЕ НУЖНА Я</h2>
+<small>решение, подтверждение или исследовательский выбор</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="research-empty compact">
+<strong>Источник внимания не подключён</strong>
+<span>Здесь будут только реальные Founder-attention события. Общие задачи и технический шум сюда не попадают.</span>
+</div>
+</div>
+</article>
+<article class="card research-waiting">
+<div class="panel-head">
+<div class="head-title">
+<h2>ЖДЁМ / ВЕРНУТЬСЯ ПО УСЛОВИЮ</h2>
+<small>не всё, что стоит, является проблемой</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="research-empty compact">
+<strong>Условия возврата ещё не подключены</strong>
+<span>Для каждой линии будет видно: чего ждём → кто держит ход → когда пересмотреть → что именно вернёт исследование в работу.</span>
+</div>
+</div>
+</article>
+</section>
+<div class="section-title research-section-title">
+<div>
+<h2>Исследовательский цикл</h2>
+<p>единая логика движения без попытки навязать всем программам одинаковые названия стадий</p>
+</div>
+</div>
+<section class="card research-cycle-card">
+<div class="panel-body">
+<div class="research-cycle">
+<div>
+<span>01</span>
+<b>Вопрос</b>
+<small>что именно мы пытаемся узнать или опровергнуть</small>
+</div>
+<i>→</i>
+<div>
+<span>02</span>
+<b>Дизайн</b>
+<small>какой тест способен изменить наше мнение</small>
+</div>
+<i>→</i>
+<div>
+<span>03</span>
+<b>Данные</b>
+<small>достаточны ли источник, качество и provenance</small>
+</div>
+<i>→</i>
+<div>
+<span>04</span>
+<b>Проверка</b>
+<small>независимый прогон, gate или другой заранее определённый критерий</small>
+</div>
+<i>→</i>
+<div>
+<span>05</span>
+<b>Вывод</b>
+<small>что изменилось в модели после результата</small>
+</div>
+<i>→</i>
+<div>
+<span>06</span>
+<b>Следующий ход</b>
+<small>продолжить, переработать, заморозить, опубликовать или закрыть</small>
+</div>
+</div>
+<div class="cycle-note">
+        Это навигационная логика Панели, а не новая каноническая стадийность. Панель показывает собственные stage/gate каждой ветки без их переименования.
+      </div>
+</div>
+</section>
+<section class="research-lower-grid">
+<article class="card">
+<div class="panel-head">
+<div class="head-title">
+<h2>ПОСЛЕДНИЙ СУЩЕСТВЕННЫЙ РЕЗУЛЬТАТ</h2>
+<small>не последнее техническое событие, а изменение исследовательского смысла</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="research-result-placeholder">
+<strong>Результаты ещё не подключены</strong>
+<p>Показываем только материальные события: результат проверки, решение, смену статуса или этапа, внешний научный ответ, подтверждённый тест. Служебные обновления не выдаются за результат.</p>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title">
+<h2>ДОКАЗАТЕЛЬСТВА</h2>
+<small>что действительно поддерживает текущий вывод</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="research-evidence-model">
+<div><span>Замороженный артефакт</span><b>—</b><small>если существует и доступен</small></div>
+<div><span>Независимая проверка</span><b>—</b><small>ссылка на Тестирование, а не собственный процент доверия</small></div>
+<div><span>Внешний ответ</span><b>—</b><small>если он реально изменил исследовательский маршрут</small></div>
+</div>
+<p class="research-rule">Панель не придумывает «процент доказанности». Сила доказательства следует из реальных тестов, артефактов, provenance и gate-результатов.</p>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title">
+<h2>СЛЕДУЮЩАЯ ПРОВЕРКА</h2>
+<small>какой факт способен сдвинуть линию дальше</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="research-empty compact">
+<strong>Следующая проверка не подключена</strong>
+<span>Если у ветки есть next gate или test plan — он появляется здесь. Если нет, Панель честно показывает отсутствие определённой проверки.</span>
+</div>
+</div>
+</article>
+<article class="card">
+<div class="panel-head">
+<div class="head-title">
+<h2>ЧТО ИЗМЕНИЛОСЬ</h2>
+<small>материальные изменения по исследовательским линиям</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="research-empty compact">
+<strong>История изменений не подключена</strong>
+<span>Сюда попадут только решения, gates, смены стадии/статуса, внешние научные ответы и результаты тестов — с object ID и временем.</span>
+</div>
+</div>
+</article>
+</section>
+<div class="section-title research-section-title">
+<div>
+<h2>Связь с другими экранами</h2>
+<p>«Исследования» — портфельный обзор, а не второй Реестр, Тестирование или Атлас</p>
+</div>
+</div>
+<section class="research-boundaries">
+<article class="card">
+<div class="panel-body">
+<b>Реестр</b>
+<span>идентичность объекта, тип, ownership и канонические поля</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Тестирование</b>
+<span>конкретные прогоны, lineage, hashes, PASS / FAIL / rerun</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Атлас</b>
+<span>собственная модель мира, прогнозы, outcomes и обучение</span>
+</div>
+</article>
+<article class="card">
+<div class="panel-body">
+<b>Цифровой двойник</b>
+<span>личный prospective learning и Human Dynamics</span>
+</div>
+</article>
+</section>
+</section>
 <section class="page" data-page-panel="brazilportal"></section>
 <section class="page" data-page-panel="operations"></section>
 <section class="page" data-page-panel="registry"></section>
@@ -864,7 +1185,6 @@
 
   const placeholder = {
     foundation:["Фундамент","устойчивость, восстановление и целостность ICAM"],
-    research:["Исследования","активные исследовательские линии и их реальное состояние"],
     brazilportal:["BrazilPortal","живой коммерческий и миграционный контур"],
     operations:["Операции","исполнение и операционные контуры"],
     registry:["Реестр","объекты, долг идентификации и каноническое владение"],
