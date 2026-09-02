@@ -1319,6 +1319,50 @@
       position:absolute;inset:0;padding:24px;text-align:center;align-items:center
     }
     .attention-scale .empty-copy{min-height:160px}
+
+    .workspace-switcher button.active[disabled]{
+      opacity:1;cursor:default;color:#e7e9e4;
+      background:rgba(115,140,115,.18);border-color:rgba(174,198,170,.16)
+    }
+    .registry-live-row{
+      display:grid;grid-template-columns:.78fr 1.3fr 1fr .8fr .9fr;gap:10px;
+      align-items:center;padding:10px;border-top:1px solid var(--line-soft);font-size:9.5px
+    }
+    .registry-live-row:first-child{border-top:0}
+    .registry-live-row b{font:400 12px Georgia,"Times New Roman",serif}
+    .registry-live-row span,.registry-live-row small{color:#929a95;line-height:1.35}
+    .registry-mini-list{display:flex;flex-direction:column;gap:7px}
+    .registry-mini-item{padding:8px 0;border-top:1px solid var(--line-soft)}
+    .registry-mini-item:first-child{border-top:0}
+    .registry-mini-item b{display:block;font:400 12px Georgia,"Times New Roman",serif}
+    .registry-mini-item span{display:block;margin-top:3px;color:#8f9792;font-size:9px;line-height:1.4}
+
+    .testing-live-row{
+      display:grid;grid-template-columns:1.05fr 1fr 1.1fr .75fr 1.15fr;gap:10px;
+      padding:10px;border-top:1px solid var(--line-soft);align-items:center;font-size:9.5px
+    }
+    .testing-live-row:first-child{border-top:0}
+    .testing-live-row b{font:400 12px Georgia,"Times New Roman",serif}
+    .testing-live-row span,.testing-live-row small{color:#909993;line-height:1.35}
+    .testing-live-row em{font-style:normal;color:#c4cac5}
+    .testing-mini-list{display:flex;flex-direction:column;gap:7px}
+    .testing-mini-item{padding:8px 0;border-top:1px solid var(--line-soft)}
+    .testing-mini-item:first-child{border-top:0}
+    .testing-mini-item b{display:block;font:400 12px Georgia,"Times New Roman",serif}
+    .testing-mini-item span{display:block;margin-top:3px;color:#8f9792;font-size:9px;line-height:1.4}
+
+    .document-live-row{
+      display:grid;grid-template-columns:1.35fr .8fr 1.2fr .55fr;gap:10px;
+      align-items:center;padding:10px;border-top:1px solid var(--line-soft);font-size:9.5px
+    }
+    .document-live-row:first-child{border-top:0}
+    .document-live-row b{font:400 12px Georgia,"Times New Roman",serif}
+    .document-live-row span,.document-live-row small{color:#909993;line-height:1.35}
+
+    .diagnostics-source-list [data-x-live-state]{font-weight:500}
+    @media(max-width:760px){
+      .registry-live-row,.testing-live-row,.document-live-row{grid-template-columns:1fr}
+    }
 </style>
 </head>
 <body>
@@ -1348,7 +1392,7 @@
 <div><h1>ICAM — Панель Основателя</h1><p>единая управляющая среда</p></div>
 <div class="top-actions">
 <button class="search-pill" disabled=""><span>Спросите что-нибудь о системе...</span><span>⌕</span></button>
-<span class="quiet-pill">v2 · черновик</span>
+<span class="quiet-pill">v2 · кандидат</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
 </header>
@@ -1393,14 +1437,14 @@
 </div>
 </header>
 <div class="workspace-switcher">
-<button class="active">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Маршруты</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Отдельные задачи</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Рекомендации</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Решения</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Журнал</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Деньги</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Закрыто</button>
+<button class="active" disabled="" title="Текущий обзор">Обзор</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Маршруты</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Отдельные задачи</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Рекомендации</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Решения</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Журнал</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Деньги</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Закрыто</button>
 </div>
 <section class="strip">
 <article class="card"><small>Активные маршруты</small><strong>Источник не подключён</strong><span>Линии с этапом, следующим ходом и владельцем.</span></article>
@@ -1513,11 +1557,11 @@
 </div>
 </header>
 <div class="workspace-switcher">
-<button class="active">Мой двойник</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Люди</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Популяция</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Живой мир</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Эксперименты</button>
+<button class="active" disabled="" title="Текущий обзор">Мой двойник</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Люди</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Популяция</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Живой мир</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Эксперименты</button>
 </div>
 <section class="twin-hero card">
 <div class="panel-head">
@@ -1696,11 +1740,11 @@
 </div>
 </header>
 <div class="workspace-switcher foundation-switcher">
-<button class="active">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Контуры</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Полномочия</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Восстановление</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Долговечность</button>
+<button class="active" disabled="" title="Текущий обзор">Обзор</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Контуры</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Полномочия</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Восстановление</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Долговечность</button>
 </div>
 <section class="strip foundation-kpis-v2">
 <article class="card">
@@ -1945,11 +1989,11 @@
 </div>
 </header>
 <div class="workspace-switcher research-switcher">
-<button class="active">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Активные линии</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Проверки</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Доказательства</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">История</button>
+<button class="active" disabled="" title="Текущий обзор">Обзор</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Активные линии</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Проверки</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Доказательства</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">История</button>
 </div>
 <section class="strip research-kpis-v2">
 <article class="card">
@@ -2188,13 +2232,13 @@
 </div>
 </header>
 <div class="workspace-switcher bp-switcher-v2">
-<button class="active">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Продукт</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Спрос</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Клиентский путь</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Контент</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Карта</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Эксперименты</button>
+<button class="active" disabled="" title="Текущий обзор">Обзор</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Продукт</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Спрос</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Клиентский путь</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Контент</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Карта</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Эксперименты</button>
 </div>
 <section class="strip bp-kpis-v2">
 <article class="card">
@@ -2406,7 +2450,7 @@
 </div>
 <div class="panel-body">
 <div class="bp-empty compact">
-<strong>Founder attention не подключён к этому экрану</strong>
+<strong>внимание Основателя не подключён к этому экрану</strong>
 <span>После интеграции используем канонический inbox и фильтруем только события BrazilPortal. Не создаём отдельную локальную очередь решений.</span>
 </div>
 </div>
@@ -2453,12 +2497,12 @@
 </div>
 </header>
 <div class="workspace-switcher operations-switcher">
-<button class="active">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">В исполнении</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Обязательства</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Препятствия</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Движение</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">История</button>
+<button class="active" disabled="" title="Текущий обзор">Обзор</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">В исполнении</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Обязательства</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Препятствия</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Движение</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">История</button>
 </div>
 <section class="strip operations-kpis-v2">
 <article class="card">
@@ -2697,11 +2741,11 @@
 </div>
 </header>
 <div class="workspace-switcher registry-switcher">
-<button class="active">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Объекты</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Идентичность</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Владение</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">История</button>
+<button class="active" disabled="" title="Текущий обзор">Обзор</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Объекты</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Идентичность</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Владение</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">История</button>
 </div>
 <section class="strip registry-kpis-v2">
 <article class="card">
@@ -2762,7 +2806,7 @@
 <div class="identity-orbit">
 <div class="identity-core">
 <small>НЕ ПОДТВЕРЖДЕНО</small>
-<strong>—</strong>
+<strong data-g="identity-core">—</strong>
 <span>объектов</span>
 </div>
 <div class="identity-ring"></div>
@@ -2798,7 +2842,7 @@
 <div class="head-title"><h2>ТРЕБУЕТ РЕШЕНИЯ ВЛАДЕЛЬЦА</h2><small>объекты, чья каноническая неопределённость не может закрыться автоматически</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-g="founder-list">
 <div class="registry-empty compact">
 <strong>Источник решений ещё не подключён</strong>
 <span>Сюда попадут только реальные объекты с needs_founder / каноническим owner decision, а не общая очередь задач.</span>
@@ -2810,7 +2854,7 @@
 <div class="head-title"><h2>ОБЪЕКТЫ С ПРЕПЯТСТВИЯМИ</h2><small>канонические объекты, которым мешает открытый системный или веточный блокер</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-g="blockers-list">
 <div class="registry-empty compact">
 <strong>Блокеры ещё не подключены</strong>
 <span>Показываем только незакрытые нетестовые блокеры из Continuity и всегда сохраняем связь с Object ID.</span>
@@ -2822,7 +2866,7 @@
 <div class="head-title"><h2>ПОСЛЕДНИЕ КАНОНИЧЕСКИЕ ИЗМЕНЕНИЯ</h2><small>какие объекты действительно менялись, а не просто перерисовались в интерфейсе</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-g="recent-list">
 <div class="registry-empty compact">
 <strong>История изменений ещё не подключена</strong>
 <span>Сортировка строится по реальному last_event_at. Нет события — нет фиктивного «недавнего изменения».</span>
@@ -2894,12 +2938,12 @@
 </div>
 </header>
 <div class="workspace-switcher signals-switcher">
-<button class="active">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Требует меня</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Изменения</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Риски</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Возможности</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">История</button>
+<button class="active" disabled="" title="Текущий обзор">Обзор</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Требует меня</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Изменения</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Риски</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Возможности</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">История</button>
 </div>
 <section class="strip signals-kpis-v2">
 <article class="card">
@@ -2952,7 +2996,7 @@
 </div>
 <div class="panel-body">
 <div class="signals-empty compact">
-<strong>Нет подключённого Founder inbox</strong>
+<strong>Входящие Основателя не подключены</strong>
 <span>Когда источник будет подключён, сюда попадут только реальные `needs_founder`, а не все уведомления системы.</span>
 </div>
 </div>
@@ -3032,7 +3076,7 @@
 <div>
 <span>04</span>
 <b>Маршрут</b>
-<small>если требуется действие — оно уходит в Оркестратор или Founder attention, а не живёт второй задачей здесь</small>
+<small>если требуется действие — оно уходит в Оркестратор или внимание Основателя, а не живёт второй задачей здесь</small>
 </div>
 </div>
 <div class="signal-flow-note">
@@ -3208,7 +3252,7 @@
 <article class="card">
 <div class="panel-body">
 <b>Не дублируем задачи</b>
-<span>Если сигнал требует действия, действием управляет Оркестратор или Founder attention. Здесь остаётся источник и смысл сигнала.</span>
+<span>Если сигнал требует действия, действием управляет Оркестратор или внимание Основателя. Здесь остаётся источник и смысл сигнала.</span>
 </div>
 </article>
 </section>
@@ -3229,12 +3273,12 @@
 </div>
 </header>
 <div class="workspace-switcher documents-switcher">
-<button class="active">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Требует разбора</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Артефакты</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Публикационный путь</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Происхождение</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">История</button>
+<button class="active" disabled="" title="Текущий обзор">Обзор</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Требует разбора</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Артефакты</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Публикационный путь</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Происхождение</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">История</button>
 </div>
 <section class="strip documents-kpis-v2">
 <article class="card">
@@ -3499,12 +3543,12 @@
 </div>
 </header>
 <div class="workspace-switcher testing-switcher">
-<button class="active">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Очередь</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Результаты</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Повторные прогоны</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Происхождение</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Раннер</button>
+<button class="active" disabled="" title="Текущий обзор">Обзор</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Очередь</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Результаты</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Повторные прогоны</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Происхождение</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Раннер</button>
 </div>
 <section class="strip testing-kpis-v2">
 <article class="card">
@@ -3538,7 +3582,7 @@
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
 <div class="panel-body">
-<div class="testing-attention-board">
+<div class="testing-attention-board" data-t="attention">
 <div class="testing-attention-main">
 <span class="testing-signal-ring">?</span>
 <div>
@@ -3563,10 +3607,10 @@
 <div class="panel-body">
 <div class="runner-state">
 <span class="runner-orb"></span>
-<div><small>Состояние</small><strong>—</strong><em>источник не подключён</em></div>
+<div><small>Состояние</small><strong data-t="runner-state">—</strong><em data-t="runner-note">источник не подключён</em></div>
 </div>
-<div class="runner-kv"><span>Доступные провайдеры</span><b>—</b></div>
-<div class="runner-kv"><span>Последняя проверка здоровья</span><b>—</b></div>
+<div class="runner-kv"><span>Доступные провайдеры</span><b data-t="runner-providers">—</b></div>
+<div class="runner-kv"><span>Последняя проверка здоровья</span><b data-t="runner-health-at">—</b></div>
 <p class="testing-note">Список провайдеров не должен быть зашит в интерфейсе: он читается из реального состояния раннера.</p>
 </div>
 </article>
@@ -3644,7 +3688,7 @@
 <div class="head-title"><h2>ПОСЛЕДНИЕ РЕЗУЛЬТАТЫ</h2><small>что реально завершилось и какой научный исход зафиксирован</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-t="recent">
 <div class="testing-empty compact">
 <strong>Результаты ещё не подключены</strong>
 <span>Показываем test ID, процедурное состояние, научный исход и время. Не превращаем состояние COMPLETED само по себе в «успех».</span>
@@ -3656,7 +3700,7 @@
 <div class="head-title"><h2>ТРЕБУЕТ РАЗБОРА</h2><small>дефект, неоднозначность или вывод, который должна принять владеющая ветка</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-t="adjudication">
 <div class="testing-empty compact">
 <strong>Нет подключённого списка</strong>
 <span>Сюда попадут только состояния, которые действительно требуют разбора, а не все завершённые тесты.</span>
@@ -3725,19 +3769,19 @@
 </div>
 </header>
 <div class="workspace-switcher diagnostics-switcher">
-<button class="active">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Источники</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Свежесть</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Ошибки</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Браузер</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Состояния</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующего read-model">Восстановление</button>
+<button class="active" disabled="" title="Текущий обзор">Обзор</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Источники</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Свежесть</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Ошибки</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Браузер</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Состояния</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Восстановление</button>
 </div>
 <section class="strip diagnostics-kpis-v2">
 <article class="card">
-<small>Доверие к проекции</small>
+<small>Источники чтения</small>
 <strong data-x="trust">—</strong>
-<span>может ли Панель безопасно показывать current state</span>
+<span>сколько известных проекций ответили в текущем цикле</span>
 </article>
 <article class="card">
 <small>Недоступные источники</small>
@@ -3745,14 +3789,14 @@
 <span>источники, от которых сейчас нет подтверждённого ответа</span>
 </article>
 <article class="card">
-<small>Устаревшие данные</small>
+<small>Свежесть не подтверждена</small>
 <strong data-x="stale">—</strong>
-<span>последнее хорошее значение есть, но его возраст превышает контракт</span>
+<span>источники без отдельного freshness-контракта не считаются свежими по догадке</span>
 </article>
 <article class="card">
-<small>Жёсткие ошибки</small>
+<small>Ошибки чтения</small>
 <strong data-x="errors">—</strong>
-<span>подтверждённые потери функции или ошибки контракта</span>
+<span>неуспешные GET-чтения текущего цикла</span>
 </article>
 </section>
 <section class="diagnostics-hero-grid">
@@ -3768,7 +3812,7 @@
 <div class="diagnostic-trust-layout">
 <div class="diagnostic-trust-orbit">
 <div class="diag-ring one"></div><div class="diag-ring two"></div>
-<div class="diag-core"><small>TRUST</small><strong>—</strong><span>нет read-model</span></div>
+<div class="diag-core"><small>TRUST</small><strong>—</strong><span>нет проекция чтения</span></div>
 <span class="diag-node api">API</span>
 <span class="diag-node source">Источник</span>
 <span class="diag-node age">Свежесть</span>
@@ -3778,7 +3822,7 @@
 <div><b>Нет ответа</b><span>не превращается в ноль, PASS или «всё спокойно».</span></div>
 <div><b>Есть последнее хорошее</b><span>можно показать его только вместе с возрастом и явным stale/degraded.</span></div>
 <div><b>Источник восстановился</b><span>RECOVERY появляется только после нового успешного чтения.</span></div>
-<div><b>Экран не доказал current state</b><span>правдоподобная заглушка должна быть перезаписана состоянием «недоступно».</span></div>
+<div><b>Экран не доказал текущее состояние</b><span>правдоподобная заглушка должна быть перезаписана состоянием «недоступно».</span></div>
 </div>
 </div>
 </div>
@@ -3786,17 +3830,17 @@
 <article class="card diagnostic-runtime-card">
 <div class="panel-head">
 <div class="head-title">
-<h2>БРАУЗЕР / RUNTIME</h2>
+<h2>БРАУЗЕР / СЕССИЯ</h2>
 <small>технический слой текущей сессии Панели</small>
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
 <div class="panel-body">
-<div class="runtime-kv"><span>v2 live module</span><b>—</b></div>
-<div class="runtime-kv"><span>Последний refresh</span><b>—</b></div>
-<div class="runtime-kv"><span>Последний успешный цикл</span><b>—</b></div>
-<div class="runtime-kv"><span>Ошибки текущего цикла</span><b>—</b></div>
-<div class="runtime-kv"><span>Текущая страница</span><b>—</b></div>
+<div class="runtime-kv"><span>модуль чтения v2</span><b data-x-runtime="module">—</b></div>
+<div class="runtime-kv"><span>Последнее обновление</span><b data-x-runtime="refresh">—</b></div>
+<div class="runtime-kv"><span>Последний успешный цикл</span><b data-x-runtime="last-good">—</b></div>
+<div class="runtime-kv"><span>Ошибки текущего цикла</span><b data-x-runtime="errors">—</b></div>
+<div class="runtime-kv"><span>Текущая страница</span><b data-x-runtime="page">—</b></div>
 <p class="diagnostics-note">Диагностика может показывать технические детали. Другие страницы должны получать уже нормализованное человеческое состояние.</p>
 </div>
 </article>
@@ -3810,7 +3854,7 @@
 <section class="card diagnostics-source-card">
 <div class="panel-head">
 <div class="head-title">
-<h2>КАРТА READ-ИСТОЧНИКОВ</h2>
+<h2>КАРТА ИСТОЧНИКОВ ЧТЕНИЯ</h2>
 <small>на этом экране можно быть техническими; на рабочих страницах — только результат</small>
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
@@ -3820,12 +3864,12 @@
 <span>Источник</span><span>Что даёт</span><span>Состояние</span><span>Свежесть</span><span>Влияние</span>
 </div>
 <div class="diagnostics-source-list">
-<div><b>Continuity</b><span>объекты / inbox / health</span><em>—</em><em>—</em><small>Главная, Реестр, Фундамент, BrazilPortal</small></div>
-<div><b>Orchestrator</b><span>routes / summary / metrics</span><em>—</em><em>—</em><small>Оркестратор и часть Главной</small></div>
-<div><b>Testing</b><span>summary / tests / lineage / runner health</span><em>—</em><em>—</em><small>Тестирование</small></div>
-<div><b>Hub / Durability</b><span>sync health / review queue</span><em>—</em><em>—</em><small>Документы и Фундамент</small></div>
-<div><b>ATLAS Market Scanner</b><span>market signals / field movement</span><em>НЕ ПОДКЛЮЧЁН</em><em>—</em><small>Сигналы после QA</small></div>
-<div><b>ATLAS / Twin</b><span>safe read-models</span><em>—</em><em>—</em><small>собственные экраны после подключения</small></div>
+<div data-x-source="continuity"><b>Continuity</b><span>объекты / inbox / health</span><em>—</em><em>—</em><small>Главная, Реестр, Фундамент, BrazilPortal</small></div>
+<div data-x-source="orchestrator"><b>Orchestrator</b><span>routes / summary / metrics</span><em>—</em><em>—</em><small>Оркестратор и часть Главной</small></div>
+<div data-x-source="testing"><b>Testing</b><span>summary / tests / lineage / runner health</span><em>—</em><em>—</em><small>Тестирование</small></div>
+<div data-x-source="hub"><b>Hub / Durability</b><span>sync health / review queue</span><em>—</em><em>—</em><small>Документы и Фундамент</small></div>
+<div data-x-source="scanner"><b>ATLAS Market Scanner</b><span>market signals / field movement</span><em>НЕ ПОДКЛЮЧЁН</em><em>—</em><small>Сигналы после QA</small></div>
+<div data-x-source="atlas-twin"><b>ATLAS / Twin</b><span>safe проекция чтенияs</span><em>—</em><em>—</em><small>собственные экраны после подключения</small></div>
 </div>
 </div>
 </section>
@@ -3873,19 +3917,19 @@
 </article>
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>СВЕЖЕСТЬ</h2><small>возраст каждого read-model против его собственного контракта</small></div>
+<div class="head-title"><h2>СВЕЖЕСТЬ</h2><small>возраст каждого проекция чтения против его собственного контракта</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
 <div class="panel-body">
 <div class="diagnostics-empty compact">
-<strong>Freshness-read-model не подключён</strong>
+<strong>Freshness-проекция чтения не подключён</strong>
 <span>Порог свежести задаётся источником/контрактом. Панель не придумывает универсальные «15 минут» для всех систем.</span>
 </div>
 </div>
 </article>
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>ВОССТАНОВЛЕНИЕ</h2><small>ошибка → безопасная деградация → новое чтение → возврат current state</small></div>
+<div class="head-title"><h2>ВОССТАНОВЛЕНИЕ</h2><small>ошибка → безопасная деградация → новое чтение → возврат текущее состояние</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
 <div class="panel-body">
@@ -3894,20 +3938,20 @@
 <div><span>2</span><b>Показать degraded / unavailable</b></div><i>→</i>
 <div><span>3</span><b>Получить новый успешный ответ</b></div><i>→</i>
 <div><span>4</span><b>Проверить свежесть</b></div><i>→</i>
-<div><span>5</span><b>Вернуть current state</b></div>
+<div><span>5</span><b>Вернуть текущее состояние</b></div>
 </div>
 </div>
 </article>
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>ИНТЕГРАЦИИ, КОТОРЫЕ ЕЩЁ НЕ ГОТОВЫ</h2><small>видим контракт, но не выдаём его за live</small></div>
+<div class="head-title"><h2>ИНТЕГРАЦИИ, КОТОРЫЕ ЕЩЁ НЕ ГОТОВЫ</h2><small>видим контракт, но не выдаём его за подключённый источник</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
 <div class="panel-body">
 <div class="integration-pending">
 <div><b>ATLAS Market Scanner → Signals</b><span>подключать только после QA scanner/bridge; ingest не выполняется браузером</span></div>
 <div><b>Personal Twin</b><span>до PTC-R0 prospective longitudinal остаётся OFF; read API пока не hard-wire</span></div>
-<div><b>ATLAS safe read-model</b><span>подключить после утверждения реального источника; LAB ≠ canonical</span></div>
+<div><b>ATLAS safe проекция чтения</b><span>подключить после утверждения реального источника; LAB ≠ canonical</span></div>
 </div>
 </div>
 </article>
@@ -3915,7 +3959,7 @@
 <div class="section-title">
 <div>
 <h2>Что Диагностика не делает</h2>
-<p>это read-only инженерный экран, а не скрытая панель управления системой</p>
+<p>это инженерный экран только для чтения, а не скрытая панель управления системой</p>
 </div>
 </div>
 <section class="diagnostics-boundary-grid">
@@ -3926,10 +3970,10 @@
 </section>
 <div class="diagnostics-truth-note">
 <b>Главное правило:</b>
-    Диагностика объясняет причину деградации. Она не имеет права делать остальные экраны «зелёными» при отсутствии доказанного current state.
+    Диагностика объясняет причину деградации. Она не имеет права делать остальные экраны «зелёными» при отсутствии доказанного текущее состояние.
   </div>
 </section>
-<div class="footer-note">Панель Основателя v2 · кандидат интеграции · read-only projection · production ещё не переключён</div>
+<div class="footer-note">Панель Основателя v2 · кандидат интеграции · проекция только для чтения · production ещё не переключён</div>
 </main>
 </div>
 <aside class="drawer" id="drawer">
