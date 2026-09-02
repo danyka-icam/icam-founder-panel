@@ -17,7 +17,14 @@
     testingHealth: API + "/testing-health",
     testingRunner: API + "/testing-runner-health",
     hubHealth: API + "/hub/sync-health",
-    continuityHealth: API + "/continuity-health"
+    continuityHealth: API + "/continuity-health",
+    // G19 server integrations (read-only projections). market-signals is
+    // deliberately NOT here: item E stays on HOLD until scanner QA passes.
+    opsProjection: API + "/panel/operations",
+    brazilPortal: API + "/panel/brazilportal",
+    foundationAgg: API + "/panel/foundation",
+    atlasState: API + "/panel/atlas",
+    twinState: API + "/panel/twin"
   };
 
   var REFRESH_MS = 90000;
@@ -36,7 +43,12 @@
     testingRunner: { ok: false, at: null, error: null },
     hubHealth: { ok: false, at: null, error: null },
     continuityHealth: { ok: false, at: null, error: null },
-    researchRD1: { ok: false, at: null, error: null }
+    researchRD1: { ok: false, at: null, error: null },
+    opsProjection: { ok: false, at: null, error: null },
+    brazilPortal: { ok: false, at: null, error: null },
+    foundationAgg: { ok: false, at: null, error: null },
+    atlasState: { ok: false, at: null, error: null },
+    twinState: { ok: false, at: null, error: null }
   };
 
   function esc(value) {
@@ -1291,6 +1303,186 @@
     );
   }
 
+  // --- G19 server integrations -------------------------------------------
+  // Every renderer below shows the SERVER's own source_status verbatim. A failed
+  // or unavailable source must never render as empty-and-healthy, and an
+  // UNAVAILABLE returned by the server (ATLAS, Twin) is the correct current
+  // answer, not an error to hide.
+
+  var STATE_CLASS = {
+    READY: "ok", AVAILABLE: "ok", FRESH: "ok",
+    DEGRADED: "warn", PARTIAL: "warn", AGING: "warn", STALE: "warn", EMPTY: "warn",
+    UNAVAILABLE: "bad", UNKNOWN: "bad", FAIL: "bad"
+  };
+
+  function stateClass(v) {
+    return STATE_CLASS[String(v || "").toUpperCase()] || "warn";
+  }
+
+  function kvRow(label, value) {
+    return "<div class='live-kv'><span>" + esc(label) + "</span><b>" +
+           esc(value == null || value === "" ? "—" : value) + "</b></div>";
+  }
+
+  function liveShell(root, title, status, reason, bodyHTML, footer) {
+    var body = root.querySelector(".panel-body");
+    if (!body) return;
+    body.innerHTML =
+      "<div class='foundation-source-summary " + stateClass(status) + "'>" +
+      "<strong>" + esc(title) + " — " + esc(status || "НЕИЗВЕСТНО") + "</strong>" +
+      (reason ? "<p>" + esc(reason) + "</p>" : "") +
+      "</div>" + (bodyHTML || "") +
+      (footer ? "<p class='live-note'>" + esc(footer) + "</p>" : "");
+  }
+
+  function renderFetchFailure(root, label, name) {
+    if (!root) return;
+    var body = root.querySelector(".panel-body");
+    if (!body) return;
+    body.innerHTML = unavailableHTML(
+      label + ": источник не ответил",
+      "Ошибка чтения: " + esc(sourceState[name] && sourceState[name].error || "неизвестно") +
+      ". Данные не показываются, чтобы не выдать отсутствие за норму.");
+  }
+
+  function renderOperations(data) {
+    var root = document.querySelector('[data-ops-live="root"]');
+    if (!root) return;
+    if (!sourceState.opsProjection.ok || !data) return renderFetchFailure(root, "Операции", "opsProjection");
+
+    var ops = asArray(data.operations);
+    var counts = data.counts || {};
+    var rows = ops.slice(0, 12).map(function (o) {
+      var blk = asArray(o.object_level_blockers);
+      return "<div class='live-row'>" +
+        "<div class='live-row-head'><b>" + esc(o.object_id || "—") + "</b>" +
+        "<span class='state " + stateClass(o.status) + "'>" + esc(o.status || "—") + "</span></div>" +
+        "<p>" + esc(cut(o.title, 190)) + "</p>" +
+        kvRow("Условие активации", o.activation_condition) +
+        kvRow("Открыто", o.opened_at) +
+        kvRow("Обновлено", o.updated_at) +
+        kvRow("Владелец хода", "НЕДОСТУПНО — источник не заполняет поле") +
+        kvRow("Фактический результат", "НЕДОСТУПНО — модель не хранит исход") +
+        (blk.length
+          ? "<p class='live-note'>Блокеры объекта (" + blk.length + "): контекст объекта, не блокер этого обязательства.</p>"
+          : "") +
+        "</div>";
+    }).join("");
+
+    liveShell(root, "Операционная проекция", data.source_status, data.degraded_reason,
+      kvRow("Всего", counts.total) + kvRow("Открыто", counts.open) +
+      kvRow("Свежесть", data.freshness_state) + kvRow("Последнее движение", data.last_movement_at) +
+      (ops.length ? rows : "<div class='empty-copy'><strong>Обязательств нет</strong></div>"),
+      "Поля источника не переименованы. ball_owner и factual_result помечены недоступными, а не угаданы.");
+  }
+
+  function renderBrazilPortal(data) {
+    var root = document.querySelector('[data-bp-live="root"]');
+    if (!root) return;
+    if (!sourceState.brazilPortal.ok || !data) return renderFetchFailure(root, "BrazilPortal", "brazilPortal");
+
+    var id = data.identity || {};
+    var sv = data.status_views || {};
+    function pf(f) { return f && f.value != null ? f.value : null; }
+
+    var html =
+      kvRow("Операционный объект", id.operational_object_id) +
+      kvRow("Компонент", id.component_id) +
+      kvRow("Ключ чтения", id.canonical_read_key) +
+      "<p class='live-note'>" + esc(id.note || "") + "</p>" +
+      "<div class='live-row'><div class='live-row-head'><b>Два разных статуса</b></div>" +
+      kvRow("Объявленный", sv.declared_status) +
+      kvRow("Спроецированный", sv.projected_status) +
+      kvRow("Каноничность проекции", sv.projected_status_canonical_relation) +
+      "<p class='live-note'>" + esc(sv.note || "") + "</p></div>" +
+      kvRow("Стадия", pf(data.stage)) +
+      kvRow("Владелец", pf(data.owner)) +
+      kvRow("Следующий гейт", pf(data.next_gate)) +
+      kvRow("Следующий ход", pf(data.next_move)) +
+      kvRow("Открытых блокеров", (data.open_blockers || {}).count) +
+      kvRow("Открытых обязательств", (data.open_commitments || {}).count) +
+      kvRow("Фактический результат", "НЕДОСТУПНО — поля нет в модели");
+
+    liveShell(root, "BrazilPortal", data.source_status, data.degraded_reason, html,
+      (data.open_blockers && data.open_blockers.note) || "");
+
+    // legacy hooks on this page, if present
+    var page = document.querySelector('[data-page-panel="brazilportal"]');
+    if (page) {
+      var map = { stage: pf(data.stage), owner: pf(data.owner),
+                  status: sv.projected_status, blockers: (data.open_blockers || {}).count };
+      Object.keys(map).forEach(function (k) {
+        var e = page.querySelector('[data-bp="' + k + '"]');
+        if (e) e.textContent = map[k] == null ? "—" : String(map[k]);
+      });
+    }
+  }
+
+  function renderFoundationAggregate(data) {
+    var root = document.querySelector('[data-fnd-live="root"]');
+    if (!root) return;
+    if (!sourceState.foundationAgg.ok || !data) return renderFetchFailure(root, "Основание", "foundationAgg");
+
+    var dims = asArray(data.dimensions).map(function (d) {
+      return "<div class='live-row'>" +
+        "<div class='live-row-head'><b>" + esc(d.dimension) + "</b>" +
+        "<span class='state " + stateClass(d.state) + "'>" + esc(d.state) + "</span></div>" +
+        kvRow("Доказано источником", d.proven_by_source) +
+        kvRow("Поле", d.proven_by_field) +
+        (d.blocking_reason ? "<p class='live-note'>" + esc(d.blocking_reason) + "</p>" : "") +
+        "</div>";
+    }).join("");
+
+    var blocking = asArray(data.blocking_reasons);
+    var missing = asArray(data.missing_dimensions);
+
+    liveShell(root, "Готовность основания", data.source_status, data.degraded_reason,
+      kvRow("Свежесть", data.freshness_state) +
+      kvRow("Последний успешный чтение-срез", data.last_success_at) +
+      (missing.length ? kvRow("Недоказанные измерения", missing.join(", ")) : "") +
+      (blocking.length
+        ? "<div class='live-row'><div class='live-row-head'><b>Блокирующие причины</b></div><ul><li>" +
+          blocking.map(esc).join("</li><li>") + "</li></ul></div>"
+        : "") + dims,
+      data.readiness_contract);
+  }
+
+  function renderAtlasState(data) {
+    var root = document.querySelector('[data-atlas-live="root"]');
+    if (!root) return;
+    if (!sourceState.atlasState.ok || !data) return renderFetchFailure(root, "Атлас", "atlasState");
+    liveShell(root, "Атлас", data.source_status, data.degraded_reason,
+      kvRow("Класс ошибки", data.error_class) +
+      kvRow("Стадия блокировки", data.blocked_stage) +
+      "<div class='live-row'><div class='live-row-head'><b>Недоступные поля</b></div><ul><li>" +
+      asArray(data.unavailable_fields).map(esc).join("</li><li>") + "</li></ul></div>",
+      data.unblock_requires);
+  }
+
+  function renderTwinState(data) {
+    var root = document.querySelector('[data-twin-live="root"]');
+    if (!root) return;
+    if (!sourceState.twinState.ok || !data) return renderFetchFailure(root, "DT", "twinState");
+
+    var po = data.program_object || {};
+    var inv = data.safety_invariants_status || {};
+    liveShell(root, "Двойник", data.source_status, data.degraded_reason,
+      kvRow("Класс ошибки", data.error_class) +
+      kvRow("Стадия блокировки", data.blocked_stage) +
+      "<div class='live-row'><div class='live-row-head'><b>Объект программы</b>" +
+      "<span class='state " + stateClass(po.declared_status) + "'>" + esc(po.declared_status || "—") + "</span></div>" +
+      kvRow("Объект", po.object_id) + kvRow("Стадия", po.stage) +
+      kvRow("Следующий гейт", po.next_gate) +
+      kvRow("Открытых блокеров", po.open_blockers) +
+      "<p class='live-note'>" + esc(po.note || "") + "</p></div>" +
+      "<div class='live-row'><div class='live-row-head'><b>Предохранители</b></div>" +
+      kvRow("PROSPECTIVE_LONGITUDINAL", inv.prospective_longitudinal) +
+      kvRow("Скрытый прогноз", inv.hidden_prediction_exposure) +
+      kvRow("Обучение на неоднозначном исходе", inv.learning_on_ambiguous_outcome) +
+      "<p class='live-note'>" + esc(inv.note || "") + "</p></div>",
+      data.unblock_requires);
+  }
+
   function renderDiagnostics() {
     var page = document.querySelector('[data-page-panel="diagnostics"]');
     if (!page) return;
@@ -1360,7 +1552,12 @@
       fetchJSON("testingHealth", ENDPOINTS.testingHealth),
       fetchJSON("testingRunner", ENDPOINTS.testingRunner),
       fetchJSON("hubHealth", ENDPOINTS.hubHealth),
-      fetchJSON("continuityHealth", ENDPOINTS.continuityHealth)
+      fetchJSON("continuityHealth", ENDPOINTS.continuityHealth),
+      fetchJSON("opsProjection", ENDPOINTS.opsProjection),
+      fetchJSON("brazilPortal", ENDPOINTS.brazilPortal),
+      fetchJSON("foundationAgg", ENDPOINTS.foundationAgg),
+      fetchJSON("atlasState", ENDPOINTS.atlasState),
+      fetchJSON("twinState", ENDPOINTS.twinState)
     ]).then(function (res) {
       var routesJSON = res[0];
       var summaryJSON = res[1];
@@ -1373,6 +1570,11 @@
       var testingRunner = res[8];
       var hubHealth = res[9];
       var continuityHealth = res[10];
+      var opsProjection = res[11];
+      var brazilPortal = res[12];
+      var foundationAgg = res[13];
+      var atlasState = res[14];
+      var twinState = res[15];
 
       var routes = routesJSON && Array.isArray(routesJSON.routes) ? routesJSON.routes : [];
       var summary = summaryJSON && summaryJSON.summary ? summaryJSON.summary : null;
@@ -1401,6 +1603,11 @@
       renderTesting(testingSummary, testingRunner);
       renderSignals(objects, blockers, inbox, testingSummary);
       renderFoundation(continuityHealth, hubHealth, objects, inbox);
+      renderOperations(opsProjection);
+      renderBrazilPortal(brazilPortal);
+      renderFoundationAggregate(foundationAgg);
+      renderAtlasState(atlasState);
+      renderTwinState(twinState);
       renderDiagnostics();
 
       renderResearch(objects, blockers).then(function () {
