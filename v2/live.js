@@ -1,4 +1,4 @@
-// Founder Panel v2 — Live Read Wiring G3
+// Founder Panel v2 — Live Read Wiring G14
 // Scope: READ ONLY.
 // Sources: existing same-origin Orchestrator + Continuity GET projections.
 // No canonical writes. No local priority engine. No invented dependency links.
@@ -222,24 +222,100 @@
       ".home-live-list{display:flex;flex-direction:column;gap:7px}",
       ".home-live-item{padding:9px 0;border-top:1px solid var(--line-soft)}",
       ".home-live-item:first-child{border-top:0}",
-      ".home-live-item b{font-size:12px;font-weight:500}.home-live-item small{display:block;margin-top:3px;color:#8e9792;font-size:10px;line-height:1.4}"
+      ".home-live-item b{font-size:12px;font-weight:500}.home-live-item small{display:block;margin-top:3px;color:#8e9792;font-size:10px;line-height:1.4}",
+      ".live-unavailable{min-height:110px;display:flex;flex-direction:column;justify-content:center;color:#9aa39e;font-size:12px;line-height:1.5}",
+      ".live-unavailable b{font:400 16px Georgia,'Times New Roman',serif;color:#dfe2dc;margin-bottom:5px}"
     ].join("");
     document.head.appendChild(style);
   }
 
-  function setOrchestratorHeader(ok) {
+  function setOrchestratorHeader(routesOk, summaryOk, metricsOk) {
     var page = document.querySelector('[data-page-panel="orchestrator"]');
     if (!page) return;
     var badge = page.querySelector(".top-actions .state");
     if (!badge) return;
     badge.classList.remove("unavailable", "warn", "live");
-    if (ok) {
-      badge.classList.add("live");
-      badge.textContent = "ДАННЫЕ ПОДКЛЮЧЕНЫ";
-    } else {
+    if (!routesOk) {
       badge.classList.add("unavailable");
       badge.textContent = "ИСТОЧНИК НЕДОСТУПЕН";
+    } else if (!summaryOk || !metricsOk) {
+      badge.classList.add("warn");
+      badge.textContent = "ДАННЫЕ ЧАСТИЧНО";
+    } else {
+      badge.classList.add("live");
+      badge.textContent = "ДАННЫЕ ПОДКЛЮЧЕНЫ";
     }
+  }
+
+  function unavailableHTML(title, detail) {
+    return "<div class='live-unavailable'><b>" + esc(title) + "</b><span>" + esc(detail) + "</span></div>";
+  }
+
+  function setHomeKPI(label, value, detail) {
+    var cards = document.querySelectorAll('[data-page-panel="home"] .strip .card');
+    cards.forEach(function (card) {
+      var small = card.querySelector("small");
+      var strong = card.querySelector("strong");
+      var span = card.querySelector("span");
+      if (!small || small.textContent.trim() !== label) return;
+      if (strong) strong.textContent = value;
+      if (span) span.textContent = detail;
+    });
+  }
+
+  function renderHomeKPIs(routes, inbox) {
+    if (sourceState.routes.ok) {
+      var active = routes.filter(function (r) { return !isClosed(r); });
+      setHomeKPI("Маршруты", String(active.length), "активные маршруты из текущего чтения Оркестратора");
+    } else {
+      setHomeKPI("Маршруты", "Недоступно", "текущее чтение Оркестратора завершилось ошибкой");
+    }
+
+    if (sourceState.inbox.ok) {
+      var needs = inbox && Array.isArray(inbox.needs_founder) ? inbox.needs_founder : [];
+      var declared = inbox && inbox.summary && inbox.summary.needs_founder != null ? inbox.summary.needs_founder : needs.length;
+      setHomeKPI("Внимание Основателя", String(declared), "реальные элементы Founder inbox");
+    } else {
+      setHomeKPI("Внимание Основателя", "Недоступно", "Founder inbox не подтвердил текущее состояние");
+    }
+  }
+
+  function renderRoutesUnavailable() {
+    [
+      '[data-page-panel="orchestrator"] .mine .panel-body',
+      '[data-page-panel="orchestrator"] .waiting .panel-body',
+      '[data-page-panel="orchestrator"] .orch-risk .panel-body'
+    ].forEach(function (selector) {
+      var el = document.querySelector(selector);
+      if (el) el.innerHTML = unavailableHTML("Источник маршрутов недоступен", "Панель не сохраняет демонстрационные или прошлые маршруты как current state.");
+    });
+
+    var page = document.querySelector('[data-page-panel="orchestrator"]');
+    if (page) {
+      page.querySelectorAll(".strip .card").forEach(function (card) {
+        var strong = card.querySelector("strong");
+        var span = card.querySelector("span");
+        if (strong) strong.textContent = "Недоступно";
+        if (span) span.textContent = "текущее чтение маршрутов завершилось ошибкой";
+      });
+    }
+
+    var board = document.querySelector('[data-page-panel="orchestrator"] .progress-board');
+    var scale = document.querySelector('[data-page-panel="orchestrator"] .attention-scale');
+    var graph = document.querySelector('[data-page-panel="orchestrator"] .dependency-graph');
+    if (board) board.innerHTML = unavailableHTML("Маршрутные данные недоступны", "Визуальная шкала очищена до нового успешного чтения.");
+    if (scale) scale.innerHTML = "<h3>ШКАЛА ВНИМАНИЯ</h3>" + unavailableHTML("Нет current state", "Диагностическая шкала не строится по прошлым или демонстрационным данным.");
+    if (graph) graph.innerHTML = "<div class='dep-live-message'>Источник маршрутов недоступен.<br>Граф очищен до нового успешного чтения.</div>";
+
+    var homeNow = document.querySelector('[data-page-panel="home"] .home-panel.now .body');
+    var homeRisk = document.querySelector('[data-page-panel="home"] .home-panel.risk .body');
+    if (homeNow) homeNow.innerHTML = unavailableHTML("Оркестратор недоступен", "Главная не показывает старый порядок маршрутов как текущий.");
+    if (homeRisk) homeRisk.innerHTML = unavailableHTML("Риск-модель недоступна", "Без current routes Панель не вычисляет диагностический застой.");
+  }
+
+  function renderInboxUnavailable() {
+    var body = document.querySelector('[data-page-panel="home"] .home-panel.need .body');
+    if (body) body.innerHTML = unavailableHTML("Founder inbox недоступен", "Панель не может подтвердить, есть ли сейчас решения, требующие Основателя.");
   }
 
   function renderOrchestratorKPIs(routes, summary, metrics, depModel) {
@@ -564,7 +640,8 @@
       var metrics = metricsJSON && metricsJSON.metrics ? metricsJSON.metrics : null;
       var depModel = dependencyModel(routes);
 
-      setOrchestratorHeader(sourceState.routes.ok);
+      setOrchestratorHeader(sourceState.routes.ok, sourceState.summary.ok, sourceState.metrics.ok);
+      renderHomeKPIs(routes, inbox);
 
       if (sourceState.routes.ok) {
         renderOrchestratorKPIs(routes, summary, metrics, depModel);
@@ -572,10 +649,14 @@
         renderVisualBoard(routes, depModel);
         renderHomeRoutes(routes, depModel);
         renderHomeRisk(routes, depModel);
+      } else {
+        renderRoutesUnavailable();
       }
 
       if (sourceState.inbox.ok) {
         renderHomeNeeds(inbox);
+      } else {
+        renderInboxUnavailable();
       }
 
       updateTrust();
