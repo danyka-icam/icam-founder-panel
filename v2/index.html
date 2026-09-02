@@ -1399,6 +1399,18 @@
       margin-top:10px;padding:8px 10px;border-left:2px solid rgba(214,187,120,.28);
       color:#858e89;font-size:9px;line-height:1.45
     }
+
+    .foundation-live-list{display:flex;flex-direction:column;gap:7px}
+    .foundation-live-item{padding:8px 0;border-top:1px solid var(--line-soft)}
+    .foundation-live-item:first-child{border-top:0}
+    .foundation-live-item b{display:block;font:400 12px Georgia,"Times New Roman",serif}
+    .foundation-live-item span{display:block;margin-top:3px;color:#8f9792;font-size:9.2px;line-height:1.45}
+    .foundation-live-item small{display:block;margin-top:4px;color:#7f8984;font-size:8.5px;line-height:1.35}
+    .foundation-source-summary{padding:10px 12px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(18,24,26,.13)}
+    .foundation-source-summary strong{font:400 16px Georgia,"Times New Roman",serif}
+    .foundation-source-summary p{margin:7px 0 0;color:#8f9792;font-size:9.6px;line-height:1.5}
+    .foundation-source-summary.warn{border-color:rgba(214,187,120,.22)}
+    .foundation-source-summary.bad{border-color:rgba(212,117,99,.24)}
 </style>
 </head>
 <body>
@@ -1784,24 +1796,24 @@
 </div>
 <section class="strip foundation-kpis-v2">
 <article class="card">
-<small>Общее состояние</small>
-<strong>—</strong>
-<span>можно ли системе безопасно продолжать работу</span>
+<small>Готовность основания</small>
+<strong data-fnd="readiness">—</strong>
+<span>готовность нельзя вывести из одного health endpoint</span>
 </article>
 <article class="card">
-<small>Целостность данных</small>
-<strong>—</strong>
-<span>состояние, проекции и отображение не расходятся</span>
+<small>Continuity health</small>
+<strong data-fnd="continuity">—</strong>
+<span>текущее здоровье операционного источника истины</span>
 </article>
 <article class="card">
-<small>Восстановление</small>
-<strong>—</strong>
-<span>есть ли проверенный путь возврата после сбоя</span>
+<small>Readback / recovery</small>
+<strong data-fnd="recovery">—</strong>
+<span>подтверждён ли путь восстановления и обратного чтения</span>
 </article>
 <article class="card">
 <small>Системное внимание</small>
-<strong>—</strong>
-<span>открытые проблемы, которые относятся именно к основанию системы</span>
+<strong data-fnd="system">—</strong>
+<span>открытые SYSTEM-вопросы из Continuity health</span>
 </article>
 </section>
 <section class="foundation-hero-grid">
@@ -1813,7 +1825,7 @@
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-fnd="readiness-card">
 <div class="foundation-readiness-body">
 <div class="foundation-orbit">
 <div class="foundation-orbit-ring ring-a"></div>
@@ -1849,7 +1861,7 @@
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-fnd="attention">
 <div class="foundation-empty compact">
 <strong>Системные проблемы ещё не подключены</strong>
 <span>Здесь появятся только инциденты уровня истины, восстановления, долговечности, полномочий или целостности проекций. Обычные проектные блокеры живут в своих ветках.</span>
@@ -1866,7 +1878,7 @@
 <section class="foundation-backbone">
 <article class="card backbone-card">
 <div class="backbone-number">01</div>
-<div class="panel-body">
+<div class="panel-body" data-fnd="backbone-continuity">
 <h3>Continuity / Steward</h3>
 <strong>Операционная истина</strong>
 <p>Текущее состояние объектов, события, внимание, владельцы хода, обязательства и блокеры. Остальные слои не должны создавать второй источник истины.</p>
@@ -1875,7 +1887,7 @@
 </article>
 <article class="card backbone-card">
 <div class="backbone-number">02</div>
-<div class="panel-body">
+<div class="panel-body" data-fnd="backbone-durability">
 <h3>Долговечность артефактов</h3>
 <strong>Байты, подтверждение записи и обратное чтение</strong>
 <p>Файл считается сохранённым не потому, что его «отправили», а потому что подтверждены запись, долговечное местоположение и возможность прочитать его обратно.</p>
@@ -1884,7 +1896,7 @@
 </article>
 <article class="card backbone-card">
 <div class="backbone-number">03</div>
-<div class="panel-body">
+<div class="panel-body" data-fnd="backbone-approval">
 <h3>Путь одобрения Основателя</h3>
 <strong>Изменение полномочий только через явное решение</strong>
 <p>Предложение изменения не равно разрешению. Действия, требующие уровня Основателя, остаются заблокированными до явного одобрения.</p>
@@ -1893,7 +1905,7 @@
 </article>
 <article class="card backbone-card">
 <div class="backbone-number">04</div>
-<div class="panel-body">
+<div class="panel-body" data-fnd="backbone-projection">
 <h3>Целостность отображения</h3>
 <strong>Экран не может быть «зелёным» при недоступном источнике</strong>
 <p>Панель обязана различать живые, устаревшие, деградированные и недоступные данные и не подменять отсутствие источника старым спокойным состоянием.</p>
@@ -1981,7 +1993,7 @@
 <div class="head-title"><h2>ДОЛГОВЕЧНОСТЬ</h2><small>файл существует не тогда, когда его название видно в интерфейсе</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-fnd="durability-detail">
 <div class="durability-grid">
 <div><small>Запись</small><strong>—</strong><span>подтверждена ли операция хранения</span></div>
 <div><small>Обратное чтение</small><strong>—</strong><span>можно ли получить те же байты обратно</span></div>
@@ -1994,7 +2006,7 @@
 <div class="head-title"><h2>ПОСЛЕДНЕЕ ИЗМЕНЕНИЕ ФУНДАМЕНТА</h2><small>только существенное изменение основания</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-fnd="last-change">
 <div class="foundation-empty compact">
 <strong>История основания ещё не подключена</strong>
 <span>Здесь будут только результаты проверок, инциденты, восстановление, изменение границ полномочий или существенное изменение несущего контура.</span>
