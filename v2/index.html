@@ -1377,6 +1377,28 @@
     .research-mini-item b{display:block;font:400 12px Georgia,"Times New Roman",serif}
     .research-mini-item span{display:block;margin-top:3px;color:#8f9792;font-size:9px;line-height:1.4}
     @media(max-width:760px){.research-live-row{grid-template-columns:1fr}}
+
+    .signals-live-list{display:flex;flex-direction:column;gap:7px}
+    .signals-live-item{
+      padding:9px 0;border-top:1px solid var(--line-soft)
+    }
+    .signals-live-item:first-child{border-top:0}
+    .signals-live-item b{
+      display:block;font:400 12px Georgia,"Times New Roman",serif
+    }
+    .signals-live-item span{
+      display:block;margin-top:3px;color:#8f9792;font-size:9.3px;line-height:1.45
+    }
+    .signals-live-item small{
+      display:block;margin-top:4px;color:#7f8984;font-size:8.5px;line-height:1.35
+    }
+    .signals-live-item.attention{box-shadow:inset 2px 0 0 rgba(214,187,120,.52);padding-left:9px}
+    .signals-live-item.risk{box-shadow:inset 2px 0 0 rgba(212,117,99,.48);padding-left:9px}
+    .signals-live-item.change{box-shadow:inset 2px 0 0 rgba(169,196,127,.42);padding-left:9px}
+    .signals-partial-note{
+      margin-top:10px;padding:8px 10px;border-left:2px solid rgba(214,187,120,.28);
+      color:#858e89;font-size:9px;line-height:1.45
+    }
 </style>
 </head>
 <body>
@@ -2962,22 +2984,22 @@
 <section class="strip signals-kpis-v2">
 <article class="card">
 <small>Требует меня</small>
-<strong>—</strong>
+<strong data-s="founder">—</strong>
 <span>сигналы с явным запросом решения Основателя</span>
 </article>
 <article class="card">
 <small>Материальные изменения</small>
-<strong>—</strong>
+<strong data-s="changes">—</strong>
 <span>события, которые реально меняют состояние линии</span>
 </article>
 <article class="card">
 <small>Риск / отклонение</small>
-<strong>—</strong>
+<strong data-s="risks">—</strong>
 <span>подтверждённые проблемы из источников, а не вычисленный страх</span>
 </article>
 <article class="card">
 <small>Возможности</small>
-<strong>—</strong>
+<strong data-s="opportunities">—</strong>
 <span>только подтверждённые внешние или портфельные возможности</span>
 </article>
 </section>
@@ -2990,13 +3012,13 @@
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-s="hero">
 <div class="signals-empty hero">
 <div class="signal-pulse">
 <span></span><i></i><b></b>
 </div>
 <strong>Сигнальный слой ещё не подключён</strong>
-<p>Панель не показывает демонстрационные «возможности», корреляции или угрозы. После интеграции здесь будут только реальные Founder-attention события, существенные изменения, подтверждённые риски и внешние сигналы из разрешённых источников.</p>
+<p>Панель не показывает демонстрационные «возможности», корреляции или угрозы. После интеграции здесь будут только реальные внимание Основателя события, существенные изменения, подтверждённые риски и внешние сигналы из разрешённых источников.</p>
 </div>
 </div>
 </article>
@@ -3008,7 +3030,7 @@
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-s="founder-list">
 <div class="signals-empty compact">
 <strong>Входящие Основателя не подключены</strong>
 <span>Когда источник будет подключён, сюда попадут только реальные `needs_founder`, а не все уведомления системы.</span>
@@ -3094,7 +3116,7 @@
 </div>
 </div>
 <div class="signal-flow-note">
-        «Сигналы» — это слой внимания, а не второй event store и не второй список задач.
+        «Сигналы» — это слой внимания, а не второй хранилище событий и не второй список задач.
       </div>
 </div>
 </section>
@@ -3104,7 +3126,7 @@
 <div class="head-title"><h2>ПОСЛЕДНИЕ МАТЕРИАЛЬНЫЕ ИЗМЕНЕНИЯ</h2><small>что изменилось в системе или внешней среде</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-s="changes-list">
 <div class="signals-empty compact">
 <strong>История изменений ещё не подключена</strong>
 <span>Показываем событие, объект, источник, время и человеческое объяснение «было → стало → почему важно».</span>
@@ -3116,7 +3138,7 @@
 <div class="head-title"><h2>РИСКИ И ОТКЛОНЕНИЯ</h2><small>только подтверждённые проблемы</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-s="risks-list">
 <div class="signals-empty compact">
 <strong>Источник рисков ещё не подключён</strong>
 <span>Приоритет или severity берётся из источника. Если источник не оценил тяжесть, Панель показывает «без оценки», а не рассчитывает собственный красный балл.</span>
@@ -3128,7 +3150,7 @@
 <div class="head-title"><h2>ВНЕШНИЕ ВОЗМОЖНОСТИ</h2><small>факт возможности, а не декоративный бизнес-радар</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-s="opportunities-list">
 <div class="signals-empty compact">
 <strong>Внешний поток ещё не подключён</strong>
 <span>Позже сюда могут приходить подтверждённые сигналы от внешних исследовательских, рыночных и продуктовых источников. До подключения блок остаётся пустым.</span>
@@ -3140,7 +3162,7 @@
 <div class="head-title"><h2>НАБЛЮДАТЬ</h2><small>важно помнить, но сейчас ничего не делать</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-s="watch-list">
 <div class="signals-empty compact">
 <strong>Наблюдаемых сигналов пока нет в проекции</strong>
 <span>Это отдельная полка, чтобы несрочный контекст не превращался в ложное «Требует меня».</span>
@@ -3216,8 +3238,8 @@
 </section><section class="scanner-bridge-grid">
 <article class="card">
 <div class="panel-body">
-<b>Signals Bridge → Panel</b>
-<span>Browser не делает ingest. Scanner / bridge отправляет `POST /api/signals/ingest`; Панель читает `GET /api/signals`.</span>
+<b>Signals Bridge → Панель</b>
+<span>Браузер не выполняет ingest. Scanner / bridge отправляет `POST /api/signals/ingest`; Панель читает `GET /api/signals`.</span>
 </div>
 </article>
 <article class="card">
