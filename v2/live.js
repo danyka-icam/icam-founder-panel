@@ -1,4 +1,4 @@
-// Founder Panel v2 — Live Read Wiring G16
+// Founder Panel v2 — Live Read Wiring G17
 // Scope: READ ONLY.
 // Sources: existing same-origin Orchestrator + Continuity GET projections.
 // No canonical writes. No local priority engine. No invented dependency links.
@@ -1031,6 +1031,139 @@
     });
   }
 
+
+  function renderSignals(objectsResp, blockersResp, inbox, testingSummary) {
+    var page = document.querySelector('[data-page-panel="signals"]');
+    if (!page) return;
+
+    var objectsOk = sourceState.objects.ok && objectsResp;
+    var blockersOk = sourceState.blockers.ok && blockersResp;
+    var inboxOk = sourceState.inbox.ok && inbox;
+    var testingOk = sourceState.testingSummary.ok && testingSummary;
+
+    function put(k, value) {
+      var e = page.querySelector('[data-s="' + k + '"]');
+      if (e) e.textContent = String(value);
+    }
+
+    var founderItems = inboxOk && Array.isArray(inbox.needs_founder) ? inbox.needs_founder : [];
+    var MATERIAL = ["GATE_RESULT", "DECISION", "STATUS_CHANGE", "STAGE_CHANGE", "TEST_RESULT", "EXTERNAL_EVENT", "NEW_FILE"];
+    var changes = objectsOk ? asArray(objectsResp.items).filter(function (o) {
+      return MATERIAL.indexOf(String(o.last_meaning_kind || "").toUpperCase()) >= 0 &&
+             !!(o.last_summary || o.name || o.object_id);
+    }).sort(function (a, b) {
+      return String(b.last_event_at || "").localeCompare(String(a.last_event_at || ""));
+    }) : [];
+
+    var blockers = blockersOk ? asArray(blockersResp.items).filter(function (b) {
+      return !b.is_test && String(b.status || "").toUpperCase() !== "CLEARED";
+    }) : [];
+
+    var riskyTests = testingOk ? allTests(testingSummary).filter(function (t) {
+      return ["BLOCKED", "RERUN_REQUIRED"].indexOf(String(t.status || "").toUpperCase()) >= 0;
+    }) : [];
+
+    put("founder", inboxOk ? founderItems.length : "Недоступно");
+    put("changes", objectsOk ? changes.length : "Недоступно");
+    put("risks", (blockersOk || testingOk) ? blockers.length + riskyTests.length : "Недоступно");
+    put("opportunities", "—");
+
+    var founderBox = page.querySelector('[data-s="founder-list"]');
+    if (founderBox) {
+      if (!inboxOk) {
+        founderBox.innerHTML = unavailableHTML("Входящие Основателя недоступны", "Панель не может подтвердить, есть ли сейчас решения, требующие Основателя.");
+      } else if (!founderItems.length) {
+        founderBox.innerHTML = "<div class='signals-empty compact'><strong>Сейчас решений Основателя нет</strong><span>Текущие Входящие Основателя не содержат `needs_founder`.</span></div>";
+      } else {
+        founderBox.innerHTML = "<div class='signals-live-list'>" + founderItems.slice(0, 6).map(function (x) {
+          return "<div class='signals-live-item attention'><b>" + esc(x.title || x.summary || "Требуется решение") + "</b>" +
+            "<span>" + esc(x.object_id || "объект не указан") + "</span>" +
+            "<small>Входящие Основателя · " + esc(ago(x.opened_at || x.created_at || x.updated_at)) + "</small></div>";
+        }).join("") + "</div>";
+      }
+    }
+
+    var changesBox = page.querySelector('[data-s="changes-list"]');
+    if (changesBox) {
+      if (!objectsOk) {
+        changesBox.innerHTML = unavailableHTML("Continuity objects недоступны", "Материальные изменения не выводятся из прошлых данных.");
+      } else if (!changes.length) {
+        changesBox.innerHTML = "<div class='signals-empty compact'><strong>Материальных изменений нет в текущей проекции</strong><span>Ни один объект не содержит последнего события разрешённого материального типа.</span></div>";
+      } else {
+        changesBox.innerHTML = "<div class='signals-live-list'>" + changes.slice(0, 8).map(function (o) {
+          return "<div class='signals-live-item change'><b>" + esc(o.name || o.object_id || "Изменение") + "</b>" +
+            "<span>" + esc(o.last_summary || o.last_meaning_kind || "изменение состояния") + "</span>" +
+            "<small>" + esc(o.object_id || "ID не указан") + " · " + esc(o.last_meaning_kind || "событие") + " · " + esc(ago(o.last_event_at)) + "</small></div>";
+        }).join("") + "</div>";
+      }
+    }
+
+    var risksBox = page.querySelector('[data-s="risks-list"]');
+    if (risksBox) {
+      if (!blockersOk && !testingOk) {
+        risksBox.innerHTML = unavailableHTML("Источники риска недоступны", "Панель не вычисляет собственный риск без подтверждённого источника.");
+      } else {
+        var rows = blockers.slice(0, 6).map(function (b) {
+          return "<div class='signals-live-item risk'><b>" + esc(b.title || b.blocker || "Открытое препятствие") + "</b>" +
+            "<span>" + esc(b.object_id || "объект не указан") + " · " + esc(b.status || "открыт") + "</span>" +
+            "<small>Continuity blocker · тяжесть без оценки, если источник её не передал</small></div>";
+        });
+        riskyTests.slice(0, 6).forEach(function (t) {
+          rows.push("<div class='signals-live-item risk'><b>" + esc(t.test_id || "Проверка") + "</b>" +
+            "<span>" + esc(t.owning_branch || "владеющая ветка не указана") + " · " + esc(ruStatus(t.status)) + "</span>" +
+            "<small>Testing · " + esc(t.blocker || t.next_action || "нужна реакция владеющей ветки") + "</small></div>");
+        });
+        risksBox.innerHTML = rows.length ? "<div class='signals-live-list'>" + rows.join("") + "</div>" :
+          "<div class='signals-empty compact'><strong>Подтверждённых рисков сейчас нет</strong><span>Текущие Continuity blockers и Testing summary не содержат открытых нетестовых блокеров, BLOCKED или RERUN_REQUIRED.</span></div>";
+      }
+    }
+
+    var opportunitiesBox = page.querySelector('[data-s="opportunities-list"]');
+    if (opportunitiesBox) {
+      opportunitiesBox.innerHTML =
+        "<div class='signals-empty compact'><strong>Внешний источник возможностей ещё не подключён</strong>" +
+        "<span>Market Scanner проходит QA. Панель не выводит «возможности» из обычных изменений Continuity и не создаёт их локально.</span></div>";
+    }
+
+    var watchBox = page.querySelector('[data-s="watch-list"]');
+    if (watchBox) {
+      watchBox.innerHTML =
+        "<div class='signals-empty compact'><strong>Полка «Наблюдать» не формируется автоматически</strong>" +
+        "<span>Без явной классификации WATCH / наблюдать Панель не понижает важность события по собственной эвристике.</span></div>";
+    }
+
+    var hero = page.querySelector('[data-s="hero"]');
+    if (hero) {
+      var heroRows = [];
+      founderItems.slice(0, 2).forEach(function (x) {
+        heroRows.push("<div class='signals-live-item attention'><b>" + esc(x.title || x.summary || "Требуется решение Основателя") + "</b>" +
+          "<span>" + esc(x.object_id || "объект не указан") + "</span><small>Требует Основателя</small></div>");
+      });
+      blockers.slice(0, 2).forEach(function (b) {
+        heroRows.push("<div class='signals-live-item risk'><b>" + esc(b.title || b.blocker || "Открытый блокер") + "</b>" +
+          "<span>" + esc(b.object_id || "объект не указан") + "</span><small>Подтверждённый blocker · без локального severity</small></div>");
+      });
+      changes.slice(0, 2).forEach(function (o) {
+        heroRows.push("<div class='signals-live-item change'><b>" + esc(o.name || o.object_id || "Изменение") + "</b>" +
+          "<span>" + esc(o.last_summary || "материальное изменение") + "</span><small>" + esc(o.last_meaning_kind || "событие") + " · " + esc(ago(o.last_event_at)) + "</small></div>");
+      });
+      if (!objectsOk && !blockersOk && !inboxOk) {
+        hero.innerHTML = unavailableHTML("Внутренние источники сигналов недоступны", "Панель не сохраняет старую ленту как текущую.");
+      } else if (!heroRows.length) {
+        hero.innerHTML = "<div class='signals-empty hero'><strong>Сейчас нет подтверждённых внутренних сигналов</strong><p>Это не означает, что внешний рынок спокоен: Market Scanner ещё не подключён.</p></div>";
+      } else {
+        hero.innerHTML = "<div class='signals-live-list'>" + heroRows.join("") + "</div>" +
+          "<div class='signals-partial-note'>Внутренний слой подключён частично. Между типами сигналов Панель не строит собственный рейтинг. Market Scanner / внешние возможности ожидают отдельного источника.</div>";
+      }
+    }
+
+    var anyInternal = objectsOk || blockersOk || inboxOk || testingOk;
+    pageBadge("signals",
+      anyInternal ? "warn" : "unavailable",
+      anyInternal ? "ВНУТРЕННИЕ ДАННЫЕ ПОДКЛЮЧЕНЫ · MARKET SCANNER ОЖИДАЕТСЯ" : "ВНУТРЕННИЕ ИСТОЧНИКИ НЕДОСТУПНЫ"
+    );
+  }
+
   function renderDiagnostics() {
     var page = document.querySelector('[data-page-panel="diagnostics"]');
     if (!page) return;
@@ -1137,6 +1270,7 @@
       renderRegistry(objects, blockers);
       renderDocuments(hubHealth);
       renderTesting(testingSummary, testingRunner);
+      renderSignals(objects, blockers, inbox, testingSummary);
       renderDiagnostics();
 
       renderResearch(objects, blockers).then(function () {
