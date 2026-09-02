@@ -1,4 +1,4 @@
-// Founder Panel v2 — Live Read Wiring G14
+// Founder Panel v2 — Live Read Wiring G15
 // Scope: READ ONLY.
 // Sources: existing same-origin Orchestrator + Continuity GET projections.
 // No canonical writes. No local priority engine. No invented dependency links.
@@ -10,7 +10,13 @@
     routes: API + "/observer/routes",
     summary: API + "/observer/summary",
     metrics: API + "/observer/metrics",
-    inbox: API + "/continuity/founder-inbox"
+    inbox: API + "/continuity/founder-inbox",
+    objects: API + "/continuity/objects",
+    blockers: API + "/continuity/blockers",
+    testingSummary: API + "/testing/summary",
+    testingHealth: API + "/testing-health",
+    testingRunner: API + "/testing-runner-health",
+    hubHealth: API + "/hub/sync-health"
   };
 
   var REFRESH_MS = 90000;
@@ -21,7 +27,13 @@
     routes: { ok: false, at: null, error: null },
     summary: { ok: false, at: null, error: null },
     metrics: { ok: false, at: null, error: null },
-    inbox: { ok: false, at: null, error: null }
+    inbox: { ok: false, at: null, error: null },
+    objects: { ok: false, at: null, error: null },
+    blockers: { ok: false, at: null, error: null },
+    testingSummary: { ok: false, at: null, error: null },
+    testingHealth: { ok: false, at: null, error: null },
+    testingRunner: { ok: false, at: null, error: null },
+    hubHealth: { ok: false, at: null, error: null }
   };
 
   function esc(value) {
@@ -621,6 +633,325 @@
     window.__TRUST.v2 = window.__PANEL_V2_LIVE;
   }
 
+
+  function ruStatus(v) {
+    var map = {
+      ACTIVE_SERVICE: "работает как служба",
+      ACTIVE_RESEARCH: "идёт исследование",
+      ACTIVE_BUILD: "идёт сборка",
+      ACTIVE_PRIORITY: "приоритетное направление",
+      ACTIVE_DESIGN: "проектирование",
+      ACTIVE_ENGINEERING: "инженерная работа",
+      ACTIVE_IMPLEMENTATION: "внедрение",
+      ACTIVE_INFRASTRUCTURE: "инфраструктура",
+      ACTIVE_BRANCH: "активная ветка",
+      PREPARING: "готовится",
+      PARKED: "на паузе",
+      REQUESTED: "запрошено",
+      READY: "готово к запуску",
+      RUNNING: "выполняется",
+      COMPLETED: "завершено",
+      BLOCKED: "остановлено",
+      RERUN_REQUIRED: "нужен повтор",
+      NEEDS_ADJUDICATION: "ждёт разбора ветки",
+      INVALIDATED: "отбраковано",
+      INCONCLUSIVE: "без вывода"
+    };
+    var s = String(v || "");
+    return map[s] || s.replace(/_/g, " ").toLowerCase() || "—";
+  }
+
+  function ageMinutesLabel(minutes) {
+    if (minutes == null || !isFinite(Number(minutes))) return "—";
+    var n = Math.max(0, Number(minutes));
+    var h = Math.floor(n / 60), m = Math.round(n % 60);
+    return h ? h + "ч " + m + "м" : m + "м";
+  }
+
+  function pageBadge(pageKey, mode, text) {
+    var page = document.querySelector('[data-page-panel="' + pageKey + '"]');
+    if (!page) return;
+    var badge = page.querySelector(".top-actions .state");
+    if (!badge) return;
+    badge.classList.remove("unavailable", "warn", "live", "lab");
+    badge.classList.add(mode);
+    badge.textContent = text;
+  }
+
+  function allTests(summary) {
+    var by = {};
+    if (!summary) return [];
+    asArray(summary.active).forEach(function (t) { if (t && t.test_id) by[t.test_id] = t; });
+    asArray(summary.recent).forEach(function (t) { if (t && t.test_id) by[t.test_id] = t; });
+    return Object.keys(by).map(function (k) { return by[k]; });
+  }
+
+  function renderHomeTesting(summary) {
+    var value = document.querySelector('[data-home="testing"]');
+    var note = document.querySelector('[data-home-note="testing"]');
+    if (!value || !note) return;
+    if (!sourceState.testingSummary.ok || !summary) {
+      value.textContent = "Недоступно";
+      note.textContent = "текущее состояние тестов не подтверждено";
+      return;
+    }
+    var attention = allTests(summary).filter(function (t) {
+      return ["NEEDS_ADJUDICATION", "BLOCKED", "RERUN_REQUIRED"].indexOf(String(t.status || "").toUpperCase()) >= 0;
+    });
+    value.textContent = String(attention.length);
+    note.textContent = attention.length ? "проверки, требующие разбора, повтора или снятия блокера" : "нет тестов, требующих внимания";
+  }
+
+  function renderRegistry(objectsResp, blockersResp) {
+    var page = document.querySelector('[data-page-panel="registry"]');
+    if (!page) return;
+    if (!sourceState.objects.ok || !objectsResp) {
+      pageBadge("registry", "unavailable", "ИСТОЧНИК НЕДОСТУПЕН");
+      ["count", "active", "unresolved", "founder"].forEach(function (k) {
+        var el = page.querySelector('[data-g="' + k + '"]'); if (el) el.textContent = "Недоступно";
+      });
+      var list = page.querySelector('[data-g="objects"]');
+      if (list) list.innerHTML = unavailableHTML("Объекты Continuity недоступны", "Реестр не показывает прошлый список как текущее состояние.");
+      return;
+    }
+
+    var items = asArray(objectsResp.items);
+    var active = items.filter(function (o) { return /^ACTIVE/.test(String(o.declared_status || "").toUpperCase()); });
+    var unresolved = items.filter(function (o) { return !o.last_event_at; });
+    var founder = items.filter(function (o) { return !!(o.needs_nika || o.needs_founder); });
+
+    function put(k, v) { var e = page.querySelector('[data-g="' + k + '"]'); if (e) e.textContent = String(v); }
+    put("count", items.length); put("active", active.length); put("unresolved", unresolved.length); put("founder", founder.length);
+    var core = page.querySelector('[data-g="identity-core"]'); if (core) core.textContent = String(unresolved.length);
+
+    var list = page.querySelector('[data-g="objects"]');
+    if (list) {
+      var recent = items.slice().sort(function (a, b) {
+        return String(b.last_event_at || "").localeCompare(String(a.last_event_at || ""));
+      });
+      list.innerHTML = recent.length ? recent.slice(0, 12).map(function (o) {
+        return "<div class='registry-live-row'>" +
+          "<b>" + esc(o.object_id || "не определён") + "</b>" +
+          "<span>" + esc(o.name || "без названия") + "</span>" +
+          "<span>" + esc(o.owning_branch || o.owner || "—") + "</span>" +
+          "<span>" + esc(ruStatus(o.declared_status)) + "</span>" +
+          "<small>" + esc(ago(o.last_event_at)) + "</small></div>";
+      }).join("") : "<div class='registry-empty'><strong>Реестр пуст</strong><span>Источник ответил без объектов.</span></div>";
+    }
+
+    var founderBox = page.querySelector('[data-g="founder-list"]');
+    if (founderBox) {
+      founderBox.innerHTML = founder.length ? "<div class='registry-mini-list'>" + founder.slice(0, 6).map(function (o) {
+        return "<div class='registry-mini-item'><b>" + esc(o.name || o.object_id) + "</b><span>" +
+          esc(o.object_id || "не определён") + " · " + esc(ruStatus(o.declared_status)) + "</span></div>";
+      }).join("") + "</div>" :
+      "<div class='registry-empty compact'><strong>Нет подтверждённых решений уровня Основателя</strong><span>Источник объектов не отметил ни один объект как требующий Основателя.</span></div>";
+    }
+
+    var blockerBox = page.querySelector('[data-g="blockers-list"]');
+    if (blockerBox) {
+      if (!sourceState.blockers.ok || !blockersResp) {
+        blockerBox.innerHTML = unavailableHTML("Блокеры недоступны", "Список не выводится по данным объектов или по догадке.");
+      } else {
+        var blockers = asArray(blockersResp.items).filter(function (b) {
+          return !b.is_test && String(b.status || "").toUpperCase() !== "CLEARED";
+        });
+        blockerBox.innerHTML = blockers.length ? "<div class='registry-mini-list'>" + blockers.slice(0, 6).map(function (b) {
+          return "<div class='registry-mini-item'><b>" + esc(b.title || b.blocker || "Открытое препятствие") + "</b><span>" +
+            esc(b.object_id || "объект не определён") + " · " + esc(b.status || "открыт") + "</span></div>";
+        }).join("") + "</div>" :
+        "<div class='registry-empty compact'><strong>Открытых нетестовых блокеров нет</strong><span>По текущей проекции Continuity.</span></div>";
+      }
+    }
+
+    var recentBox = page.querySelector('[data-g="recent-list"]');
+    if (recentBox) {
+      var changed = items.filter(function (o) { return o.last_event_at; }).sort(function (a, b) {
+        return String(b.last_event_at).localeCompare(String(a.last_event_at));
+      }).slice(0, 6);
+      recentBox.innerHTML = changed.length ? "<div class='registry-mini-list'>" + changed.map(function (o) {
+        return "<div class='registry-mini-item'><b>" + esc(o.name || o.object_id) + "</b><span>" +
+          esc(ruStatus(o.declared_status)) + " · " + esc(ago(o.last_event_at)) + "</span></div>";
+      }).join("") + "</div>" :
+      "<div class='registry-empty compact'><strong>Нет подтверждённых событий</strong><span>Источник объектов ответил, но last_event_at отсутствует.</span></div>";
+    }
+
+    pageBadge("registry", sourceState.blockers.ok ? "live" : "warn", sourceState.blockers.ok ? "ДАННЫЕ ПОДКЛЮЧЕНЫ" : "ДАННЫЕ ЧАСТИЧНО");
+  }
+
+  function renderDocuments(health) {
+    var page = document.querySelector('[data-page-panel="documents"]');
+    if (!page) return;
+    var keys = ["durable", "review", "oldest", "unknown"];
+    if (!sourceState.hubHealth.ok || !health) {
+      keys.forEach(function (k) { var e = page.querySelector('[data-d="' + k + '"]'); if (e) e.textContent = "Недоступно"; });
+      var q = page.querySelector('[data-d="queue"]');
+      if (q) q.innerHTML = unavailableHTML("Hub / Durability недоступен", "Очередь ручного разбора не подтверждена.");
+      pageBadge("documents", "unavailable", "ИСТОЧНИК НЕДОСТУПЕН");
+      return;
+    }
+    var rq = health.review_queue || {};
+    var vals = {
+      durable: health.objects_on_disk == null ? "—" : health.objects_on_disk,
+      review: rq.manual_review_required == null ? "—" : rq.manual_review_required,
+      oldest: ageMinutesLabel(rq.oldest_manual_review_minutes),
+      unknown: rq.unknown_classification == null ? "—" : rq.unknown_classification
+    };
+    Object.keys(vals).forEach(function (k) { var e = page.querySelector('[data-d="' + k + '"]'); if (e) e.textContent = vals[k]; });
+    var q = page.querySelector('[data-d="queue"]');
+    if (q) {
+      var rows = asArray(rq.oldest_5);
+      q.innerHTML = rows.length ? rows.map(function (r) {
+        var ageMin = r.received_at ? Math.max(0, Math.round((Date.now() - new Date(r.received_at).getTime()) / 60000)) : null;
+        return "<div class='document-live-row'><b>" + esc(r.packet_file || "(событие без файла)") + "</b>" +
+          "<span>" + esc(r.claimed_object_id || "не привязан") + "</span>" +
+          "<span>" + esc(r.artifact_class || "UNKNOWN") + "</span><small>" + esc(ageMinutesLabel(ageMin)) + "</small></div>";
+      }).join("") :
+      "<div class='documents-empty compact'><strong>Ручного разбора сейчас нет</strong><span>Источник Hub ответил пустой очередью.</span></div>";
+    }
+    pageBadge("documents", "live", "ДАННЫЕ ПОДКЛЮЧЕНЫ");
+  }
+
+  function renderTesting(summary, runner) {
+    var page = document.querySelector('[data-page-panel="testing"]');
+    if (!page) return;
+    if (!sourceState.testingSummary.ok || !summary) {
+      ["waiting", "active", "adjudication", "rerun"].forEach(function (k) {
+        var e = page.querySelector('[data-t="' + k + '"]'); if (e) e.textContent = "Недоступно";
+      });
+      var q = page.querySelector('[data-t="queue"]');
+      if (q) q.innerHTML = unavailableHTML("Testing summary недоступен", "Очередь проверок не подтверждена.");
+      pageBadge("testing", "unavailable", "ИСТОЧНИК НЕДОСТУПЕН");
+    } else {
+      var tests = allTests(summary);
+      var waiting = tests.filter(function (t) { return ["REQUESTED", "READY"].indexOf(String(t.status || "").toUpperCase()) >= 0; });
+      var adj = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "NEEDS_ADJUDICATION"; });
+      var rerun = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "RERUN_REQUIRED"; });
+      var active = asArray(summary.active);
+
+      [["waiting", waiting.length], ["active", active.length], ["adjudication", adj.length], ["rerun", rerun.length]].forEach(function (kv) {
+        var e = page.querySelector('[data-t="' + kv[0] + '"]'); if (e) e.textContent = String(kv[1]);
+      });
+
+      var q = page.querySelector('[data-t="queue"]');
+      if (q) {
+        tests.sort(function (a, b) { return String(b.updated_at || "").localeCompare(String(a.updated_at || "")); });
+        q.innerHTML = tests.length ? tests.slice(0, 10).map(function (t) {
+          return "<div class='testing-live-row'><b>" + esc(t.test_id || "—") + "<small>" + esc(t.object_id || "не определён") + "</small></b>" +
+            "<span>" + esc(t.owning_branch || "—") + "</span><span>" + esc(t.test_type || "—") + "</span>" +
+            "<em>" + esc(ruStatus(t.status)) + "</em><span>" + esc(t.next_action || t.scientific_outcome || "—") + "</span></div>";
+        }).join("") :
+        "<div class='testing-empty compact'><strong>Очередь пуста</strong><span>Testing summary ответил без тестов.</span></div>";
+      }
+
+      var att = page.querySelector('[data-t="attention"]');
+      if (att) {
+        var blocked = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "BLOCKED"; });
+        var n = adj.length + rerun.length + blocked.length;
+        att.innerHTML = "<div class='testing-attention-main'><span class='testing-signal-ring'>" + esc(n) + "</span><div><strong>" +
+          (n ? "Есть проверки, требующие реакции" : "Нет тестов, требующих реакции") + "</strong><p>" +
+          (n ? "Разбор: " + adj.length + " · повтор: " + rerun.length + " · заблокировано: " + blocked.length :
+               "Текущая проекция не содержит NEEDS_ADJUDICATION, RERUN_REQUIRED или BLOCKED.") +
+          "</p></div></div><div class='testing-attention-rule'>Техническое завершение прогона не становится автоматически научным выводом.</div>";
+      }
+
+      var recentBox = page.querySelector('[data-t="recent"]');
+      if (recentBox) {
+        var recent = asArray(summary.recent).slice(0, 6);
+        recentBox.innerHTML = recent.length ? "<div class='testing-mini-list'>" + recent.map(function (t) {
+          return "<div class='testing-mini-item'><b>" + esc(t.test_id || "—") + "</b><span>" +
+            esc(t.procedure_status || "процедура не указана") + " · " + esc(t.scientific_outcome || "научный исход не указан") +
+            " · " + esc(ago(t.updated_at)) + "</span></div>";
+        }).join("") + "</div>" :
+        "<div class='testing-empty compact'><strong>Завершённых результатов нет</strong><span>По текущему Testing summary.</span></div>";
+      }
+
+      var adjBox = page.querySelector('[data-t="adjudication"]');
+      if (adjBox) {
+        adjBox.innerHTML = adj.length ? "<div class='testing-mini-list'>" + adj.slice(0, 6).map(function (t) {
+          return "<div class='testing-mini-item'><b>" + esc(t.test_id || "—") + "</b><span>" +
+            esc(t.owning_branch || "владеющая ветка не указана") + " · " + esc(t.scientific_outcome || "нужен разбор") + "</span></div>";
+        }).join("") + "</div>" :
+        "<div class='testing-empty compact'><strong>Разбор сейчас не требуется</strong><span>Нет тестов в состоянии NEEDS_ADJUDICATION.</span></div>";
+      }
+
+      pageBadge("testing", sourceState.testingRunner.ok ? "live" : "warn", sourceState.testingRunner.ok ? "ДАННЫЕ ПОДКЛЮЧЕНЫ" : "ДАННЫЕ ЧАСТИЧНО");
+    }
+
+    var state = page.querySelector('[data-t="runner-state"]');
+    var note = page.querySelector('[data-t="runner-note"]');
+    var providers = page.querySelector('[data-t="runner-providers"]');
+    var healthAt = page.querySelector('[data-t="runner-health-at"]');
+    if (!sourceState.testingRunner.ok || !runner) {
+      if (state) state.textContent = "Недоступно";
+      if (note) note.textContent = "раннер не подтвердил состояние";
+      if (providers) providers.textContent = "—";
+      if (healthAt) healthAt.textContent = "—";
+    } else {
+      var names = Array.isArray(runner.providers)
+        ? runner.providers.filter(function (p) { return runner[p + "_configured"]; })
+        : Object.keys(runner).filter(function (k) { return /_configured$/.test(k) && runner[k]; }).map(function (k) { return k.replace(/_configured$/, ""); });
+      if (state) state.textContent = "Доступен";
+      if (note) note.textContent = "последнее чтение успешно";
+      if (providers) providers.textContent = String(names.length);
+      if (healthAt) healthAt.textContent = sourceState.testingRunner.at ? new Date(sourceState.testingRunner.at).toLocaleTimeString("ru-RU", {hour:"2-digit",minute:"2-digit"}) : "—";
+    }
+  }
+
+  function renderDiagnostics() {
+    var page = document.querySelector('[data-page-panel="diagnostics"]');
+    if (!page) return;
+    var keys = Object.keys(sourceState);
+    var ok = keys.filter(function (k) { return sourceState[k].ok; }).length;
+    var failed = keys.length - ok;
+
+    var total = page.querySelector('[data-x="trust"]'); if (total) total.textContent = ok + "/" + keys.length;
+    var un = page.querySelector('[data-x="unavailable"]'); if (un) un.textContent = String(failed);
+    var stale = page.querySelector('[data-x="stale"]'); if (stale) stale.textContent = "—";
+    var err = page.querySelector('[data-x="errors"]'); if (err) err.textContent = String(failed);
+
+    var map = {
+      continuity: ["objects", "blockers", "inbox"],
+      orchestrator: ["routes", "summary", "metrics"],
+      testing: ["testingSummary", "testingHealth", "testingRunner"],
+      hub: ["hubHealth"],
+      scanner: [],
+      "atlas-twin": []
+    };
+    Object.keys(map).forEach(function (group) {
+      var row = page.querySelector('[data-x-source="' + group + '"]');
+      if (!row) return;
+      var em = row.querySelectorAll("em");
+      if (!map[group].length) {
+        if (em[0]) em[0].textContent = "НЕ ПОДКЛЮЧЁН";
+        if (em[1]) em[1].textContent = "—";
+        return;
+      }
+      var states = map[group].map(function (k) { return sourceState[k]; });
+      var count = states.filter(function (s) { return s.ok; }).length;
+      if (em[0]) em[0].textContent = count === states.length ? "ДОСТУПЕН" : (count ? "ЧАСТИЧНО" : "НЕДОСТУПЕН");
+      var ats = states.filter(function (s) { return s.at; }).map(function (s) { return s.at; }).sort();
+      if (em[1]) em[1].textContent = ats.length ? new Date(ats[ats.length - 1]).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}) : "—";
+    });
+
+    var module = page.querySelector('[data-x-runtime="module"]'); if (module) module.textContent = "G15";
+    var refresh = page.querySelector('[data-x-runtime="refresh"]');
+    var good = page.querySelector('[data-x-runtime="last-good"]');
+    var errors = page.querySelector('[data-x-runtime="errors"]');
+    var current = page.querySelector('[data-x-runtime="page"]');
+    var ats = keys.filter(function (k) { return sourceState[k].at; }).map(function (k) { return sourceState[k].at; }).sort();
+    var goods = keys.filter(function (k) { return sourceState[k].ok && sourceState[k].at; }).map(function (k) { return sourceState[k].at; }).sort();
+    if (refresh) refresh.textContent = ats.length ? new Date(ats[ats.length - 1]).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}) : "—";
+    if (good) good.textContent = goods.length ? new Date(goods[goods.length - 1]).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}) : "—";
+    if (errors) errors.textContent = String(failed);
+    if (current) {
+      var active = document.querySelector(".page.active .topbar h1");
+      current.textContent = active ? active.textContent.trim() : "—";
+    }
+
+    pageBadge("diagnostics", failed ? (ok ? "warn" : "unavailable") : "live", failed ? (ok ? "ДАННЫЕ ЧАСТИЧНО" : "ИСТОЧНИКИ НЕДОСТУПНЫ") : "ИСТОЧНИКИ ДОСТУПНЫ");
+  }
+
   function boot() {
     injectLiveStyles();
 
@@ -628,12 +959,24 @@
       fetchJSON("routes", ENDPOINTS.routes),
       fetchJSON("summary", ENDPOINTS.summary),
       fetchJSON("metrics", ENDPOINTS.metrics),
-      fetchJSON("inbox", ENDPOINTS.inbox)
+      fetchJSON("inbox", ENDPOINTS.inbox),
+      fetchJSON("objects", ENDPOINTS.objects),
+      fetchJSON("blockers", ENDPOINTS.blockers),
+      fetchJSON("testingSummary", ENDPOINTS.testingSummary),
+      fetchJSON("testingHealth", ENDPOINTS.testingHealth),
+      fetchJSON("testingRunner", ENDPOINTS.testingRunner),
+      fetchJSON("hubHealth", ENDPOINTS.hubHealth)
     ]).then(function (res) {
       var routesJSON = res[0];
       var summaryJSON = res[1];
       var metricsJSON = res[2];
       var inbox = res[3];
+      var objects = res[4];
+      var blockers = res[5];
+      var testingSummary = res[6];
+      var testingHealth = res[7];
+      var testingRunner = res[8];
+      var hubHealth = res[9];
 
       var routes = routesJSON && Array.isArray(routesJSON.routes) ? routesJSON.routes : [];
       var summary = summaryJSON && summaryJSON.summary ? summaryJSON.summary : null;
@@ -642,6 +985,7 @@
 
       setOrchestratorHeader(sourceState.routes.ok, sourceState.summary.ok, sourceState.metrics.ok);
       renderHomeKPIs(routes, inbox);
+      renderHomeTesting(testingSummary);
 
       if (sourceState.routes.ok) {
         renderOrchestratorKPIs(routes, summary, metrics, depModel);
@@ -653,11 +997,13 @@
         renderRoutesUnavailable();
       }
 
-      if (sourceState.inbox.ok) {
-        renderHomeNeeds(inbox);
-      } else {
-        renderInboxUnavailable();
-      }
+      if (sourceState.inbox.ok) renderHomeNeeds(inbox);
+      else renderInboxUnavailable();
+
+      renderRegistry(objects, blockers);
+      renderDocuments(hubHealth);
+      renderTesting(testingSummary, testingRunner);
+      renderDiagnostics();
 
       updateTrust();
       window.dispatchEvent(new CustomEvent("panel-v2-live-ready", { detail: window.__PANEL_V2_LIVE }));
