@@ -1363,6 +1363,20 @@
     @media(max-width:760px){
       .registry-live-row,.testing-live-row,.document-live-row{grid-template-columns:1fr}
     }
+
+    .research-live-row{
+      display:grid;grid-template-columns:1.2fr .8fr .75fr 1.25fr .8fr;gap:10px;
+      align-items:center;padding:10px;border-top:1px solid var(--line-soft);font-size:9.5px
+    }
+    .research-live-row:first-child{border-top:0}
+    .research-live-row b{font:400 12px Georgia,"Times New Roman",serif}
+    .research-live-row span,.research-live-row small{color:#909993;line-height:1.35}
+    .research-mini-list{display:flex;flex-direction:column;gap:7px}
+    .research-mini-item{padding:8px 0;border-top:1px solid var(--line-soft)}
+    .research-mini-item:first-child{border-top:0}
+    .research-mini-item b{display:block;font:400 12px Georgia,"Times New Roman",serif}
+    .research-mini-item span{display:block;margin-top:3px;color:#8f9792;font-size:9px;line-height:1.4}
+    @media(max-width:760px){.research-live-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -2050,7 +2064,7 @@
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-r="attention">
 <div class="research-empty compact">
 <strong>Источник внимания не подключён</strong>
 <span>Здесь будут только реальные Founder-attention события. Общие задачи и технический шум сюда не попадают.</span>
@@ -2065,7 +2079,7 @@
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-r="waiting">
 <div class="research-empty compact">
 <strong>Условия возврата ещё не подключены</strong>
 <span>Для каждой линии будет видно: чего ждём → кто держит ход → когда пересмотреть → что именно вернёт исследование в работу.</span>
@@ -2132,7 +2146,7 @@
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-r="result">
 <div class="research-result-placeholder">
 <strong>Результаты ещё не подключены</strong>
 <p>Показываем только материальные события: результат проверки, решение, смену статуса или этапа, внешний научный ответ, подтверждённый тест. Служебные обновления не выдаются за результат.</p>
@@ -2164,7 +2178,7 @@
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-r="next-gates">
 <div class="research-empty compact">
 <strong>Следующая проверка не подключена</strong>
 <span>Если у ветки есть следующая контрольная проверка или план теста — он появляется здесь. Если нет, Панель честно показывает отсутствие определённой проверки.</span>
@@ -2179,7 +2193,7 @@
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
-<div class="panel-body">
+<div class="panel-body" data-r="changes">
 <div class="research-empty compact">
 <strong>История изменений не подключена</strong>
 <span>Сюда попадут только решения, контрольные проверки, смены этапа или статуса, внешние научные ответы и результаты тестов — с ID объекта и временем.</span>
@@ -3864,7 +3878,13 @@
 <span>Источник</span><span>Что даёт</span><span>Состояние</span><span>Свежесть</span><span>Влияние</span>
 </div>
 <div class="diagnostics-source-list">
-<div data-x-source="continuity"><b>Continuity</b><span>объекты / inbox / health</span><em>—</em><em>—</em><small>Главная, Реестр, Фундамент, BrazilPortal</small></div>
+<div data-x-source="continuity"><b>Continuity</b><span>объекты / inbox / health</span><em>—</em><em>—</em><small>Главная, Реестр, Фундамент, BrazilPortal</small></div><div data-x-source="research-rd1">
+<b>Research / RD1</b>
+<span>объектные RD1-проекции</span>
+<em>—</em>
+<em>—</em>
+<small>Исследования</small>
+</div>
 <div data-x-source="orchestrator"><b>Orchestrator</b><span>routes / summary / metrics</span><em>—</em><em>—</em><small>Оркестратор и часть Главной</small></div>
 <div data-x-source="testing"><b>Testing</b><span>summary / tests / lineage / runner health</span><em>—</em><em>—</em><small>Тестирование</small></div>
 <div data-x-source="hub"><b>Hub / Durability</b><span>sync health / review queue</span><em>—</em><em>—</em><small>Документы и Фундамент</small></div>
