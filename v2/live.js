@@ -1,4 +1,4 @@
-// Founder Panel v2 — Live Read Wiring G17
+// Founder Panel v2 — Live Read Wiring G18
 // Scope: READ ONLY.
 // Sources: existing same-origin Orchestrator + Continuity GET projections.
 // No canonical writes. No local priority engine. No invented dependency links.
@@ -16,7 +16,8 @@
     testingSummary: API + "/testing/summary",
     testingHealth: API + "/testing-health",
     testingRunner: API + "/testing-runner-health",
-    hubHealth: API + "/hub/sync-health"
+    hubHealth: API + "/hub/sync-health",
+    continuityHealth: API + "/continuity-health"
   };
 
   var REFRESH_MS = 90000;
@@ -34,6 +35,7 @@
     testingHealth: { ok: false, at: null, error: null },
     testingRunner: { ok: false, at: null, error: null },
     hubHealth: { ok: false, at: null, error: null },
+    continuityHealth: { ok: false, at: null, error: null },
     researchRD1: { ok: false, at: null, error: null }
   };
 
@@ -1032,6 +1034,131 @@
   }
 
 
+
+  function renderFoundation(health, hub, objectsResp, inbox) {
+    var page = document.querySelector('[data-page-panel="foundation"]');
+    if (!page) return;
+
+    var healthOk = sourceState.continuityHealth.ok && health;
+    var hubOk = sourceState.hubHealth.ok && hub;
+    var objectsOk = sourceState.objects.ok && objectsResp;
+    var inboxOk = sourceState.inbox.ok && inbox;
+
+    function put(k, v) {
+      var e = page.querySelector('[data-fnd="' + k + '"]');
+      if (e) e.textContent = String(v);
+    }
+
+    put("readiness", (healthOk || hubOk || objectsOk) ? "Не доказано" : "Недоступно");
+    put("continuity", !healthOk ? "Недоступно" : (health.ok === false ? "Деградация" : "Доступен"));
+    put("recovery", "Не подтверждено");
+
+    var systemOpen = null;
+    if (healthOk && health.system_attention_open != null) systemOpen = health.system_attention_open;
+    else if (inboxOk && inbox.summary && inbox.summary.system_attention != null) systemOpen = inbox.summary.system_attention;
+    put("system", systemOpen == null ? "—" : systemOpen);
+
+    var readiness = page.querySelector('[data-fnd="readiness-card"]');
+    if (readiness) {
+      var state = !healthOk && !hubOk && !objectsOk ? "Источники основания недоступны" : "Полная готовность основания не доказана";
+      readiness.innerHTML =
+        "<div class='foundation-source-summary warn'><strong>" + esc(state) + "</strong>" +
+        "<p>Панель подтверждает отдельные read-состояния Continuity и Hub, но не имеет единого источника, " +
+        "который одновременно доказывает recovery/readback, целостность полномочий и полный Foundation readiness. " +
+        "Поэтому зелёный PASS здесь не выводится.</p></div>";
+    }
+
+    var attention = page.querySelector('[data-fnd="attention"]');
+    if (attention) {
+      if (systemOpen == null) {
+        attention.innerHTML = unavailableHTML("SYSTEM-вопросы не подтверждены", "Continuity health / Входящие Основателя не дали текущего счётчика.");
+      } else if (Number(systemOpen) === 0) {
+        attention.innerHTML =
+          "<div class='foundation-source-summary'><strong>0 открытых SYSTEM-вопросов по Continuity</strong>" +
+          "<p>Это подтверждает только текущий счётчик Continuity health и не является доказательством общей готовности Foundation.</p></div>";
+      } else {
+        attention.innerHTML =
+          "<div class='foundation-source-summary bad'><strong>" + esc(systemOpen) + " SYSTEM-вопрос(ов) требуют разбора</strong>" +
+          "<p>Источник подтверждает количество, но не даёт этому экрану права придумывать подробности инцидентов.</p></div>";
+      }
+    }
+
+    var continuity = page.querySelector('[data-fnd="backbone-continuity"]');
+    if (continuity) {
+      if (!healthOk) continuity.innerHTML = unavailableHTML("Continuity health недоступен", "Операционная истина не получила подтверждённого health-read.");
+      else continuity.innerHTML =
+        "<div class='foundation-live-list'>" +
+        "<div class='foundation-live-item'><b>Health endpoint</b><span>" + (health.ok === false ? "сообщает о деградации" : "ответил успешно") + "</span></div>" +
+        "<div class='foundation-live-item'><b>Системное внимание</b><span>" + esc(systemOpen == null ? "не указано" : systemOpen) + "</span></div></div>";
+    }
+
+    var durability = page.querySelector('[data-fnd="backbone-durability"]');
+    if (durability) {
+      if (!hubOk) durability.innerHTML = unavailableHTML("Hub / Durability недоступен", "Нет подтверждённого чтения sync-health.");
+      else {
+        var rq = hub.review_queue || {};
+        durability.innerHTML =
+          "<div class='foundation-live-list'>" +
+          "<div class='foundation-live-item'><b>Durable / indexed</b><span>" + esc(hub.objects_on_disk == null ? "—" : hub.objects_on_disk) + " объектов на диске</span></div>" +
+          "<div class='foundation-live-item'><b>Ручной разбор</b><span>" + esc(rq.manual_review_required == null ? "—" : rq.manual_review_required) + "</span></div>" +
+          "<div class='foundation-live-item'><b>Граница доказательства</b><span>sync-health не доказывает сам по себе byte-for-byte readback/recovery PASS.</span></div></div>";
+      }
+    }
+
+    var approval = page.querySelector('[data-fnd="backbone-approval"]');
+    if (approval) {
+      if (!inboxOk) approval.innerHTML = unavailableHTML("Входящие Основателя недоступны", "Наличие или отсутствие Founder-only решений не подтверждено.");
+      else {
+        var nf = Array.isArray(inbox.needs_founder) ? inbox.needs_founder.length : 0;
+        approval.innerHTML =
+          "<div class='foundation-live-list'>" +
+          "<div class='foundation-live-item'><b>Решения уровня Основателя</b><span>" + esc(nf) + " в текущем inbox</span></div>" +
+          "<div class='foundation-live-item'><b>Граница доказательства</b><span>inbox подтверждает очередь решений, но не является аудитом всей A0/A1/A2 authority chain.</span></div></div>";
+      }
+    }
+
+    var projection = page.querySelector('[data-fnd="backbone-projection"]');
+    if (projection) {
+      var names = ["routes","summary","metrics","inbox","objects","blockers","testingSummary","testingHealth","testingRunner","hubHealth","continuityHealth"];
+      var ok = names.filter(function (k) { return sourceState[k] && sourceState[k].ok; }).length;
+      projection.innerHTML =
+        "<div class='foundation-live-list'>" +
+        "<div class='foundation-live-item'><b>Текущий цикл чтения</b><span>" + esc(ok) + "/" + esc(names.length) + " известных базовых GET-проекций ответили</span></div>" +
+        "<div class='foundation-live-item'><b>Граница доказательства</b><span>успешный fetch не доказывает семантическую корректность всего источника.</span></div></div>";
+    }
+
+    var durableDetail = page.querySelector('[data-fnd="durability-detail"]');
+    if (durableDetail) {
+      if (!hubOk) durableDetail.innerHTML = unavailableHTML("Durability read-model недоступен", "Ни запись, ни обратное чтение не объявляются успешными по отсутствию ошибки на экране.");
+      else {
+        var rq2 = hub.review_queue || {};
+        durableDetail.innerHTML =
+          "<div class='foundation-live-list'>" +
+          "<div class='foundation-live-item'><b>Сохранено / индексировано</b><span>" + esc(hub.objects_on_disk == null ? "—" : hub.objects_on_disk) + "</span></div>" +
+          "<div class='foundation-live-item'><b>Неизвестная классификация</b><span>" + esc(rq2.unknown_classification == null ? "—" : rq2.unknown_classification) + "</span></div>" +
+          "<div class='foundation-live-item'><b>Byte-for-byte readback</b><span>отдельный подтверждённый контракт в v2 пока не подключён</span></div></div>";
+      }
+    }
+
+    var change = page.querySelector('[data-fnd="last-change"]');
+    if (change) {
+      if (!objectsOk) change.innerHTML = unavailableHTML("Continuity objects недоступны", "Последнее изменение Foundation не выводится из истории чата.");
+      else {
+        var fnd = asArray(objectsResp.items).find(function (o) { return String(o.object_id || "") === "FND-001"; });
+        if (!fnd) change.innerHTML =
+          "<div class='foundation-source-summary warn'><strong>FND-001 не найден в текущей object projection</strong><p>Панель не подставляет другой объект по имени или сходству.</p></div>";
+        else change.innerHTML =
+          "<div class='foundation-live-list'><div class='foundation-live-item'><b>" + esc(fnd.name || "FND-001") + "</b>" +
+          "<span>" + esc(fnd.last_summary || "последнее summary не указано") + "</span>" +
+          "<small>FND-001 · " + esc(ruStatus(fnd.declared_status || "—")) + " · " + esc(ago(fnd.last_event_at)) + "</small></div></div>";
+      }
+    }
+
+    var any = healthOk || hubOk || objectsOk || inboxOk;
+    pageBadge("foundation", any ? "warn" : "unavailable",
+      any ? "ЧАСТИЧНЫЕ ДАННЫЕ · ОБЩАЯ ГОТОВНОСТЬ НЕ ДОКАЗАНА" : "ИСТОЧНИКИ НЕДОСТУПНЫ");
+  }
+
   function renderSignals(objectsResp, blockersResp, inbox, testingSummary) {
     var page = document.querySelector('[data-page-panel="signals"]');
     if (!page) return;
@@ -1177,7 +1304,7 @@
     var err = page.querySelector('[data-x="errors"]'); if (err) err.textContent = String(failed);
 
     var map = {
-      continuity: ["objects", "blockers", "inbox"],
+      continuity: ["continuityHealth", "objects", "blockers", "inbox"],
       "research-rd1": ["researchRD1"],
       orchestrator: ["routes", "summary", "metrics"],
       testing: ["testingSummary", "testingHealth", "testingRunner"],
@@ -1232,7 +1359,8 @@
       fetchJSON("testingSummary", ENDPOINTS.testingSummary),
       fetchJSON("testingHealth", ENDPOINTS.testingHealth),
       fetchJSON("testingRunner", ENDPOINTS.testingRunner),
-      fetchJSON("hubHealth", ENDPOINTS.hubHealth)
+      fetchJSON("hubHealth", ENDPOINTS.hubHealth),
+      fetchJSON("continuityHealth", ENDPOINTS.continuityHealth)
     ]).then(function (res) {
       var routesJSON = res[0];
       var summaryJSON = res[1];
@@ -1244,6 +1372,7 @@
       var testingHealth = res[7];
       var testingRunner = res[8];
       var hubHealth = res[9];
+      var continuityHealth = res[10];
 
       var routes = routesJSON && Array.isArray(routesJSON.routes) ? routesJSON.routes : [];
       var summary = summaryJSON && summaryJSON.summary ? summaryJSON.summary : null;
@@ -1271,6 +1400,7 @@
       renderDocuments(hubHealth);
       renderTesting(testingSummary, testingRunner);
       renderSignals(objects, blockers, inbox, testingSummary);
+      renderFoundation(continuityHealth, hubHealth, objects, inbox);
       renderDiagnostics();
 
       renderResearch(objects, blockers).then(function () {
