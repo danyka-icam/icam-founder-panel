@@ -1,4 +1,4 @@
-// Founder Panel v2 — Live Read Wiring G15
+// Founder Panel v2 — Live Read Wiring G16
 // Scope: READ ONLY.
 // Sources: existing same-origin Orchestrator + Continuity GET projections.
 // No canonical writes. No local priority engine. No invented dependency links.
@@ -33,7 +33,8 @@
     testingSummary: { ok: false, at: null, error: null },
     testingHealth: { ok: false, at: null, error: null },
     testingRunner: { ok: false, at: null, error: null },
-    hubHealth: { ok: false, at: null, error: null }
+    hubHealth: { ok: false, at: null, error: null },
+    researchRD1: { ok: false, at: null, error: null }
   };
 
   function esc(value) {
@@ -898,6 +899,138 @@
     }
   }
 
+
+  function renderResearch(objectsResp, blockersResp) {
+    var page = document.querySelector('[data-page-panel="research"]');
+    if (!page) return Promise.resolve();
+    if (!sourceState.objects.ok || !objectsResp) {
+      pageBadge("research", "unavailable", "ИСТОЧНИК НЕДОСТУПЕН");
+      ["active-count", "founder-count", "waiting-count", "identity-count"].forEach(function (k) {
+        var e = page.querySelector('[data-r="' + k + '"]'); if (e) e.textContent = "Недоступно";
+      });
+      var lines = page.querySelector('[data-r="lines"]');
+      if (lines) lines.innerHTML = unavailableHTML("Continuity objects недоступны", "Исследовательская карта очищена до нового успешного чтения.");
+      sourceState.researchRD1 = { ok: false, at: new Date().toISOString(), error: "objects unavailable" };
+      return Promise.resolve();
+    }
+
+    var items = asArray(objectsResp.items);
+    var attempted = items.length;
+    var successes = 0;
+    var now = new Date().toISOString();
+
+    return Promise.all(items.map(function (o) {
+      var url = API + "/continuity/rd1-projection/" + encodeURIComponent(o.object_id || "");
+      return fetch(url, { credentials: "same-origin", cache: "no-store" })
+        .then(function (r) {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.json();
+        })
+        .then(function (p) { successes += 1; return p || { object_id: o.object_id, available: false }; })
+        .catch(function () { return { object_id: o.object_id, available: false, __fetch_error: true }; });
+    })).then(function (projections) {
+      sourceState.researchRD1 = {
+        ok: attempted === 0 ? true : successes > 0,
+        at: now,
+        error: successes === attempted ? null : (attempted - successes) + " projection read(s) failed"
+      };
+
+      var byId = {};
+      projections.forEach(function (p) { if (p && p.object_id) byId[String(p.object_id)] = p; });
+
+      // Research line exists only when the RD1 projection itself exposes meaningful semantics
+      // or the canonical object explicitly declares a research status.
+      var lines = items.filter(function (o) {
+        var p = byId[String(o.object_id)] || {};
+        var explicitResearch = /RESEARCH/.test(String(o.declared_status || "").toUpperCase());
+        var projected = p.available !== false && !!(p.stage || p.status || p.next_move || p.next_gate || p.semantic_freshness);
+        return explicitResearch || projected;
+      }).map(function (o) {
+        return { object: o, projection: byId[String(o.object_id)] || {} };
+      });
+
+      var active = lines.filter(function (x) {
+        return /^ACTIVE/.test(String(x.object.declared_status || x.projection.status || "").toUpperCase());
+      });
+      var founder = lines.filter(function (x) { return !!(x.object.needs_nika || x.object.needs_founder); });
+      var waiting = lines.filter(function (x) {
+        var st = String(x.object.declared_status || x.projection.status || "").toUpperCase();
+        var owner = String(x.projection.owner || "").toUpperCase();
+        return /PARKED|PREPARING/.test(st) || /EXTERNAL|CONDITION/.test(owner);
+      });
+      var identity = lines.filter(function (x) { return !x.projection.semantic_freshness; });
+
+      function put(k, v) { var e = page.querySelector('[data-r="' + k + '"]'); if (e) e.textContent = String(v); }
+      put("active-count", active.length);
+      put("founder-count", founder.length);
+      put("waiting-count", waiting.length);
+      put("identity-count", identity.length);
+
+      var linesBox = page.querySelector('[data-r="lines"]');
+      if (linesBox) {
+        linesBox.innerHTML = lines.length ? lines.map(function (x) {
+          var o = x.object, p = x.projection;
+          return "<div class='research-live-row'><b>" + esc(o.name || o.object_id || "линия") +
+            "<small>" + esc(o.object_id || "ID не определён") + "</small></b>" +
+            "<span>" + esc(p.stage || "этап не указан") + "</span>" +
+            "<span>" + esc(p.owner || "не назначен") + "</span>" +
+            "<span>" + esc(p.next_gate || p.next_move || "не определён") + "</span>" +
+            "<small>" + esc(ruStatus(p.status || o.declared_status || "—")) + "</small></div>";
+        }).join("") :
+        "<div class='research-empty'><strong>Исследовательских линий в текущей RD1-проекции нет</strong><span>Continuity ответил, но ни один объект не удовлетворил явному research/RD1-контракту.</span></div>";
+      }
+
+      function mini(container, rows, emptyTitle, emptyText) {
+        if (!container) return;
+        container.innerHTML = rows.length ? "<div class='research-mini-list'>" + rows.join("") + "</div>" :
+          "<div class='research-empty compact'><strong>" + esc(emptyTitle) + "</strong><span>" + esc(emptyText) + "</span></div>";
+      }
+
+      mini(page.querySelector('[data-r="attention"]'), founder.slice(0, 6).map(function (x) {
+        var o = x.object, p = x.projection;
+        return "<div class='research-mini-item'><b>" + esc(o.name || o.object_id) + "</b><span>" +
+          esc(p.next_move || o.last_summary || "требуется решение") + " · " + esc(o.object_id || "ID не определён") + "</span></div>";
+      }), "Решений Основателя по исследовательским линиям нет", "По текущей объектной и RD1-проекции.");
+
+      mini(page.querySelector('[data-r="waiting"]'), waiting.slice(0, 6).map(function (x) {
+        var o = x.object, p = x.projection;
+        return "<div class='research-mini-item'><b>" + esc(o.name || o.object_id) + "</b><span>" +
+          "ждём: " + esc(p.next_gate || p.next_move || "условие не описано") + " · ход: " + esc(p.owner || "не назначен") + "</span></div>";
+      }), "Линий в ожидании не найдено", "Нет PARKED/PREPARING или явного EXTERNAL/CONDITION owner.");
+
+      var MATERIAL = ["GATE_RESULT", "DECISION", "STATUS_CHANGE", "STAGE_CHANGE", "TEST_RESULT", "EXTERNAL_EVENT"];
+      var material = lines.filter(function (x) {
+        return MATERIAL.indexOf(String(x.object.last_meaning_kind || "").toUpperCase()) >= 0 && x.object.last_summary;
+      }).sort(function (a, b) {
+        return String(b.object.last_event_at || "").localeCompare(String(a.object.last_event_at || ""));
+      });
+
+      mini(page.querySelector('[data-r="result"]'), material.slice(0, 5).map(function (x) {
+        var o = x.object;
+        return "<div class='research-mini-item'><b>" + esc(o.name || o.object_id) + "</b><span>" +
+          esc(o.last_summary) + " · " + esc(o.last_meaning_kind || "изменение") + " · " + esc(ago(o.last_event_at)) + "</span></div>";
+      }), "Существенного результата не найдено", "Нет материального GATE_RESULT / DECISION / STATUS_CHANGE / STAGE_CHANGE / TEST_RESULT / EXTERNAL_EVENT.");
+
+      var nextGates = lines.filter(function (x) { return !!x.projection.next_gate; });
+      mini(page.querySelector('[data-r="next-gates"]'), nextGates.slice(0, 6).map(function (x) {
+        return "<div class='research-mini-item'><b>" + esc(x.object.name || x.object.object_id) + "</b><span>" +
+          esc(x.projection.next_gate) + " · следующий ход: " + esc(x.projection.next_move || "не указан") + "</span></div>";
+      }), "Следующая проверка не определена", "Ни одна текущая RD1-проекция не отдала next_gate.");
+
+      mini(page.querySelector('[data-r="changes"]'), material.slice(0, 6).map(function (x) {
+        var o = x.object;
+        return "<div class='research-mini-item'><b>" + esc(o.object_id || "ID не определён") + " · " + esc(o.name || "") + "</b><span>" +
+          esc(o.last_summary) + " · " + esc(ago(o.last_event_at)) + "</span></div>";
+      }), "Материальных изменений нет", "Текущая проекция не содержит материальных событий по исследовательским линиям.");
+
+      var blockersOk = sourceState.blockers.ok;
+      pageBadge("research",
+        sourceState.researchRD1.ok ? (blockersOk ? "live" : "warn") : "unavailable",
+        sourceState.researchRD1.ok ? (blockersOk ? "ДАННЫЕ ПОДКЛЮЧЕНЫ" : "ДАННЫЕ ЧАСТИЧНО") : "RD1-ПРОЕКЦИЯ НЕДОСТУПНА"
+      );
+    });
+  }
+
   function renderDiagnostics() {
     var page = document.querySelector('[data-page-panel="diagnostics"]');
     if (!page) return;
@@ -912,6 +1045,7 @@
 
     var map = {
       continuity: ["objects", "blockers", "inbox"],
+      "research-rd1": ["researchRD1"],
       orchestrator: ["routes", "summary", "metrics"],
       testing: ["testingSummary", "testingHealth", "testingRunner"],
       hub: ["hubHealth"],
@@ -1005,8 +1139,11 @@
       renderTesting(testingSummary, testingRunner);
       renderDiagnostics();
 
-      updateTrust();
-      window.dispatchEvent(new CustomEvent("panel-v2-live-ready", { detail: window.__PANEL_V2_LIVE }));
+      renderResearch(objects, blockers).then(function () {
+        renderDiagnostics();
+        updateTrust();
+        window.dispatchEvent(new CustomEvent("panel-v2-live-ready", { detail: window.__PANEL_V2_LIVE }));
+      });
     });
   }
 
