@@ -1,80 +1,275 @@
-# ICAM Founder Panel — Handoff
+# ICAM Founder Panel v2 — Public Handoff
 
-One-time handoff so this panel's visual/product work can continue without pulling Klim off BrazilPortal. Everything below is current as of 2026-08-31.
+Current as of: 2026-09-03
 
-## Repo / branch
+## Repository and branches
 
-- **Repo**: `github.com/danyka-icam/icam-founder-panel` (private)
-- **Branch**: `main` — this is also production. Push/merge to `main` **auto-deploys** (see below) — no manual step needed for normal edits.
-- **Contents**: `registry/` (older scaffold, kept but not actively used) and `final/` (the live 9-screen workbench — this is what you'll be editing).
+- Repository: `github.com/danyka-icam/icam-founder-panel`
+- Repository visibility: **public**
+- `main` = production
+- `panel-v2` = accepted v2 integration candidate
+- merge/push to `main` triggers the existing production deploy workflow
+- `panel-v2` must not be treated as production before Founder review and merge
 
-Until this handoff, these files lived ONLY on the server (`/opt/icam/preview/founder-ui-preview/`, no git anywhere) — this repo is the first version-controlled copy.
+Current v2 frontend:
+- `v2/index.html`
+- `v2/live.js`
 
-## Production
+Current production/reference material remains under `final/` until the v2 switch is accepted.
 
-- **Public URL**: `https://console.attentionmechanics.institute/founder-ui-preview/final/index.html` (HTTP Basic Auth, separate creds from the main Research Console — ask Niki)
-- **Server path**: `/opt/icam/preview/founder-ui-preview/` on `klim-new` (187.127.32.207)
-- **Server role**: served directly by nginx from disk as static files (`icam-preview.conf`, loopback `127.0.0.1:8083`, publicly reverse-proxied by `console.attentionmechanics.institute`'s nginx block in `icam.conf`).
+## Product boundary
 
-## Deploy — automatic, via GitHub Actions (no restart needed)
+Founder Panel is a Founder-facing **read / decision surface**.
 
-Because these are static files read straight off disk on every request, **deploying is just copying files — nginx never needs a restart or reload for content changes.**
+It may:
+- render read-only same-origin API projections
+- explain unavailable / partial / degraded source states
+- expose source ownership and last-read diagnostics
+- present Founder-attention items
+- display explicit source-provided dependencies and statuses
 
-**Normal flow: just push/merge to `main`.** `.github/workflows/deploy.yml` runs automatically:
-1. rsyncs `registry/` + `final/` to the server (via the scoped deploy key, from `ICAM_PANEL_DEPLOY_KEY` secret);
-2. runs a headless-browser smoke check (`smoke.mjs`, Playwright) against the real production URL and **fails the workflow** if there's a console error, a failed request, or a non-200 response.
+It must not:
+- create a second canonical truth store
+- infer canonical relationships from similarity
+- turn missing data into zero / PASS / healthy
+- widen system authority
+- expose credentials or infrastructure secrets
+- perform canonical writes without a separately approved authority path
 
-Watch the run under the repo's **Actions** tab. Green = deployed and verified live; red = it did NOT go live as shown (check the smoke-check log for what broke).
+## v2 top-level navigation
 
-**Manual/local deploy** (fallback only — e.g. testing before pushing): `brew install rsync` (macOS ships an incompatible rsync by default), then `./deploy.sh` with a copy of the deploy key placed next to it or pointed to via `ICAM_PANEL_DEPLOY_KEY`. The key itself lives only in the GitHub Secret — ask Klim or Niki if you genuinely need a local copy for manual testing.
+1. Главная
+2. Оркестратор
+3. Фундамент
+4. Исследования
+5. Атлас
+6. DT
+7. BrazilPortal
+8. Операции
+9. Реестр
+10. Сигналы
+11. Документы
+12. Тестирование
+13. Диагностика
 
-**Rollback**: `git revert` (or `git checkout <older-commit> -- registry final && git commit`) and push to `main` — same auto-deploy path redeploys the older tree. No separate rollback mechanism to learn.
+## Existing safe GET wiring in v2
 
-## Scoped deploy access (no root, no shell)
+All paths are same-origin under:
 
-A dedicated OS user, `icam-panel-deploy`, was created on the server specifically for this:
+`/founder-ui-preview/api/...`
 
-- **Can do**: rsync files into/out of `/opt/icam/preview/founder-ui-preview/` only.
-- **Cannot do**: anything else. No shell (SSH forced-command via `rrsync`, `restrict` flag), no sudo, no access to any other path, no systemctl, nothing. Verified: an interactive SSH session with this key gets refused a shell outright.
-- The private key lives **only** in this repo's GitHub Secret (`ICAM_PANEL_DEPLOY_KEY`) — not in git history, not in this doc. (An earlier version of this key was pasted directly in chat during the initial handoff and has since been rotated/revoked — the one now in the Secret is the only valid one.)
-- The smoke check uses its own separate, read-only Basic Auth credential (`ci-smoke`, in the `ICAM_PANEL_SMOKE_BASIC_AUTH` secret) — not Niki's real founder-panel password.
+### Главная
+Reads:
+- `observer/routes`
+- `continuity/founder-inbox`
+- `testing/summary`
 
-## One manual step Klim couldn't do for you
+Shows:
+- current Orchestrator routes
+- Founder-attention count/items
+- Testing attention
+- explicit unavailable states on source failure
 
-GitHub doesn't allow granting an already-installed GitHub App access to a new repo via API/token — only the account owner, in the web UI. To let the ChatGPT GitHub App see/edit this repo:
-1. github.com/settings/installations (while logged in as `danyka-icam`)
-2. Find the ChatGPT app → **Configure**
-3. Under "Repository access", add `danyka-icam/icam-founder-panel`
-4. Save
+### Оркестратор
+Reads:
+- `observer/routes`
+- `observer/summary`
+- `observer/metrics`
 
-Takes about 30 seconds.
+Boundary:
+- frontend preserves source route order
+- dependencies are rendered only from explicit dependency fields
+- no local portfolio priority engine
 
-If you ever need to change the **nginx config itself** (a genuinely new backend/API route, not just editing existing screens) — that's a root-only step outside this key's scope. Ping Klim or Niki for that specific change; everything else (HTML/CSS/JS on the 9 screens, including the live-data wiring) is yours to edit freely.
+### Фундамент
+Reads:
+- `continuity-health`
+- `continuity/founder-inbox`
+- `continuity/objects`
+- `hub/sync-health`
 
-## Map: screen → JS file → API path → backend service
+Boundary:
+- overall Foundation readiness is intentionally **NOT PROVEN**
+- successful health reads do not prove recovery, byte-for-byte readback or complete authority integrity
+- latest Foundation object is matched by exact `FND-001`
 
-Every screen's "live" data goes through the SAME nginx layer (`icam-preview.conf`, GET-only enforced — `limit_except GET { deny all; }` on every one of these locations, independent of what the backend itself would allow). No screen currently talks to anything write-capable.
+### Исследования
+Reads:
+- `continuity/objects`
+- `continuity/blockers`
+- `continuity/rd1-projection/{object_id}`
 
-| Screen | File | Calls (`/founder-ui-preview/api/...`) | Real backend | systemd unit |
-|---|---|---|---|---|
-| Home | `panel-live.js` | `continuity/founder-inbox`, `continuity-health` | Continuity CORE | `context-steward.service` (:8793) |
-| Research | `research-live.js` | `continuity/blockers`, `continuity/objects`, `continuity/rd1-projection/` | Continuity CORE | `context-steward.service` (:8793) |
-| Operations | `ops-live.js` | `observer/metrics`, `observer/routes`, `observer/summary` | ICAM Observer | `icam-observer.service` (:8789) |
-| Documents | `docs-live.js` | `hub/sync-health` | ICAM Hub API | `icam-hub-api.service` (:8788) |
-| Testing | `testing-live.js` | `testing/summary`, `testing/tests`, `testing/lineage/`, `testing-health`, `testing-runner-health`, `continuity/objects` | ICAM Testing API + runner | `icam-testing-api.service` (:8801), `icam-testing-local-runner.service` (:8802) |
-| Foundation, Signals, Settings, +1 more | `live3.js` | reuses all of the above (`continuity/*`, `observer/*`, `hub/sync-health`, `testing/*`) — no new backend surface | (same four services) | (same as above) |
-| Everything else (nav shell, layout, cards) | `app.js`, `panel-*.js`, `*.css`, `truth-guard.js`, `trust-contract.js`, `semantic.js` | none (pure visual/shell logic) | — | — |
+Boundary:
+- no local RD1 object IDs
+- no invented researcher names
+- no invented evidence percentages
+- no local roadmap authority
+- evidence/provenance remains unpopulated unless a safe 1:1 source exists
 
-**Not wired yet** (shipped as mock, intentionally — see comments in `app.js` and the two collapsed home-screen cards): "ПРИОРИТЕТЫ RD1", "РАДАР", the "Карта роста ICAM" and "BrazilPortal — живой слой" home-screen blocks. These are real, open product-buildout items, not accidental gaps.
+### Реестр
+Reads:
+- `continuity/objects`
+- `continuity/blockers`
 
-## Render check (done as part of this handoff, 2026-08-31)
+Boundary:
+- Registry shows identity / ownership / canonical existence
+- it does not infer a relationship graph
 
-Loaded the live production URL headlessly (Playwright, via the server's own `icam-panel-watchdog` tooling): **0 JS console errors**, live cards populate with real current data (e.g. Steward integrity index, a real Research Hub sync-health alert). Screenshot kept for reference.
+### Сигналы — internal layer
+Reads:
+- `continuity/objects`
+- `continuity/blockers`
+- `continuity/founder-inbox`
+- `testing/summary`
 
-One small honesty gap found and left for you to fix: the page footer still says *"BROWSER WORKBENCH • mock data only • visual layer only"* — no longer fully true now that several screens are live-wired. Small copy fix, not urgent.
+Internal classifications:
+- Founder-required: explicit `needs_founder`
+- material changes: explicit material event kinds only
+- risk/deviation: open non-test blockers + Testing `BLOCKED` / `RERUN_REQUIRED`
 
-## What Klim still owns
+Boundary:
+- no local cross-type ranking
+- no local severity score
+- opportunities are not inferred
+- Market Scanner remains a separate pending source
 
-- The **live production backend services** themselves (Continuity, Observer, Hub, Testing) — this handoff only covers the panel's own frontend files and its read-only wiring to them.
-- Any change to the **nginx config** (new proxy routes, new screens needing a new backend connection).
-- The write-capable path (`context-steward-actions`) is not exposed to this panel at all and is out of scope here.
+### Документы
+Reads:
+- `hub/sync-health`
+
+Shows only source-backed:
+- durable/indexed count
+- manual review required
+- oldest manual review
+- unknown classification
+- current manual-review queue
+
+Boundary:
+- durable ≠ canonical
+- file exists ≠ linked to canonical object
+- publication-role counts are not inferred
+
+### Тестирование
+Reads:
+- `testing/summary`
+- `testing-health`
+- `testing-runner-health`
+
+Boundary:
+- procedure state remains distinct from scientific outcome
+- provider names are source-derived, not hard-coded
+- Testing does not make the owning branch decision
+
+### Диагностика
+Reads frontend source state produced by `v2/live.js`.
+
+Shows:
+- successful / failed read coverage
+- grouped availability for connected source families
+- current refresh
+- last successful read
+- current page
+
+Boundary:
+- source-specific freshness is not invented
+- no universal stale threshold is presented as canonical freshness
+
+## G19 server-wired projections (Атлас / DT / BrazilPortal / Операции / Фундамент)
+
+These five views moved from "UI-ready, source pending" to connected in the
+G19 pass. Each reads a dedicated same-origin projection endpoint under
+`/founder-ui-preview/api/panel/...` and renders `source_status` verbatim
+(AVAILABLE / DEGRADED / STALE / UNAVAILABLE) — none of them derive a green
+PASS locally.
+
+### Атлас
+Reads: `panel/atlas`.
+
+Boundary (unchanged from the original design intent):
+- Canonical vs Shadow/Candidate is read from the source, never inferred from filenames
+- no ATLAS object ID is created client-side or back-dated
+- degraded/absent upstream state renders as such, not as an empty-but-healthy view
+
+### DT (Personal Twin)
+Reads: `panel/twin`.
+
+Hard boundaries (still in force):
+- Continuity remains the sensing authority
+- prediction is hidden until outcome; ambiguous outcome = `NEEDS_CONFIRMATION`, no learning on it
+- `PROSPECTIVE_LONGITUDINAL` stays OFF until PTC-R0 PASS
+- no reconstructable hidden probabilities/weights exposed before outcome
+
+### BrazilPortal
+Reads: `panel/brazilportal`.
+
+- declared status and projected status are rendered as two distinct fields, never merged
+- `projected_status_canonical_relation = UNRESOLVED` is shown explicitly, not hidden behind a single verdict
+- identity resolution (`CMP-000005` / `FND-007`) is handled server-side; the frontend does not guess
+
+### Операции
+Reads: `panel/operations`.
+
+- commitments come from Continuity, not from Orchestrator routes
+- `ball_owner` is rendered from the projection's `ball_owner` field only — never derived from `actor`, branch name, or `object_id`; absence renders "Недоступно", a real value is shown as-is
+- `factual_result` remains UNAVAILABLE: Continuity has no factual-result field on commitments today
+- object-level blockers are shown as object context, explicitly not this commitment's own blocker
+
+### Фундамент (aggregate)
+Reads: `panel/foundation`.
+
+- server-side aggregate is the sole readiness writer; the frontend does not derive PASS from `continuity-health + hub/sync-health` alone
+- an unresolved gap (e.g. an orphan receipt) keeps the aggregate at DEGRADED and is shown as the blocking reason, not summarized away
+
+### Market Scanner → Сигналы
+Scanner/bridge runtime remains outside the browser.
+
+Accepted planned contract:
+- backend ingest: `POST /api/signals/ingest`
+- Panel read: `GET /api/signals`
+- optional later Founder status change: `PATCH /api/signals/{signal_id}`
+
+Browser must never perform ingest.
+
+Runtime activation only after scanner/bridge QA PASS.
+
+Signal truth rules:
+- first run establishes baseline; no old-news flood
+- full-page fingerprint change alone is not a signal
+- deterministic semantic evidence is mandatory
+- LLM enrichment cannot create the underlying event
+- customer-world causal graphs are never changed automatically by Meta/Founder-world scanning
+
+## Write / authority boundary
+
+Current v2 is **READ ONLY**.
+
+Any future write path requires:
+- an explicit owning backend
+- authenticated same-origin route
+- defined authority envelope
+- Founder-safe confirmation where required
+- audit receipt
+- failure semantics
+
+No browser-only local mutation may masquerade as canonical state.
+
+## Integration acceptance checks
+
+Before PR to `main`:
+
+1. Every newly connected endpoint has explicit owner and field mapping.
+2. Missing/failed source renders unavailable/degraded, not plausible stale shell data.
+3. No secrets or internal infrastructure coordinates appear in browser payloads or repo docs.
+4. Atlas / DT / BrazilPortal / Operations do not use guessed identities or invented source mappings.
+5. Market Scanner is not enabled before QA PASS.
+6. No canonical write path is added implicitly.
+7. 13 top-level routes load.
+8. desktop/tablet/mobile layout has no horizontal overflow.
+9. browser console has no uncaught runtime errors.
+10. Founder reviews the integrated `panel-v2`.
+
+Production flow:
+
+`panel-v2 → integration verification → Founder review → PR → merge to main → existing deploy workflow → production smoke`
+
+A green browser smoke check proves technical loading only; it is not a semantic truth gate.
