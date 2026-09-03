@@ -1,6 +1,6 @@
 # ICAM Founder Panel v2 — Public Handoff
 
-Current as of: 2026-09-04
+Current as of: 2026-09-03
 
 ## Repository and branches
 

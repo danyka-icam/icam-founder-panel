@@ -1403,14 +1403,14 @@
       "ОПЕРАЦИИ · "+String(data.source_status||"").toUpperCase()+" · "+String(data.freshness_state||""));
     if(!body)return;
     var c=data.counts||{}, ops=asArray(data.operations);
-    var firstOwner=ownerDisplay(ops[0]);
+    var ownedCount=ops.filter(function(o){return ownerDisplay(o)!=="Недоступно";}).length;
     var summary="<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Операционная проекция — "+esc(data.source_status)+"</strong>"+
       "<p>"+(String(data.freshness_state).toUpperCase()==="STALE"?"Данные устарели по контракту свежести: движения обязательств давно не было.":"Состояние прочитано из серверной проекции.")+"</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Всего обязательств</small><strong>"+esc(c.total)+"</strong><span>реальные commitments</span></div>"+
       "<div class='metric'><small>Открыто</small><strong>"+esc(c.open)+"</strong><span>текущий execution status</span></div>"+
       "<div class='metric'><small>Свежесть</small><strong>"+esc(data.freshness_state)+"</strong><span>не подменяется временем обновления UI</span></div>"+
-      "<div class='metric'><small>Владелец хода</small><strong>"+esc(firstOwner)+"</strong><span>"+(firstOwner==="Недоступно"?"источник не указал владельца для этого обязательства":"из ball_owner проекции")+"</span></div></div>";
+      "<div class='metric'><small>С владельцем хода</small><strong>"+esc(ownedCount)+" / "+esc(ops.length)+"</strong><span>обязательств с известным ball_owner, из проекции</span></div></div>";
     var rows=ops.slice(0,5).map(function(o){
       return "<div class='live-item-clean'><div class='live-item-clean-head'><h3>"+esc(o.object_id||"Обязательство")+"</h3>"+chip(o.status)+"</div>"+
         "<p>"+esc(cut(o.title||"Без краткого описания",150))+"</p>"+
