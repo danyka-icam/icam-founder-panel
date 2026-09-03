@@ -1,4 +1,4 @@
-// Founder Panel v2 — Live Read Wiring G21
+// Founder Panel v2 — Live Read Wiring G22
 // Scope: READ ONLY.
 // Sources: existing same-origin Orchestrator + Continuity GET projections.
 // No canonical writes. No local priority engine. No invented dependency links.
@@ -96,8 +96,47 @@
     return d + " дн. назад";
   }
 
+  var objectNameById = {};
+
+  function setObjectNameMap(objectsResp) {
+    objectNameById = {};
+    asArray(objectsResp && objectsResp.items).forEach(function (o) {
+      if (o && o.object_id) objectNameById[String(o.object_id)] = o.name || o.title || o.object_id;
+    });
+  }
+
   function routeName(r) {
-    return r.area || r.source_object_id || r.object_id || r.route_id || r.id || r.title || "Маршрут";
+    var id = r.source_object_id || r.object_id || "";
+    var mapped = id && objectNameById[String(id)];
+    if (mapped) return mapped + " · " + id;
+
+    var title = r.title || r.name || "";
+    var generic = /^(PROJECTS?|ПРОЕКТЫ?)$/i;
+    if (title && !generic.test(String(title).trim())) return title + (id ? " · " + id : "");
+    if (id) return id;
+    if (r.area && !generic.test(String(r.area).trim())) return r.area;
+    return r.route_id || r.id || "Маршрут";
+  }
+
+  function humanCode(value) {
+    var raw = String(value == null ? "" : value);
+    var map = {
+      "ACTIVE":"активно",
+      "ACTIVE_PRIORITY":"приоритетное направление",
+      "ACTIVE_BUILD":"активная сборка",
+      "IMPLEMENTATION_READY":"готово к реализации",
+      "UNRESOLVED":"не подтверждено",
+      "PERSONAL_CLONE_PROSPECTIVE_LEARNING":"проспективное обучение Personal Twin",
+      "REGULATED_PROVIDER_AUDIENCE_ELIGIBILITY":"проверка доступности провайдера для аудитории",
+      "FOUNDATION_FINAL_SOAK":"финальная стабилизация Foundation",
+      "RD1_ACCEPTED_READ_ONLY_OPERATION":"RD1 принят в режиме read-only",
+      "PORTFOLIO_LIVE / ATLAS_ADVISORY_LOCAL_RC1":"портфель активен · ATLAS advisory RC1"
+    };
+    if (map[raw]) return map[raw];
+    if (/^[A-Z0-9_\-\/ ]+$/.test(raw) && raw.indexOf("_") >= 0) {
+      return raw.replace(/_/g, " ").toLowerCase();
+    }
+    return raw;
   }
 
   function routeKey(r) {
@@ -491,7 +530,7 @@
         var days = risk.stale;
         return "<div class='route-visual-row'>" +
           "<div class='route-visual-name'><b>" + esc(cut(routeName(r), 34)) + "</b><small>" +
-          esc(r.stage || r.status || "этап не передан") + "</small></div>" +
+          esc(humanCode(r.stage || r.status || "этап не передан")) + "</small></div>" +
           "<div class='route-rail'><span class='" + esc(risk.level) + "' style='width:" +
           recencyFill(days, risk.level) + "%'></span></div>" +
           "<div class='route-visual-status'>" + esc(days == null ? "нет даты" : days + " дн.") +
@@ -993,11 +1032,13 @@
       if (linesBox) {
         linesBox.innerHTML = lines.length ? lines.map(function (x) {
           var o = x.object, p = x.projection;
+          var stageRaw = p.stage || "этап не указан";
+          var nextRaw = p.next_gate || p.next_move || "не определён";
           return "<div class='research-live-row'><b>" + esc(o.name || o.object_id || "линия") +
             "<small>" + esc(o.object_id || "ID не определён") + "</small></b>" +
-            "<span>" + esc(p.stage || "этап не указан") + "</span>" +
+            "<span title='" + esc(stageRaw) + "'>" + esc(humanCode(stageRaw)) + "</span>" +
             "<span>" + esc(p.owner || "не назначен") + "</span>" +
-            "<span>" + esc(p.next_gate || p.next_move || "не определён") + "</span>" +
+            "<span title='" + esc(nextRaw) + "'>" + esc(humanCode(nextRaw)) + "</span>" +
             "<small>" + esc(ruStatus(p.status || o.declared_status || "—")) + "</small></div>";
         }).join("") :
         "<div class='research-empty'><strong>Исследовательских линий в текущей RD1-проекции нет</strong><span>Continuity ответил, но ни один объект не удовлетворил явному research/RD1-контракту.</span></div>";
@@ -1386,10 +1427,10 @@
       "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>BrazilPortal — "+esc(data.source_status)+"</strong>"+
       "<p>"+(unresolved?"Спроецированный статус не подтверждён как канонический. Панель показывает его отдельно от объявленного.":"Состояние прочитано из нормализованной проекции.")+"</p></div>"+
       "<div class='live-summary'>"+
-      "<div class='metric'><small>Объявленный статус</small><strong>"+esc(sv.declared_status)+"</strong><span>что объектом объявлено</span></div>"+
-      "<div class='metric'><small>Спроецированный статус</small><strong>"+esc(sv.projected_status)+"</strong><span>последнее смысловое событие</span></div>"+
-      "<div class='metric'><small>Каноничность проекции</small><strong>"+esc(sv.projected_status_canonical_relation)+"</strong><span>"+(unresolved?"не подтверждена":"подтверждена источником")+"</span></div>"+
-      "<div class='metric'><small>Этап</small><strong>"+esc(val(data.stage))+"</strong><span>с provenance в источнике</span></div></div>"+
+      "<div class='metric'><small>Объявленный статус</small><strong>"+esc(humanCode(sv.declared_status))+"</strong><span>что объектом объявлено</span></div>"+
+      "<div class='metric'><small>Спроецированный статус</small><strong>"+esc(humanCode(sv.projected_status))+"</strong><span>последнее смысловое событие</span></div>"+
+      "<div class='metric'><small>Каноничность проекции</small><strong>"+esc(humanCode(sv.projected_status_canonical_relation))+"</strong><span>"+(unresolved?"не подтверждена":"подтверждена источником")+"</span></div>"+
+      "<div class='metric'><small>Этап</small><strong>"+esc(humanCode(val(data.stage)))+"</strong><span>с provenance в источнике</span></div></div>"+
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Следующий ход</h3>"+chip(data.source_status)+"</div>"+
       "<div class='live-kv-grid'>"+kv("Владелец",val(data.owner))+kv("Следующий гейт",val(data.next_gate))+kv("Следующий ход",val(data.next_move))+kv("Открытые блокеры",(data.open_blockers||{}).count)+kv("Открытые обязательства",(data.open_commitments||{}).count)+kv("Идентичность",(id.component_id||"—")+" ↔ "+(id.operational_object_id||"—"))+"</div>"+
       "<small>Количество блокеров не подписывается как «нетестовое»: test-фильтрация источником не доказана.</small></div>";
@@ -1451,11 +1492,11 @@
       "<p>Endpoint подключён. Недоступен именно Twin state: программа находится до PTC-R0.</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Объект программы</small><strong>"+esc(po.object_id||"FND-005")+"</strong><span>"+esc(po.declared_status||"")+"</span></div>"+
-      "<div class='metric'><small>Этап</small><strong>"+esc(po.stage||"—")+"</strong><span>позиция программы, не прогноз Twin</span></div>"+
+      "<div class='metric'><small>Этап</small><strong>"+esc(humanCode(po.stage||"—"))+"</strong><span>позиция программы, не прогноз Twin</span></div>"+
       "<div class='metric'><small>Следующий gate</small><strong>"+esc(po.next_gate||"PTC-R0_LOCAL")+"</strong><span>до него longitudinal выключен</span></div>"+
       "<div class='metric'><small>Открытые блокеры</small><strong>"+esc(po.open_blockers||0)+"</strong><span>по объекту программы</span></div></div>"+
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Предохранители</h3>"+chip("UNAVAILABLE")+"</div>"+
-      "<div class='live-kv-grid'>"+kv("PROSPECTIVE_LONGITUDINAL",inv.prospective_longitudinal||"OFF_BY_ABSENCE")+kv("Скрытый прогноз",inv.hidden_prediction_exposure||"NONE_TO_EXPOSE")+kv("Обучение на неоднозначном исходе",inv.learning_on_ambiguous_outcome||"NOT_POSSIBLE_NO_LEARNING_PATH")+"</div>"+
+      "<div class='live-kv-grid'>"+kv("PROSPECTIVE_LONGITUDINAL", String(inv.prospective_longitudinal||"OFF_BY_ABSENCE")==="OFF_BY_ABSENCE" ? "выключен: runtime отсутствует" : humanCode(inv.prospective_longitudinal))+kv("Скрытый прогноз", String(inv.hidden_prediction_exposure||"NONE_TO_EXPOSE")==="NONE_TO_EXPOSE" ? "нечего раскрывать: прогнозов нет" : humanCode(inv.hidden_prediction_exposure))+kv("Обучение на неоднозначном исходе", String(inv.learning_on_ambiguous_outcome||"NOT_POSSIBLE_NO_LEARNING_PATH")==="NOT_POSSIBLE_NO_LEARNING_PATH" ? "невозможно: путь обучения ещё не создан" : humanCode(inv.learning_on_ambiguous_outcome))+"</div>"+
       "<small>Эти состояния пока обеспечены отсутствием runtime, а не активным контролем. После появления Twin state каждый инвариант должен проверяться явно.</small></div>";
   }
 
@@ -1555,6 +1596,7 @@
       var routes = routesJSON && Array.isArray(routesJSON.routes) ? routesJSON.routes : [];
       var summary = summaryJSON && summaryJSON.summary ? summaryJSON.summary : null;
       var metrics = metricsJSON && metricsJSON.metrics ? metricsJSON.metrics : null;
+      setObjectNameMap(objects);
       var depModel = dependencyModel(routes);
 
       setOrchestratorHeader(sourceState.routes.ok, sourceState.summary.ok, sourceState.metrics.ok);

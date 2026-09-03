@@ -1474,13 +1474,6 @@
 .live-more{margin-top:8px;color:#aab2ad;font-size:10.5px}
 .raw-source-copy{display:none!important}
 
-/* Readability floor: no live/server text below 10px */
-.normalized-live-root,
-.normalized-live-root p,
-.normalized-live-root span,
-.normalized-live-root small,
-.normalized-live-root li{font-size:max(10px,1em)}
-
 @media(max-width:980px){
   .live-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
@@ -1489,6 +1482,64 @@
   .live-kv-grid{grid-template-columns:1fr}
   .live-kv-clean{grid-template-columns:110px minmax(0,1fr)}
 }
+
+/* G22 — typography + route identity polish */
+.normalized-live-root{font-size:12px}
+.normalized-live-root p{font-size:11.5px}
+.normalized-live-root small{font-size:10.5px}
+.normalized-live-root .live-summary .metric strong{
+  font-size:15px;line-height:1.18;overflow-wrap:anywhere;word-break:break-word
+}
+.normalized-live-root .live-status-box strong{font-size:17px}
+.normalized-live-root .live-status-box p{font-size:11.5px}
+.normalized-live-root .live-kv-clean span{font-size:10.5px;color:#aeb6b1}
+.normalized-live-root .live-kv-clean b{font-size:11px}
+.normalized-live-root .live-item-clean p{font-size:11.5px}
+.normalized-live-root .live-item-clean small{font-size:10.5px;color:#aab2ad}
+.normalized-live-root .live-note-ru,
+.normalized-live-root .live-more{font-size:10.5px;color:#aab2ad}
+
+.research-column-head,.registry-table-head{font-size:10px;color:#9fa7a2}
+.research-live-row,.registry-live-row,.testing-live-row,.document-live-row{font-size:10.5px}
+.research-live-row span,.research-live-row small,
+.registry-live-row span,.registry-live-row small,
+.testing-live-row span,.testing-live-row small,
+.document-live-row span,.document-live-row small{
+  color:#a8b0ab;font-size:10.5px;line-height:1.42
+}
+.research-mini-item span,.registry-mini-item span,.testing-mini-item span{
+  color:#a8b0ab;font-size:10.5px;line-height:1.45
+}
+.signals-live-item span{color:#aab2ad;font-size:10.5px}
+.signals-live-item small{color:#939c96;font-size:10px}
+.signals-partial-note{color:#a2aaa5;font-size:10.5px}
+.section-title p,.head-title small{color:#a7afa9}
+.micro-note,.cycle-note,.research-rule,.registry-note{color:#9ea6a1!important;font-size:10.5px!important}
+
+.research-live-row{
+  grid-template-columns:1.25fr .9fr .8fr 1.05fr .75fr;
+  align-items:start
+}
+.research-live-row span{
+  overflow-wrap:anywhere;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden
+}
+.research-live-row b small{margin-top:3px}
+.research-mini-item span{
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden
+}
+.registry-fact-grid small{font-size:10px;color:#a0a8a3}
+.registry-fact-grid span{font-size:10.5px;color:#a8b0ab}
+.registry-note{font-size:10.5px!important}
+
+.route-visual-name b{font-size:11.5px}
+.route-visual-name small{font-size:10px;color:#a1aaa4}
+.attention b{font-size:11.5px}
+.attention small{font-size:10px;color:#a1aaa4}
+.progress-head{font-size:10px}
+.progress-row b{font-size:11.5px}
+.progress-row em{font-size:10px}
+
 </style>
 </head>
 <body>
