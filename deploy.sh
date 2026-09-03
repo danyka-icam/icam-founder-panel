@@ -5,7 +5,7 @@
 # `brew install rsync` first; Linux/CI already has GNU rsync).
 #
 # Usage:
-#   ./deploy.sh              # deploy current working tree (registry/ + final/)
+#   ./deploy.sh              # deploy current working tree (registry/ + final/ + v2/)
 #
 # Rollback: `git checkout <older-commit> -- registry final && ./deploy.sh`,
 # then commit the revert. There is no separate rollback mechanism because
@@ -34,10 +34,13 @@ if [ ! -f "$KEY" ]; then
 fi
 chmod 600 "$KEY"
 
-echo "Deploying registry/ + final/ to production..."
+echo "Deploying registry/ + final/ + v2/ to production..."
 rsync -az --delete -e "ssh -i $KEY -o StrictHostKeyChecking=accept-new" \
   registry/ "$HOST":registry/
 rsync -az --delete -e "ssh -i $KEY -o StrictHostKeyChecking=accept-new" \
   final/ "$HOST":final/
+rsync -az --delete -e "ssh -i $KEY -o StrictHostKeyChecking=accept-new" \
+  v2/ "$HOST":v2/
 
 echo "Done. Verify: https://console.attentionmechanics.institute/founder-ui-preview/final/index.html"
+echo "       and:   https://console.attentionmechanics.institute/founder-ui-preview/v2/index.html"
