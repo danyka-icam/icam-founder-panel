@@ -4,16 +4,20 @@
 // asserts that each G19 projection actually rendered live server state, and
 // that failure/degraded modes stay honest.
 //
-// Three passes:
+// Four passes:
 //   1. LIVE     — every source reachable; each page must render its projection.
 //   2. DEGRADED — one projection endpoint forced to fail; that page must say so
 //                 and must NOT fall back to looking healthy or empty.
 //   3. BOUNDARY — writes are refused and market signals stay disconnected.
+//   4. OWNER RENDER — a known ball_owner in the Operations response must
+//      actually reach the rendered screen text.
 //
 // Read-only throughout. Endpoint failures in pass 2 are simulated in the
 // browser (page.route -> abort), so no live service is ever taken down. The two
 // POST probes in pass 3 send no body and are expected to be refused at the
 // proxy boundary; they assert that writes are blocked, they do not write.
+// Pass 4 intercepts the real Operations response in the browser and splices in
+// one fixture commitment client-side; nothing is written to the database.
 //
 // Usage:
 //   PANEL_URL=<url-of-v2-panel> node integrated_smoke.mjs
@@ -142,6 +146,53 @@ console.log("\n=== PASS 3: BOUNDARY — writes refused, signals disconnected ===
     !/API\s*\+\s*["']\/panel\/signals|signals\/ingest/.test(js));
   record(3, "no write verbs in client",
     !/method:\s*["'](POST|PATCH|PUT|DELETE)/.test(js));
+  await page.close();
+}
+
+// ---------------------------------------------------------------- pass 4
+console.log("\n=== PASS 4: OWNER RENDER — a known ball_owner must reach the screen ===");
+{
+  // Browser-side fixture only: the real /panel/operations response is
+  // intercepted and replaced before it reaches the page. Nothing is written
+  // to the database, and no other route is touched.
+  const KNOWN_OWNER = "CONTRACT-TEST-HOLDER";
+  const page = await newPage(browser);
+  await page.route("**" + PAGES.operations.endpoint + "**", async (route) => {
+    const real = await route.fetch();
+    const body = await real.json();
+    const fixtureOps = [
+      {
+        commitment_key: "SMOKE-FIXTURE-OWNER-1",
+        object_id: "H008",
+        title: "Owner render smoke fixture (browser-side only, not persisted)",
+        status: "OPEN",
+        opened_at: body.observed_at,
+        updated_at: body.observed_at,
+        activation_condition: null,
+        ball_owner: KNOWN_OWNER,
+        object_level_blockers: [],
+      },
+      ...(Array.isArray(body.operations) ? body.operations : []),
+    ];
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...body,
+        source_status: "AVAILABLE",
+        unavailable_fields: (body.unavailable_fields || []).filter((f) => f !== "ball_owner"),
+        counts: { ...(body.counts || {}), total: (body.counts?.total || 0) + 1, open: (body.counts?.open || 0) + 1 },
+        operations: fixtureOps,
+      }),
+    });
+  });
+  await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+  await page.waitForTimeout(2000);
+  const txt = await textOfPage(page, "operations");
+  record(4, "known ball_owner text appears on screen", txt.includes(KNOWN_OWNER),
+    txt.includes(KNOWN_OWNER) ? "found" : "NOT FOUND — owner render regression");
+  record(4, "stale hardcoded 'owner не заполняется источником' text is gone",
+    !/owner не заполняется источником/i.test(txt));
   await page.close();
 }
 

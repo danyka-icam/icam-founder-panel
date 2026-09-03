@@ -1,7 +1,6 @@
-[PANEL_HANDOFF_G19.md](https://github.com/user-attachments/files/31736374/PANEL_HANDOFF_G19.md)
 # ICAM Founder Panel v2 — Public Handoff
 
-Current as of: 2026-09-02
+Current as of: 2026-09-04
 
 ## Repository and branches
 
@@ -175,69 +174,51 @@ Boundary:
 - source-specific freshness is not invented
 - no universal stale threshold is presented as canonical freshness
 
-## UI-ready but server source still required
+## G19 server-wired projections (Атлас / DT / BrazilPortal / Операции / Фундамент)
+
+These five views moved from "UI-ready, source pending" to connected in the
+G19 pass. Each reads a dedicated same-origin projection endpoint under
+`/founder-ui-preview/api/panel/...` and renders `source_status` verbatim
+(AVAILABLE / DEGRADED / STALE / UNAVAILABLE) — none of them derive a green
+PASS locally.
 
 ### Атлас
-UI is ready for a safe normalized read-model.
+Reads: `panel/atlas`.
 
-Do not hard-wire proposed endpoints until a real server contract exists.
+Boundary (unchanged from the original design intent):
+- Canonical vs Shadow/Candidate is read from the source, never inferred from filenames
+- no ATLAS object ID is created client-side or back-dated
+- degraded/absent upstream state renders as such, not as an empty-but-healthy view
 
-Required semantics:
-- current world/state view
-- activity/material changes
-- object detail
-- Canonical vs Shadow/Candidate
-- Learning ≠ Promotion
-- source timestamps / degraded state
+### DT (Personal Twin)
+Reads: `panel/twin`.
 
-### DT
-UI is ready, but Personal Twin requires a resident server-side read-model.
-
-Hard boundaries:
+Hard boundaries (still in force):
 - Continuity remains the sensing authority
-- prediction must be sealed before outcome
-- prediction is hidden until outcome
-- ambiguous outcome = `NEEDS_CONFIRMATION`
-- no learning on ambiguous outcome
-- before PTC-R0 PASS: `PROSPECTIVE_LONGITUDINAL=OFF`
-- do not expose reconstructable hidden probabilities/weights before outcome
+- prediction is hidden until outcome; ambiguous outcome = `NEEDS_CONFIRMATION`, no learning on it
+- `PROSPECTIVE_LONGITUDINAL` stays OFF until PTC-R0 PASS
+- no reconstructable hidden probabilities/weights exposed before outcome
 
 ### BrazilPortal
-Do not connect by guessed identity.
+Reads: `panel/brazilportal`.
 
-Known identities:
-- component: `CMP-000005`
-- legacy operational read target: `FND-007`
-
-Required first step:
-reconcile/document the relationship between these identities.
-
-After that, expose a normalized read contract for:
-- declared/current status
-- stage
-- ball owner
-- next gate
-- next move
-- last material change/result
-- open non-test blockers
-- source timestamp
+- declared status and projected status are rendered as two distinct fields, never merged
+- `projected_status_canonical_relation = UNRESOLVED` is shown explicitly, not hidden behind a single verdict
+- identity resolution (`CMP-000005` / `FND-007`) is handled server-side; the frontend does not guess
 
 ### Операции
-Current UI is ready, but the verified existing sources do not provide complete execution truth.
+Reads: `panel/operations`.
 
-Do not reuse Orchestrator routes as Operations truth.
+- commitments come from Continuity, not from Orchestrator routes
+- `ball_owner` is rendered from the projection's `ball_owner` field only — never derived from `actor`, branch name, or `object_id`; absence renders "Недоступно", a real value is shown as-is
+- `factual_result` remains UNAVAILABLE: Continuity has no factual-result field on commitments today
+- object-level blockers are shown as object context, explicitly not this commitment's own blocker
 
-Required execution read-model:
-- approved commitment
-- execution status
-- ball owner
-- factual movement
-- blocker
-- result
-- external waiting
-- timestamps / freshness
+### Фундамент (aggregate)
+Reads: `panel/foundation`.
 
-Continuity should remain the canonical operational source unless the owning architecture explicitly says otherwise.
+- server-side aggregate is the sole readiness writer; the frontend does not derive PASS from `continuity-health + hub/sync-health` alone
+- an unresolved gap (e.g. an orphan receipt) keeps the aggregate at DEGRADED and is shown as the blocking reason, not summarized away
 
 ### Market Scanner → Сигналы
 Scanner/bridge runtime remains outside the browser.
@@ -257,19 +238,6 @@ Signal truth rules:
 - deterministic semantic evidence is mandatory
 - LLM enrichment cannot create the underlying event
 - customer-world causal graphs are never changed automatically by Meta/Founder-world scanning
-
-### Foundation aggregate
-The current frontend correctly shows partial health only.
-
-If the product needs a single overall Foundation readiness status, server-side contract must explicitly cover:
-- recovery
-- byte-for-byte readback
-- authority integrity
-- required source health
-- freshness
-- failure reason
-
-Do not derive green PASS from `continuity-health + hub/sync-health` alone.
 
 ## Write / authority boundary
 
