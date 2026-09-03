@@ -1411,6 +1411,84 @@
     .foundation-source-summary p{margin:7px 0 0;color:#8f9792;font-size:9.6px;line-height:1.5}
     .foundation-source-summary.warn{border-color:rgba(214,187,120,.22)}
     .foundation-source-summary.bad{border-color:rgba(212,117,99,.24)}
+
+/* G21 — normalized live surfaces */
+.normalized-live-root{margin:0 0 12px}
+.normalized-live-root .panel-body{padding:16px}
+.normalized-page.normalized-live-active > .normalized-live-root ~ *{display:none!important}
+
+.live-summary{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 12px
+}
+.live-summary .metric{
+  min-height:88px;padding:13px 14px;border:1px solid var(--line-soft);border-radius:11px;
+  background:rgba(20,26,29,.18)
+}
+.live-summary .metric small{
+  display:block;color:#a8b0ab;font-size:10px;line-height:1.25;text-transform:uppercase;letter-spacing:.055em
+}
+.live-summary .metric strong{
+  display:block;margin-top:7px;font:400 17px/1.18 Georgia,"Times New Roman",serif;color:#edf0ea;
+  overflow-wrap:anywhere
+}
+.live-summary .metric span{
+  display:block;margin-top:5px;color:#b5bbb7;font-size:11px;line-height:1.45
+}
+
+.live-status-box{
+  padding:13px 14px;margin-bottom:12px;border:1px solid var(--line-soft);border-radius:11px;
+  background:rgba(21,27,29,.18)
+}
+.live-status-box strong{font:400 18px Georgia,"Times New Roman",serif}
+.live-status-box p{margin:6px 0 0;color:#b8beb9;font-size:12px;line-height:1.5}
+.live-status-box.live{border-color:rgba(169,196,127,.26)}
+.live-status-box.warn{border-color:rgba(214,187,120,.30)}
+.live-status-box.bad{border-color:rgba(212,117,99,.31)}
+
+.live-list-clean{display:flex;flex-direction:column;gap:8px}
+.live-item-clean{
+  padding:12px 13px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(19,25,27,.14)
+}
+.live-item-clean-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.live-item-clean h3{margin:0;font:400 15px/1.25 Georgia,"Times New Roman",serif;color:#e9ebe6}
+.live-item-clean p{margin:6px 0 0;color:#c0c5c1;font-size:11.5px;line-height:1.5}
+.live-item-clean small{display:block;margin-top:6px;color:#9fa7a2;font-size:10px;line-height:1.45}
+.live-chip{
+  flex:0 0 auto;padding:4px 7px;border:1px solid var(--line);border-radius:999px;
+  color:#c7ccc8;font-size:9.5px;line-height:1;background:rgba(17,22,24,.18)
+}
+.live-chip.live{border-color:rgba(169,196,127,.28);color:#c9dba8}
+.live-chip.warn{border-color:rgba(214,187,120,.30);color:#e0c98d}
+.live-chip.bad{border-color:rgba(212,117,99,.30);color:#e0a097}
+
+.live-kv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 12px;margin-top:9px}
+.live-kv-clean{display:grid;grid-template-columns:145px minmax(0,1fr);gap:9px;padding-top:7px;border-top:1px solid var(--line-soft)}
+.live-kv-clean span{color:#9fa7a2;font-size:10px}
+.live-kv-clean b{font-size:11px;font-weight:500;color:#d9ddd8;overflow-wrap:anywhere}
+
+.live-warning{
+  padding:11px 12px;margin:9px 0;border-left:3px solid var(--coral);
+  background:rgba(90,46,40,.10);color:#d9ddd8;font-size:11.5px;line-height:1.5
+}
+.live-note-ru{margin-top:10px;color:#a7afaa;font-size:10.5px;line-height:1.5}
+.live-more{margin-top:8px;color:#aab2ad;font-size:10.5px}
+.raw-source-copy{display:none!important}
+
+/* Readability floor: no live/server text below 10px */
+.normalized-live-root,
+.normalized-live-root p,
+.normalized-live-root span,
+.normalized-live-root small,
+.normalized-live-root li{font-size:max(10px,1em)}
+
+@media(max-width:980px){
+  .live-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  .live-summary{grid-template-columns:1fr}
+  .live-kv-grid{grid-template-columns:1fr}
+  .live-kv-clean{grid-template-columns:110px minmax(0,1fr)}
+}
 </style>
 </head>
 <body>
@@ -1549,13 +1627,11 @@
 <div class="panel-body"><div class="empty-copy"><strong>Рекомендации ещё не подключены</strong><span>Когда источник появится, Оркестратор сможет объяснить: какая линия отстала → какие ветки она тормозит → какой минимальный шаг вернёт поток.</span></div></div>
 </article>
 </section>
-<section class="page" data-page-panel="atlas">
+<section class="page normalized-page" data-page-panel="atlas">
 <header class="topbar">
 <div><h1>Атлас</h1><p>Наблюдатель мира / Навигатор</p></div>
 <div class="top-actions"><span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div></div>
-</header>
-<section class="card" data-atlas-live="root"><div class="panel-head"><div class="head-title"><h2>Состояние Атласа</h2><small>живое серверное чтение</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
-
+</header><section class="card normalized-live-root" data-normalized-live="atlas"><div class="panel-head"><div class="head-title"><h2>Состояние Атласа</h2><small>доступность реального upstream-состояния</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
 <div class="flow">
 <div><b>ЧТО Я НАБЛЮДАЮ</b><span>Атлас сейчас / Миры</span></div>
 <div><b>ЧТО Я СЧИТАЮ ПРОИСХОДЯЩИМ</b><span>Текущая модель</span></div>
@@ -1595,7 +1671,7 @@
 </article>
 </section>
 </section>
-<section class="page" data-page-panel="digital-twin">
+<section class="page normalized-page" data-page-panel="digital-twin">
 <header class="topbar">
 <div>
 <h1>DT</h1>
@@ -1605,9 +1681,7 @@
 <span class="state lab">ИНЖЕНЕРНЫЙ КАНДИДАТ</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header>
-<section class="card" data-twin-live="root"><div class="panel-head"><div class="head-title"><h2>Состояние двойника</h2><small>живое серверное чтение</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
-
+</header><section class="card normalized-live-root" data-normalized-live="digital-twin"><div class="panel-head"><div class="head-title"><h2>Состояние DT</h2><small>готовность Personal Twin и текущий gate</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
 <div class="workspace-switcher">
 <button class="active" disabled="" title="Текущий обзор">Мой двойник</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Люди</button>
@@ -1780,7 +1854,7 @@
 </article>
 </section>
 </section>
-<section class="page" data-page-panel="foundation">
+<section class="page normalized-page" data-page-panel="foundation">
 <header class="topbar">
 <div>
 <h1>Фундамент</h1>
@@ -1790,9 +1864,7 @@
 <span class="state unavailable">СОСТОЯНИЕ НЕ ПОДКЛЮЧЕНО</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header>
-<section class="card" data-fnd-live="root"><div class="panel-head"><div class="head-title"><h2>Готовность основания</h2><small>живое серверное чтение</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
-
+</header><section class="card normalized-live-root" data-normalized-live="foundation"><div class="panel-head"><div class="head-title"><h2>Готовность основания</h2><small>единая серверная проекция готовности</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
 <div class="workspace-switcher foundation-switcher">
 <button class="active" disabled="" title="Текущий обзор">Обзор</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Контуры</button>
@@ -2274,7 +2346,7 @@
 </article>
 </section>
 </section>
-<section class="page" data-page-panel="brazilportal">
+<section class="page normalized-page" data-page-panel="brazilportal">
 <header class="topbar">
 <div>
 <h1>BrazilPortal</h1>
@@ -2284,9 +2356,7 @@
 <span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header>
-<section class="card" data-bp-live="root"><div class="panel-head"><div class="head-title"><h2>Состояние BrazilPortal</h2><small>живое серверное чтение</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
-
+</header><section class="card normalized-live-root" data-normalized-live="brazilportal"><div class="panel-head"><div class="head-title"><h2>Состояние BrazilPortal</h2><small>объявленное и спроецированное состояние — раздельно</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
 <div class="workspace-switcher bp-switcher-v2">
 <button class="active" disabled="" title="Текущий обзор">Обзор</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Продукт</button>
@@ -2541,7 +2611,7 @@
     Continuity capsule + state projection + blockers для BrazilPortal. Legacy-код обращается к `FND-007`; при интеграции v2 Клим должен сверить этот операционный идентификатор с каноническим Registry/Continuity и не переносить hard-code вслепую.
   </div>
 </section>
-<section class="page" data-page-panel="operations">
+<section class="page normalized-page" data-page-panel="operations">
 <header class="topbar">
 <div>
 <h1>Операции</h1>
@@ -2551,9 +2621,7 @@
 <span class="state unavailable">ОПЕРАЦИОННЫЙ ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header>
-<section class="card" data-ops-live="root"><div class="panel-head"><div class="head-title"><h2>Операционная проекция</h2><small>живое серверное чтение</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
-
+</header><section class="card normalized-live-root" data-normalized-live="operations"><div class="panel-head"><div class="head-title"><h2>Операционная картина</h2><small>реальные обязательства и состояние исполнения</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
 <div class="workspace-switcher operations-switcher">
 <button class="active" disabled="" title="Текущий обзор">Обзор</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">В исполнении</button>

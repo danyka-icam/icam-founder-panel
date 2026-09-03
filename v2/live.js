@@ -1,4 +1,4 @@
-// Founder Panel v2 — Live Read Wiring G18
+// Founder Panel v2 — Live Read Wiring G21
 // Scope: READ ONLY.
 // Sources: existing same-origin Orchestrator + Continuity GET projections.
 // No canonical writes. No local priority engine. No invented dependency links.
@@ -18,13 +18,12 @@
     testingRunner: API + "/testing-runner-health",
     hubHealth: API + "/hub/sync-health",
     continuityHealth: API + "/continuity-health",
-    // G19 server integrations (read-only projections). market-signals is
-    // deliberately NOT here: item E stays on HOLD until scanner QA passes.
     opsProjection: API + "/panel/operations",
     brazilPortal: API + "/panel/brazilportal",
     foundationAgg: API + "/panel/foundation",
     atlasState: API + "/panel/atlas",
     twinState: API + "/panel/twin"
+    // Market Scanner intentionally absent until QA PASS.
   };
 
   var REFRESH_MS = 90000;
@@ -679,8 +678,12 @@
   function ageMinutesLabel(minutes) {
     if (minutes == null || !isFinite(Number(minutes))) return "—";
     var n = Math.max(0, Number(minutes));
-    var h = Math.floor(n / 60), m = Math.round(n % 60);
-    return h ? h + "ч " + m + "м" : m + "м";
+    var d = Math.floor(n / 1440);
+    var h = Math.floor((n % 1440) / 60);
+    var m = Math.round(n % 60);
+    if (d) return d + " дн. " + h + " ч.";
+    if (h) return h + " ч. " + m + " мин.";
+    return m + " мин.";
   }
 
   function pageBadge(pageKey, mode, text) {
@@ -823,6 +826,12 @@
           "<span>" + esc(r.artifact_class || "UNKNOWN") + "</span><small>" + esc(ageMinutesLabel(ageMin)) + "</small></div>";
       }).join("") :
       "<div class='documents-empty compact'><strong>Ручного разбора сейчас нет</strong><span>Источник Hub ответил пустой очередью.</span></div>";
+    }
+    var oldestCard = page.querySelector('[data-d="oldest"]');
+    if (oldestCard) {
+      var card = oldestCard.closest(".card");
+      var note = card && card.querySelector("span");
+      if (note) note.textContent = "возраст старейшего пункта очереди ручного разбора; это не свежесть системы";
     }
     pageBadge("documents", "live", "ДАННЫЕ ПОДКЛЮЧЕНЫ");
   }
@@ -1171,6 +1180,19 @@
       any ? "ЧАСТИЧНЫЕ ДАННЫЕ · ОБЩАЯ ГОТОВНОСТЬ НЕ ДОКАЗАНА" : "ИСТОЧНИКИ НЕДОСТУПНЫ");
   }
 
+  function signalKindRu(kind) {
+    var m = {
+      GATE_RESULT:"Результат гейта",
+      DECISION:"Решение",
+      STATUS_CHANGE:"Изменение статуса",
+      STAGE_CHANGE:"Изменение этапа",
+      TEST_RESULT:"Результат проверки",
+      EXTERNAL_EVENT:"Внешнее событие",
+      NEW_FILE:"Новый артефакт"
+    };
+    return m[String(kind || "").toUpperCase()] || "Материальное изменение";
+  }
+
   function renderSignals(objectsResp, blockersResp, inbox, testingSummary) {
     var page = document.querySelector('[data-page-panel="signals"]');
     if (!page) return;
@@ -1215,7 +1237,7 @@
         founderBox.innerHTML = "<div class='signals-empty compact'><strong>Сейчас решений Основателя нет</strong><span>Текущие Входящие Основателя не содержат `needs_founder`.</span></div>";
       } else {
         founderBox.innerHTML = "<div class='signals-live-list'>" + founderItems.slice(0, 6).map(function (x) {
-          return "<div class='signals-live-item attention'><b>" + esc(x.title || x.summary || "Требуется решение") + "</b>" +
+          return "<div class='signals-live-item attention'><b>Решение Основателя</b>" +
             "<span>" + esc(x.object_id || "объект не указан") + "</span>" +
             "<small>Входящие Основателя · " + esc(ago(x.opened_at || x.created_at || x.updated_at)) + "</small></div>";
         }).join("") + "</div>";
@@ -1231,8 +1253,8 @@
       } else {
         changesBox.innerHTML = "<div class='signals-live-list'>" + changes.slice(0, 8).map(function (o) {
           return "<div class='signals-live-item change'><b>" + esc(o.name || o.object_id || "Изменение") + "</b>" +
-            "<span>" + esc(o.last_summary || o.last_meaning_kind || "изменение состояния") + "</span>" +
-            "<small>" + esc(o.object_id || "ID не указан") + " · " + esc(o.last_meaning_kind || "событие") + " · " + esc(ago(o.last_event_at)) + "</small></div>";
+            "<span>" + esc(signalKindRu(o.last_meaning_kind)) + "</span>" +
+            "<small>" + esc(o.object_id || "ID не указан") + " · " + esc(ago(o.last_event_at)) + "</small></div>";
         }).join("") + "</div>";
       }
     }
@@ -1243,9 +1265,9 @@
         risksBox.innerHTML = unavailableHTML("Источники риска недоступны", "Панель не вычисляет собственный риск без подтверждённого источника.");
       } else {
         var rows = blockers.slice(0, 6).map(function (b) {
-          return "<div class='signals-live-item risk'><b>" + esc(b.title || b.blocker || "Открытое препятствие") + "</b>" +
-            "<span>" + esc(b.object_id || "объект не указан") + " · " + esc(b.status || "открыт") + "</span>" +
-            "<small>Continuity blocker · тяжесть без оценки, если источник её не передал</small></div>";
+          return "<div class='signals-live-item risk'><b>Открытый блокер</b>" +
+            "<span>" + esc(b.object_id || "объект не указан") + " · " + esc(ruStatus(b.status || "OPEN")) + "</span>" +
+            "<small>Continuity · тяжесть не придумывается Панелью</small></div>";
         });
         riskyTests.slice(0, 6).forEach(function (t) {
           rows.push("<div class='signals-live-item risk'><b>" + esc(t.test_id || "Проверка") + "</b>" +
@@ -1275,16 +1297,16 @@
     if (hero) {
       var heroRows = [];
       founderItems.slice(0, 2).forEach(function (x) {
-        heroRows.push("<div class='signals-live-item attention'><b>" + esc(x.title || x.summary || "Требуется решение Основателя") + "</b>" +
+        heroRows.push("<div class='signals-live-item attention'><b>Решение Основателя</b>" +
           "<span>" + esc(x.object_id || "объект не указан") + "</span><small>Требует Основателя</small></div>");
       });
       blockers.slice(0, 2).forEach(function (b) {
-        heroRows.push("<div class='signals-live-item risk'><b>" + esc(b.title || b.blocker || "Открытый блокер") + "</b>" +
-          "<span>" + esc(b.object_id || "объект не указан") + "</span><small>Подтверждённый blocker · без локального severity</small></div>");
+        heroRows.push("<div class='signals-live-item risk'><b>Открытый блокер</b>" +
+          "<span>" + esc(b.object_id || "объект не указан") + "</span><small>Подтверждён Continuity · без локальной оценки тяжести</small></div>");
       });
       changes.slice(0, 2).forEach(function (o) {
         heroRows.push("<div class='signals-live-item change'><b>" + esc(o.name || o.object_id || "Изменение") + "</b>" +
-          "<span>" + esc(o.last_summary || "материальное изменение") + "</span><small>" + esc(o.last_meaning_kind || "событие") + " · " + esc(ago(o.last_event_at)) + "</small></div>");
+          "<span>" + esc(signalKindRu(o.last_meaning_kind)) + "</span><small>" + esc(ago(o.last_event_at)) + "</small></div>");
       });
       if (!objectsOk && !blockersOk && !inboxOk) {
         hero.innerHTML = unavailableHTML("Внутренние источники сигналов недоступны", "Панель не сохраняет старую ленту как текущую.");
@@ -1303,184 +1325,138 @@
     );
   }
 
-  // --- G19 server integrations -------------------------------------------
-  // Every renderer below shows the SERVER's own source_status verbatim. A failed
-  // or unavailable source must never render as empty-and-healthy, and an
-  // UNAVAILABLE returned by the server (ATLAS, Twin) is the correct current
-  // answer, not an error to hide.
 
-  var STATE_CLASS = {
-    READY: "ok", AVAILABLE: "ok", FRESH: "ok",
-    DEGRADED: "warn", PARTIAL: "warn", AGING: "warn", STALE: "warn", EMPTY: "warn",
-    UNAVAILABLE: "bad", UNKNOWN: "bad", FAIL: "bad"
-  };
-
-  function stateClass(v) {
-    return STATE_CLASS[String(v || "").toUpperCase()] || "warn";
+  function liveMode(status) {
+    var s=String(status||"").toUpperCase();
+    if (["READY","AVAILABLE","FRESH","PASS"].indexOf(s)>=0) return "live";
+    if (["UNAVAILABLE","FAIL","ERROR","BLOCKED","UNKNOWN"].indexOf(s)>=0) return "bad";
+    return "warn";
   }
-
-  function kvRow(label, value) {
-    return "<div class='live-kv'><span>" + esc(label) + "</span><b>" +
-           esc(value == null || value === "" ? "—" : value) + "</b></div>";
+  function chip(status) {
+    var s=String(status||"—");
+    return "<span class='live-chip " + liveMode(s) + "'>" + esc(s) + "</span>";
   }
-
-  function liveShell(root, title, status, reason, bodyHTML, footer) {
-    var body = root.querySelector(".panel-body");
+  function kv(label,value) {
+    return "<div class='live-kv-clean'><span>"+esc(label)+"</span><b>"+esc(value==null||value===""?"—":value)+"</b></div>";
+  }
+  function activateNormalized(pageKey, sourceStatus, badgeText) {
+    var page=document.querySelector('[data-page-panel="'+pageKey+'"]');
+    if (!page) return null;
+    page.classList.add("normalized-live-active");
+    pageBadge(pageKey, liveMode(sourceStatus)==="live"?"live":(liveMode(sourceStatus)==="bad"?"unavailable":"warn"), badgeText);
+    return page.querySelector('[data-normalized-live="'+pageKey+'"] .panel-body');
+  }
+  function cleanFailure(pageKey,label,stateName) {
+    var body=activateNormalized(pageKey,"UNAVAILABLE","ИСТОЧНИК НЕДОСТУПЕН");
     if (!body) return;
-    body.innerHTML =
-      "<div class='foundation-source-summary " + stateClass(status) + "'>" +
-      "<strong>" + esc(title) + " — " + esc(status || "НЕИЗВЕСТНО") + "</strong>" +
-      (reason ? "<p>" + esc(reason) + "</p>" : "") +
-      "</div>" + (bodyHTML || "") +
-      (footer ? "<p class='live-note'>" + esc(footer) + "</p>" : "");
+    body.innerHTML="<div class='live-status-box bad'><strong>"+esc(label)+" — недоступно</strong><p>Серверная проекция не ответила. Текущее состояние не подменяется старыми данными.</p></div>";
   }
 
-  function renderFetchFailure(root, label, name) {
-    if (!root) return;
-    var body = root.querySelector(".panel-body");
-    if (!body) return;
-    body.innerHTML = unavailableHTML(
-      label + ": источник не ответил",
-      "Ошибка чтения: " + esc(sourceState[name] && sourceState[name].error || "неизвестно") +
-      ". Данные не показываются, чтобы не выдать отсутствие за норму.");
-  }
-
-  function renderOperations(data) {
-    var root = document.querySelector('[data-ops-live="root"]');
-    if (!root) return;
-    if (!sourceState.opsProjection.ok || !data) return renderFetchFailure(root, "Операции", "opsProjection");
-
-    var ops = asArray(data.operations);
-    var counts = data.counts || {};
-    var rows = ops.slice(0, 12).map(function (o) {
-      var blk = asArray(o.object_level_blockers);
-      return "<div class='live-row'>" +
-        "<div class='live-row-head'><b>" + esc(o.object_id || "—") + "</b>" +
-        "<span class='state " + stateClass(o.status) + "'>" + esc(o.status || "—") + "</span></div>" +
-        "<p>" + esc(cut(o.title, 190)) + "</p>" +
-        kvRow("Условие активации", o.activation_condition) +
-        kvRow("Открыто", o.opened_at) +
-        kvRow("Обновлено", o.updated_at) +
-        kvRow("Владелец хода", "НЕДОСТУПНО — источник не заполняет поле") +
-        kvRow("Фактический результат", "НЕДОСТУПНО — модель не хранит исход") +
-        (blk.length
-          ? "<p class='live-note'>Блокеры объекта (" + blk.length + "): контекст объекта, не блокер этого обязательства.</p>"
-          : "") +
-        "</div>";
+  function renderOperationsProjection(data) {
+    if (!sourceState.opsProjection.ok || !data) return cleanFailure("operations","Операции","opsProjection");
+    var body=activateNormalized("operations",data.source_status,
+      "ОПЕРАЦИИ · "+String(data.source_status||"").toUpperCase()+" · "+String(data.freshness_state||""));
+    if(!body)return;
+    var c=data.counts||{}, ops=asArray(data.operations);
+    var summary="<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Операционная проекция — "+esc(data.source_status)+"</strong>"+
+      "<p>"+(String(data.freshness_state).toUpperCase()==="STALE"?"Данные устарели по контракту свежести: движения обязательств давно не было.":"Состояние прочитано из серверной проекции.")+"</p></div>"+
+      "<div class='live-summary'>"+
+      "<div class='metric'><small>Всего обязательств</small><strong>"+esc(c.total)+"</strong><span>реальные commitments</span></div>"+
+      "<div class='metric'><small>Открыто</small><strong>"+esc(c.open)+"</strong><span>текущий execution status</span></div>"+
+      "<div class='metric'><small>Свежесть</small><strong>"+esc(data.freshness_state)+"</strong><span>не подменяется временем обновления UI</span></div>"+
+      "<div class='metric'><small>Владелец хода</small><strong>Недоступно</strong><span>owner не заполняется источником</span></div></div>";
+    var rows=ops.slice(0,5).map(function(o){
+      return "<div class='live-item-clean'><div class='live-item-clean-head'><h3>"+esc(o.object_id||"Обязательство")+"</h3>"+chip(o.status)+"</div>"+
+        "<p>"+esc(cut(o.title||"Без краткого описания",150))+"</p>"+
+        "<div class='live-kv-grid'>"+kv("Открыто",o.opened_at)+kv("Обновлено",o.updated_at)+kv("Условие активации",o.activation_condition)+kv("Фактический результат","Недоступно")+"</div>"+
+        (asArray(o.object_level_blockers).length?"<small>У объекта есть блокеры: это контекст объекта, не блокер конкретного обязательства.</small>":"")+"</div>";
     }).join("");
-
-    liveShell(root, "Операционная проекция", data.source_status, data.degraded_reason,
-      kvRow("Всего", counts.total) + kvRow("Открыто", counts.open) +
-      kvRow("Свежесть", data.freshness_state) + kvRow("Последнее движение", data.last_movement_at) +
-      (ops.length ? rows : "<div class='empty-copy'><strong>Обязательств нет</strong></div>"),
-      "Поля источника не переименованы. ball_owner и factual_result помечены недоступными, а не угаданы.");
+    body.innerHTML=summary+"<div class='live-list-clean'>"+rows+"</div>"+(ops.length>5?"<div class='live-more'>Ещё "+(ops.length-5)+" обязательств скрыты из обзора, чтобы экран оставался читаемым.</div>":"");
   }
 
-  function renderBrazilPortal(data) {
-    var root = document.querySelector('[data-bp-live="root"]');
-    if (!root) return;
-    if (!sourceState.brazilPortal.ok || !data) return renderFetchFailure(root, "BrazilPortal", "brazilPortal");
-
-    var id = data.identity || {};
-    var sv = data.status_views || {};
-    function pf(f) { return f && f.value != null ? f.value : null; }
-
-    var html =
-      kvRow("Операционный объект", id.operational_object_id) +
-      kvRow("Компонент", id.component_id) +
-      kvRow("Ключ чтения", id.canonical_read_key) +
-      "<p class='live-note'>" + esc(id.note || "") + "</p>" +
-      "<div class='live-row'><div class='live-row-head'><b>Два разных статуса</b></div>" +
-      kvRow("Объявленный", sv.declared_status) +
-      kvRow("Спроецированный", sv.projected_status) +
-      kvRow("Каноничность проекции", sv.projected_status_canonical_relation) +
-      "<p class='live-note'>" + esc(sv.note || "") + "</p></div>" +
-      kvRow("Стадия", pf(data.stage)) +
-      kvRow("Владелец", pf(data.owner)) +
-      kvRow("Следующий гейт", pf(data.next_gate)) +
-      kvRow("Следующий ход", pf(data.next_move)) +
-      kvRow("Открытых блокеров", (data.open_blockers || {}).count) +
-      kvRow("Открытых обязательств", (data.open_commitments || {}).count) +
-      kvRow("Фактический результат", "НЕДОСТУПНО — поля нет в модели");
-
-    liveShell(root, "BrazilPortal", data.source_status, data.degraded_reason, html,
-      (data.open_blockers && data.open_blockers.note) || "");
-
-    // legacy hooks on this page, if present
-    var page = document.querySelector('[data-page-panel="brazilportal"]');
-    if (page) {
-      var map = { stage: pf(data.stage), owner: pf(data.owner),
-                  status: sv.projected_status, blockers: (data.open_blockers || {}).count };
-      Object.keys(map).forEach(function (k) {
-        var e = page.querySelector('[data-bp="' + k + '"]');
-        if (e) e.textContent = map[k] == null ? "—" : String(map[k]);
-      });
-    }
+  function renderBrazilPortalProjection(data) {
+    if (!sourceState.brazilPortal.ok || !data) return cleanFailure("brazilportal","BrazilPortal","brazilPortal");
+    var sv=data.status_views||{}, id=data.identity||{};
+    var body=activateNormalized("brazilportal",data.source_status,
+      "BRAZILPORTAL · "+String(data.source_status||"").toUpperCase());
+    if(!body)return;
+    function val(x){return x&&x.value!=null?x.value:"—";}
+    var unresolved=String(sv.projected_status_canonical_relation||"").toUpperCase()==="UNRESOLVED";
+    body.innerHTML=
+      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>BrazilPortal — "+esc(data.source_status)+"</strong>"+
+      "<p>"+(unresolved?"Спроецированный статус не подтверждён как канонический. Панель показывает его отдельно от объявленного.":"Состояние прочитано из нормализованной проекции.")+"</p></div>"+
+      "<div class='live-summary'>"+
+      "<div class='metric'><small>Объявленный статус</small><strong>"+esc(sv.declared_status)+"</strong><span>что объектом объявлено</span></div>"+
+      "<div class='metric'><small>Спроецированный статус</small><strong>"+esc(sv.projected_status)+"</strong><span>последнее смысловое событие</span></div>"+
+      "<div class='metric'><small>Каноничность проекции</small><strong>"+esc(sv.projected_status_canonical_relation)+"</strong><span>"+(unresolved?"не подтверждена":"подтверждена источником")+"</span></div>"+
+      "<div class='metric'><small>Этап</small><strong>"+esc(val(data.stage))+"</strong><span>с provenance в источнике</span></div></div>"+
+      "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Следующий ход</h3>"+chip(data.source_status)+"</div>"+
+      "<div class='live-kv-grid'>"+kv("Владелец",val(data.owner))+kv("Следующий гейт",val(data.next_gate))+kv("Следующий ход",val(data.next_move))+kv("Открытые блокеры",(data.open_blockers||{}).count)+kv("Открытые обязательства",(data.open_commitments||{}).count)+kv("Идентичность",(id.component_id||"—")+" ↔ "+(id.operational_object_id||"—"))+"</div>"+
+      "<small>Количество блокеров не подписывается как «нетестовое»: test-фильтрация источником не доказана.</small></div>";
   }
 
-  function renderFoundationAggregate(data) {
-    var root = document.querySelector('[data-fnd-live="root"]');
-    if (!root) return;
-    if (!sourceState.foundationAgg.ok || !data) return renderFetchFailure(root, "Основание", "foundationAgg");
-
-    var dims = asArray(data.dimensions).map(function (d) {
-      return "<div class='live-row'>" +
-        "<div class='live-row-head'><b>" + esc(d.dimension) + "</b>" +
-        "<span class='state " + stateClass(d.state) + "'>" + esc(d.state) + "</span></div>" +
-        kvRow("Доказано источником", d.proven_by_source) +
-        kvRow("Поле", d.proven_by_field) +
-        (d.blocking_reason ? "<p class='live-note'>" + esc(d.blocking_reason) + "</p>" : "") +
-        "</div>";
+  function renderFoundationAggregateClean(data) {
+    if (!sourceState.foundationAgg.ok || !data) return cleanFailure("foundation","Фундамент","foundationAgg");
+    var body=activateNormalized("foundation",data.source_status,
+      "ФУНДАМЕНТ · "+String(data.source_status||"").toUpperCase());
+    if(!body)return;
+    var names={
+      continuity_source_health:"Контур Continuity",
+      artifact_durability_readback:"Долговечность / readback",
+      authority_action_path:"Путь полномочий",
+      testing_execution_integrity:"Исполнение Testing"
+    };
+    var dims=asArray(data.dimensions);
+    var cards=dims.map(function(d){
+      return "<div class='live-item-clean'><div class='live-item-clean-head'><h3>"+esc(names[d.dimension]||d.dimension)+"</h3>"+chip(d.state)+"</div>"+
+        (d.blocking_reason?"<div class='live-warning'>"+esc(d.blocking_reason)+"</div>":"")+
+        "<small>Доказано: "+esc(d.proven_by_source||"источник не указан")+"</small></div>";
     }).join("");
-
-    var blocking = asArray(data.blocking_reasons);
-    var missing = asArray(data.missing_dimensions);
-
-    liveShell(root, "Готовность основания", data.source_status, data.degraded_reason,
-      kvRow("Свежесть", data.freshness_state) +
-      kvRow("Последний успешный чтение-срез", data.last_success_at) +
-      (missing.length ? kvRow("Недоказанные измерения", missing.join(", ")) : "") +
-      (blocking.length
-        ? "<div class='live-row'><div class='live-row-head'><b>Блокирующие причины</b></div><ul><li>" +
-          blocking.map(esc).join("</li><li>") + "</li></ul></div>"
-        : "") + dims,
-      data.readiness_contract);
+    var blocking=asArray(data.blocking_reasons);
+    body.innerHTML=
+      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Готовность основания — "+esc(data.source_status)+"</strong>"+
+      "<p>"+(blocking.length?"Есть подтверждённый блокирующий дефект. Зелёный READY не показывается.":"Все обязательные измерения должны быть доказаны текущими источниками.")+"</p></div>"+
+      "<div class='live-summary'>"+
+      "<div class='metric'><small>Общий статус</small><strong>"+esc(data.source_status)+"</strong><span>серверный aggregate — единственный владелец readiness</span></div>"+
+      "<div class='metric'><small>Свежесть</small><strong>"+esc(data.freshness_state)+"</strong><span>последний успешный срез</span></div>"+
+      "<div class='metric'><small>PASS</small><strong>"+esc(dims.filter(function(d){return String(d.state).toUpperCase()==="PASS";}).length)+" / "+esc(dims.length)+"</strong><span>обязательные измерения</span></div>"+
+      "<div class='metric'><small>Блокирующие причины</small><strong>"+esc(blocking.length)+"</strong><span>подтверждены источниками</span></div></div>"+
+      (blocking.length?"<div class='live-warning'>"+blocking.map(esc).join("<br>")+"</div>":"")+
+      "<div class='live-list-clean'>"+cards+"</div>";
   }
 
-  function renderAtlasState(data) {
-    var root = document.querySelector('[data-atlas-live="root"]');
-    if (!root) return;
-    if (!sourceState.atlasState.ok || !data) return renderFetchFailure(root, "Атлас", "atlasState");
-    liveShell(root, "Атлас", data.source_status, data.degraded_reason,
-      kvRow("Класс ошибки", data.error_class) +
-      kvRow("Стадия блокировки", data.blocked_stage) +
-      "<div class='live-row'><div class='live-row-head'><b>Недоступные поля</b></div><ul><li>" +
-      asArray(data.unavailable_fields).map(esc).join("</li><li>") + "</li></ul></div>",
-      data.unblock_requires);
+  function renderAtlasStateClean(data) {
+    if (!sourceState.atlasState.ok || !data) return cleanFailure("atlas","Атлас","atlasState");
+    var body=activateNormalized("atlas",data.source_status,
+      "АТЛАС · BLOCKED_UPSTREAM");
+    if(!body)return;
+    body.innerHTML=
+      "<div class='live-status-box bad'><strong>Атлас — источник состояния ещё не существует</strong>"+
+      "<p>Endpoint подключён и работает. UNAVAILABLE здесь — корректный ответ: безопасного upstream state source пока нет.</p></div>"+
+      "<div class='live-summary'>"+
+      "<div class='metric'><small>Источник API</small><strong>Подключён</strong><span>сервер отвечает</span></div>"+
+      "<div class='metric'><small>Upstream state</small><strong>Недоступен</strong><span>"+esc(data.error_class||"NO_ATLAS_STATE_SOURCE")+"</span></div>"+
+      "<div class='metric'><small>Текущий state</small><strong>Не строится</strong><span>документы Hub не превращаются в каноничность</span></div>"+
+      "<div class='metric'><small>Следующий шаг</small><strong>Создать state source</strong><span>Continuity object или resident service</span></div></div>";
   }
 
-  function renderTwinState(data) {
-    var root = document.querySelector('[data-twin-live="root"]');
-    if (!root) return;
-    if (!sourceState.twinState.ok || !data) return renderFetchFailure(root, "DT", "twinState");
-
-    var po = data.program_object || {};
-    var inv = data.safety_invariants_status || {};
-    liveShell(root, "Двойник", data.source_status, data.degraded_reason,
-      kvRow("Класс ошибки", data.error_class) +
-      kvRow("Стадия блокировки", data.blocked_stage) +
-      "<div class='live-row'><div class='live-row-head'><b>Объект программы</b>" +
-      "<span class='state " + stateClass(po.declared_status) + "'>" + esc(po.declared_status || "—") + "</span></div>" +
-      kvRow("Объект", po.object_id) + kvRow("Стадия", po.stage) +
-      kvRow("Следующий гейт", po.next_gate) +
-      kvRow("Открытых блокеров", po.open_blockers) +
-      "<p class='live-note'>" + esc(po.note || "") + "</p></div>" +
-      "<div class='live-row'><div class='live-row-head'><b>Предохранители</b></div>" +
-      kvRow("PROSPECTIVE_LONGITUDINAL", inv.prospective_longitudinal) +
-      kvRow("Скрытый прогноз", inv.hidden_prediction_exposure) +
-      kvRow("Обучение на неоднозначном исходе", inv.learning_on_ambiguous_outcome) +
-      "<p class='live-note'>" + esc(inv.note || "") + "</p></div>",
-      data.unblock_requires);
+  function renderTwinStateClean(data) {
+    if (!sourceState.twinState.ok || !data) return cleanFailure("digital-twin","DT","twinState");
+    var body=activateNormalized("digital-twin",data.source_status,
+      "DT · PRE-PTC-R0 · UPSTREAM НЕДОСТУПЕН");
+    if(!body)return;
+    var po=data.program_object||{}, inv=data.safety_invariants_status||{};
+    body.innerHTML=
+      "<div class='live-status-box bad'><strong>Personal Twin — runtime ещё не создан</strong>"+
+      "<p>Endpoint подключён. Недоступен именно Twin state: программа находится до PTC-R0.</p></div>"+
+      "<div class='live-summary'>"+
+      "<div class='metric'><small>Объект программы</small><strong>"+esc(po.object_id||"FND-005")+"</strong><span>"+esc(po.declared_status||"")+"</span></div>"+
+      "<div class='metric'><small>Этап</small><strong>"+esc(po.stage||"—")+"</strong><span>позиция программы, не прогноз Twin</span></div>"+
+      "<div class='metric'><small>Следующий gate</small><strong>"+esc(po.next_gate||"PTC-R0_LOCAL")+"</strong><span>до него longitudinal выключен</span></div>"+
+      "<div class='metric'><small>Открытые блокеры</small><strong>"+esc(po.open_blockers||0)+"</strong><span>по объекту программы</span></div></div>"+
+      "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Предохранители</h3>"+chip("UNAVAILABLE")+"</div>"+
+      "<div class='live-kv-grid'>"+kv("PROSPECTIVE_LONGITUDINAL",inv.prospective_longitudinal||"OFF_BY_ABSENCE")+kv("Скрытый прогноз",inv.hidden_prediction_exposure||"NONE_TO_EXPOSE")+kv("Обучение на неоднозначном исходе",inv.learning_on_ambiguous_outcome||"NOT_POSSIBLE_NO_LEARNING_PATH")+"</div>"+
+      "<small>Эти состояния пока обеспечены отсутствием runtime, а не активным контролем. После появления Twin state каждый инвариант должен проверяться явно.</small></div>";
   }
 
   function renderDiagnostics() {
@@ -1602,12 +1578,11 @@
       renderDocuments(hubHealth);
       renderTesting(testingSummary, testingRunner);
       renderSignals(objects, blockers, inbox, testingSummary);
-      renderFoundation(continuityHealth, hubHealth, objects, inbox);
-      renderOperations(opsProjection);
-      renderBrazilPortal(brazilPortal);
-      renderFoundationAggregate(foundationAgg);
-      renderAtlasState(atlasState);
-      renderTwinState(twinState);
+      renderOperationsProjection(opsProjection);
+      renderBrazilPortalProjection(brazilPortal);
+      renderFoundationAggregateClean(foundationAgg);
+      renderAtlasStateClean(atlasState);
+      renderTwinStateClean(twinState);
       renderDiagnostics();
 
       renderResearch(objects, blockers).then(function () {
