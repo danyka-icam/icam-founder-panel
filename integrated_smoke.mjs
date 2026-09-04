@@ -538,6 +538,15 @@ console.log("\n=== PASS 6: PERSONAL TWIN — safe projection + boundary ===");
     record(6, "live Twin fixture reaches the Twin page",
       txt.includes(commitmentPrefix) && /SEALED/i.test(txt),
       txt.includes(commitmentPrefix) ? "commitment shown" : "commitment MISSING");
+
+    // Regression guard for the 2026-09-05 cleanup: the DT page used to carry
+    // a static hero block claiming "СЕРВИС НЕ ПОДКЛЮЧЁН" regardless of
+    // real Twin state. With a LIVE fixture active, that stale claim must not
+    // appear anywhere on the page -- deliberately not pinning what the new
+    // copy says, only that the old contradiction is gone.
+    record(6, "no stale 'СЕРВИС НЕ ПОДКЛЮЧЁН' claim on DT page when Twin is LIVE",
+      !/СЕРВИС НЕ ПОДКЛЮЧЁН/i.test(txt),
+      /СЕРВИС НЕ ПОДКЛЮЧЁН/i.test(txt) ? "STALE CLAIM STILL PRESENT" : "gone");
     await page.close();
   }
 
