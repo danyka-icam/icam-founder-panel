@@ -1692,7 +1692,7 @@
       orchestrator: ["routes", "summary", "metrics"],
       testing: ["testingSummary", "testingHealth", "testingRunner"],
       hub: ["hubHealth"],
-      scanner: [],
+      scanner: ["marketSignals", "fieldMovement", "scannerDiagnostics"],
       "atlas-twin": []
     };
     Object.keys(map).forEach(function (group) {

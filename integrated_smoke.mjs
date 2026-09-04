@@ -385,6 +385,50 @@ console.log("\n=== PASS 5: MARKET SIGNALS — activation contract + boundary ===
     await page.close();
   }
 
+  // 5f1: regression guard for the 2026-09-04 cleanup -- when the flow is
+  // active, neither page may still show the pre-cleanup static "not
+  // connected" copy. This is not "assert the new copy" (that would be a
+  // second hardcode); it only asserts the specific stale strings are gone.
+  {
+    const page = await newPage(browser);
+    await page.route("**" + SIGNALS_EP + "**", async (route) => {
+      await route.fulfill({
+        status: 200, contentType: "application/json",
+        body: JSON.stringify({
+          activation_state: "ACTIVATED", source_status: "AVAILABLE", flow_activated: true,
+          observed_at: new Date().toISOString(), degraded_reason: null,
+          counts: { returned: 1, stored_total: 1 },
+          source_coverage: { status: "OK", reason: null, ok_count: 12, total_sources: 12, failing: [] },
+          signals: [{
+            schema: "atlas.market-signal.v1", signal_id: "mkt-smoke-regression-1",
+            observed_at: new Date().toISOString(), entity: "Regression Fixture Entity",
+            signal_type: "capability-release", title: "Regression fixture title",
+            axis: ["world-model"], relevance_score: 80, confidence: "high",
+            source: { name: "regression-source", url: "https://example.invalid/regression" },
+            evidence: ["ev-1"], status: "watch",
+          }],
+        }),
+      });
+    });
+    await page.goto(BASE + "#signals", { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForTimeout(2000);
+    const sigTxt = await textOfPage(page, "signals");
+    record(5, "no stale 'ещё не подключён' static block on Signals when active",
+      !/Market Scanner ещё не подключён к Панели/i.test(sigTxt),
+      /Market Scanner ещё не подключён к Панели/i.test(sigTxt) ? "STALE BLOCK STILL PRESENT" : "gone");
+
+    await page.goto(BASE + "#diagnostics", { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForTimeout(2000);
+    const scannerRow = await page.evaluate(() => {
+      const el = document.querySelector('[data-x-source="scanner"]');
+      return el ? el.innerText : null;
+    });
+    record(5, "Diagnostics source table shows live scanner state, not hardcoded НЕ ПОДКЛЮЧЁН",
+      !!scannerRow && !/НЕ ПОДКЛЮЧЁН/i.test(scannerRow),
+      "data-x-source=scanner: " + JSON.stringify(scannerRow));
+    await page.close();
+  }
+
   // 5f2: a fixture field-movement axis and a fixture scanner-diagnostics
   // value must each reach their real DOM hooks -- not just "no error", an
   // actual positive check that the specific fixture value landed.
