@@ -108,6 +108,14 @@ console.log("\n=== PASS 1: LIVE — every projection renders real state ===");
   record(1, "operations marks unprovable fields unavailable",
     /Недоступно/i.test(ops), "ball_owner/factual_result");
 
+  // Market Scanner QA passed 2026-09-04, GET /signals is wired -- but
+  // FLOW_ACTIVATED stays false server-side until explicit acceptance, so the
+  // honest state right now is "not activated", never a fabricated feed.
+  const sig = await textOfPage(page, "signals");
+  record(1, "market signals show not-activated, not a fake feed",
+    /не активирован/i.test(sig) && !/Внешний источник возможностей ещё не подключён/i.test(sig),
+    /не активирован/i.test(sig) ? "shows not-activated reason" : "stale wording or false feed");
+
   record(1, "no console/page errors", page._errors.length === 0,
     page._errors.slice(0, 2).join(" | "));
   await page.close();
@@ -142,8 +150,11 @@ console.log("\n=== PASS 3: BOUNDARY — writes refused, signals disconnected ===
   }
 
   const js = await (await fetch(BASE + "live.js")).text();
-  record(3, "market signals not wired",
-    !/API\s*\+\s*["']\/panel\/signals|signals\/ingest/.test(js));
+  // Market Scanner QA passed 2026-09-04: the client now reads GET /signals
+  // (read-only, no ingest key reaches the browser). What must stay true is
+  // narrower than "absent" -- no ingest path in the client, ever.
+  record(3, "no ingest path wired into client",
+    !/signals\/ingest/.test(js));
   record(3, "no write verbs in client",
     !/method:\s*["'](POST|PATCH|PUT|DELETE)/.test(js));
   await page.close();

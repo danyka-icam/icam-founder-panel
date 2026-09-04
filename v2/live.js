@@ -22,8 +22,8 @@
     brazilPortal: API + "/panel/brazilportal",
     foundationAgg: API + "/panel/foundation",
     atlasState: API + "/panel/atlas",
-    twinState: API + "/panel/twin"
-    // Market Scanner intentionally absent until QA PASS.
+    twinState: API + "/panel/twin",
+    marketSignals: API + "/signals"
   };
 
   var REFRESH_MS = 90000;
@@ -47,7 +47,8 @@
     brazilPortal: { ok: false, at: null, error: null },
     foundationAgg: { ok: false, at: null, error: null },
     atlasState: { ok: false, at: null, error: null },
-    twinState: { ok: false, at: null, error: null }
+    twinState: { ok: false, at: null, error: null },
+    marketSignals: { ok: false, at: null, error: null }
   };
 
   function esc(value) {
@@ -1234,7 +1235,7 @@
     return m[String(kind || "").toUpperCase()] || "Материальное изменение";
   }
 
-  function renderSignals(objectsResp, blockersResp, inbox, testingSummary) {
+  function renderSignals(objectsResp, blockersResp, inbox, testingSummary, marketSignals) {
     var page = document.querySelector('[data-page-panel="signals"]');
     if (!page) return;
 
@@ -1322,9 +1323,29 @@
 
     var opportunitiesBox = page.querySelector('[data-s="opportunities-list"]');
     if (opportunitiesBox) {
-      opportunitiesBox.innerHTML =
-        "<div class='signals-empty compact'><strong>Внешний источник возможностей ещё не подключён</strong>" +
-        "<span>Market Scanner проходит QA. Панель не выводит «возможности» из обычных изменений Continuity и не создаёт их локально.</span></div>";
+      var msOk = sourceState.marketSignals.ok && marketSignals;
+      if (!msOk) {
+        opportunitiesBox.innerHTML =
+          "<div class='signals-empty compact'><strong>Market Scanner недоступен</strong>" +
+          "<span>Источник не ответил. Панель не подменяет его старыми данными.</span></div>";
+      } else if (marketSignals.source_status === "EMPTY") {
+        opportunitiesBox.innerHTML =
+          "<div class='signals-empty compact'><strong>Поток рыночных сигналов ещё не активирован</strong>" +
+          "<span>" + esc(marketSignals.degraded_reason || "Flow не активирован.") + "</span></div>";
+      } else {
+        var msRows = (marketSignals.signals || []).slice(0, 6).map(function (sig) {
+          var enr = sig.enrichment;
+          var summary = (enr && enr.summary_ru) || sig.summary_ru || "";
+          var action = enr && enr.recommended_action;
+          var actionRu = action === "review-atlas" ? "требует внимания" : action === "watch" ? "наблюдать" : action === "none" ? "без действия" : null;
+          return "<div class='signals-live-item change'><b>" + esc(sig.entity || "Источник") + "</b>" +
+            "<span>" + esc(cut(sig.title || "", 100)) + "</span>" +
+            "<small>" + esc(summary) + (actionRu ? " · " + esc(actionRu) : "") + "</small></div>";
+        }).join("");
+        opportunitiesBox.innerHTML = msRows ?
+          "<div class='signals-live-list'>" + msRows + "</div>" :
+          "<div class='signals-empty compact'><strong>Поток активирован, сигналов пока нет</strong><span>Market Scanner работает, новых семантически значимых изменений не найдено.</span></div>";
+      }
     }
 
     var watchBox = page.querySelector('[data-s="watch-list"]');
@@ -1579,7 +1600,8 @@
       fetchJSON("brazilPortal", ENDPOINTS.brazilPortal),
       fetchJSON("foundationAgg", ENDPOINTS.foundationAgg),
       fetchJSON("atlasState", ENDPOINTS.atlasState),
-      fetchJSON("twinState", ENDPOINTS.twinState)
+      fetchJSON("twinState", ENDPOINTS.twinState),
+      fetchJSON("marketSignals", ENDPOINTS.marketSignals)
     ]).then(function (res) {
       var routesJSON = res[0];
       var summaryJSON = res[1];
@@ -1597,6 +1619,7 @@
       var foundationAgg = res[13];
       var atlasState = res[14];
       var twinState = res[15];
+      var marketSignals = res[16];
 
       var routes = routesJSON && Array.isArray(routesJSON.routes) ? routesJSON.routes : [];
       var summary = summaryJSON && summaryJSON.summary ? summaryJSON.summary : null;
@@ -1624,7 +1647,7 @@
       renderRegistry(objects, blockers);
       renderDocuments(hubHealth);
       renderTesting(testingSummary, testingRunner);
-      renderSignals(objects, blockers, inbox, testingSummary);
+      renderSignals(objects, blockers, inbox, testingSummary, marketSignals);
       renderOperationsProjection(opsProjection);
       renderBrazilPortalProjection(brazilPortal);
       renderFoundationAggregateClean(foundationAgg);
