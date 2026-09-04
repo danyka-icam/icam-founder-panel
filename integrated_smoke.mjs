@@ -4,20 +4,24 @@
 // asserts that each G19 projection actually rendered live server state, and
 // that failure/degraded modes stay honest.
 //
-// Four passes:
+// Five passes:
 //   1. LIVE     — every source reachable; each page must render its projection.
 //   2. DEGRADED — one projection endpoint forced to fail; that page must say so
 //                 and must NOT fall back to looking healthy or empty.
-//   3. BOUNDARY — writes are refused and market signals stay disconnected.
+//   3. BOUNDARY — writes are refused and market signals ingest stays unreachable.
 //   4. OWNER RENDER — a known ball_owner in the Operations response must
 //      actually reach the rendered screen text.
+//   5. MARKET SIGNALS — activation contract (NOT_ACTIVATED / ACTIVATED_EMPTY /
+//      ACTIVATED+populated) each render distinctly and honestly; enrichment
+//      fields reach the screen; an aborted source shows unavailable, not
+//      stale/fake data; ingest stays 404/403'd; no ingest secret in the client.
 //
-// Read-only throughout. Endpoint failures in pass 2 are simulated in the
-// browser (page.route -> abort), so no live service is ever taken down. The two
-// POST probes in pass 3 send no body and are expected to be refused at the
+// Read-only throughout. Endpoint failures in pass 2/5c are simulated in the
+// browser (page.route -> abort), so no live service is ever taken down. The
+// POST probes in pass 3/5 send no body and are expected to be refused at the
 // proxy boundary; they assert that writes are blocked, they do not write.
-// Pass 4 intercepts the real Operations response in the browser and splices in
-// one fixture commitment client-side; nothing is written to the database.
+// Pass 4 and 5a/5b intercept the real endpoint response in the browser and
+// substitute a fixture; nothing is written to the database in any pass.
 //
 // Usage:
 //   PANEL_URL=<url-of-v2-panel> node integrated_smoke.mjs
@@ -205,6 +209,135 @@ console.log("\n=== PASS 4: OWNER RENDER — a known ball_owner must reach the sc
   record(4, "stale hardcoded 'owner не заполняется источником' text is gone",
     !/owner не заполняется источником/i.test(txt));
   await page.close();
+}
+
+// ---------------------------------------------------------------- pass 5
+console.log("\n=== PASS 5: MARKET SIGNALS — activation contract + boundary ===");
+{
+  const SIGNALS_EP = "/founder-ui-preview/api/signals";
+  const KNOWN_ENTITY = "SMOKE-FIXTURE-ENTITY";
+  const KNOWN_SUMMARY = "SMOKE-FIXTURE-SUMMARY-RU";
+
+  // 5a: activated + populated, with enrichment — the fields must reach the
+  // rendered screen text (base fields AND the enrichment sub-object).
+  {
+    const page = await newPage(browser);
+    await page.route("**" + SIGNALS_EP + "**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          activation_state: "ACTIVATED",
+          source_status: "AVAILABLE",
+          flow_activated: true,
+          observed_at: new Date().toISOString(),
+          degraded_reason: null,
+          counts: { returned: 1, stored_total: 1 },
+          source_coverage: { status: "OK", reason: null, ok_count: 12, total_sources: 12, failing: [] },
+          signals: [{
+            schema: "atlas.market-signal.v1",
+            signal_id: "mkt-smoke-fixture-1",
+            observed_at: new Date().toISOString(),
+            entity: KNOWN_ENTITY,
+            signal_type: "capability-release",
+            title: "Smoke fixture title",
+            axis: ["world-model", "agents"],
+            relevance_score: 77,
+            confidence: "high",
+            source: { name: "smoke-source", url: "https://example.invalid" },
+            evidence: ["ev-1", "ev-2"],
+            status: "watch",
+            enrichment: {
+              summary_ru: KNOWN_SUMMARY,
+              why_it_matters_ru: "SMOKE-FIXTURE-WHY-RU",
+              architecture_proximity: 60,
+              market_significance: 40,
+              architecture_convergence: true,
+              recommended_action: "watch",
+            },
+          }],
+        }),
+      });
+    });
+    await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForTimeout(2000);
+    const txt = await textOfPage(page, "signals");
+    record(5, "activated+enriched signal fields reach the screen",
+      txt.includes(KNOWN_ENTITY) && txt.includes(KNOWN_SUMMARY),
+      (txt.includes(KNOWN_ENTITY) ? "entity ok" : "entity MISSING") + ", " +
+      (txt.includes(KNOWN_SUMMARY) ? "enrichment summary ok" : "enrichment summary MISSING"));
+    await page.close();
+  }
+
+  // 5b: activated but empty — must say "активен, новых сигналов нет", not the
+  // pre-activation copy and not a silent blank.
+  {
+    const page = await newPage(browser);
+    await page.route("**" + SIGNALS_EP + "**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          activation_state: "ACTIVATED_EMPTY",
+          source_status: "EMPTY",
+          flow_activated: true,
+          observed_at: new Date().toISOString(),
+          degraded_reason: "Поток активен, новых сигналов нет.",
+          counts: { returned: 0, stored_total: 0 },
+          source_coverage: { status: "OK", reason: null, ok_count: 12, total_sources: 12, failing: [] },
+          signals: [],
+        }),
+      });
+    });
+    await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForTimeout(2000);
+    const txt = await textOfPage(page, "signals");
+    record(5, "activated+empty shows 'активен, новых сигналов нет'",
+      /активен, новых сигналов нет|Поток активен/i.test(txt),
+      /активен, новых сигналов нет|Поток активен/i.test(txt) ? "found" : "NOT FOUND");
+    await page.close();
+  }
+
+  // 5c: source aborted entirely — must say unavailable, never keep showing
+  // whatever the previous successful fetch happened to render.
+  {
+    const page = await newPage(browser, { failEndpoint: SIGNALS_EP });
+    await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForTimeout(2000);
+    const txt = await textOfPage(page, "signals");
+    record(5, "aborted market signals source shown as unavailable",
+      /Market Scanner недоступен|источник не ответил/i.test(txt),
+      /Market Scanner недоступен|источник не ответил/i.test(txt) ? "reported unavailable" : "SILENT — old/fake data risk");
+  }
+
+  // 5d/5e/5f: boundary — GET/POST /ingest -> 404, POST /signals -> 403.
+  {
+    const page = await newPage(browser);
+    await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+    for (const method of ["GET", "POST"]) {
+      const status = await page.evaluate(async (args) => {
+        try { const r = await fetch(args.u, { method: args.m }); return r.status; }
+        catch (e) { return "blocked:" + e.message; }
+      }, { u: SIGNALS_EP + "/ingest", m: method });
+      record(5, `${method} /signals/ingest -> 404`, status === 404, "status " + status);
+    }
+    const postStatus = await page.evaluate(async (u) => {
+      try { const r = await fetch(u, { method: "POST" }); return r.status; }
+      catch (e) { return "blocked:" + e.message; }
+    }, SIGNALS_EP);
+    record(5, "POST /signals -> 403", postStatus === 403, "status " + postStatus);
+    await page.close();
+  }
+
+  // 5g: no write verbs, no ingest secret anywhere in the shipped client.
+  {
+    const js = await (await fetch(BASE + "live.js")).text();
+    record(5, "no write verbs in client (re-check after signals wiring)",
+      !/method:\s*["'](POST|PATCH|PUT|DELETE)/.test(js));
+    record(5, "no ingest key/secret literal in client",
+      !/x-atlas-signals-key/i.test(js) && !/ATLAS_SIGNALS_KEY_FILE/i.test(js) &&
+      !/sk-ant-/i.test(js));
+  }
 }
 
 await browser.close();

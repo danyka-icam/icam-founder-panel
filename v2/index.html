@@ -3316,18 +3316,18 @@
 <h2>Движение поля · 7 дней</h2>
 <p>ATLAS Market Scanner: где внешнее поле сдвинулось по архитектурным осям и почему это важно ATLAS / Twin</p>
 </div>
-<span class="state unavailable">ИСТОЧНИК ОЖИДАЕТ ПОДКЛЮЧЕНИЯ</span>
+<span class="state unavailable" data-fm="badge">ИСТОЧНИК ОЖИДАЕТ ПОДКЛЮЧЕНИЯ</span>
 </div><section class="card field-movement-card">
 <div class="panel-body">
 <div class="field-movement-grid">
-<div><small>World models</small><strong>—</strong><span>к предыдущим 7 дням</span></div>
-<div><small>Decision intelligence</small><strong>—</strong><span>к предыдущим 7 дням</span></div>
-<div><small>Simulation</small><strong>—</strong><span>к предыдущим 7 дням</span></div>
-<div><small>External sensing</small><strong>—</strong><span>к предыдущим 7 дням</span></div>
-<div><small>Epistemics</small><strong>—</strong><span>к предыдущим 7 дням</span></div>
-<div><small>Agents</small><strong>—</strong><span>к предыдущим 7 дням</span></div>
+<div><small>World models</small><strong data-fm="world-model">—</strong><span data-fm-note="world-model">к предыдущим 7 дням</span></div>
+<div><small>Decision intelligence</small><strong data-fm="decision-intelligence">—</strong><span data-fm-note="decision-intelligence">к предыдущим 7 дням</span></div>
+<div><small>Simulation</small><strong data-fm="simulation">—</strong><span data-fm-note="simulation">к предыдущим 7 дням</span></div>
+<div><small>External sensing</small><strong data-fm="external-sensing">—</strong><span data-fm-note="external-sensing">к предыдущим 7 дням</span></div>
+<div><small>Epistemics</small><strong data-fm="epistemics">—</strong><span data-fm-note="epistemics">к предыдущим 7 дням</span></div>
+<div><small>Agents</small><strong data-fm="agents">—</strong><span data-fm-note="agents">к предыдущим 7 дням</span></div>
 </div>
-<div class="field-movement-note">
+<div class="field-movement-note" data-fm="footnote">
       После подключения показываем только агрегат weighted relevance за 7 дней: → / ↑ / ↑↑ / ↑↑↑. Первый scanner-run создаёт baseline и не должен превращаться в поток старых новостей.
     </div>
 </div>
@@ -4019,6 +4019,24 @@
 <div class="runtime-kv"><span>Ошибки текущего цикла</span><b data-x-runtime="errors">—</b></div>
 <div class="runtime-kv"><span>Текущая страница</span><b data-x-runtime="page">—</b></div>
 <p class="diagnostics-note">Диагностика может показывать технические детали. Другие страницы должны получать уже нормализованное человеческое состояние.</p>
+</div>
+</article>
+<article class="card diagnostic-runtime-card">
+<div class="panel-head">
+<div class="head-title">
+<h2>MARKET SCANNER</h2>
+<small>свежесть, покрытие источников, ingest/enrichment</small>
+</div>
+<button class="top-corner-arrow" data-drawer="">→</button>
+</div>
+<div class="panel-body">
+<div class="runtime-kv"><span>Свежесть последнего цикла</span><b data-scan="freshness">—</b></div>
+<div class="runtime-kv"><span>Последний цикл</span><b data-scan="last-run">—</b></div>
+<div class="runtime-kv"><span>Покрытие источников</span><b data-scan="coverage">—</b></div>
+<div class="runtime-kv"><span>Enrichment (Stage 2)</span><b data-scan="enrichment">—</b></div>
+<div class="runtime-kv"><span>Ingest key</span><b data-scan="ingest">—</b></div>
+<div data-scan="failing-list"></div>
+<p class="diagnostics-note">Источник: scanner run ledger + signals store, читается напрямую, не переизобретается Панелью.</p>
 </div>
 </article>
 </section>
