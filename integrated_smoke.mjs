@@ -112,13 +112,29 @@ console.log("\n=== PASS 1: LIVE — every projection renders real state ===");
   record(1, "operations marks unprovable fields unavailable",
     /Недоступно/i.test(ops), "ball_owner/factual_result");
 
-  // Market Scanner QA passed 2026-09-04, GET /signals is wired -- but
-  // FLOW_ACTIVATED stays false server-side until explicit acceptance, so the
-  // honest state right now is "not activated", never a fabricated feed.
+  // Market Scanner QA passed 2026-09-04, GET /signals is wired. This check
+  // must survive FLOW_ACTIVATED flipping to true later -- so it reads the
+  // real activation_state from the API instead of hardcoding an expectation,
+  // and asserts whichever of the three states is honestly true right now.
   const sig = await textOfPage(page, "signals");
-  record(1, "market signals show not-activated, not a fake feed",
-    /не активирован/i.test(sig) && !/Внешний источник возможностей ещё не подключён/i.test(sig),
-    /не активирован/i.test(sig) ? "shows not-activated reason" : "stale wording or false feed");
+  let signalsApiState = null;
+  try {
+    signalsApiState = await page.evaluate(async (u) => {
+      const r = await fetch(u);
+      return (await r.json()).activation_state;
+    }, API + "/signals");
+  } catch (e) { /* leave null -- handled below as a failure */ }
+
+  const stateChecks = {
+    NOT_ACTIVATED: () => /не активирован/i.test(sig) && !/Внешний источник возможностей ещё не подключён/i.test(sig),
+    ACTIVATED_EMPTY: () => /активен, новых сигналов нет/i.test(sig),
+    ACTIVATED: () => !/не активирован/i.test(sig) && !/^\s*$/.test(sig),
+  };
+  const checkFn = stateChecks[signalsApiState];
+  record(1, `market signals UI matches real activation_state (${signalsApiState ?? "API UNREACHABLE"})`,
+    !!checkFn && checkFn(),
+    checkFn ? (checkFn() ? "UI matches API state" : "UI text does not match API's " + signalsApiState) :
+      "activation_state missing/unrecognized from /api/signals");
 
   record(1, "no console/page errors", page._errors.length === 0,
     page._errors.slice(0, 2).join(" | "));
@@ -218,9 +234,22 @@ console.log("\n=== PASS 5: MARKET SIGNALS — activation contract + boundary ===
   const KNOWN_ENTITY = "SMOKE-FIXTURE-ENTITY";
   const KNOWN_SUMMARY = "SMOKE-FIXTURE-SUMMARY-RU";
 
-  // 5a: activated + populated, with enrichment — the fields must reach the
-  // rendered screen text (base fields AND the enrichment sub-object).
+  // 5a: activated + populated, with enrichment — the FULL market card
+  // contract must reach the rendered screen text (base fields AND the
+  // enrichment sub-object), and opening the source/evidence drawer must show
+  // the real source url and evidence items from the fixture.
   {
+    const KNOWN_TYPE = "smoke-fixture-signal-type";
+    const KNOWN_TITLE = "SMOKE-FIXTURE-TITLE-TEXT";
+    const KNOWN_WHY = "SMOKE-FIXTURE-WHY-RU-TEXT";
+    const KNOWN_AXIS = "smoke-fixture-axis-alpha";
+    const KNOWN_SOURCE_NAME = "smoke-fixture-source-name";
+    const KNOWN_SOURCE_URL = "https://example.invalid/smoke-fixture-evidence-source";
+    const KNOWN_STATUS = "smoke-fixture-status-watch";
+    const KNOWN_EVIDENCE_1 = "smoke-fixture-evidence-item-one";
+    const KNOWN_EVIDENCE_2 = "smoke-fixture-evidence-item-two";
+    const RELEVANCE = 77;
+
     const page = await newPage(browser);
     await page.route("**" + SIGNALS_EP + "**", async (route) => {
       await route.fulfill({
@@ -239,17 +268,17 @@ console.log("\n=== PASS 5: MARKET SIGNALS — activation contract + boundary ===
             signal_id: "mkt-smoke-fixture-1",
             observed_at: new Date().toISOString(),
             entity: KNOWN_ENTITY,
-            signal_type: "capability-release",
-            title: "Smoke fixture title",
-            axis: ["world-model", "agents"],
-            relevance_score: 77,
+            signal_type: KNOWN_TYPE,
+            title: KNOWN_TITLE,
+            axis: [KNOWN_AXIS, "agents"],
+            relevance_score: RELEVANCE,
             confidence: "high",
-            source: { name: "smoke-source", url: "https://example.invalid" },
-            evidence: ["ev-1", "ev-2"],
-            status: "watch",
+            source: { name: KNOWN_SOURCE_NAME, url: KNOWN_SOURCE_URL },
+            evidence: [KNOWN_EVIDENCE_1, KNOWN_EVIDENCE_2],
+            status: KNOWN_STATUS,
             enrichment: {
               summary_ru: KNOWN_SUMMARY,
-              why_it_matters_ru: "SMOKE-FIXTURE-WHY-RU",
+              why_it_matters_ru: KNOWN_WHY,
               architecture_proximity: 60,
               market_significance: 40,
               architecture_convergence: true,
@@ -261,11 +290,38 @@ console.log("\n=== PASS 5: MARKET SIGNALS — activation contract + boundary ===
     });
     await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
     await page.waitForTimeout(2000);
+
     const txt = await textOfPage(page, "signals");
-    record(5, "activated+enriched signal fields reach the screen",
-      txt.includes(KNOWN_ENTITY) && txt.includes(KNOWN_SUMMARY),
-      (txt.includes(KNOWN_ENTITY) ? "entity ok" : "entity MISSING") + ", " +
-      (txt.includes(KNOWN_SUMMARY) ? "enrichment summary ok" : "enrichment summary MISSING"));
+    const contractFields = {
+      entity: KNOWN_ENTITY, type: KNOWN_TYPE, relevance: String(RELEVANCE),
+      title: KNOWN_TITLE, summary_ru: KNOWN_SUMMARY, why_it_matters_ru: KNOWN_WHY,
+      axes: KNOWN_AXIS, evidence_count: "evidence: 2", source: KNOWN_SOURCE_NAME,
+      status: KNOWN_STATUS,
+    };
+    const missing = Object.entries(contractFields).filter(([, v]) => !txt.includes(v)).map(([k]) => k);
+    record(5, "full market card contract reaches the screen",
+      missing.length === 0,
+      missing.length ? "missing: " + missing.join(", ") : "all 10 contract fields present");
+
+    // Open the drawer and verify the real source url + evidence items show —
+    // not summary text, the actual provenance the fixture carried.
+    const opened = await page.evaluate(() => {
+      const btn = document.querySelector('[data-market-card] [data-drawer-toggle]');
+      if (!btn) return false;
+      btn.click();
+      return true;
+    });
+    await page.waitForTimeout(300);
+    const drawerTxt = opened ? await page.evaluate(() => {
+      const el = document.querySelector('[data-market-card] [data-drawer-body]');
+      return el ? el.innerText : "";
+    }) : "";
+    record(5, "source/evidence drawer opens and shows real provenance",
+      opened && drawerTxt.includes(KNOWN_SOURCE_URL) && drawerTxt.includes(KNOWN_EVIDENCE_1) && drawerTxt.includes(KNOWN_EVIDENCE_2),
+      !opened ? "drawer toggle not found" :
+        (drawerTxt.includes(KNOWN_SOURCE_URL) ? "source url ok" : "source url MISSING") + ", " +
+        (drawerTxt.includes(KNOWN_EVIDENCE_1) && drawerTxt.includes(KNOWN_EVIDENCE_2) ? "evidence items ok" : "evidence items MISSING"));
+
     await page.close();
   }
 
@@ -326,6 +382,63 @@ console.log("\n=== PASS 5: MARKET SIGNALS — activation contract + boundary ===
       catch (e) { return "blocked:" + e.message; }
     }, SIGNALS_EP);
     record(5, "POST /signals -> 403", postStatus === 403, "status " + postStatus);
+    await page.close();
+  }
+
+  // 5f2: a fixture field-movement axis and a fixture scanner-diagnostics
+  // value must each reach their real DOM hooks -- not just "no error", an
+  // actual positive check that the specific fixture value landed.
+  {
+    const FM_TREND = "up2";
+    const DIAG_COVERAGE_TAG = "SMOKE-FIXTURE-COVERAGE-STATUS";
+
+    const page = await newPage(browser);
+    await page.route("**" + API + "/signals/field-movement**", async (route) => {
+      await route.fulfill({
+        status: 200, contentType: "application/json",
+        body: JSON.stringify({
+          status: "AVAILABLE", reason: null, observed_at: new Date().toISOString(),
+          axes: [
+            { axis: "world-model", label: "World models", trend: FM_TREND, current_weight: 200, prior_weight: 90 },
+            { axis: "decision-intelligence", label: "Decision intelligence", trend: null, current_weight: 0, prior_weight: 0 },
+            { axis: "simulation", label: "Simulation", trend: null, current_weight: 0, prior_weight: 0 },
+            { axis: "external-sensing", label: "External sensing", trend: null, current_weight: 0, prior_weight: 0 },
+            { axis: "epistemics", label: "Epistemics", trend: null, current_weight: 0, prior_weight: 0 },
+            { axis: "agents", label: "Agents", trend: null, current_weight: 0, prior_weight: 0 },
+          ],
+        }),
+      });
+    });
+    await page.route("**" + API + "/signals/diagnostics**", async (route) => {
+      await route.fulfill({
+        status: 200, contentType: "application/json",
+        body: JSON.stringify({
+          flow_activated: false, observed_at: new Date().toISOString(),
+          scanner: { last_run_at: new Date().toISOString(), freshness_state: "FRESH", age_seconds: 120, run_summary: null },
+          source_coverage: { status: DIAG_COVERAGE_TAG, reason: null, ok_count: 9, total_sources: 12, failing: [] },
+          enrichment: { stored_signals: 9, enriched_signals: 9, pending: 0 },
+          ingest: { key_configured: true, patch_implemented: false },
+        }),
+      });
+    });
+    await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForTimeout(2000);
+
+    const fmText = await page.evaluate(() => {
+      const el = document.querySelector('[data-fm="world-model"]');
+      return el ? el.textContent : null;
+    });
+    record(5, "fixture field-movement axis reaches the DOM",
+      fmText === "↑↑", "data-fm=world-model textContent: " + JSON.stringify(fmText));
+
+    const diagText = await page.evaluate(() => {
+      const el = document.querySelector('[data-scan="coverage"]');
+      return el ? el.textContent : null;
+    });
+    record(5, "fixture scanner-diagnostics coverage reaches the DOM",
+      !!diagText && diagText.includes(DIAG_COVERAGE_TAG),
+      "data-scan=coverage textContent: " + JSON.stringify(diagText));
+
     await page.close();
   }
 

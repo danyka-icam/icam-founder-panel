@@ -294,7 +294,19 @@
       ".home-live-item:first-child{border-top:0}",
       ".home-live-item b{font-size:12px;font-weight:500}.home-live-item small{display:block;margin-top:3px;color:#8e9792;font-size:10px;line-height:1.4}",
       ".live-unavailable{min-height:110px;display:flex;flex-direction:column;justify-content:center;color:#9aa39e;font-size:12px;line-height:1.5}",
-      ".live-unavailable b{font:400 16px Georgia,'Times New Roman',serif;color:#dfe2dc;margin-bottom:5px}"
+      ".live-unavailable b{font:400 16px Georgia,'Times New Roman',serif;color:#dfe2dc;margin-bottom:5px}",
+      ".market-card-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
+      ".market-card-type,.market-card-relevance{font-size:9px;color:#8e9792;border:1px solid var(--line-soft);border-radius:6px;padding:2px 6px}",
+      ".market-card-title{margin-top:6px;font-size:12px;color:#d8dbd6}",
+      ".market-card-summary,.market-card-why{margin-top:4px;font-size:11px;color:#9aa39e;line-height:1.4}",
+      ".market-card-meta{margin-top:6px;display:flex;gap:10px;flex-wrap:wrap;font-size:9.5px;color:#7f8984}",
+      ".market-card-drawer-toggle{margin-top:7px;background:none;border:1px solid var(--line-soft);border-radius:6px;color:#9aa39e;font-size:9.5px;padding:3px 7px;cursor:pointer}",
+      ".market-card-drawer-toggle:hover{color:#d8dbd6}",
+      ".market-card-drawer{margin-top:7px;padding:8px 9px;border:1px solid var(--line-soft);border-radius:8px;background:rgba(19,25,27,.2)}",
+      ".market-card-drawer-row{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#9aa39e;padding:2px 0}",
+      ".market-card-drawer-row b{color:#d8dbd6;font-weight:400;word-break:break-all;text-align:right}",
+      ".market-card-evidence-list{margin:4px 0 0;padding-left:14px;font-size:10px;color:#9aa39e;line-height:1.5}",
+      ".market-coverage-note{margin-top:8px}"
     ].join("");
     document.head.appendChild(style);
   }
@@ -1330,9 +1342,24 @@
       var summaryRu = (enr && enr.summary_ru) || sig.summary_ru || "";
       var whyRu = (enr && enr.why_it_matters_ru) || sig.why_it_matters_ru || "";
       var axes = Array.isArray(sig.axis) ? sig.axis : [];
-      var evCount = Array.isArray(sig.evidence) ? sig.evidence.length : 0;
+      var evidence = Array.isArray(sig.evidence) ? sig.evidence : [];
       var sourceName = (sig.source && (sig.source.name || sig.source.url)) || "источник не указан";
-      return "<div class='signals-live-item change market-card'>" +
+      var sourceUrl = sig.source && sig.source.url;
+      var sigIdAttr = esc(sig.signal_id || "");
+      // Read-only inspector: exactly the source/evidence the signal already
+      // carries, nothing computed or invented. Collapsed by default; toggled
+      // inline, no drawer/panel framework needed for one small block.
+      var drawerBody = "<div class='market-card-drawer-body'>" +
+        "<div class='market-card-drawer-row'><span>source name</span><b>" + esc((sig.source && sig.source.name) || "—") + "</b></div>" +
+        "<div class='market-card-drawer-row'><span>source url</span><b>" + (sourceUrl ? esc(sourceUrl) : "—") + "</b></div>" +
+        "<div class='market-card-drawer-row'><span>evidence (" + esc(evidence.length) + ")</span></div>" +
+        (evidence.length ?
+          "<ul class='market-card-evidence-list'>" + evidence.map(function (e) {
+            return "<li>" + esc(typeof e === "string" ? e : JSON.stringify(e)) + "</li>";
+          }).join("") + "</ul>" :
+          "<div class='market-card-drawer-row'><span>evidence отсутствует в сигнале</span></div>") +
+        "</div>";
+      return "<div class='signals-live-item change market-card' data-market-card='" + sigIdAttr + "'>" +
         "<div class='market-card-head'><b>" + esc(sig.entity || "Источник не указан") + "</b>" +
         "<span class='market-card-type'>" + esc(sig.signal_type || "тип не указан") + "</span>" +
         "<span class='market-card-relevance'>relevance " + esc(sig.relevance_score != null ? sig.relevance_score : "—") + "</span></div>" +
@@ -1341,11 +1368,28 @@
         (whyRu ? "<p class='market-card-why'>" + esc(whyRu) + "</p>" : "") +
         "<div class='market-card-meta'>" +
         (axes.length ? "<span>" + esc(axes.join(", ")) + "</span>" : "") +
-        "<span>evidence: " + esc(evCount) + "</span>" +
+        "<span>evidence: " + esc(evidence.length) + "</span>" +
         "<span>" + esc(sourceName) + "</span>" +
         "<span>" + esc(ago(sig.observed_at)) + "</span>" +
         "<span>" + esc(sig.status || "статус не указан") + "</span>" +
-        "</div></div>";
+        "</div>" +
+        "<button type='button' class='market-card-drawer-toggle' data-drawer-toggle>source / evidence ▾</button>" +
+        "<div class='market-card-drawer' data-drawer-body hidden>" + drawerBody + "</div>" +
+        "</div>";
+    }
+
+    function wireMarketCardDrawers(container) {
+      var toggles = container.querySelectorAll("[data-drawer-toggle]");
+      toggles.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var card = btn.closest(".market-card");
+          var body = card && card.querySelector("[data-drawer-body]");
+          if (!body) return;
+          var willOpen = body.hidden;
+          body.hidden = !willOpen;
+          btn.textContent = willOpen ? "source / evidence ▴" : "source / evidence ▾";
+        });
+      });
     }
 
     var opportunitiesBox = page.querySelector('[data-s="opportunities-list"]');
@@ -1381,6 +1425,7 @@
           "<div class='signals-live-list'>" + msRows + "</div>" :
           "<div class='signals-empty compact'><strong>Поток активирован, сигналов пока нет</strong><span>Market Scanner работает, новых семантически значимых изменений не найдено.</span></div>")
           + coverageNote;
+        if (msRows) wireMarketCardDrawers(opportunitiesBox);
       }
     }
 
