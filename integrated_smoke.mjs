@@ -4,7 +4,7 @@
 // asserts that each G19 projection actually rendered live server state, and
 // that failure/degraded modes stay honest.
 //
-// Five passes:
+// Six passes:
 //   1. LIVE     — every source reachable; each page must render its projection.
 //   2. DEGRADED — one projection endpoint forced to fail; that page must say so
 //                 and must NOT fall back to looking healthy or empty.
@@ -15,11 +15,17 @@
 //      ACTIVATED+populated) each render distinctly and honestly; enrichment
 //      fields reach the screen; an aborted source shows unavailable, not
 //      stale/fake data; ingest stays 404/403'd; no ingest secret in the client.
+//   6. PERSONAL TWIN — a live fixture's commitment/seal reaches the screen;
+//      a simulated Twin outage shows honest OFFLINE/UNAVAILABLE, never a
+//      fallback to the last healthy state; needs_confirmation>0 shows a
+//      waiting state without issuing any write; no prohibited prediction
+//      data (probabilities/ranked choices/hidden payload) and no confirm/
+//      ingest write route or the Twin's localhost port appear in the client.
 //
-// Read-only throughout. Endpoint failures in pass 2/5c are simulated in the
-// browser (page.route -> abort), so no live service is ever taken down. The
-// POST probes in pass 3/5 send no body and are expected to be refused at the
-// proxy boundary; they assert that writes are blocked, they do not write.
+// Read-only throughout. Endpoint failures in pass 2/5c/6b are simulated in
+// the browser (page.route -> abort), so no live service is ever taken down.
+// The POST probes in pass 3/5 send no body and are expected to be refused at
+// the proxy boundary; they assert that writes are blocked, they do not write.
 // Pass 4 and 5a/5b intercept the real endpoint response in the browser and
 // substitute a fixture; nothing is written to the database in any pass.
 //
@@ -494,6 +500,109 @@ console.log("\n=== PASS 5: MARKET SIGNALS — activation contract + boundary ===
     record(5, "no ingest key/secret literal in client",
       !/x-atlas-signals-key/i.test(js) && !/ATLAS_SIGNALS_KEY_FILE/i.test(js) &&
       !/sk-ant-/i.test(js));
+  }
+}
+
+// ---------------------------------------------------------------- pass 6
+console.log("\n=== PASS 6: PERSONAL TWIN — safe projection + boundary ===");
+{
+  const TWIN_EP = "/founder-ui-preview/api/panel/twin";
+  const KNOWN_COMMITMENT = "smokefixturecommitmentabc123";
+
+  // 6a: live fixture with a real commitment/seal reaches the screen.
+  {
+    const page = await newPage(browser);
+    await page.route("**" + TWIN_EP + "**", async (route) => {
+      await route.fulfill({
+        status: 200, contentType: "application/json",
+        body: JSON.stringify({
+          source_status: "LIVE",
+          program_object: { object_id: "FND-005", declared_status: "PTC_R0_SERVER_RUNTIME" },
+          runtime_health: "OK", mode: "WARM_START", clones_active: 8,
+          prospective_scored_n: 0, current_prediction: "SEALED",
+          current_commitment: KNOWN_COMMITMENT, seal_created_at: new Date().toISOString(),
+          last_outcome: null, needs_confirmation: 0, best_predictor: null,
+          safety_invariants_status: { pre_action_seal: "ENFORCED" },
+          ss001_transfer_boundary: "ENGINEERING_METHODOLOGY_ONLY__NO_EMPIRICAL_TRANSFER",
+          observed_at: new Date().toISOString(),
+        }),
+      });
+    });
+    await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForTimeout(2000);
+    const txt = await textOfPage(page, "digital-twin");
+    // Rendered via the shared cut() helper, which truncates to n-1 chars plus
+    // an ellipsis -- check a prefix short enough to survive that, not an
+    // exact-length slice that assumes truncation behaves like a plain slice.
+    const commitmentPrefix = KNOWN_COMMITMENT.slice(0, 20);
+    record(6, "live Twin fixture reaches the Twin page",
+      txt.includes(commitmentPrefix) && /SEALED/i.test(txt),
+      txt.includes(commitmentPrefix) ? "commitment shown" : "commitment MISSING");
+
+    // Regression guard for the 2026-09-05 cleanup: the DT page used to carry
+    // a static hero block claiming "СЕРВИС НЕ ПОДКЛЮЧЁН" regardless of
+    // real Twin state. With a LIVE fixture active, that stale claim must not
+    // appear anywhere on the page -- deliberately not pinning what the new
+    // copy says, only that the old contradiction is gone.
+    record(6, "no stale 'СЕРВИС НЕ ПОДКЛЮЧЁН' claim on DT page when Twin is LIVE",
+      !/СЕРВИС НЕ ПОДКЛЮЧЁН/i.test(txt),
+      /СЕРВИС НЕ ПОДКЛЮЧЁН/i.test(txt) ? "STALE CLAIM STILL PRESENT" : "gone");
+    await page.close();
+  }
+
+  // 6b: Twin unreachable -> OFFLINE/UNAVAILABLE, no fallback to old healthy
+  // state. Simulated by aborting the route, same pattern as pass 2.
+  {
+    const page = await newPage(browser, { failEndpoint: TWIN_EP });
+    await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForTimeout(2000);
+    const txt = await textOfPage(page, "digital-twin");
+    record(6, "Twin outage shows honest OFFLINE/UNAVAILABLE, not stale data",
+      /OFFLINE|UNAVAILABLE|НЕДОСТУПЕН/i.test(txt),
+      /OFFLINE|UNAVAILABLE|НЕДОСТУПЕН/i.test(txt) ? "reported unavailable" : "SILENT — stale/fake data risk");
+    await page.close();
+  }
+
+  // 6c: needs_confirmation > 0 shows a waiting state but performs no write.
+  {
+    const page = await newPage(browser);
+    let postSeen = false;
+    page.on("request", (req) => { if (req.method() !== "GET" && req.url().includes("/panel/twin")) postSeen = true; });
+    await page.route("**" + TWIN_EP + "**", async (route) => {
+      await route.fulfill({
+        status: 200, contentType: "application/json",
+        body: JSON.stringify({
+          source_status: "LIVE",
+          program_object: { object_id: "FND-005", declared_status: "PTC_R0_SERVER_RUNTIME" },
+          runtime_health: "OK", mode: "LEARNING", clones_active: 8,
+          prospective_scored_n: 3, current_prediction: "NO_LIVE_SEAL",
+          current_commitment: null, seal_created_at: null,
+          last_outcome: "RESOLVED_AUTO", needs_confirmation: 2, best_predictor: null,
+          safety_invariants_status: { pre_action_seal: "ENFORCED" },
+          ss001_transfer_boundary: "ENGINEERING_METHODOLOGY_ONLY__NO_EMPIRICAL_TRANSFER",
+          observed_at: new Date().toISOString(),
+        }),
+      });
+    });
+    await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForTimeout(2000);
+    const txt = await textOfPage(page, "digital-twin");
+    record(6, "needs_confirmation fixture shows waiting state, no write issued",
+      /ожидает подтверждения/i.test(txt) && !postSeen,
+      (/ожидает подтверждения/i.test(txt) ? "waiting state shown" : "waiting state MISSING") +
+      (postSeen ? "; WRITE CALL DETECTED" : ""));
+    await page.close();
+  }
+
+  // 6d: prohibited prediction data absent from the shipped client bundle.
+  {
+    const js = await (await fetch(BASE + "live.js")).text();
+    const html = await (await fetch(BASE)).text();
+    const forbidden = /clone_probabilit|ranked_candidate|hidden_payload|predicted_choice/i;
+    record(6, "no prohibited Twin prediction markers in client HTML/JS",
+      !forbidden.test(js) && !forbidden.test(html));
+    record(6, "no Twin confirm/ingest write route or port literal in client",
+      !/confirm-outcome|ingest-founder-event|record-exposure/i.test(js) && !/8804/.test(js));
   }
 }
 
