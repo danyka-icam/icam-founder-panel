@@ -1655,23 +1655,67 @@
       "<div class='metric'><small>Следующий шаг</small><strong>Создать state source</strong><span>Continuity object или resident service</span></div></div>";
   }
 
+  // Founder-safe prediction-state labels only. Never render clone
+  // probabilities, ranked candidates, or any text that would let the
+  // predicted choice be inferred before outcome -- per
+  // PANEL_TWIN_BRIDGE_CONTRACT_v0_3.md this list is exhaustive.
+  var TWIN_PREDICTION_LABELS = {
+    SEALED: "Запечатано (до исхода)",
+    NO_LIVE_SEAL: "Нет активной печати",
+    ABSTAIN: "Воздержание (недостаточно данных)",
+    ABSTAIN_CONTAMINATED: "Воздержание (эпизод контаминирован)",
+    PREPARING: "Подготовка"
+  };
+
   function renderTwinStateClean(data) {
     if (!sourceState.twinState.ok || !data) return cleanFailure("digital-twin","DT","twinState");
-    var body=activateNormalized("digital-twin",data.source_status,
-      "DT · PRE-PTC-R0 · UPSTREAM НЕДОСТУПЕН");
-    if(!body)return;
-    var po=data.program_object||{}, inv=data.safety_invariants_status||{};
-    body.innerHTML=
-      "<div class='live-status-box bad'><strong>Personal Twin — runtime ещё не создан</strong>"+
-      "<p>Endpoint подключён. Недоступен именно Twin state: программа находится до PTC-R0.</p></div>"+
-      "<div class='live-summary'>"+
-      "<div class='metric'><small>Объект программы</small><strong>"+esc(po.object_id||"FND-005")+"</strong><span>"+esc(po.declared_status||"")+"</span></div>"+
-      "<div class='metric'><small>Этап</small><strong>"+esc(humanCode(po.stage||"—"))+"</strong><span>позиция программы, не прогноз Twin</span></div>"+
-      "<div class='metric'><small>Следующий gate</small><strong>"+esc(po.next_gate||"PTC-R0_LOCAL")+"</strong><span>до него longitudinal выключен</span></div>"+
-      "<div class='metric'><small>Открытые блокеры</small><strong>"+esc(po.open_blockers||0)+"</strong><span>по объекту программы</span></div></div>"+
-      "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Предохранители</h3>"+chip("UNAVAILABLE")+"</div>"+
-      "<div class='live-kv-grid'>"+kv("PROSPECTIVE_LONGITUDINAL", String(inv.prospective_longitudinal||"OFF_BY_ABSENCE")==="OFF_BY_ABSENCE" ? "выключен: runtime отсутствует" : humanCode(inv.prospective_longitudinal))+kv("Скрытый прогноз", String(inv.hidden_prediction_exposure||"NONE_TO_EXPOSE")==="NONE_TO_EXPOSE" ? "нечего раскрывать: прогнозов нет" : humanCode(inv.hidden_prediction_exposure))+kv("Обучение на неоднозначном исходе", String(inv.learning_on_ambiguous_outcome||"NOT_POSSIBLE_NO_LEARNING_PATH")==="NOT_POSSIBLE_NO_LEARNING_PATH" ? "невозможно: путь обучения ещё не создан" : humanCode(inv.learning_on_ambiguous_outcome))+"</div>"+
-      "<small>Эти состояния пока обеспечены отсутствием runtime, а не активным контролем. После появления Twin state каждый инвариант должен проверяться явно.</small></div>";
+    var status = data.source_status;
+    if (status === "OFFLINE" || status === "UNAVAILABLE") {
+      // liveMode() doesn't classify OFFLINE as "bad" -- force it explicitly
+      // rather than let an unrecognized status fall through to the "warn"
+      // default, which would visually understate a fully unreachable Twin.
+      var failBody = activateNormalized("digital-twin", "UNAVAILABLE", "DT · " + esc(status));
+      if (!failBody) return;
+      failBody.innerHTML =
+        "<div class='live-status-box bad'><strong>Personal Twin — " + esc(status) + "</strong>" +
+        "<p>" + esc(data.degraded_reason || "Twin-процесс не ответил.") + "</p></div>";
+      return;
+    }
+
+    var body = activateNormalized("digital-twin", status, "DT · " + esc(status));
+    if (!body) return;
+
+    var po = data.program_object || {};
+    var inv = data.safety_invariants_status || {};
+    var predLabel = TWIN_PREDICTION_LABELS[data.current_prediction] || "Недоступно";
+    var needsConf = data.needs_confirmation || 0;
+
+    var invRows = Object.keys(inv).length ? Object.keys(inv).map(function (k) {
+      return kv(humanCode(k), humanCode(String(inv[k])));
+    }).join("") : "";
+
+    body.innerHTML =
+      "<div class='live-status-box " + liveMode(status) + "'><strong>Personal Twin — " + esc(status) + "</strong>" +
+      "<p>Safe read projection только: вероятности клонов и ранжированные варианты Панель никогда не получает и не показывает.</p></div>" +
+      "<div class='live-summary'>" +
+      "<div class='metric'><small>Объект программы</small><strong>" + esc((po && po.object_id) || "FND-005") + "</strong><span>" + esc((po && po.declared_status) || "") + "</span></div>" +
+      "<div class='metric'><small>Режим</small><strong>" + esc(humanCode(data.mode || "—")) + "</strong><span>runtime mode, не предсказание</span></div>" +
+      "<div class='metric'><small>Активных клонов</small><strong>" + esc(data.clones_active != null ? data.clones_active : "—") + "</strong><span>C0–C7</span></div>" +
+      "<div class='metric'><small>Оценено прогнозов</small><strong>" + esc(data.prospective_scored_n != null ? data.prospective_scored_n : "—") + "</strong><span>prospective_scored_n</span></div></div>" +
+      "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Текущее состояние прогноза</h3>" + chip(data.current_prediction || "—") + "</div>" +
+      "<div class='live-kv-grid'>" +
+      kv("Статус", predLabel) +
+      kv("Commitment (SHA-256)", data.current_commitment ? cut(data.current_commitment, 24) + "…" : "—") +
+      kv("Печать создана", data.seal_created_at ? ago(data.seal_created_at) : "—") +
+      kv("Последний исход", data.last_outcome || "—") +
+      "</div>" +
+      (needsConf > 0 ?
+        "<div class='live-status-box warn' style='margin-top:8px'><strong>Ожидает подтверждения: " + esc(needsConf) + "</strong>" +
+        "<p>Исход неоднозначен. Панель только показывает ожидание — подтверждение здесь не выполняется.</p></div>" : "") +
+      "</div>" +
+      "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Предохранители</h3>" + chip("ENFORCED") + "</div>" +
+      "<div class='live-kv-grid'>" + invRows + "</div>" +
+      "<small>SS001 transfer boundary: " + esc(humanCode(data.ss001_transfer_boundary || "—")) + "</small></div>";
   }
 
   function renderDiagnostics() {
