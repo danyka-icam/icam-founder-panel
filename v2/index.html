@@ -1201,8 +1201,6 @@
       margin-top:10px;padding:9px 11px;border-left:2px solid rgba(214,187,120,.28);
       color:#858e89;font-size:9.5px;line-height:1.45
     }
-    .signals-scanner-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:10px;margin-bottom:10px}
-    .signals-scanner-grid>.card{min-height:300px}
     .scanner-filter-row{display:flex;gap:6px;flex-wrap:wrap}
     .scanner-filter-row span{
       padding:5px 7px;border:1px solid var(--line);border-radius:999px;color:#8f9792;font-size:8.5px
@@ -1298,7 +1296,7 @@
     .diagnostics-truth-note b{color:#c0c6c1}
     @media(max-width:1180px){
       .field-movement-grid{grid-template-columns:repeat(3,1fr)}
-      .signals-scanner-grid,.diagnostics-hero-grid{grid-template-columns:1fr}
+      .diagnostics-hero-grid{grid-template-columns:1fr}
       .scanner-bridge-grid,.diagnostics-boundary-grid{grid-template-columns:1fr 1fr}
       .diagnostic-state-grid{grid-template-columns:repeat(4,1fr)}
     }
@@ -3331,29 +3329,7 @@
       После подключения показываем только агрегат weighted relevance за 7 дней: → / ↑ / ↑↑ / ↑↑↑. Первый scanner-run создаёт baseline и не должен превращаться в поток старых новостей.
     </div>
 </div>
-</section><section class="signals-scanner-grid">
-<article class="card scanner-feed-card">
-<div class="panel-head">
-<div class="head-title">
-<h2>ATLAS MARKET SCANNER</h2>
-<small>по умолчанию: STRATEGIC 90–100 и IMPORTANT 70–89</small>
-</div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body">
-<div class="scanner-filter-row">
-<span>Ось: все</span>
-<span>Сущность: все</span>
-<span>Статус: new / important</span>
-<span>min score: 70</span>
-</div>
-<div class="scanner-empty">
-<strong>Market Scanner ещё не подключён к Панели</strong>
-<span>Когда QA завершится и Signals Bridge будет подключён, здесь появятся реальные `atlas.market-signal.v1`. WATCH 50–69 остаётся в фильтре/дайджесте; &lt;50 архивируется.</span>
-</div>
-</div>
-</article>
-<article class="card scanner-card-contract">
+</section><section class="card scanner-card-contract">
 <div class="panel-head">
 <div class="head-title">
 <h2>КАРТОЧКА СИГНАЛА</h2>
@@ -3375,7 +3351,6 @@
 </div>
 <p class="scanner-rule">Изменение веб-страницы само по себе не является рыночным сигналом. Карточка появляется только при deterministic semantic evidence.</p>
 </div>
-</article>
 </section><section class="scanner-bridge-grid">
 <article class="card">
 <div class="panel-body">
