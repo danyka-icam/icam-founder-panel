@@ -29,6 +29,9 @@
   };
 
   var REFRESH_MS = 90000;
+  // Latest successful read cycle, shared read-only with command-center.js.
+  // Holds exactly the payloads fetched below; nothing is derived or stored here.
+  var lastSnapshot = null;
   var STALE_DAYS = 7;
   var CRITICAL_DAYS = 14;
 
@@ -1016,6 +1019,7 @@
 
       var byId = {};
       projections.forEach(function (p) { if (p && p.object_id) byId[String(p.object_id)] = p; });
+      if (lastSnapshot) lastSnapshot.rd1 = byId;
 
       // Research line exists only when the RD1 projection itself exposes meaningful semantics
       // or the canonical object explicitly declares a research status.
@@ -1822,6 +1826,13 @@
       var metrics = metricsJSON && metricsJSON.metrics ? metricsJSON.metrics : null;
       setObjectNameMap(objects);
       var depModel = dependencyModel(routes);
+      lastSnapshot = {
+        routes: routes, summary: summary, metrics: metrics, inbox: inbox,
+        objects: objects, blockers: blockers, testingSummary: testingSummary,
+        opsProjection: opsProjection, brazilPortal: brazilPortal,
+        foundationAgg: foundationAgg, atlasState: atlasState, twinState: twinState,
+        marketSignals: marketSignals, fieldMovement: fieldMovement, rd1: {}
+      };
 
       setOrchestratorHeader(sourceState.routes.ok, sourceState.summary.ok, sourceState.metrics.ok);
       renderHomeKPIs(routes, inbox);
@@ -1856,10 +1867,23 @@
       renderResearch(objects, blockers).then(function () {
         renderDiagnostics();
         updateTrust();
+        if (lastSnapshot) lastSnapshot.sources = JSON.parse(JSON.stringify(sourceState));
+        window.__PANEL_V2_DATA = lastSnapshot;
         window.dispatchEvent(new CustomEvent("panel-v2-live-ready", { detail: window.__PANEL_V2_LIVE }));
       });
     });
   }
+
+  // Shared, side-effect-free helpers so command-center.js uses the exact same
+  // naming, dependency and diagnostic-risk semantics as the rest of the panel.
+  window.__PANEL_V2_HELPERS = {
+    esc: esc, cut: cut, asArray: asArray, daysSince: daysSince, ago: ago,
+    routeName: routeName, routeKey: routeKey, humanCode: humanCode, ruStatus: ruStatus,
+    isClosed: isClosed, isFounderOwner: isFounderOwner, blockerCount: blockerCount,
+    explicitDependencies: explicitDependencies, dependencyModel: dependencyModel,
+    riskInfo: riskInfo, signalKindRu: signalKindRu, allTests: allTests,
+    STALE_DAYS: STALE_DAYS, CRITICAL_DAYS: CRITICAL_DAYS
+  };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot);

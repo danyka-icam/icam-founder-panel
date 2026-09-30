@@ -38,19 +38,27 @@ It must not:
 
 ## v2 top-level navigation
 
-1. Главная
-2. Оркестратор
-3. Фундамент
-4. Исследования
-5. Атлас
-6. DT
-7. BrazilPortal
-8. Операции
-9. Реестр
-10. Сигналы
-11. Документы
-12. Тестирование
-13. Диагностика
+Modes (`v2/command-center.js` + `v2/command-center.css`):
+1. Командный центр (`#command`, default; `#home` / `#orchestrator` redirect here)
+2. Во времени (`#timeline`)
+3. Связи и стратегии (`#links`)
+4. Линии и объекты (`#lines`)
+5. Размещение (`#placement`)
+6. Сигналы (`#signals`)
+
+Contours (unchanged pages): Фундамент, Исследования, Атлас, DT, BrazilPortal,
+Операции, Реестр, Документы, Тестирование, Диагностика.
+
+The modes make no requests of their own: `live.js` publishes the payloads of
+its read cycle as `window.__PANEL_V2_DATA` and its helpers as
+`window.__PANEL_V2_HELPERS`, then fires `panel-v2-live-ready`.
+Links drawn: line→object by exact ID, line→line by explicit dependency fields,
+shared object_id between lines (structural), world→object by the object's own
+`owning_branch`/`owner`. Nothing causal, strategic or similarity-based is
+inferred. No temporal-universe or Portfolio Admission source exists in the
+current projections; «Во времени» is built from last-event/last-movement
+fields, and the «Кандидат на точную связь» column stays empty with an explicit
+note until such a source is wired.
 
 ## Existing safe GET wiring in v2
 
@@ -58,7 +66,7 @@ All paths are same-origin under:
 
 `/founder-ui-preview/api/...`
 
-### Главная
+### Командный центр (was Главная + Оркестратор)
 Reads:
 - `observer/routes`
 - `continuity/founder-inbox`

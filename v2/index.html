@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>ICAM — Панель Основателя v2</title>
+<title>ICAM — Командный центр Основателя</title>
 <style>
     :root{
       --bg-0:#222a30;
@@ -1498,14 +1498,21 @@
 .progress-row em{font-size:10px}
 
 </style>
+<link rel="stylesheet" href="command-center.css"/>
 </head>
 <body>
 <div class="app-shell">
 <aside class="sidebar">
-<div class="side-head"><strong>ICAM <span>/ ЛАБОРАТОРИЯ</span></strong></div>
+<div class="side-head"><span class="brand-hex" aria-hidden="true"></span><strong>ICAM <small>FOUNDER PANEL v2</small></strong></div>
 <nav class="nav" id="nav">
-<a data-page="home" href="#home"><span class="dot">01</span><span>Главная</span></a>
-<a data-page="orchestrator" href="#orchestrator"><span class="dot">02</span><span>Оркестратор</span></a>
+<div class="nav-group">Режимы</div>
+<a data-page="command" href="#command"><span class="dot">◈</span><span>Командный центр</span></a>
+<a data-page="timeline" href="#timeline"><span class="dot">◷</span><span>Во времени</span></a>
+<a data-page="links" href="#links"><span class="dot">⇄</span><span>Связи и стратегии</span></a>
+<a data-page="lines" href="#lines"><span class="dot">▤</span><span>Линии и объекты</span></a>
+<a data-page="placement" href="#placement"><span class="dot">⌖</span><span>Размещение</span><em class="nav-count" data-cc-nav-count="placement"></em></a>
+<a data-page="signals" href="#signals"><span class="dot">◉</span><span>Сигналы</span></a>
+<div class="nav-group">Контуры</div>
 <a data-page="foundation" href="#foundation"><span class="dot">03</span><span>Фундамент</span></a>
 <a data-page="research" href="#research"><span class="dot">04</span><span>Исследования</span></a>
 <a data-page="atlas" href="#atlas"><span class="dot">05</span><span>Атлас</span></a>
@@ -1513,7 +1520,6 @@
 <a data-page="brazilportal" href="#brazilportal"><span class="dot">07</span><span>BrazilPortal</span></a>
 <a data-page="operations" href="#operations"><span class="dot">08</span><span>Операции</span></a>
 <a data-page="registry" href="#registry"><span class="dot">09</span><span>Реестр</span></a>
-<a data-page="signals" href="#signals"><span class="dot">10</span><span>Сигналы</span></a>
 <a data-page="documents" href="#documents"><span class="dot">11</span><span>Документы</span></a>
 <a data-page="testing" href="#testing"><span class="dot">12</span><span>Тестирование</span></a>
 <a data-page="diagnostics" href="#diagnostics"><span class="dot">13</span><span>Диагностика</span></a>
@@ -1521,119 +1527,93 @@
 <div class="side-note">«Сильная система не требует героя. Она умеет держать форму сама.»</div>
 </aside>
 <main class="main">
-<section class="page" data-page-panel="home">
-<header class="topbar">
-<div><h1>ICAM — Панель Основателя</h1><p>единая управляющая среда</p></div>
-<div class="top-actions">
-<button class="search-pill" disabled=""><span>Спросите что-нибудь о системе...</span><span>⌕</span></button>
-<span class="quiet-pill">v2 · кандидат</span>
-<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
-</div>
+<section class="page cc-page" data-page-panel="command">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Командный центр</h1><p>Компания как живая система: линии, переходы, связи и то, что требует внимания</p></div></div>
+<div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
 </header>
-<section class="strip">
-<article class="card"><small>Маршруты</small><strong>Источник не подключён</strong><span>Оркестратор станет владельцем порядка действий.</span></article>
-<article class="card"><small>Внимание Основателя</small><strong>Источник не подключён</strong><span>Только решения, действительно требующие Основателя.</span></article>
-<article class="card"><small>Тестирование</small><strong>Источник не подключён</strong><span>Непройденные и перезапущенные тесты попадут в риск после подключения.</span></article>
-<article class="card"><small>Актуальность</small><strong>Источник не подключён</strong><span>Никаких подставных значений текущего состояния.</span></article>
-</section>
-<section class="home-grid">
-<article class="card home-panel now">
-<div class="panel-head"><div class="head-title"><h2>1. СЕЙЧАС</h2><small>Что действительно двигаем</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="body"><div class="empty-copy"><strong>Маршруты ещё не подключены</strong><span>Здесь будет объяснимый порядок Оркестратора: <b>следующий ход → почему сейчас → у кого мяч</b>.</span></div></div>
-</article>
-<article class="card home-panel need">
-<div class="panel-head"><div class="head-title"><h2>2. НУЖНО ОТ МЕНЯ</h2><small>Только решения Основателя</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="body"><div class="empty-copy"><strong>Источник внимания ещё не подключён</strong><span>Здесь не будет общих системных задач — только то, что нельзя решить без Основателя.</span></div></div>
-</article>
-<article class="card home-panel changed">
-<div class="panel-head"><div class="head-title"><h2>3. ЧТО ИЗМЕНИЛОСЬ</h2><small>С прошлого захода</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="body"><div class="empty-copy"><strong>Сводка существенных изменений ещё не подключена</strong><span>Статус, этап, проверка, смена владельца хода, решение, важный результат — без шума технических событий.</span></div></div>
-</article>
-<article class="card home-panel risk">
-<div class="panel-head"><div class="head-title"><h2>4. ЗАСТОЙ / РИСК</h2><small>Где система теряет движение</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="body"><div class="empty-copy"><strong>Риски ещё не подключены</strong><span>Здесь сойдутся застоявшиеся маршруты, блокеры и непройденные или перезапущенные тесты.</span></div></div>
-</article>
-<article class="card health">
-<div class="panel-head"><div class="head-title"><h2>СОСТОЯНИЕ СИСТЕМЫ</h2><small>Компактно, без второй Главной внутри Главной</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p>После подключения здесь останется только короткая полоса состояния ключевых контуров и актуальности данных. Глубокая диагностика живёт отдельно.</p></div>
-</article>
-</section>
-</section>
-<section class="page" data-page-panel="orchestrator">
-<header class="topbar">
-<div>
-<h1>Оркестратор</h1>
-<p>маршруты, отдельные задачи, зависимости и возврат внимания в нужную линию</p>
+<div class="cc-page-grid">
+<div class="cc-body" data-cc-body>
+<section class="cc-kpis" data-cc="kpis"></section>
+<div class="cc-grid-main">
+<article class="cc-panel cc-lines-panel"><header><h2>Линии</h2><small>состояние → следующий переход → условие движения → блокеры → связи</small></header><div data-cc="lines"><div class="cc-loading">Читаем источники…</div></div></article>
+<div class="cc-side-stack">
+<article class="cc-panel "><header><h2>Требует Основателя</h2><small>только явные needs_founder из Founder inbox</small></header><div data-cc="founder"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Что изменилось</h2><small>последние датированные события объектов и линий</small></header><div data-cc="changes"><div class="cc-loading">Читаем источники…</div></div></article>
 </div>
-<div class="top-actions">
-<span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
-<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
+<div class="cc-grid-map">
+<article class="cc-panel cc-lanes-panel"><header><h2>Траектории во времени</h2><small>прошлое → сейчас → ожидание; только реальные отметки времени</small></header><div data-cc="lanes"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Карта зависимостей</h2><small>линии и только доказанные связи</small></header><div data-cc="graph"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Шкала внимания</h2><small>где линия теряет движение</small></header><div data-cc="attention"><div class="cc-loading">Читаем источники…</div></div></article>
+</div>
+</div>
+<aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
+</div>
+</section>
+<section class="page cc-page" data-page-panel="timeline">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Во времени</h1><p>Компания → мир → линия → объект: прошлое, настоящее, ожидание и следующий переход</p></div></div>
+<div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
 </header>
-<div class="workspace-switcher">
-<button class="active" disabled="" title="Текущий обзор">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Маршруты</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Отдельные задачи</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Рекомендации</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Решения</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Журнал</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Деньги</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Закрыто</button>
+<div class="cc-page-grid">
+<div class="cc-body" data-cc-body>
+<article class="cc-panel cc-wide"><header><h2>Временное поле</h2><small>события по мирам за последние 60 дней и линии, ожидающие перехода</small></header><div data-cc="swim"><div class="cc-loading">Читаем источники…</div></div></article>
+<div class="cc-grid-2">
+<article class="cc-panel "><header><h2>Структура во времени</h2><small>каждая активная линия: прошлое → настоящее → ожидание → следующий переход</small></header><div data-cc="tree"><div class="cc-loading">Читаем источники…</div></div></article>
+<div class="cc-side-stack">
+<article class="cc-panel "><header><h2>Неразмещённые события</h2><small>события объектов, у которых нет линии</small></header><div data-cc="unplaced"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel"><header><h2>Доказательные границы</h2><small>что этот режим не утверждает</small></header><ul class="cc-bounds"><li>Проекции отдают только <b>последнее</b> событие объекта и последнее движение линии — полного журнала нет.</li><li>У следующего перехода нет даты в источнике — он стоит в зоне ожидания без срока.</li><li>«Мир» — поле owning_branch / owner объекта; линия без объекта попадает в «Мир не указан».</li><li>Отдельного temporal-universe источника в текущих проекциях нет: режим собран из observer/routes, continuity/objects и RD1.</li></ul></article>
 </div>
-<section class="strip">
-<article class="card"><small>Активные маршруты</small><strong>Источник не подключён</strong><span>Линии с этапом, следующим ходом и владельцем.</span></article>
-<article class="card"><small>Отдельные задачи</small><strong>Источник не подключён</strong><span>Разовые и промежуточные задачи без обязательной привязки к маршруту.</span></article>
-<article class="card"><small>Риск отставания</small><strong>Источник не подключён</strong><span>Линии, которые давно не двигались или тормозят зависимые ветки.</span></article>
-<article class="card"><small>Узлы зависимости</small><strong>Источник не подключён</strong><span>Что от чего зависит и где образовалось бутылочное горлышко.</span></article>
-</section>
-<section class="orchestrator-grid">
-<article class="card mine">
-<div class="panel-head"><div class="head-title"><h2>МАРШРУТЫ</h2><small>по каким линиям мы движемся</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><div class="empty-copy"><strong>Маршруты ещё не подключены</strong><span>После подключения здесь появится: этап → следующий ход → у кого ход → блокеры → условие пересмотра → сколько времени без движения.</span></div></div>
-</article>
-<article class="card recommendations">
-<div class="panel-head"><div class="head-title"><h2>ОТДЕЛЬНЫЕ ЗАДАЧИ</h2><small>не обязаны принадлежать маршруту</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><div class="empty-copy"><strong>Задачи пока не подключены</strong><span>Здесь будут разовые задачи, промежуточные шаги, напоминания, входящие и идеи. Связь с маршрутом — только по желанию.</span></div></div>
-</article>
-<article class="card waiting">
-<div class="panel-head"><div class="head-title"><h2>ЖДЁМ</h2><small>внешний владелец или условие</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p>Кого или чего ждём → с какого момента → что вернёт линию в работу → когда пересмотреть.</p></div>
-</article>
-<article class="card orch-risk">
-<div class="panel-head"><div class="head-title"><h2>ЗАСТОЙ / РИСК</h2><small>где система теряет движение</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p>Без движения, отсутствует следующий шаг, блокер, зависимые линии, сработавший триггер пересмотра.</p></div>
-</article>
-<article class="card capture">
-<div class="panel-head"><div class="head-title"><h2>＋ ДОБАВИТЬ ЗАДАЧУ</h2><small>самостоятельно, без маршрута</small></div></div>
-<div class="panel-body">
-<div class="step-form">
-<input disabled="" value="Что нужно сделать?"/>
-<select disabled=""><option>Тип задачи</option></select>
-<select disabled=""><option>Приоритет</option></select>
-<button disabled="">Добавить</button>
 </div>
-<div class="micro-note">Привязка к маршруту будет необязательной. Запись включим после отдельной безопасной проверки, без второго хранилища истины.</div>
 </div>
-</article>
-</section>
-<div class="section-title">
-<div><h2>Карта прогресса и зависимостей</h2><p>визуальный слой: где линия находится, сколько она стоит и кого задерживает</p></div>
-<span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
-</div>
-<section class="card dependency-card">
-<div class="panel-head"><div class="head-title"><h2>ЛИНИИ И ЗАВИСИМОСТИ</h2><small>визуализация строится только по реальным маршрутам и явным зависимостям</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body">
-<div class="dependency-layout">
-<div class="progress-board"><div class="empty-copy"><strong>Маршрутные данные ещё не загружены</strong><span>После успешного чтения здесь появится визуальная шкала давности движения. Она не является процентом готовности.</span></div></div>
-<div class="dependency-graph"><div class="empty-copy"><strong>Граф зависимостей недоступен</strong><span>Стрелки будут строиться только из явных dependency-полей источника. Связи по догадке запрещены.</span></div></div>
-<aside class="attention-scale"><h3>ШКАЛА ВНИМАНИЯ</h3><div class="empty-copy"><strong>Нет подтверждённых маршрутных данных</strong><span>После подключения шкала покажет диагностические признаки давности и блокеров, но не будет выдавать их за канонический приоритет.</span></div></aside>
-</div>
+<aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
 </div>
 </section>
-<div class="section-title"><div><h2>Рекомендации</h2><p>что система предлагает вернуть в фокус и почему</p></div></div>
-<article class="card">
-<div class="panel-body"><div class="empty-copy"><strong>Рекомендации ещё не подключены</strong><span>Когда источник появится, Оркестратор сможет объяснить: какая линия отстала → какие ветки она тормозит → какой минимальный шаг вернёт поток.</span></div></div>
-</article>
+<section class="page cc-page" data-page-panel="links">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Связи и стратегии</h1><p>Какие связи доказаны источниками, где проходят пути и что задержит остановка линии</p></div></div>
+<div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
+</header>
+<div class="cc-page-grid">
+<div class="cc-body" data-cc-body>
+<article class="cc-panel cc-wide"><header><h2>Карта связей</h2><small>миры → линии → объекты; рисуются только доказанные связи</small></header><div data-cc="linkmap"><div class="cc-loading">Читаем источники…</div></div></article>
+<div class="cc-grid-3">
+<article class="cc-panel "><header><h2>Доказанные и недоказанные связи</h2><small>каждый тип связи и его источник</small></header><div data-cc="proven"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Влияние остановки</h2><small>только явные зависимости</small></header><div data-cc="impact"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Стратегические траектории</h2><small>объявленные области маршрутов</small></header><div data-cc="strategy"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Капитал, ресурсы, пересечения</h2><small>что источник позволяет сказать</small></header><div data-cc="resources"><div class="cc-loading">Читаем источники…</div></div></article>
+</div>
+</div>
+<aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
+</div>
+</section>
+<section class="page cc-page" data-page-panel="lines">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Линии и объекты</h1><p>Все линии Оркестратора и объекты реестра по мирам</p></div></div>
+<div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
+</header>
+<div class="cc-page-grid">
+<div class="cc-body" data-cc-body>
+<div class="cc-chips" data-cc="line-filters"></div>
+<article class="cc-panel cc-wide"><header><h2>Линии</h2><small>порядок Оркестратора</small></header><div data-cc="line-grid"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel cc-wide"><header><h2>Объекты по мирам</h2><small>реестр Continuity; цвет рамки — статус размещения</small></header><div data-cc="objects"><div class="cc-loading">Читаем источники…</div></div></article>
+</div>
+<aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
+</div>
+</section>
+<section class="page cc-page" data-page-panel="placement">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Размещение</h1><p>Принадлежность объекта к линии и видимость на главной карте — разные вещи</p></div></div>
+<div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
+</header>
+<div class="cc-page-grid">
+<div class="cc-body" data-cc-body>
+<div class="cc-psums" data-cc="placement-sum"></div>
+<div class="cc-pboard" data-cc="placement"><div class="cc-loading">Читаем источники…</div></div>
+</div>
+<aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
+</div>
 </section>
 <section class="page normalized-page" data-page-panel="atlas">
 <header class="topbar">
@@ -4067,9 +4047,10 @@
   "use strict";
 
   function route(){
-    let key=(location.hash||"#home").slice(1);
+    let key=(location.hash||"#command").slice(1);
+    if(key==="home"||key==="orchestrator")key="command";
     let panel=document.querySelector('[data-page-panel="'+key+'"]');
-    if(!panel){key="home";panel=document.querySelector('[data-page-panel="home"]')}
+    if(!panel){key="command";panel=document.querySelector('[data-page-panel="command"]')}
     document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
     panel.classList.add("active");
     document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("active",a.dataset.page===key));
@@ -4099,5 +4080,6 @@
 })();
 </script>
 <script src="live.js"></script>
+<script src="command-center.js"></script>
 </body>
 </html>
