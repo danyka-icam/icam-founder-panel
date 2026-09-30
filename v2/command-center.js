@@ -25,6 +25,7 @@
   var TU_SCHEMA = "atlas-temporal-universe.v0.";
   var ADM_SCHEMA = "atlas-portfolio-admission.v0.";
   var FP_SCHEMA = "founder-projection.v0.";
+  var OI_SCHEMA = "organizational-intelligence-projection.v0.";
   var MATERIAL = ["GATE_RESULT", "DECISION", "STATUS_CHANGE", "STAGE_CHANGE", "TEST_RESULT", "EXTERNAL_EVENT", "NEW_FILE"];
   var ARCHIVE_STATE = /^(CLOSED|ARCHIVED|HISTORICAL|DONE|CANCELLED|COMPLETED|RETIRED|DEPRECATED|INVALIDATED|SUPERSEDED)$/;
   var FALLBACK_DAYS = 60;
@@ -218,7 +219,11 @@
     ACTIVE: "активно", ARCHIVED: "в архиве", HISTORICAL: "историческое", FORMING: "формируется", PAUSED: "на паузе", CLOSED: "закрыто",
     // kind
     NOTE: "заметка", DOCUMENT: "документ", TASK: "задача", ARTIFACT: "артефакт", IDEA: "идея", SERVICE: "сервис",
-    REPORT: "отчёт", DATASET: "набор данных"
+    REPORT: "отчёт", DATASET: "набор данных",
+    DEPENDENCY_CONCENTRATION_CANDIDATE: "концентрация использования капитала",
+    COMPOUNDING_LOOP: "повторное использование капитала",
+    CANONICAL_ROUTE_GAP: "капитал без канонического маршрута",
+    FOUNDER_AUTHORITY_GATE: "шлюз полномочий Основателя"
   };
 
   function human(code) {
@@ -357,6 +362,15 @@
     var j = d.founderProjection, sch = schemaOf(j);
     if (!j || !Array.isArray(j.lines)) return { ok: false, reason: "ответ без lines[] — не соответствует контракту" };
     if (sch && String(sch).indexOf(FP_SCHEMA) !== 0) return { ok: false, reason: "неподдерживаемая схема " + sch };
+    return { ok: true, data: j, schema: sch };
+  }
+
+  function readOrgIntelligence(d, sources) {
+    var st = sources.organizationalIntelligence;
+    if (!st || !st.ok) return { ok: false, reason: st && st.error ? st.error : "источник не ответил" };
+    var j = d.organizationalIntelligence, sch = schemaOf(j);
+    if (!j || !Array.isArray(j.signals)) return { ok: false, reason: "ответ без signals[] — не соответствует контракту" };
+    if (sch && String(sch).indexOf(OI_SCHEMA) !== 0) return { ok: false, reason: "неподдерживаемая схема " + sch };
     return { ok: true, data: j, schema: sch };
   }
 
@@ -508,6 +522,19 @@
     return FP;
   }
 
+  function buildOrgIntelligence(j, U) {
+    var OI = { raw: j, compiledAt: j.compiled_at || null, items: [], byKey: {}, counts: {} };
+    A(j.signals).forEach(function (row, i) {
+      var key = String(row.signal_id || "oi|" + i), cls = String(row.class || "");
+      var it = { kind: "org", key: key, raw: row, cls: cls, title: row.subject || key,
+        founderAction: row.founder_action_required === true, lines: A(row.affected_lines).map(function (t) {
+          return { title: String(t), ul: exactTitle(U, t) };
+        }) };
+      OI.items.push(it); OI.byKey[key] = it; OI.counts[cls] = (OI.counts[cls] || 0) + 1;
+    });
+    return OI;
+  }
+
   function exactTitle(U, title) {
     if (!U || title == null) return null;
     var ls = U.titleIndex[String(title)];
@@ -525,9 +552,11 @@
     var tu = readUniverse(d, sources);
     var adm = readAdmission(d, sources);
     var fp = readFounderProjection(d, sources);
+    var oi = readOrgIntelligence(d, sources);
     var U = tu.ok ? buildUniverse(tu.data) : null;
     var AD = adm.ok ? buildAdmission(adm.data, U) : null;
     var FP = fp.ok ? buildFounderProjection(fp.data, U) : null;
+    var OI = oi.ok ? buildOrgIntelligence(oi.data, U) : null;
 
     var objById = {};
     objects.forEach(function (o) { if (o && o.object_id) objById[String(o.object_id)] = o; });
@@ -630,7 +659,7 @@
     var msActivated = ms && ms.activation_state && ms.activation_state !== "NOT_ACTIVATED";
 
     return {
-      d: d, sources: sources, tu: tu, adm: adm, fp: fp, U: U, AD: AD, FP: FP,
+      d: d, sources: sources, tu: tu, adm: adm, fp: fp, oi: oi, U: U, AD: AD, FP: FP, OI: OI,
       lines: lines, active: lines.filter(function (l) { return !l.closed; }), lineByKey: lineByKey,
       objs: objs, objByKey: objByKey, bridges: bridges, edges: dep.edges.filter(function (e) {
         return lineByKey[e.from] && lineByKey[e.to];
@@ -1096,6 +1125,28 @@
     }).join("") + "<div class='cc-foot-note'>Тон — подача панели по ходу, блокерам и давности. Отсутствие движения само по себе не считается аварией. Это не канонический приоритет Оркестратора.</div></div>";
   }
 
+  function renderOrgIntel() {
+    if (!M.oi.ok) return unavailable("Организационный интеллект недоступен", M.oi.reason || "источник не ответил");
+    var items = M.OI.items, c = M.OI.counts;
+    if (!items.length) return empty("Структурных наблюдений нет", "Источник ответил пустым signals[].");
+    var summary = [
+      ["COMPOUNDING_LOOP", "повторное использование"],
+      ["DEPENDENCY_CONCENTRATION_CANDIDATE", "концентрация использования"],
+      ["CANONICAL_ROUTE_GAP", "разрыв маршрута"],
+      ["FOUNDER_AUTHORITY_GATE", "шлюз Основателя"]
+    ].map(function (x) { return "<span class='cc-org-chip'><b>" + (c[x[0]] || 0) + "</b><small>" + E(x[1]) + "</small></span>"; }).join("");
+    function row(it) {
+      var r = it.raw, n = it.lines.length;
+      return "<button class='cc-org-row" + (it.founderAction ? " founder" : "") + "'" + sel("org", it.key) + ">" +
+        "<span>" + codeTag(it.cls, "tag") + "<b>" + E(H.cut(it.title, 58)) + "</b>" +
+        "<small>" + (n ? n + " канонич. линий" : "линии не указаны") + (it.founderAction ? " · требует действия Основателя" : "") + "</small></span>" +
+        "<i>›</i></button>";
+    }
+    return "<div class='cc-org-summary'>" + summary + "</div>" +
+      "<div class='cc-foot-note'>Это структурные наблюдения источника, а не оценка риска или приоритет.</div>" +
+      "<details class='cc-org-details'><summary>Все наблюдения · " + items.length + "</summary><div class='cc-org-list'>" + items.map(row).join("") + "</div></details>";
+  }
+
   function renderCommand(page) {
     var routesOk = ok("routes");
     var lines = M.active;
@@ -1115,6 +1166,7 @@
           "<div class='cc-foot-note'>На главном экране — первые 10 маршрутов в исходном порядке Оркестратора; полный список раскрывается здесь или доступен в «Линии и объекты». Мир и каноническая линия — только по точному ID объекта.</div>";
       })() : empty("Оркестратор не отдал активных линий", ""));
     page.querySelector("[data-cc='changes']").innerHTML = renderRecentChanges(6);
+    page.querySelector("[data-cc='org-intel']").innerHTML = renderOrgIntel();
     page.querySelector("[data-cc='lanes']").innerHTML = routesOk ? renderLanes(lines.slice(0, 10)) : unavailable("Нет маршрутов", "Траектории не строятся.");
     page.querySelector("[data-cc='graph']").innerHTML = renderCommandGraph(routesOk ? lines.slice(0, 10) : []);
     page.querySelector("[data-cc='attention']").innerHTML = routesOk ? renderAttention(lines) : unavailable("Нет current state", "Шкала не строится.");
@@ -2152,6 +2204,25 @@
     });
   }
 
+  function inspectOrg(it) {
+    var r = it.raw || {};
+    var refs = it.lines.map(function (x) { return x.ul ? ulineRef(x.ul) : "<span class='cc-ref dim'>" + E(x.title) + "</span>"; }).join("");
+    var ceiling = [ceilingRow("ok", "Класс, предмет и затронутые линии — Organizational Intelligence")];
+    if (r.evidence_ceiling) ceiling.push(ceilingRow("info", r.evidence_ceiling));
+    if (r.falsification_condition) ceiling.push(ceilingRow("info", "Условие опровержения: " + r.falsification_condition));
+    return inspector({
+      badge: "<span class='cc-obj-badge strategy'>OI</span>",
+      title: it.title, sub: "Организационное наблюдение · " + human(it.cls),
+      what: "<div>" + codeTag(it.cls, "tag") + "</div>" + (it.founderAction ? para("Источник явно помечает это наблюдение как требующее действия Основателя.") : para("Источник не требует отдельного действия Основателя.")),
+      where: crumbs([{ t: "ICAM" }, { t: "организационный интеллект", cur: true }]),
+      now: it.lines.length ? para("Затронуто канонических линий: " + it.lines.length + ".") : para("Затронутые канонические линии источником не указаны."),
+      why: r.evidence_ceiling ? para(r.evidence_ceiling) : "",
+      links: it.lines.length ? refsBlock("Затронутые линии", refs) : muted("Связанные линии не переданы."),
+      ceiling: ceiling,
+      nav: "<a href='#command'>Командный центр →</a><a href='#links'>Связи и стратегии →</a>"
+    });
+  }
+
   function inspectAdm(it) {
     var r = it.raw, vis = mapVisibility(it.memoryId);
     var nav = "<a href='#placement'>Размещение →</a>";
@@ -2199,13 +2270,14 @@
     strategy: { label: "Инспектор стратегии", get: function (k) { return M.U && M.U.trajByKey[k]; }, render: inspectStrategy },
     decision: { label: "Инспектор решения", get: function (k) { return M.FP && M.FP.decisionByKey[k]; }, render: inspectDecision },
     movement: { label: "Инспектор движения", get: function (k) { return M.FP && M.FP.movementByKey[k]; }, render: inspectMovement },
+    org: { label: "Инспектор наблюдения", get: function (k) { return M.OI && M.OI.byKey[k]; }, render: inspectOrg },
     adm: { label: "Инспектор допуска", get: function (k) { return M.AD && M.AD.items[k]; }, render: inspectAdm }
   };
 
   function renderInspectors() {
     var s = ui.selected, def = s && INSPECTORS[s.kind], ent = def && def.get(s.key);
     var html = ent ? def.render(ent, s.key) :
-      "<div class='cc-insp-idle'><b>Инспектор</b><span>Выберите маршрут, мир, линию, звезду, событие, решение, движение, стратегию или элемент допуска — здесь появятся состояние, история, связи и доказательный потолок.</span></div>";
+      "<div class='cc-insp-idle'><b>Инспектор</b><span>Выберите маршрут, мир, линию, звезду, событие, решение, движение, организационное наблюдение, стратегию или элемент допуска — здесь появятся состояние, история, связи и доказательный потолок.</span></div>";
     document.querySelectorAll("[data-cc-inspector]").forEach(function (el) {
       el.innerHTML = "<div class='cc-insp-title'><span>" + E(ent ? def.label : "Инспектор") + "</span></div>" + html;
     });

@@ -64,8 +64,13 @@ Sources of truth for the modes:
 - `GET /founder-ui-preview/api/founder-projection` (`founder-projection.v0.1`):
   canonical line state, Founder Decision Presentation, company movements,
   admitted company capital, explicit line intersections through shared admitted
-  capital, organizational intelligence, steward reconciliation and hard rules.
-  Formal Founder decisions are sourced only from this projection.
+  capital, steward reconciliation and hard rules. Formal Founder decisions are
+  sourced only from this projection.
+- `GET /founder-ui-preview/api/organizational-intelligence`
+  (`organizational-intelligence-projection.v0.1`): structural observations about
+  recorded capital reuse/concentration, canonical route gaps and Founder authority
+  gates. Each signal keeps its evidence ceiling and falsification condition; the UI
+  does not translate these observations into risk or priority.
 - Orchestrator routes + Continuity: current movement of work (stage, next move,
   ball owner, blockers, explicit dependencies). Founder inbox remains a request
   queue; its entries are not promoted to formal decisions by the UI.
@@ -80,6 +85,8 @@ read-only client requests. Degradation:
 - Founder Projection down / wrong schema → formal decisions, canonical line
   states, company movements and shared-capital intersections are not inferred;
   Temporal Universe capital remains a limited display fallback only.
+- Organizational Intelligence down / wrong schema → structural observations are
+  shown as unavailable; they are not reconstructed from capital or route data.
 
 Contract details the panel relies on (reconciled with the live files):
 `schema_id` identifies both payloads; star `temporal` is

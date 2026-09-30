@@ -74,8 +74,19 @@ const founderProjection = {
   hard_rules: ["Решение Основателя показывается только из Founder Decision Presentation."]
 };
 
+const organizationalIntelligence = {
+  schema_id: "organizational-intelligence-projection.v0.1", compiled_at: new Date().toISOString(), read_only: true,
+  signal_count: 4, founder_action_count: 1, signals: [
+    { signal_id: "OI-COMP-1", class: "COMPOUNDING_LOOP", subject: "CAP-STATE", affected_lines: ["Финальная стабилизация Foundation", "BrazilPortal"], evidence_refs: ["CAP-STATE"], evidence_ceiling: "Recorded reuse only; not causal improvement.", falsification_condition: "Reuse is withdrawn.", founder_action_required: false },
+    { signal_id: "OI-DEP-1", class: "DEPENDENCY_CONCENTRATION_CANDIDATE", subject: "CAP-STATE", affected_lines: ["Финальная стабилизация Foundation", "BrazilPortal", "Atlas advisory"], evidence_refs: ["CAP-STATE"], evidence_ceiling: "Recorded concentration only; not fragility or risk.", falsification_condition: "Independent substitutes are verified.", founder_action_required: false },
+    { signal_id: "OI-GAP-1", class: "CANONICAL_ROUTE_GAP", subject: "Public proof assets", affected_lines: [], evidence_refs: ["GAP-PUBLIC"], evidence_ceiling: "Recorded route gap only; no urgency inference.", falsification_condition: "A canonical downstream route is verified.", founder_action_required: false },
+    { signal_id: "OI-FDG-1", class: "FOUNDER_AUTHORITY_GATE", subject: "Founder approval required for frozen run", affected_lines: [], evidence_refs: ["FDL-1"], evidence_ceiling: "Current OPEN Founder Decision Lifecycle only.", falsification_condition: "Lifecycle is resolved.", founder_action_required: true }
+  ]
+};
+
 const panelApi = {
   "founder-projection": () => founderProjection,
+  "organizational-intelligence": () => organizationalIntelligence,
   "observer/routes": () => ROUTES === "down" ? null : { routes },
   "observer/summary": () => ({ summary: { routes_active: 7 } }),
   "observer/metrics": () => ({ metrics: { operational: { stale_routes_7d: { value: 2 } } } }),

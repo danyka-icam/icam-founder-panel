@@ -27,6 +27,7 @@
     fieldMovement: API + "/signals/field-movement",
     scannerDiagnostics: API + "/signals/diagnostics",
     founderProjection: API + "/founder-projection",
+    organizationalIntelligence: API + "/organizational-intelligence",
     // Founder Universe read-only backend (separate service, same origin).
     temporalUniverse: "/founder-star-view/api/temporal-universe",
     portfolioAdmission: "/founder-star-view/api/portfolio-admission"
@@ -64,6 +65,7 @@
     fieldMovement: { ok: false, at: null, error: null },
     scannerDiagnostics: { ok: false, at: null, error: null },
     founderProjection: { ok: false, at: null, error: null },
+    organizationalIntelligence: { ok: false, at: null, error: null },
     temporalUniverse: { ok: false, at: null, error: null },
     portfolioAdmission: { ok: false, at: null, error: null }
   };
@@ -1816,6 +1818,7 @@
       fetchJSON("fieldMovement", ENDPOINTS.fieldMovement),
       fetchJSON("scannerDiagnostics", ENDPOINTS.scannerDiagnostics),
       fetchJSON("founderProjection", ENDPOINTS.founderProjection, UNIVERSE_TIMEOUT_MS),
+      fetchJSON("organizationalIntelligence", ENDPOINTS.organizationalIntelligence, UNIVERSE_TIMEOUT_MS),
       fetchJSON("temporalUniverse", ENDPOINTS.temporalUniverse, UNIVERSE_TIMEOUT_MS),
       fetchJSON("portfolioAdmission", ENDPOINTS.portfolioAdmission, UNIVERSE_TIMEOUT_MS)
     ]).then(function (res) {
@@ -1839,8 +1842,9 @@
       var fieldMovement = res[17];
       var scannerDiagnostics = res[18];
       var founderProjection = res[19];
-      var temporalUniverse = res[20];
-      var portfolioAdmission = res[21];
+      var organizationalIntelligence = res[20];
+      var temporalUniverse = res[21];
+      var portfolioAdmission = res[22];
 
       var routes = routesJSON && Array.isArray(routesJSON.routes) ? routesJSON.routes : [];
       var summary = summaryJSON && summaryJSON.summary ? summaryJSON.summary : null;
@@ -1853,7 +1857,7 @@
         opsProjection: opsProjection, brazilPortal: brazilPortal,
         foundationAgg: foundationAgg, atlasState: atlasState, twinState: twinState,
         marketSignals: marketSignals, fieldMovement: fieldMovement,
-        founderProjection: founderProjection, temporalUniverse: temporalUniverse,
+        founderProjection: founderProjection, organizationalIntelligence: organizationalIntelligence, temporalUniverse: temporalUniverse,
         portfolioAdmission: portfolioAdmission, rd1: {}
       };
 

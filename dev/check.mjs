@@ -54,6 +54,8 @@ for (const w of WIDTHS) {
       check(/Company semantic state stack/.test(ln), "capital [{id,title}] shown as proven line capital");
       check(/Founder Projection/.test(ln) && /Подтверждённые пересечения линий/.test(ln), "links use Founder Projection for shared-capital intersections");
       check(/Founder inbox: 2/.test(cc), "Founder inbox is shown as requests, not formal decisions");
+      check(/Организационные наблюдения/.test(cc) && /Все наблюдения · 4/.test(cc), "organizational intelligence panel renders all stand signals");
+      check(/повторное использование/.test(cc) && /концентрация использования/.test(cc) && /разрыв маршрута/.test(cc) && /шлюз Основателя/.test(cc), "organizational intelligence classes have human labels");
       check(/Публичный запуск/.test(ln) && /Инвестор видит проверяемое состояние/.test(ln), "trajectory path + north_star shown");
       // selection on the links map lights up the path and switches the inspector
       await page.evaluate(() => { location.hash = "links"; });
@@ -72,6 +74,13 @@ for (const w of WIDTHS) {
         return { label: p.querySelector(".cc-insp-title").innerText, stars: p.querySelectorAll(".cc-lnode.star.hl").length };
       });
       check(/линии/i.test(lineSel.label) && lineSel.stars >= 1, `line selection highlights its stars (${lineSel.stars})`);
+      await page.evaluate(() => { location.hash = "command"; });
+      await page.waitForTimeout(150);
+      await page.evaluate(() => { const d = document.querySelector("[data-page-panel=\"command\"] .cc-org-details"); if (d) d.open = true; });
+      await page.click("[data-page-panel=\"command\"] .cc-org-row");
+      await page.waitForTimeout(120);
+      const orgLabel = await page.evaluate(() => document.querySelector("[data-page-panel=\"command\"] .cc-insp-title").innerText);
+      check(/наблюдения/i.test(orgLabel), `organizational signal opens its inspector (${orgLabel})`);
       await page.click('[data-page-panel="links"] [data-cc-clear]');
       await page.evaluate(() => { location.hash = "command"; });
       const stars = await page.evaluate(() => document.querySelectorAll('[data-page-panel="placement"] [data-cc="pl-map"] .cc-fstar').length);
