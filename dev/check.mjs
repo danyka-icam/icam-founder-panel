@@ -35,7 +35,10 @@ for (const w of WIDTHS) {
     if (EXPECT === "ok") {
       check(/Temporal Universe/.test(tl) && !/Реконструкция/.test(tl), "timeline uses Temporal Universe, no reconstruction banner");
       check(/Неразрешённая история/.test(tl), "timeline shows unresolved_history");
-      check(/113/.test(pl) && /Кандидат на точную связь/.test(pl) && /на Founder Map не видна/.test(pl), "placement driven by Portfolio Admission; candidates not visible on map");
+      check(/113/.test(pl) && /Безопасные кандидаты/.test(pl) && /на Founder Map не видна/.test(pl), "placement driven by Portfolio Admission; candidates not visible on map");
+      check(/Активная очередь сверки/.test(pl) && /из 78 по источнику/.test(pl), "placement reconciles source total with active queue");
+      check(/Требует вашего решения/.test(cc), "command center hero for Founder action");
+      check(/ждёт сверки/.test(tl), "system codes shown with a human label");
       check(!/Общий владелец хода/.test(ln), "links: no shared-ball_owner resource claim");
       check(/Фундамент и инфраструктура/.test(cc), "command center shows canonical worlds");
       // real contract shapes (schema_id, temporal, history events, maps, capital, path)
@@ -48,7 +51,26 @@ for (const w of WIDTHS) {
       check(/H008/.test(pl) && /Человек, представление и действие/.test(pl), "trusted_owner_map shown as owning_branch → line title");
       check(/Company semantic state stack/.test(ln), "capital [{id,title}] shown as proven line capital");
       check(/Публичный запуск/.test(ln) && /Инвестор видит проверяемое состояние/.test(ln), "trajectory path + north_star shown");
-      const stars = await page.evaluate(() => document.querySelectorAll('[data-page-panel="placement"] .cc-pcol.pl-placed .cc-pcard').length);
+      // selection on the links map lights up the path and switches the inspector
+      await page.evaluate(() => { location.hash = "links"; });
+      await page.waitForTimeout(200);
+      await page.click('[data-page-panel="links"] .cc-lnode.star.verified');
+      await page.waitForTimeout(150);
+      const starSel = await page.evaluate(() => {
+        const p = document.querySelector('[data-page-panel="links"]');
+        return { has: !!p.querySelector(".cc-layer-svg.has-sel"), label: p.querySelector(".cc-insp-title").innerText, hl: p.querySelectorAll(".cc-lnode.hl").length };
+      });
+      check(starSel.has && /звезды/i.test(starSel.label) && starSel.hl === 3, `star selection highlights star+line+world and inspector follows (${starSel.label}, hl=${starSel.hl})`);
+      await page.click('[data-page-panel="links"] .cc-lnode.line');
+      await page.waitForTimeout(150);
+      const lineSel = await page.evaluate(() => {
+        const p = document.querySelector('[data-page-panel="links"]');
+        return { label: p.querySelector(".cc-insp-title").innerText, stars: p.querySelectorAll(".cc-lnode.star.hl").length };
+      });
+      check(/линии/i.test(lineSel.label) && lineSel.stars >= 1, `line selection highlights its stars (${lineSel.stars})`);
+      await page.click('[data-page-panel="links"] [data-cc-clear]');
+      await page.evaluate(() => { location.hash = "command"; });
+      const stars = await page.evaluate(() => document.querySelectorAll('[data-page-panel="placement"] [data-cc="pl-map"] .cc-fstar').length);
       check(stars === 24, `placed column lists 24 stars (${stars})`);
     }
     if (EXPECT === "tu-down") {

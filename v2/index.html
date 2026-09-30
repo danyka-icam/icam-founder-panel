@@ -1534,19 +1534,20 @@
 </header>
 <div class="cc-page-grid">
 <div class="cc-body" data-cc-body>
-<section class="cc-kpis" data-cc="kpis"></section>
+<section class="cc-hero" data-cc="hero"><div class="cc-loading">Читаем источники…</div></section>
+<section class="cc-pulsebar" data-cc="kpis"></section>
+<div class="cc-metas" data-cc="meta"></div>
 <section data-cc="universe"></section>
 <div class="cc-grid-main">
 <article class="cc-panel cc-lines-panel"><header><h2>Маршруты в работе</h2><small>состояние → следующий переход → условие движения → блокеры → связи</small></header><div data-cc="lines"><div class="cc-loading">Читаем источники…</div></div></article>
 <div class="cc-side-stack">
-<article class="cc-panel "><header><h2>Требует Основателя</h2><small>только явные needs_founder из Founder inbox</small></header><div data-cc="founder"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Шкала внимания</h2><small>где маршрут ждёт вашего хода, блокера или внешнего события</small></header><div data-cc="attention"><div class="cc-loading">Читаем источники…</div></div></article>
 <article class="cc-panel "><header><h2>Что изменилось</h2><small>последние датированные события</small></header><div data-cc="changes"><div class="cc-loading">Читаем источники…</div></div></article>
 </div>
 </div>
-<div class="cc-grid-map">
+<div class="cc-grid-map2">
 <article class="cc-panel cc-lanes-panel"><header><h2>Траектории во времени</h2><small>прошлое → сейчас → ожидание; только реальные отметки времени</small></header><div data-cc="lanes"><div class="cc-loading">Читаем источники…</div></div></article>
 <article class="cc-panel "><header><h2>Карта зависимостей</h2><small>маршруты и только доказанные связи</small></header><div data-cc="graph"><div class="cc-loading">Читаем источники…</div></div></article>
-<article class="cc-panel "><header><h2>Шкала внимания</h2><small>где маршрут теряет движение</small></header><div data-cc="attention"><div class="cc-loading">Читаем источники…</div></div></article>
 </div>
 </div>
 <aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
@@ -1584,7 +1585,7 @@
 <div class="cc-grid-3">
 <article class="cc-panel "><header><h2>Доказанные и недоказанные связи</h2><small>каждый тип связи и его источник</small></header><div data-cc="proven"><div class="cc-loading">Читаем источники…</div></div></article>
 <article class="cc-panel "><header><h2>Влияние остановки</h2><small>только явные зависимости маршрутов</small></header><div data-cc="impact"><div class="cc-loading">Читаем источники…</div></div></article>
-<article class="cc-panel "><header><h2>Стратегические траектории</h2><small>strategic_trajectories из Temporal Universe</small></header><div data-cc="strategy"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel cc-strategies"><header><h2>Стратегические траектории</h2><small>strategic_trajectories из Temporal Universe</small></header><div data-cc="strategy"><div class="cc-loading">Читаем источники…</div></div></article>
 <article class="cc-panel "><header><h2>Капитал и ресурсы</h2><small>только явные поля источника</small></header><div data-cc="resources"><div class="cc-loading">Читаем источники…</div></div></article>
 </div>
 </div>
@@ -1614,8 +1615,14 @@
 <div class="cc-page-grid">
 <div class="cc-body" data-cc-body>
 <div class="cc-sources" data-cc="source"></div>
-<div class="cc-psums" data-cc="placement-sum"></div>
-<div class="cc-pboard" data-cc="placement"><div class="cc-loading">Читаем источники…</div></div>
+<div data-cc="placement-sum"></div>
+<article class="cc-panel cc-wide"><header><h2>Текущая Founder Map</h2><small>мир → линия → звезда; что видно на карте сейчас</small></header><div data-cc="pl-map"><div class="cc-loading">Читаем источники…</div></div></article>
+<div class="cc-pl-grid">
+<article class="cc-panel pl-col pl-candidate"><header><h2>Безопасные кандидаты</h2><small>точный владелец из допуска — ещё не звёзды, на карте не видны</small></header><div data-cc="pl-cand"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel pl-col pl-review"><header><h2>Активная очередь сверки</h2><small>элементы без архивного состояния — то, что реально ждёт разбора</small></header><div data-cc="pl-queue"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel pl-col pl-conflict"><header><h2>Конфликт владельцев</h2><small>одно происхождение указывает на несколько линий — решается вручную</small></header><div data-cc="pl-conflict"><div class="cc-loading">Читаем источники…</div></div></article>
+</div>
+<details class="cc-panel cc-archive"><summary><h2>Архив и история</h2><small>архивные и исторические элементы допуска · <b data-cc="pl-archive-n">—</b></small></summary><div data-cc="pl-archive"></div></details>
 <article class="cc-panel cc-wide"><header><h2>Доверенная карта владельцев</h2><small>trusted_owner_map: происхождение (owning_branch) → точное название линии</small></header><div data-cc="placement-trusted"><div class="cc-loading">Читаем источники…</div></div></article>
 <article class="cc-panel cc-wide"><header><h2>Правила допуска</h2><small>rules из Portfolio Admission и границы панели</small></header><div data-cc="placement-rules"><div class="cc-loading">Читаем источники…</div></div></article>
 </div>

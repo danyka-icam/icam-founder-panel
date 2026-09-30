@@ -87,6 +87,23 @@ never as its world. `unresolved_history` is never attached to objects.
 Founder Map. A shared `ball_owner` is not a resource link; capital comes only
 from a line's explicit `capital` field.
 
+Presentation conventions (UI only, no source semantics):
+- Route tone for Founder attention: «Нужно ваше действие» (ball owner is the
+  Founder and the route is not simply flowing) is the only strong accent;
+  «Есть блокер», «Ждём внешнего» (external owner — waiting, not risk),
+  «Давно без движения» (calm, not alarm), «Нужна сверка» (no movement date —
+  evidence uncertainty) and «В движении» are separate calm states. The live.js
+  diagnostic risk is unchanged and still shown in the route inspector.
+- Source codes (truth_status, binding_class, evidence_status, time_class, kind,
+  state, transition) are shown as a Russian label with the original code as a
+  small caption / tooltip; the source value itself is never altered.
+- One inspector for route, object, world, line, star, event, admission item and
+  strategy, always ordered: что это → где в системе → сейчас → почему важно →
+  история → ждём → следующий переход → связи → доказательный потолок.
+- «Размещение» distinguishes source totals (`counts`) from the active,
+  non-archived queue; the nav badge shows the active queue.
+- A strategy's position on its `path` is shown only if the source states it.
+
 Local stand: `node dev/stand.mjs` (+ `TU=` / `ADM=` = ok|404|timeout|badschema,
 `ROUTES=ok|down`) and `dev/check.mjs` in Chromium; synthetic fixtures live in
 `fixtures/founder-universe/` (not deployed).
