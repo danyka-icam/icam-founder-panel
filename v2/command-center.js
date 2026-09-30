@@ -302,7 +302,8 @@
       "Follow up if silence exceeds 5 working days (per tracker note).": "Повторно связаться, если ответа не будет более 5 рабочих дней — согласно трекеру.",
       "Supply the authorized frozen 96-slot pre-cutoff GitHub evidence dataset and re-execute testing.": "Передать разрешённый замороженный набор из 96 GitHub-слотов до отсечки и повторно запустить тестирование.",
       "Supply complete source custody artifacts, including the delivered execution lock, execution script, exact parent artifacts, and frozen PSID source environment.": "Передать полный пакет исходных материалов: зафиксированный запуск, сценарий выполнения, точные родительские артефакты и замороженную среду исходных данных PSID.",
-      "Commission independent Third Coder adjudication or resolve coder tooling/linguistic parity before unblinding and scoring primary/genealogical claims.": "Провести независимую сверку третьим кодировщиком либо устранить различия инструментов и языковой паритет до раскрытия данных и оценки основных и генеалогических утверждений."
+      "Commission independent Third Coder adjudication or resolve coder tooling/linguistic parity before unblinding and scoring primary/genealogical claims.": "Провести независимую сверку третьим кодировщиком либо устранить различия инструментов и языковой паритет до раскрытия данных и оценки основных и генеалогических утверждений.",
+      "Security follow-up required: internal localhost service credentials were exposed in diagnostic tool output. Rotate affected credentials and move any inline/unit or CLI-visible secret transport to protected credential files; never reuse exposed values.": "Нужно устранить последствие утечки: внутренние учётные данные локального сервиса попали в диагностический вывод. Сменить затронутые секреты, перенести их из командной строки и inline-конфигурации в защищённые файлы учётных данных и не использовать раскрытые значения повторно."
     };
     if (exact[raw]) return exact[raw];
     if (raw.indexOf("External reproducibility Gate v0.1") === 0) return raw.replace("External reproducibility Gate v0.1", "Внешний гейт воспроизводимости v0.1");
@@ -701,7 +702,7 @@
         title: x.title, group: x.origin || "Происхождение не указано",
         what: MATERIAL.indexOf(upper(x.o.last_meaning_kind)) >= 0 ? H.signalKindRu(x.o.last_meaning_kind) : (x.o.last_meaning_kind ? H.humanCode(x.o.last_meaning_kind) : "событие"),
         material: MATERIAL.indexOf(upper(x.o.last_meaning_kind)) >= 0,
-        summary: x.o.last_summary || "", placed: x.lines.length > 0
+        summary: humanActionText(x.o.last_summary || ""), placed: x.lines.length > 0
       });
     });
     lines.forEach(function (l) {
@@ -1431,7 +1432,7 @@
         return "<div class='cc-flow st-" + l.tone + (isSelected("line", l.key) ? " selected" : "") + "'" + sel("line", l.key) + ">" +
           "<div class='cc-flow-name'>" + hexBadge(initials(l.title), l.tone, "sm") + "<span><b>" + E(H.cut(l.title, 30)) + "</b><small>" + E((l.objId || "без объекта") + (l.origin ? " · происхождение: " + l.origin : "")) + "</small></span></div>" +
           "<div class='cc-flow-step past'><small>Прошлое</small><span>" +
-          E(o && o.last_event_at ? (o.last_summary ? H.cut(o.last_summary, 60) : H.humanCode(o.last_meaning_kind || "событие")) + " · " + H.ago(o.last_event_at) :
+          E(o && o.last_event_at ? (o.last_summary ? H.cut(humanActionText(o.last_summary), 60) : H.humanCode(o.last_meaning_kind || "событие")) + " · " + H.ago(o.last_event_at) :
             (l.r.last_movement_at ? "движение " + H.ago(l.r.last_movement_at) : "история не передана")) + "</span></div>" +
           "<div class='cc-flow-step now'><small>Настоящее</small><span>" + E(H.humanCode(l.r.stage || l.r.status || "этап не передан")) + "</span>" + toneDot(l.tone) + "</div>" +
           "<div class='cc-flow-step wait'><small>Ожидание</small><span>" + E(l.r.review_condition ? H.cut(l.r.review_condition, 60) : (l.waiting ? "ждём: " + ownerLabel(l.r.ball_owner) : "условие не передано")) + "</span></div>" +
@@ -1970,7 +1971,7 @@
       .concat(l.objBlockers.map(function (b) { return (b.title || b.blocker || "открытый блокер") + " · объект " + (b.object_id || ""); }));
     var hist = [];
     if (l.star) l.star.line.history.map(eventView).forEach(function (v) { hist.push(histItem(v, "Temporal Universe")); });
-    if (l.obj && l.obj.last_event_at) hist.push("<li><b>" + E(dateLabel(l.obj.last_event_at)) + "</b>" + E((l.obj.last_meaning_kind ? H.signalKindRu(l.obj.last_meaning_kind) : "событие объекта") + (l.obj.last_summary ? " — " + H.cut(l.obj.last_summary, 110) : "")) + " <em>· Continuity</em></li>");
+    if (l.obj && l.obj.last_event_at) hist.push("<li><b>" + E(dateLabel(l.obj.last_event_at)) + "</b>" + E((l.obj.last_meaning_kind ? H.signalKindRu(l.obj.last_meaning_kind) : "событие объекта") + (l.obj.last_summary ? " — " + H.cut(humanActionText(l.obj.last_summary), 110) : "")) + " <em>· Continuity</em></li>");
     if (r.last_movement_at) hist.push("<li><b>" + E(dateLabel(r.last_movement_at)) + "</b>движение по маршруту <em>· Оркестратор</em></li>");
     var step = r.next_move ? { text: humanActionText(r.next_move), src: "Оркестратор · next_move" } :
       (l.rd1 && l.rd1.next_move ? { text: humanActionText(l.rd1.next_move), src: "RD1 · next_move" } :
@@ -2039,10 +2040,10 @@
         (x.blockers.length ? "<ul class='cc-blockers'>" + x.blockers.map(function (b) { return "<li>" + E(H.cut(b.title || b.blocker || "открытый блокер", 110)) + "</li>"; }).join("") + "</ul>" : ""),
       why: x.star ? para("Это звезда Founder Map в линии «" + x.star.line.title + "».") : "",
       history: o.last_event_at ? "<ul class='cc-hist'><li><b>" + E(dateLabel(o.last_event_at)) + "</b>" +
-        E((o.last_meaning_kind ? H.signalKindRu(o.last_meaning_kind) : "событие") + (o.last_summary ? " — " + H.cut(o.last_summary, 120) : "")) + " <em>· Continuity</em></li></ul>" : "",
+        E((o.last_meaning_kind ? H.signalKindRu(o.last_meaning_kind) : "событие") + (o.last_summary ? " — " + H.cut(humanActionText(o.last_summary), 120) : "")) + " <em>· Continuity</em></li></ul>" : "",
       waiting: tv && tv.waiting.length ? titlesList(tv.waiting) : "",
-      next: (tv && tv.next.length ? titlesList(tv.next) : "") || ((x.rd1 && (x.rd1.next_gate || x.rd1.next_move)) || (x.lines[0] && x.lines[0].next) ? para((x.rd1 && (x.rd1.next_gate || x.rd1.next_move)) || x.lines[0].next) : ""),
-      step: { text: step, src: "по данным слоя допуска и Continuity" },
+      next: (tv && tv.next.length ? titlesList(tv.next) : "") || ((x.rd1 && (x.rd1.next_gate || x.rd1.next_move)) || (x.lines[0] && x.lines[0].next) ? para(humanActionText((x.rd1 && (x.rd1.next_gate || x.rd1.next_move)) || x.lines[0].next)) : ""),
+      step: { text: humanActionText(step), src: "по данным слоя допуска и Continuity" },
       links: refsBlock("Звезда", x.star ? starRef(x.star) + ulineRef(x.star.line) : "") +
         refsBlock("Маршруты", lineRefs(x.lines.map(function (l) { return l.key; }))) +
         refsBlock("Слой допуска", x.adm ? "<button class='cc-ref'" + sel("adm", x.adm.key) + ">" + E(human(x.adm.source === "exact_owner_candidates" ? "кандидат" : x.adm.source === "review_required" ? "на сверке" : "конфликт")) + "</button>" : ""),
