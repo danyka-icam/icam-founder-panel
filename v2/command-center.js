@@ -19,7 +19,7 @@
   "use strict";
 
   var H = null;
-  var ui = { selected: null, lineFilter: "all" };
+  var ui = { selected: null, lineFilter: "all", routesAll: false };
   var M = null; // current model
 
   var TU_SCHEMA = "atlas-temporal-universe.v0.";
@@ -1099,9 +1099,14 @@
     page.querySelector("[data-cc='universe']").innerHTML = renderUniverseStrip();
     page.querySelector("[data-cc='lines']").innerHTML = !routesOk ?
       unavailable("Источник маршрутов недоступен", "Линии не показываются по прошлым или демонстрационным данным.") :
-      (lines.length ? "<div class='cc-line-list'>" + lines.map(lineCard).join("") + "</div>" +
-        "<div class='cc-foot-note'>Порядок — порядок Оркестратора. Мир и каноническая линия — из Temporal Universe по точному ID объекта; без совпадения маршрут не приписывается ни к какому миру.</div>" :
-        empty("Оркестратор не отдал активных линий", ""));
+      (lines.length ? (function () {
+        var shown = ui.routesAll ? lines : lines.slice(0, 10);
+        var hidden = lines.length - shown.length;
+        return "<div class='cc-line-list'>" + shown.map(lineCard).join("") + "</div>" +
+          (hidden > 0 ? "<button class='cc-hero-more cc-routes-more' data-cc-routes-more>Показать ещё " + hidden + " маршрутов</button>" :
+            (ui.routesAll && lines.length > 10 ? "<button class='cc-hero-more cc-routes-more' data-cc-routes-more>Свернуть до 10</button>" : "")) +
+          "<div class='cc-foot-note'>На главном экране — первые 10 маршрутов в исходном порядке Оркестратора; полный список раскрывается здесь или доступен в «Линии и объекты». Мир и каноническая линия — только по точному ID объекта.</div>";
+      })() : empty("Оркестратор не отдал активных линий", ""));
     page.querySelector("[data-cc='changes']").innerHTML = renderRecentChanges(6);
     page.querySelector("[data-cc='lanes']").innerHTML = routesOk ? renderLanes(lines.slice(0, 10)) : unavailable("Нет маршрутов", "Траектории не строятся.");
     page.querySelector("[data-cc='graph']").innerHTML = renderCommandGraph(routesOk ? lines.slice(0, 10) : []);
@@ -2255,6 +2260,7 @@
     if (f) { ui.lineFilter = f.getAttribute("data-cc-line-filter"); renderAll(); return; }
     if (e.target.closest("[data-cc-clear]")) { ui.selected = null; renderAll(); return; }
     if (e.target.closest("[data-cc-hero-more]")) { ui.heroAll = !ui.heroAll; renderAll(); return; }
+    if (e.target.closest("[data-cc-routes-more]")) { ui.routesAll = !ui.routesAll; renderAll(); return; }
     var t = e.target.closest("[data-cc-select]");
     if (!t || !M) return;
     var v = t.getAttribute("data-cc-select"), i = v.indexOf(":");
