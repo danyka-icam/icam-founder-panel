@@ -150,6 +150,16 @@
       "ACTIVE":"активно",
       "ACTIVE_PRIORITY":"приоритетное направление",
       "ACTIVE_BUILD":"активная сборка",
+      "LIVE":"в работе",
+      "DEGRADED":"частично ограничено",
+      "UNAVAILABLE":"недоступно",
+      "FRESH":"актуально",
+      "STALE":"устарело",
+      "PASS":"пройдено",
+      "FAIL":"не пройдено",
+      "APPROVED":"одобрено",
+      "RESTORE_TARGET_SET":"цель восстановления задана",
+      "READ_ONLY_RECONCILIATION_FIRST":"сначала сверка в режиме только чтения",
       "IMPLEMENTATION_READY":"готово к реализации",
       "UNRESOLVED":"не подтверждено",
       "PERSONAL_CLONE_PROSPECTIVE_LEARNING":"проспективное обучение Personal Twin",
@@ -162,6 +172,21 @@
     if (/^[A-Z0-9_\-\/ ]+$/.test(raw) && raw.indexOf("_") >= 0) {
       return raw.replace(/_/g, " ").toLowerCase();
     }
+    return raw;
+  }
+
+  function projectionTextRu(value) {
+    var raw = String(value == null ? "" : value).trim();
+    if (!raw) return raw;
+    var exact = {
+      "no commitment movement within freshness window": "в окне свежести не было движения по обязательствам",
+      "failing dimensions: artifact_durability_readback": "не пройдено обязательное измерение долговечности артефактов",
+      "1 orphan receipt(s): STORED with no object on disk": "1 расписка со статусом STORED не связана с объектом на диске",
+      "Confirm commit 98d16f8, Aug-16 DB snapshot/hash lineage, pre-migration configs, Reels-Lab-0.14.0.0, and list the seven media-backed Reel project IDs plus existing artifact filenames/hashes. Modify nothing until inventory matches.": "Подтвердить commit 98d16f8, происхождение снимка БД и хэшей от 16 августа, конфигурации до миграции, Reels-Lab-0.14.0.0 и перечень семи Reel-проектов с медиа вместе с существующими именами файлов и хэшами. Ничего не менять, пока инвентаризация не совпадёт.",
+      "Founder decision: restore the clean pre-server Content Factory and approved historical Reels; no funnels, Router attribution, or later hardening in the restored production path.": "Решение Основателя: восстановить чистую досерверную Content Factory и одобренные исторические Reels; не переносить в восстановленный production-контур воронки, атрибуцию Router и более позднее усиление."
+    };
+    if (exact[raw]) return exact[raw];
+    if (raw.indexOf("no projected-field or material event movement within freshness window") === 0) return "В окне свежести не было движения по спроецированным полям или материальным событиям; каноническая связь статуса остаётся неразрешённой.";
     return raw;
   }
 
@@ -1632,16 +1657,16 @@
   function renderOperationsProjection(data) {
     if (!sourceState.opsProjection.ok || !data) return cleanFailure("operations","Операции","opsProjection");
     var body=activateNormalized("operations",data.source_status,
-      "ОПЕРАЦИИ · "+String(data.source_status||"").toUpperCase()+" · "+String(data.freshness_state||""));
+      "ОПЕРАЦИИ · "+humanCode(data.source_status)+" · "+humanCode(data.freshness_state));
     if(!body)return;
     var c=data.counts||{}, ops=asArray(data.operations);
     var ownedCount=ops.filter(function(o){return ownerDisplay(o)!=="Недоступно";}).length;
-    var summary="<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Операционная проекция — "+esc(data.source_status)+"</strong>"+
+    var summary="<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Операционная проекция — "+esc(humanCode(data.source_status))+"</strong>"+
       "<p>"+(String(data.freshness_state).toUpperCase()==="STALE"?"Данные устарели по контракту свежести: движения обязательств давно не было.":"Состояние прочитано из серверной проекции.")+"</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Всего обязательств</small><strong>"+esc(c.total)+"</strong><span>реальные commitments</span></div>"+
       "<div class='metric'><small>Открыто</small><strong>"+esc(c.open)+"</strong><span>текущий execution status</span></div>"+
-      "<div class='metric'><small>Свежесть</small><strong>"+esc(data.freshness_state)+"</strong><span>не подменяется временем обновления UI</span></div>"+
+      "<div class='metric'><small>Свежесть</small><strong>"+esc(humanCode(data.freshness_state))+"</strong><span>не подменяется временем обновления интерфейса</span></div>"+
       "<div class='metric'><small>С владельцем хода</small><strong>"+esc(ownedCount)+" / "+esc(ops.length)+"</strong><span>обязательств с известным ball_owner, из проекции</span></div></div>";
     var rows=ops.slice(0,5).map(function(o){
       return "<div class='live-item-clean'><div class='live-item-clean-head'><h3>"+esc(o.object_id||"Обязательство")+"</h3>"+chip(o.status)+"</div>"+
@@ -1656,12 +1681,12 @@
     if (!sourceState.brazilPortal.ok || !data) return cleanFailure("brazilportal","BrazilPortal","brazilPortal");
     var sv=data.status_views||{}, id=data.identity||{};
     var body=activateNormalized("brazilportal",data.source_status,
-      "BRAZILPORTAL · "+String(data.source_status||"").toUpperCase());
+      "BRAZILPORTAL · "+humanCode(data.source_status));
     if(!body)return;
     function val(x){return x&&x.value!=null?x.value:"—";}
     var unresolved=String(sv.projected_status_canonical_relation||"").toUpperCase()==="UNRESOLVED";
     body.innerHTML=
-      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>BrazilPortal — "+esc(data.source_status)+"</strong>"+
+      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>BrazilPortal — "+esc(humanCode(data.source_status))+"</strong>"+
       "<p>"+(unresolved?"Спроецированный статус не подтверждён как канонический. Панель показывает его отдельно от объявленного.":"Состояние прочитано из нормализованной проекции.")+"</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Объявленный статус</small><strong>"+esc(humanCode(sv.declared_status))+"</strong><span>что объектом объявлено</span></div>"+
@@ -1669,14 +1694,14 @@
       "<div class='metric'><small>Каноничность проекции</small><strong>"+esc(humanCode(sv.projected_status_canonical_relation))+"</strong><span>"+(unresolved?"не подтверждена":"подтверждена источником")+"</span></div>"+
       "<div class='metric'><small>Этап</small><strong>"+esc(humanCode(val(data.stage)))+"</strong><span>с provenance в источнике</span></div></div>"+
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Следующий ход</h3>"+chip(data.source_status)+"</div>"+
-      "<div class='live-kv-grid'>"+kv("Владелец",val(data.owner))+kv("Следующий гейт",val(data.next_gate))+kv("Следующий ход",val(data.next_move))+kv("Открытые блокеры",(data.open_blockers||{}).count)+kv("Открытые обязательства",(data.open_commitments||{}).count)+kv("Идентичность",(id.component_id||"—")+" ↔ "+(id.operational_object_id||"—"))+"</div>"+
+      "<div class='live-kv-grid'>"+kv("Владелец",val(data.owner))+kv("Следующий гейт",val(data.next_gate))+kv("Следующий ход",projectionTextRu(val(data.next_move)))+kv("Открытые блокеры",(data.open_blockers||{}).count)+kv("Открытые обязательства",(data.open_commitments||{}).count)+kv("Идентичность",(id.component_id||"—")+" ↔ "+(id.operational_object_id||"—"))+"</div>"+
       "<small>Количество блокеров не подписывается как «нетестовое»: test-фильтрация источником не доказана.</small></div>";
   }
 
   function renderFoundationAggregateClean(data) {
     if (!sourceState.foundationAgg.ok || !data) return cleanFailure("foundation","Фундамент","foundationAgg");
     var body=activateNormalized("foundation",data.source_status,
-      "ФУНДАМЕНТ · "+String(data.source_status||"").toUpperCase());
+      "ФУНДАМЕНТ · "+humanCode(data.source_status));
     if(!body)return;
     var names={
       continuity_source_health:"Контур Continuity",
@@ -1687,19 +1712,19 @@
     var dims=asArray(data.dimensions);
     var cards=dims.map(function(d){
       return "<div class='live-item-clean'><div class='live-item-clean-head'><h3>"+esc(names[d.dimension]||d.dimension)+"</h3>"+chip(d.state)+"</div>"+
-        (d.blocking_reason?"<div class='live-warning'>"+esc(d.blocking_reason)+"</div>":"")+
+        (d.blocking_reason?"<div class='live-warning'>"+esc(projectionTextRu(d.blocking_reason))+"</div>":"")+
         "<small>Доказано: "+esc(d.proven_by_source||"источник не указан")+"</small></div>";
     }).join("");
     var blocking=asArray(data.blocking_reasons);
     body.innerHTML=
-      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Готовность основания — "+esc(data.source_status)+"</strong>"+
+      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Готовность основания — "+esc(humanCode(data.source_status))+"</strong>"+
       "<p>"+(blocking.length?"Есть подтверждённый блокирующий дефект. Зелёный READY не показывается.":"Все обязательные измерения должны быть доказаны текущими источниками.")+"</p></div>"+
       "<div class='live-summary'>"+
-      "<div class='metric'><small>Общий статус</small><strong>"+esc(data.source_status)+"</strong><span>серверный aggregate — единственный владелец readiness</span></div>"+
-      "<div class='metric'><small>Свежесть</small><strong>"+esc(data.freshness_state)+"</strong><span>последний успешный срез</span></div>"+
+      "<div class='metric'><small>Общий статус</small><strong>"+esc(humanCode(data.source_status))+"</strong><span>серверная агрегированная проекция — единственный источник готовности</span></div>"+
+      "<div class='metric'><small>Свежесть</small><strong>"+esc(humanCode(data.freshness_state))+"</strong><span>последний успешный срез</span></div>"+
       "<div class='metric'><small>PASS</small><strong>"+esc(dims.filter(function(d){return String(d.state).toUpperCase()==="PASS";}).length)+" / "+esc(dims.length)+"</strong><span>обязательные измерения</span></div>"+
       "<div class='metric'><small>Блокирующие причины</small><strong>"+esc(blocking.length)+"</strong><span>подтверждены источниками</span></div></div>"+
-      (blocking.length?"<div class='live-warning'>"+blocking.map(esc).join("<br>")+"</div>":"")+
+      (blocking.length?"<div class='live-warning'>"+blocking.map(function(x){return esc(projectionTextRu(x));}).join("<br>")+"</div>":"")+
       "<div class='live-list-clean'>"+cards+"</div>";
   }
 
@@ -1713,9 +1738,9 @@
       "<p>Endpoint подключён и работает. UNAVAILABLE здесь — корректный ответ: безопасного upstream state source пока нет.</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Источник API</small><strong>Подключён</strong><span>сервер отвечает</span></div>"+
-      "<div class='metric'><small>Upstream state</small><strong>Недоступен</strong><span>"+esc(data.error_class||"NO_ATLAS_STATE_SOURCE")+"</span></div>"+
-      "<div class='metric'><small>Текущий state</small><strong>Не строится</strong><span>документы Hub не превращаются в каноничность</span></div>"+
-      "<div class='metric'><small>Следующий шаг</small><strong>Создать state source</strong><span>Continuity object или resident service</span></div></div>";
+      "<div class='metric'><small>Источник состояния</small><strong>Недоступен</strong><span>"+esc(data.error_class||"NO_ATLAS_STATE_SOURCE")+"</span></div>"+
+      "<div class='metric'><small>Текущее состояние</small><strong>Не строится</strong><span>документы Hub не превращаются в каноничность</span></div>"+
+      "<div class='metric'><small>Следующий шаг</small><strong>Создать источник состояния</strong><span>объект Continuity или постоянный сервис состояния</span></div></div>";
   }
 
   // Founder-safe prediction-state labels only. Never render clone
