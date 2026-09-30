@@ -217,7 +217,7 @@
     // time_class
     CURRENT_STATE: "текущее условие", FUTURE_CONDITION: "будущее условие", PAST_EVENT: "прошлое событие",
     // state / status
-    ACTIVE: "активно", ARCHIVED: "в архиве", HISTORICAL: "историческое", FORMING: "формируется", PAUSED: "на паузе", CLOSED: "закрыто",
+    ACTIVE: "активно", ARCHIVED: "в архиве", HISTORICAL: "историческое", FORMING: "формируется", PAUSED: "на паузе", CLOSED: "закрыто", CLOSED_NO_GO: "закрыт без продолжения",
     // kind
     NOTE: "заметка", DOCUMENT: "документ", TASK: "задача", ARTIFACT: "артефакт", IDEA: "идея", SERVICE: "сервис",
     REPORT: "отчёт", DATASET: "набор данных",
@@ -308,6 +308,32 @@
     if (exact[raw]) return exact[raw];
     if (raw.indexOf("External reproducibility Gate v0.1") === 0) return raw.replace("External reproducibility Gate v0.1", "Внешний гейт воспроизводимости v0.1");
     if (raw.indexOf("Service operating normally:") === 0) return raw.replace("Service operating normally:", "Сервис работает штатно:");
+    return raw;
+  }
+
+  function routeDisplayTitle(value) {
+    var raw = String(value == null ? "" : value).trim();
+    if (!raw) return raw;
+    var exact = {
+      "Continuity / Context Steward": "Непрерывность системы (Continuity) / хранитель контекста",
+      "Founder Environment / Founder Layer": "Среда Основателя / управленческий слой",
+      "Observer Engine / Orchestrator by ICAM": "Наблюдатель / Оркестратор ICAM",
+      "Scientific Reputation Engine / External Scientific Contour": "Научная репутация / внешний научный контур",
+      "ATLAS — Empirical Temporal-Blind Validation": "ATLAS — эмпирическая проверка без доступа к временному порядку",
+      "H008 — Corridors / Mobility (Q25 weight decomposition line)": "H008 — Коридоры возможного / мобильность (декомпозиция веса Q25)",
+      "Meta-Structure / Spiral-Recursive Architecture (blind test)": "Метаструктура / спирально-рекурсивная архитектура (слепой тест)",
+      "ICAM Testing Department (service)": "Служба тестирования ICAM",
+      "ICAM public site + console": "Публичный сайт и консоль ICAM",
+      "Personal Orchestrator v1.1": "Персональный Оркестратор v1.1",
+      "Same Industry, Different Decision Space (Steel & Metals Industry Synthesis 001)": "Одна отрасль — разные пространства решений (синтез Steel & Metals 001)",
+      "Observer Flexibility & Assembly Control — G1 Artificial Configuration Lab (AI line)": "Гибкость наблюдателя и контроль сборки — G1, лаборатория искусственных конфигураций (линия ИИ)",
+      "AI and Ethics — Construction-Voice Coupling": "ИИ и этика — связь конструкции и голоса",
+      "HSA → CVC → Representation Pipeline → Recursive Human–AI Systems → «Коридоры возможного»": "HSA → CVC → контур представления → рекурсивные человеко-ИИ системы → «Коридоры возможного»",
+      "HSA — Corridors of the Possible: Economic Mobility": "HSA — «Коридоры возможного»: экономическая мобильность"
+    };
+    if (exact[raw]) return exact[raw];
+    var m = raw.match(/^(.*?) — Commercial Decision Audit$/);
+    if (m) return m[1] + " — коммерческий аудит решений";
     return raw;
   }
 
@@ -777,7 +803,7 @@
   function lineRefs(keys) {
     return keys.map(function (k) {
       var l = M.lineByKey[k];
-      return l ? "<button class='cc-ref'" + sel("line", l.key) + ">" + E(H.cut(l.title, 26)) + "</button>" : "";
+      return l ? "<button class='cc-ref'" + sel("line", l.key) + ">" + E(H.cut(routeDisplayTitle(l.title), 26)) + "</button>" : "";
     }).join("");
   }
 
@@ -889,7 +915,7 @@
     M.active.filter(function (l) { return l.tone === "act"; }).forEach(function (l) {
       moves.push({
         kind: "route", title: humanActionText(l.next || "Следующий ход не передан"),
-        why: l.title + " · " + TONE_META.act.hint +
+        why: routeDisplayTitle(l.title) + " · " + TONE_META.act.hint +
           (l.risk.blockers + l.objBlockers.length ? " · блокеров " + (l.risk.blockers + l.objBlockers.length) : "") +
           (l.risk.stale != null && l.risk.stale >= H.STALE_DAYS ? " · без движения " + l.risk.stale + " дн." : ""),
         ref: l.objId || "", age: l.r.last_movement_at,
@@ -901,11 +927,11 @@
     var nd = decisions.length, nm = moves.length, total = nd + nm;
     var anyOk = M.fp.ok || ok("routes");
     var head = "<div class='cc-hero-head'><span class='cc-hero-mark'>!</span><div><h2>Требует вашего участия</h2>" +
-      "<small>формальные решения — только из Founder Decision Presentation; действия — маршруты, где следующий ход у Основателя</small></div>" +
+      "<small>формальные решения — только из проекции решений Основателя (Founder Decision Presentation); действия — маршруты, где следующий ход у Основателя</small></div>" +
       "<div class='cc-hero-counts'><strong class='cc-hero-count'>" + (anyOk ? total : "—") + "</strong>" +
       "<span><b>" + (M.fp.ok ? nd : "—") + "</b> " + (M.fp.ok ? plural(nd, "решение", "решения", "решений") : "решений") +
       " · <b>" + (ok("routes") ? nm : "—") + "</b> " + (ok("routes") ? plural(nm, "действие", "действия", "действий") : "действий") + "</span></div></div>";
-    if (!anyOk) return head + unavailable("Источники недоступны", "Founder Projection и маршруты не прочитаны — нельзя подтвердить, что ничего не ждёт вас.");
+    if (!anyOk) return head + unavailable("Источники недоступны", "Проекция Основателя (Founder Projection) и маршруты не прочитаны — нельзя подтвердить, что ничего не ждёт вас.");
     if (!total) return head + "<div class='cc-hero-calm'>Сейчас ничего не ждёт вашего участия.</div>";
     var shownD = ui.heroAll ? nd : Math.min(nd, HERO_LIMIT);
     var shownM = ui.heroAll ? nm : Math.min(nm, HERO_LIMIT - shownD);
@@ -928,7 +954,7 @@
       group("move", "Ваш ход", "маршруты, где следующий ход у вас", moves, shownM, ok("routes"), "Источник маршрутов") +
       (hidden > 0 ? "<button class='cc-hero-more' data-cc-hero-more>Показать ещё " + hidden + "</button>" :
         (ui.heroAll && total > HERO_LIMIT ? "<button class='cc-hero-more' data-cc-hero-more>Свернуть</button>" : "")) +
-      (ok("inbox") && M.inboxItems.length ? "<div class='cc-foot-note'>Founder inbox: " + M.inboxItems.length + " запрос(ов) на участие. Они не называются решениями без Founder Decision Presentation.</div>" : "") +
+      (ok("inbox") && M.inboxItems.length ? "<div class='cc-foot-note'>Входящие Основателя: " + M.inboxItems.length + " запрос(ов) на участие. Они не называются решениями без проекции решений Основателя (Founder Decision Presentation).</div>" : "") +
       "<div class='cc-foot-note'>Панель не повышает приоритет задачи только из-за давности.</div>";
   }
 
@@ -944,7 +970,7 @@
     chips.push("<a class='cc-meta' href='#placement'><i>⌖</i>качество карты: <b>" + (q ? q.active + " в активной очереди" : "Не проверено") + "</b>" +
       (q ? "<span class='cc-meta-sub'>по источнику " + q.sourceTotal + (q.archived ? " · " + q.archived + " в архиве" : "") + "</span>" : "") + "</a>");
     if (ok("inbox") && M.inboxItems.length) {
-      chips.push("<span class='cc-meta'><i>!</i>Founder inbox: <b>" + M.inboxItems.length + "</b><span class='cc-meta-sub'>запросы на участие, не автоматически решения</span></span>");
+      chips.push("<span class='cc-meta'><i>!</i>Входящие Основателя: <b>" + M.inboxItems.length + "</b><span class='cc-meta-sub'>запросы на участие, не автоматически решения</span></span>");
     }
     return chips.join("");
   }
@@ -974,7 +1000,7 @@
 
   function renderUniverseStrip() {
     if (!M.tu.ok) {
-      return banner("fallback", "Founder Universe недоступен", "Temporal Universe не ответил (" + M.tu.reason + "). Миры и канонические линии не показываются; маршруты ниже — из Оркестратора.");
+      return banner("fallback", "Каноническая карта компании недоступна", "Временная модель компании (Temporal Universe) не ответила (" + M.tu.reason + "). Миры и канонические линии не показываются; маршруты ниже — из Оркестратора.");
     }
     return "<div class='cc-worlds'>" + M.U.worlds.map(function (w) {
       var stars = 0, ver = 0, ev = 0, cap = 0;
@@ -1022,10 +1048,10 @@
     var place = routePlace(l);
     var where = [place.text, l.area ? "область: " + H.humanCode(l.area) : null, l.objId ? l.objId : "без объекта"].filter(Boolean).join(" · ");
     return "<article class='cc-line st-" + l.tone + (isSelected("line", l.key) ? " selected" : "") + "'" + sel("line", l.key) + " tabindex='0'>" +
-      hexBadge(initials(l.title), l.tone) +
+      hexBadge(initials(routeDisplayTitle(l.title)), l.tone) +
       "<div class='cc-line-head'>" +
-      "<div class='cc-line-id'><b>" + E(H.cut(l.title, 40)) + "</b><small>" + E(where) + "</small></div>" +
-      "<div class='cc-line-state'>" + toneDot(l.tone) + "<em>" + E(H.cut(H.humanCode(r.stage || r.status || "этап не передан"), 42)) + "</em></div>" +
+      "<div class='cc-line-id'><b>" + E(H.cut(routeDisplayTitle(l.title), 40)) + "</b><small>" + E(where) + "</small></div>" +
+      "<div class='cc-line-state'>" + toneDot(l.tone) + "<em>" + E(H.cut(human(r.stage || r.status || "этап не передан"), 42)) + "</em></div>" +
       "<div class='cc-line-block' title='открытые блокеры: маршрут + объект'><small>Блокеры</small>" +
       (blockersN ? "<span class='cc-count risk'>" + blockersN + "</span>" : "<span class='cc-count ok'>0</span>") + "</div></div>" +
       "<div class='cc-line-cells'>" +
@@ -1090,7 +1116,7 @@
       var start = [lx, ox].filter(function (v) { return v != null; });
       var from = start.length ? Math.max.apply(null, start) : null;
       return "<div class='cc-lane st-" + l.tone + "'" + sel("line", l.key) + ">" +
-        "<div class='cc-lane-name'>" + hexBadge(initials(l.title), l.tone, "sm") + "<b>" + E(H.cut(l.title, 18)) + "</b></div>" +
+        "<div class='cc-lane-name'>" + hexBadge(initials(routeDisplayTitle(l.title)), l.tone, "sm") + "<b>" + E(H.cut(routeDisplayTitle(l.title), 18)) + "</b></div>" +
         "<div class='cc-lane-track'>" +
         "<span class='cc-lane-now'></span>" +
         (from != null ? "<span class='cc-lane-live' style='left:" + from + "%;width:" + (68 - from) + "%'></span>" : "<span class='cc-lane-nodate'>дата движения не передана</span>") +
@@ -1136,7 +1162,7 @@
       svg += "<g class='cc-node st-" + l.tone + (isSelected("line", l.key) ? " selected" : "") + "'" + sel("line", l.key) + " tabindex='0'>" +
         "<polygon class='cc-node-glow' points='" + hexPoints(p.x, p.y, 36) + "'/>" +
         "<polygon class='cc-node-hex' points='" + hexPoints(p.x, p.y, 30) + "'/>" +
-        "<text x='" + p.x.toFixed(1) + "' y='" + (p.y + 4).toFixed(1) + "' text-anchor='middle'>" + E(H.cut(l.title, 10)) + "</text>" +
+        "<text x='" + p.x.toFixed(1) + "' y='" + (p.y + 4).toFixed(1) + "' text-anchor='middle'>" + E(H.cut(routeDisplayTitle(l.title), 10)) + "</text>" +
         (l.risk.blockers + l.objBlockers.length ? "<circle class='cc-node-alert' cx='" + (p.x + 24).toFixed(1) + "' cy='" + (p.y - 22).toFixed(1) + "' r='7'/>" +
           "<text class='cc-node-alert-t' x='" + (p.x + 24).toFixed(1) + "' y='" + (p.y - 19).toFixed(1) + "' text-anchor='middle'>!</text>" : "") +
         "</g>";
@@ -1151,7 +1177,7 @@
   function renderCapitalIntersectionGraph() {
     if (!M.fp.ok || !M.FP.intersections.length) {
       return M.fp.ok ? empty("Пересечений через капитал нет", "Founder Projection не передал общих единиц капитала между линиями.") :
-        unavailable("Founder Projection недоступен", "Пересечения через капитал не проверены.");
+        unavailable("Проекция Основателя (Founder Projection) недоступна", "Пересечения через капитал не проверены.");
     }
     var edges = M.FP.intersections, titles = [], seen = {};
     edges.forEach(function (e) { [e.aTitle, e.bTitle].forEach(function (t) { if (t && !seen[t]) { seen[t] = 1; titles.push(t); } }); });
@@ -1197,8 +1223,8 @@
           if (t === "wait") reason.push("ход у «" + ownerLabel(l.r.ball_owner) + "»");
           if (l.downstream.length) reason.push("задерживает " + l.downstream.length);
           if (t === "unknown") reason.push("дата движения не передана");
-          return "<div class='cc-attn-item'" + sel("line", l.key) + ">" + hexBadge(initials(l.title), t, "xs") +
-            "<span><b>" + E(H.cut(l.title, 22)) + "</b><small>" + E(reason.join(" · ") || "в движении") + "</small></span></div>";
+          return "<div class='cc-attn-item'" + sel("line", l.key) + ">" + hexBadge(initials(routeDisplayTitle(l.title)), t, "xs") +
+            "<span><b>" + E(H.cut(routeDisplayTitle(l.title), 22)) + "</b><small>" + E(reason.join(" · ") || "в движении") + "</small></span></div>";
         }).join("") : "<div class='cc-attn-none'>ничего не ждёт вашего хода</div>") + "</div>";
     }).join("") + "<div class='cc-foot-note'>Тон — подача панели по ходу, блокерам и давности. Отсутствие движения само по себе не считается аварией. Это не канонический приоритет Оркестратора.</div></div>";
   }
@@ -1434,7 +1460,7 @@
           }).join("") +
           waits.map(function (l, i) {
             return "<span class='cc-wait-chip st-" + l.tone + "' style='left:" + (82 + (i % 2) * 8) + "%;top:" + (14 + Math.floor(i / 2) % 3 * 26) + "%'" + sel("line", l.key) +
-              " title='" + E(l.title + " → " + humanActionText(l.next || "переход не передан")) + "'>" + E(initials(l.title)) + "</span>";
+              " title='" + E(routeDisplayTitle(l.title) + " → " + humanActionText(l.next || "переход не передан")) + "'>" + E(initials(routeDisplayTitle(l.title))) + "</span>";
           }).join("") + "</div></div>";
       }).join("") +
       "</div><div class='cc-legend'><span><i class='mk material'></i>материальное событие объекта</span><span><i class='mk obj'></i>прочее событие объекта</span>" +
@@ -1445,11 +1471,11 @@
       (M.active.length ? M.active.map(function (l) {
         var o = l.obj;
         return "<div class='cc-flow st-" + l.tone + (isSelected("line", l.key) ? " selected" : "") + "'" + sel("line", l.key) + ">" +
-          "<div class='cc-flow-name'>" + hexBadge(initials(l.title), l.tone, "sm") + "<span><b>" + E(H.cut(l.title, 30)) + "</b><small>" + E((l.objId || "без объекта") + (l.origin ? " · происхождение: " + l.origin : "")) + "</small></span></div>" +
+          "<div class='cc-flow-name'>" + hexBadge(initials(routeDisplayTitle(l.title)), l.tone, "sm") + "<span><b>" + E(H.cut(routeDisplayTitle(l.title), 30)) + "</b><small>" + E((l.objId || "без объекта") + (l.origin ? " · происхождение: " + l.origin : "")) + "</small></span></div>" +
           "<div class='cc-flow-step past'><small>Прошлое</small><span>" +
           E(o && o.last_event_at ? (o.last_summary ? H.cut(humanActionText(o.last_summary), 60) : H.humanCode(o.last_meaning_kind || "событие")) + " · " + H.ago(o.last_event_at) :
             (l.r.last_movement_at ? "движение " + H.ago(l.r.last_movement_at) : "история не передана")) + "</span></div>" +
-          "<div class='cc-flow-step now'><small>Настоящее</small><span>" + E(H.humanCode(l.r.stage || l.r.status || "этап не передан")) + "</span>" + toneDot(l.tone) + "</div>" +
+          "<div class='cc-flow-step now'><small>Настоящее</small><span>" + E(human(l.r.stage || l.r.status || "этап не передан")) + "</span>" + toneDot(l.tone) + "</div>" +
           "<div class='cc-flow-step wait'><small>Ожидание</small><span>" + E(l.r.review_condition ? H.cut(l.r.review_condition, 60) : (l.waiting ? "ждём: " + ownerLabel(l.r.ball_owner) : "условие не передано")) + "</span></div>" +
           "<div class='cc-flow-step next'><small>Следующий переход</small><span title='" + E(l.next || "") + "'>" + E(l.next ? H.cut(humanActionText(l.next), 60) : "не передан") + "</span></div></div>";
       }).join("") : empty("Нет активных маршрутов", "")) + "</div>";
@@ -1471,7 +1497,7 @@
   function renderLinks(page) {
     page.querySelector("[data-cc='stamp']").innerHTML = readStamp();
     page.querySelector("[data-cc='source']").innerHTML = sourceBadge("tu") + sourceBadge("fp") + (M.tu.ok ? "" :
-      banner("fallback", "Реконструкция связей", "Temporal Universe недоступен: миры, канонические линии, траектории и капитал не показываются. Ниже — только маршруты Оркестратора и их объекты по точному ID."));
+      banner("fallback", "Реконструкция связей", "Временная модель компании (Temporal Universe) недоступна: миры, канонические линии, траектории и капитал не показываются. Ниже — только маршруты Оркестратора и их объекты по точному ID."));
     var mapBox = page.querySelector("[data-cc='linkmap']");
     if (M.tu.ok) mapBox.innerHTML = universeMap();
     else if (!ok("routes") && !ok("objects")) mapBox.innerHTML = unavailable("Источники недоступны", "Карта связей не строится.");
@@ -1480,17 +1506,17 @@
     var rows = [];
     if (M.tu.ok) {
       var ver = M.U.stars.filter(function (s) { return s.verified; }).length;
-      rows.push(proofRow("ok", "Мир → линия", M.U.lines.length, "каноническая структура Temporal Universe"));
+      rows.push(proofRow("ok", "Мир → линия", M.U.lines.length, "каноническая структура временной модели компании (Temporal Universe)"));
       rows.push(proofRow("ok", "Линия → звезда", M.U.stars.length, "branches[] линии; проверено (verified) " + ver + " из " + M.U.stars.length));
       rows.push(proofRow(M.U.trajectories.length ? "ok" : "none", "Стратегические траектории", M.U.trajectories.length, "strategic_trajectories"));
       rows.push(proofRow(M.U.unresolved.length ? "warn" : "ok", "Неразрешённая история", M.U.unresolved.length, "не привязана ни к чему; по сходству не привязывается"));
       var routed = M.lines.filter(function (l) { return l.star; }).length;
       rows.push(proofRow(routed ? "ok" : "none", "Маршрут → звезда", routed, "точное совпадение ID объекта маршрута и memory_id звезды"));
     } else {
-      rows.push(proofRow("no", "Мир → линия → звезда", "—", "Temporal Universe недоступен: " + M.tu.reason));
+      rows.push(proofRow("no", "Мир → линия → звезда", "—", "Временная модель компании (Temporal Universe) недоступна: " + M.tu.reason));
     }
     rows.push(proofRow(M.edges.length ? "ok" : "none", "Маршрут → маршрут", M.edges.length, M.edges.length ? "явные dependency-поля маршрутов" : "источник не передаёт зависимостей между маршрутами"));
-    rows.push(proofRow(M.fp.ok && M.FP.intersections.length ? "ok" : (M.fp.ok ? "none" : "warn"), "Линия ⇄ линия через общий капитал", M.fp.ok ? M.FP.intersections.length : "—", M.fp.ok ? "Founder Projection: совместное подтверждённое использование допущенного капитала; не причинность" : "Founder Projection недоступен"));
+    rows.push(proofRow(M.fp.ok && M.FP.intersections.length ? "ok" : (M.fp.ok ? "none" : "warn"), "Линия ⇄ линия через общий капитал", M.fp.ok ? M.FP.intersections.length : "—", M.fp.ok ? "Проекция Основателя (Founder Projection): совместное подтверждённое использование допущенного капитала; не причинность" : "Проекция Основателя (Founder Projection) недоступна"));
     rows.push(proofRow(M.bridges.length ? "ok" : "none", "Общий объект", M.bridges.length, "два маршрута ссылаются на один object_id — структурная связь"));
     rows.push(proofRow(M.dangling.length ? "warn" : "ok", "Висячие ссылки маршрутов", M.dangling.length, "маршрут ссылается на объект, которого нет в реестре Continuity"));
     rows.push(proofRow("no", "Причинные связи", "—", "ни один источник не передаёт causal-отношений; не рисуются"));
@@ -1499,8 +1525,8 @@
     var impact = page.querySelector("[data-cc='impact']");
     var withDown = M.active.filter(function (l) { return l.downstream.length; });
     impact.innerHTML = withDown.length ? "<div class='cc-impact'>" + withDown.map(function (l) {
-      return "<div class='cc-impact-row st-" + l.tone + "'" + sel("line", l.key) + ">" + hexBadge(initials(l.title), l.tone, "sm") +
-        "<div><b>Если остановится «" + E(H.cut(l.title, 30)) + "»</b><small>явно задержит:</small><div class='cc-refs'>" + lineRefs(l.downstream) + "</div></div></div>";
+      return "<div class='cc-impact-row st-" + l.tone + "'" + sel("line", l.key) + ">" + hexBadge(initials(routeDisplayTitle(l.title)), l.tone, "sm") +
+        "<div><b>Если остановится «" + E(H.cut(routeDisplayTitle(l.title), 30)) + "»</b><small>явно задержит:</small><div class='cc-refs'>" + lineRefs(l.downstream) + "</div></div></div>";
     }).join("") + "</div>" :
       empty("Влияние остановки не представлено", "Ни один активный маршрут не объявляет зависимых явно. Панель не выводит влияние по догадке.");
 
@@ -1737,7 +1763,7 @@
       s += "<g class='cc-lnode line st-" + l.tone + (isSelected("line", l.key) ? " selected" : "") + "'" + sel("line", l.key) + " tabindex='0'>" +
         "<rect x='" + (colX.line - 90) + "' y='" + (y - 13) + "' width='180' height='26' rx='7'/>" +
         "<polygon points='" + hexPoints(colX.line - 76, y, 8) + "'/>" +
-        "<text x='" + (colX.line - 62) + "' y='" + (y + 4) + "'>" + E(H.cut(l.title, 22)) + "</text></g>";
+        "<text x='" + (colX.line - 62) + "' y='" + (y + 4) + "'>" + E(H.cut(routeDisplayTitle(l.title), 22)) + "</text></g>";
     });
     objs.forEach(function (x) {
       var y = oy[x.key];
@@ -1782,7 +1808,7 @@
       (ls.length ? "<div class='cc-line-list'>" + ls.map(lineCard).join("") + "</div>" : empty("Нет линий в этом срезе", ""));
 
     page.querySelector("[data-cc='ulines']").innerHTML = !M.tu.ok ?
-      unavailable("Канонические линии недоступны", "Temporal Universe не ответил (" + M.tu.reason + ").") :
+      unavailable("Канонические линии недоступны", "Временная модель компании (Temporal Universe) не ответила (" + M.tu.reason + ").") :
       M.U.worlds.map(function (w) {
         return "<div class='cc-objgroup'><div class='cc-world-head'><span class='cc-world-dot'></span><b>" + E(w.title) + "</b><small>" + w.lines.length + " лин.</small></div>" +
           "<div class='cc-objgrid'>" + w.lines.map(function (ln) {
@@ -1992,14 +2018,14 @@
       (l.rd1 && l.rd1.next_move ? { text: humanActionText(l.rd1.next_move), src: "RD1 · next_move" } :
         { text: "Источник не передал следующий ход. Минимальный шаг — сверить маршрут с владельцем хода и зафиксировать next_move в Оркестраторе.", src: "рекомендация панели: нужна сверка" });
     return inspector({
-      badge: hexBadge(initials(l.title), l.tone, "lg"), title: l.title, sub: "Маршрут Оркестратора" + (l.area ? " · " + H.humanCode(l.area) : ""),
+      badge: hexBadge(initials(routeDisplayTitle(l.title)), l.tone, "lg"), title: routeDisplayTitle(l.title), sub: "Маршрут Оркестратора" + (routeDisplayTitle(l.title) !== l.title ? " · исходное название: " + l.title : "") + (l.area ? " · " + H.humanCode(l.area) : ""),
       what: para("Маршрут работы в Оркестраторе" + (l.star ? " по звезде «" + l.star.title + "» линии «" + l.star.line.title + "»." : ".") +
         (!r.ball_owner ? " Владелец хода не назначен." : " Ход: «" + ownerLabel(r.ball_owner) + "».")),
       where: crumbs([{ t: "ICAM" }, { t: place.world ? place.world.title : (M.tu.ok ? "вне Founder Universe" : "мир не проверен") },
         { t: place.uline ? H.cut(place.uline.title, 22) : "линия не определена" }, { t: l.objId || "без объекта", cur: true }]) +
         (l.origin ? muted("Происхождение объекта (owning_branch): " + l.origin) : ""),
       now: "<div class='cc-insp-state st-" + l.tone + "'>" + toneDot(l.tone) + "<small>" + E(TONE_META[l.tone].hint) + "</small><em>" +
-        E(H.humanCode(r.stage || r.status || "этап не передан")) + "</em><small>" + E(l.risk.stale == null ? "дата движения не передана" : "последнее движение " + H.ago(r.last_movement_at)) + "</small></div>" +
+        E(human(r.stage || r.status || "этап не передан")) + "</em><small>" + E(l.risk.stale == null ? "дата движения не передана" : "последнее движение " + H.ago(r.last_movement_at)) + "</small></div>" +
         (blockers.length ? "<ul class='cc-blockers'>" + blockers.map(function (b) { return "<li>" + E(H.cut(b, 110)) + "</li>"; }).join("") + "</ul>" :
           (l.risk.blockers ? para("Источник сообщает " + l.risk.blockers + " блокер(а) без описания.") : "")),
       why: para((r.priority ? "Приоритет в источнике: " + r.priority + "." : "Источник не передаёт обоснование важности.") +
@@ -2136,7 +2162,7 @@
       tv.next.forEach(function (w) { next.push({ title: w.title + " · " + s.title, timeClass: w.timeClass }); });
     });
     var trajs = linesTrajectories(ln);
-    var now = fp ? para("Каноническое состояние линии: «" + fp.state + "».") : para("Founder Projection не передал состояние этой линии.");
+    var now = fp ? para("Каноническое состояние линии: «" + fp.state + "».") : para("Проекция Основателя (Founder Projection) не передала состояние этой линии.");
     if (fp && fp.stateBasis) now += "<div>" + codeTag(fp.stateBasis, "tag") + "</div>";
     if (routes.length) now += para(routes.length + " маршрут(а) Оркестратора работают по её звёздам.");
     var why = "";
@@ -2168,7 +2194,7 @@
         }).join("")),
       ceiling: [
         ceilingRow("ok", "Состав и история — Temporal Universe"),
-        fp ? ceilingRow("ok", "Состояние, капитал и пересечения — Founder Projection") : ceilingRow("warn", "Founder Projection недоступен"),
+        fp ? ceilingRow("ok", "Состояние, капитал и пересечения — Founder Projection") : ceilingRow("warn", "Проекция Основателя (Founder Projection) недоступна"),
         ceilingRow("info", "Пересечение через общий капитал не означает причинность или прямую передачу")
       ],
       nav: NAV_TIME + specializedNav("line", ln.title)
