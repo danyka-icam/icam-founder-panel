@@ -9,6 +9,7 @@
 //        TU=ok|404|timeout|badschema   Temporal Universe behaviour
 //        ADM=ok|404|timeout|badschema  Portfolio Admission behaviour
 //        ROUTES=ok|down                observer/routes behaviour
+//        INBOX=ok|many                 many = 9 needs_founder items (some undated) for the hero
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
@@ -19,6 +20,7 @@ const FIX = path.join(ROOT, "fixtures", "founder-universe");
 const TU = process.env.TU || "ok";
 const ADM = process.env.ADM || "ok";
 const ROUTES = process.env.ROUTES || "ok";
+const INBOX = process.env.INBOX || "ok";
 const now = Date.now(), D = 86400000;
 const iso = (d) => new Date(now - d * D).toISOString();
 
@@ -47,7 +49,17 @@ const panelApi = {
   "observer/routes": () => ROUTES === "down" ? null : { routes },
   "observer/summary": () => ({ summary: { routes_active: 7 } }),
   "observer/metrics": () => ({ metrics: { operational: { stale_routes_7d: { value: 2 } } } }),
-  "continuity/founder-inbox": () => ({ needs_founder: [
+  "continuity/founder-inbox": () => INBOX === "many" ? ({ needs_founder: [
+    { object_id: "FND-005", title: "Решение D-12д", reason: "r", opened_at: iso(12) },
+    { object_id: "RD1-HSA", title: "Решение D-без-даты-1", reason: "r" },
+    { object_id: "CMP-000005", title: "Решение D-1д", reason: "r", opened_at: iso(1) },
+    { object_id: "OPS-014", title: "Решение D-30д", reason: "r", opened_at: iso(30) },
+    { object_id: "OPS-020", title: "Решение D-3д", reason: "r", opened_at: iso(3) },
+    { object_id: "FND-001", title: "Решение D-без-даты-2", reason: "r" },
+    { object_id: "RD1-ATL", title: "Решение D-7д", reason: "r", opened_at: iso(7) },
+    { object_id: "FND-009", title: "Решение D-0д", reason: "r", opened_at: iso(0) },
+    { object_id: "RD1-OLD", title: "Решение D-90д", reason: "r", opened_at: iso(90) }
+  ], summary: { needs_founder: 9 } }) : ({ needs_founder: [
     { object_id: "FND-005", title: "Подтвердить бюджет пилота Personal Twin", reason: "Решение требует Основателя", opened_at: iso(5) },
     { object_id: "RD1-HSA", title: "Входящее: запрос на партнёрство от фонда", reason: "Внешнее предложение", opened_at: iso(1) }
   ], summary: { needs_founder: 2 } }),

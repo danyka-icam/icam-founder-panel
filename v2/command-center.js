@@ -667,29 +667,76 @@
 
   // What needs the Founder: explicit needs_founder items and routes whose move
   // is the Founder's. The strongest accent on the screen.
+  // «Требует вашего участия»: two different classes kept apart.
+  //   Нужно решить — explicit needs_founder items from the Founder inbox
+  //   Ваш ход      — routes whose next move is the Founder's
+  // Order: decisions first, then moves; inside a group by the date the source
+  // gives (most recent first, undated last, otherwise source order). No
+  // priority engine: an older item is never promoted for being old.
+  var HERO_LIMIT = 6;
+
+  function plural(n, one, few, many) {
+    var m10 = n % 10, m100 = n % 100;
+    return m10 === 1 && m100 !== 11 ? one : (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? few : many);
+  }
+
+  function byDateDesc(list) {
+    return list.map(function (it, i) { return { it: it, i: i, t: it.age ? new Date(it.age).getTime() : NaN }; })
+      .sort(function (a, b) {
+        var ha = isFinite(a.t), hb = isFinite(b.t);
+        if (ha && hb && a.t !== b.t) return b.t - a.t;
+        if (ha !== hb) return ha ? -1 : 1;
+        return a.i - b.i;
+      }).map(function (x) { return x.it; });
+  }
+
   function renderHero() {
-    var items = [];
+    var decisions = [], moves = [];
     if (ok("inbox")) M.inboxItems.forEach(function (n) {
       var id = String(n.object_id || "");
-      items.push({ kind: "inbox", title: n.title || "Требует решения", why: n.reason || n.issue_type || "", ref: id, age: n.opened_at,
+      decisions.push({ kind: "inbox", title: n.title || "Требует решения", why: n.reason || n.issue_type || "", ref: id, age: n.opened_at,
         attr: M.objByKey[id] ? sel("object", id) : "" });
     });
     M.active.filter(function (l) { return l.tone === "act"; }).forEach(function (l) {
-      items.push({ kind: "route", title: l.next || "Следующий ход не передан", why: l.title + " · " + TONE_META.act.hint +
+      moves.push({ kind: "route", title: l.next || "Следующий ход не передан", why: l.title + " · " + TONE_META.act.hint +
         (l.risk.blockers + l.objBlockers.length ? " · блокеров " + (l.risk.blockers + l.objBlockers.length) : "") +
         (l.risk.stale != null && l.risk.stale >= H.STALE_DAYS ? " · без движения " + l.risk.stale + " дн." : ""), ref: l.objId || "", age: l.r.last_movement_at, attr: sel("line", l.key) });
     });
-    var head = "<div class='cc-hero-head'><span class='cc-hero-mark'>!</span><div><h2>Требует вашего решения</h2>" +
-      "<small>только явные needs_founder из Founder inbox и маршруты, где ход у Основателя</small></div>" +
-      "<strong class='cc-hero-count'>" + (ok("inbox") || ok("routes") ? items.length : "—") + "</strong></div>";
-    if (!ok("inbox") && !ok("routes")) return head + unavailable("Источники недоступны", "Founder inbox и маршруты не прочитаны — нельзя подтвердить, что ничего не ждёт вас.");
-    if (!items.length) return head + "<div class='cc-hero-calm'>Сейчас ничего не ждёт вашего решения." + (ok("inbox") ? "" : " (Founder inbox недоступен — проверено только по маршрутам.)") + "</div>";
-    return head + "<div class='cc-hero-list'>" + items.map(function (it) {
+    decisions = byDateDesc(decisions);
+    moves = byDateDesc(moves);
+    var nd = decisions.length, nm = moves.length, total = nd + nm;
+    var anyOk = ok("inbox") || ok("routes");
+    var head = "<div class='cc-hero-head'><span class='cc-hero-mark'>!</span><div><h2>Требует вашего участия</h2>" +
+      "<small>решения — только явные needs_founder из Founder inbox; ваш ход — маршруты, где следующий ход у Основателя</small></div>" +
+      "<div class='cc-hero-counts'><strong class='cc-hero-count'>" + (anyOk ? total : "—") + "</strong>" +
+      "<span><b>" + (ok("inbox") ? nd : "—") + "</b> " + (ok("inbox") ? plural(nd, "решение", "решения", "решений") : "решений") +
+      " · <b>" + (ok("routes") ? nm : "—") + "</b> " + (ok("routes") ? plural(nm, "действие", "действия", "действий") : "действий") + "</span></div></div>";
+    if (!anyOk) return head + unavailable("Источники недоступны", "Founder inbox и маршруты не прочитаны — нельзя подтвердить, что ничего не ждёт вас.");
+    if (!total) return head + "<div class='cc-hero-calm'>Сейчас ничего не ждёт вашего участия." +
+      (ok("inbox") ? "" : " (Founder inbox недоступен — проверено только по маршрутам.)") + (ok("routes") ? "" : " (Маршруты недоступны — проверено только по inbox.)") + "</div>";
+
+    var shownD = ui.heroAll ? nd : Math.min(nd, HERO_LIMIT);
+    var shownM = ui.heroAll ? nm : Math.min(nm, HERO_LIMIT - shownD);
+    var hidden = total - shownD - shownM;
+    function card(it) {
       return "<div class='cc-hero-item " + it.kind + "'" + it.attr + " tabindex='0'>" +
-        "<span class='cc-hero-kind'>" + (it.kind === "inbox" ? "решение" : "ваш ход") + "</span>" +
         "<b>" + E(H.cut(it.title, 90)) + "</b><small>" + E(H.cut(it.why, 120)) + "</small>" +
-        "<em>" + E(it.ref || "") + (it.age ? (it.ref ? " · " : "") + H.ago(it.age) : "") + "</em></div>";
-    }).join("") + "</div>" + (ok("inbox") ? "" : "<div class='cc-foot-note'>Founder inbox недоступен — показаны только маршруты с вашим ходом.</div>");
+        "<em>" + E(it.ref || "") + (it.age ? (it.ref ? " · " : "") + H.ago(it.age) : (it.ref ? " · " : "") + "без даты") + "</em></div>";
+    }
+    function group(cls, title, sub, list, shown, srcOk, srcName) {
+      var body;
+      if (!srcOk) body = "<div class='cc-hero-empty'>" + E(srcName) + " недоступен — эта группа не проверена.</div>";
+      else if (!list.length) body = "<div class='cc-hero-empty'>Нет.</div>";
+      else if (!shown) body = "<div class='cc-hero-empty'>" + list.length + " — под «Показать ещё».</div>";
+      else body = "<div class='cc-hero-list'>" + list.slice(0, shown).map(card).join("") + "</div>";
+      return "<section class='cc-hero-group " + cls + "'><header><span class='cc-hero-kind'>" + E(title) + "</span><b>" + (srcOk ? list.length : "—") + "</b><small>" + E(sub) + "</small></header>" + body + "</section>";
+    }
+    return head +
+      group("decide", "Нужно решить", "явные решения Основателя", decisions, shownD, ok("inbox"), "Founder inbox") +
+      group("move", "Ваш ход", "маршруты, где следующий ход у вас", moves, shownM, ok("routes"), "Источник маршрутов") +
+      (hidden > 0 ? "<button class='cc-hero-more' data-cc-hero-more>Показать ещё " + hidden + "</button>" :
+        (ui.heroAll && total > HERO_LIMIT ? "<button class='cc-hero-more' data-cc-hero-more>Свернуть</button>" : "")) +
+      "<div class='cc-foot-note'>Внутри группы — по дате из источника, сначала свежие; без даты — в конце. Панель не повышает приоритет задачи за давность.</div>";
   }
 
   function renderMeta() {
@@ -1943,6 +1990,7 @@
     var f = e.target.closest("[data-cc-line-filter]");
     if (f) { ui.lineFilter = f.getAttribute("data-cc-line-filter"); renderAll(); return; }
     if (e.target.closest("[data-cc-clear]")) { ui.selected = null; renderAll(); return; }
+    if (e.target.closest("[data-cc-hero-more]")) { ui.heroAll = !ui.heroAll; renderAll(); return; }
     var t = e.target.closest("[data-cc-select]");
     if (!t || !M) return;
     var v = t.getAttribute("data-cc-select"), i = v.indexOf(":");

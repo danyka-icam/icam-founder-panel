@@ -37,7 +37,9 @@ for (const w of WIDTHS) {
       check(/Неразрешённая история/.test(tl), "timeline shows unresolved_history");
       check(/113/.test(pl) && /Безопасные кандидаты/.test(pl) && /на Founder Map не видна/.test(pl), "placement driven by Portfolio Admission; candidates not visible on map");
       check(/Активная очередь сверки/.test(pl) && /из 78 по источнику/.test(pl), "placement reconciles source total with active queue");
-      check(/Требует вашего решения/.test(cc), "command center hero for Founder action");
+      check(/Требует вашего участия/.test(cc) && /Нужно решить/.test(cc) && /Ваш ход/.test(cc), "hero split into decisions and moves");
+      check(/2 решения · 2 действия/.test(cc) || (/2 решения · — действий/.test(cc) && /Источник маршрутов недоступен — эта группа не проверена/.test(cc)),
+        "hero headline split: X решений · Y действий (routes down → «—» and group marked unchecked)");
       check(/ждёт сверки/.test(tl), "system codes shown with a human label");
       check(!/Общий владелец хода/.test(ln), "links: no shared-ball_owner resource claim");
       check(/Фундамент и инфраструктура/.test(cc), "command center shows canonical worlds");
@@ -72,6 +74,25 @@ for (const w of WIDTHS) {
       await page.evaluate(() => { location.hash = "command"; });
       const stars = await page.evaluate(() => document.querySelectorAll('[data-page-panel="placement"] [data-cc="pl-map"] .cc-fstar').length);
       check(stars === 24, `placed column lists 24 stars (${stars})`);
+    }
+    if (EXPECT === "hero-many") {
+      const hero = () => page.evaluate(() => {
+        const h = document.querySelector('[data-page-panel="command"] [data-cc="hero"]');
+        return { text: h.innerText, cards: [...h.querySelectorAll(".cc-hero-group.decide .cc-hero-item b")].map((b) => b.innerText),
+          moves: h.querySelectorAll(".cc-hero-group.move .cc-hero-item").length, more: (h.querySelector("[data-cc-hero-more]") || {}).innerText || "" };
+      });
+      let h = await hero();
+      check(/9 решений · 2 действия/.test(h.text), "headline: 9 решений · 2 действия");
+      check(h.cards.length + h.moves === 6 && h.moves === 0, `first screen shows 6 cards, decisions first (${h.cards.length}+${h.moves})`);
+      check(h.cards.join("|") === "Решение D-0д|Решение D-1д|Решение D-3д|Решение D-7д|Решение D-12д|Решение D-30д", "decisions ordered by source date, newest first: " + h.cards.join("|"));
+      check(/Показать ещё 5/.test(h.more), "rest hidden under «Показать ещё 5» (" + h.more + ")");
+      await page.evaluate(() => { location.hash = "command"; });
+      await page.click('[data-page-panel="command"] [data-cc-hero-more]');
+      await page.waitForTimeout(150);
+      h = await hero();
+      check(h.cards.length === 9 && h.moves === 2, `expanded shows all 11 (${h.cards.length}+${h.moves})`);
+      check(/D-90д\|Решение D-без-даты-1\|Решение D-без-даты-2$/.test(h.cards.join("|")), "undated last, source order kept among undated");
+      check(/Свернуть/.test(h.more), "collapse button available");
     }
     if (EXPECT === "tu-down") {
       check(/Реконструкция, не Temporal Universe/.test(tl), "timeline labels fallback as reconstruction");
