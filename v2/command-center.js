@@ -1001,6 +1001,20 @@
     }).join("") + "</div>";
   }
 
+  function renderDeepLinks() {
+    if (!M.tu.ok) return "";
+    var specs = [
+      { title: "Исследовательский ATLAS", href: "#atlas", note: "специализированное состояние ATLAS", ok: M.U.worlds.some(function (w) { return w.title === "Исследовательский ATLAS"; }) },
+      { title: "Digital Twin", href: "#digital-twin", note: "линия «Двойники и синтетические миры»", ok: !!lineByExactTitle("Двойники и синтетические миры") },
+      { title: "BrazilPortal", href: "#brazilportal", note: "каноническая линия «BrazilPortal»", ok: !!lineByExactTitle("BrazilPortal") }
+    ].filter(function (x) { return x.ok; });
+    if (!specs.length) return "";
+    return "<div class='cc-deep-head'><span>Глубже в контур</span><small>специализированные поверхности только по точному каноническому соответствию</small></div>" +
+      "<div class='cc-deep-grid'>" + specs.map(function (x) {
+        return "<a class='cc-deep-card' href='" + x.href + "'><b>" + E(x.title) + "</b><small>" + E(x.note) + "</small><em>открыть контур →</em></a>";
+      }).join("") + "</div>";
+  }
+
   function lineCard(l) {
     var r = l.r;
     var blockersN = l.risk.blockers + l.objBlockers.length;
@@ -1234,6 +1248,7 @@
     page.querySelector("[data-cc='kpis']").innerHTML = renderKPIs();
     page.querySelector("[data-cc='meta']").innerHTML = renderMeta();
     page.querySelector("[data-cc='universe']").innerHTML = renderUniverseStrip();
+    page.querySelector("[data-cc='deep-links']").innerHTML = renderDeepLinks();
     page.querySelector("[data-cc='lines']").innerHTML = !routesOk ?
       unavailable("Источник маршрутов недоступен", "Линии не показываются по прошлым или демонстрационным данным.") :
       (lines.length ? (function () {
