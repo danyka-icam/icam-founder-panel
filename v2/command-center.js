@@ -1594,12 +1594,15 @@
             var ver = ln.stars.filter(function (s) { return s.verified; }).length;
             var routes = ln.stars.reduce(function (n, s) { return n + s.routes.length; }, 0);
             var fp = ln.fp || null, tone = canonicalTone(ln);
-            return "<button class='cc-obj pl-placed st-" + tone + (isSelected("uline", ln.key) ? " selected" : "") + "'" + sel("uline", ln.key) + ">" +
-              "<span class='cc-obj-top'><b>" + E(H.cut(ln.title, 32)) + "</b>" + (hasCapital(ln) ? "<i class='cc-flag cap'>капитал</i>" : "") + "</span>" +
+            var capN = fp ? fp.capital.length : capitalItems(ln).length;
+            var crossN = fp ? fp.intersections.length : 0;
+            return "<button class='cc-obj cc-canonical-line st-" + tone + (isSelected("uline", ln.key) ? " selected" : "") + "'" + sel("uline", ln.key) + ">" +
+              "<span class='cc-obj-top'><b>" + E(H.cut(ln.title, 32)) + "</b>" + (capN ? "<i class='cc-flag cap'>капитал " + capN + "</i>" : "") + "</span>" +
               (fp ? "<span class='cc-tone t-" + tone + "'><i></i>" + E(fp.state) + "</span>" : "<span class='cc-tone t-unknown'><i></i>состояние не передано</span>") +
-              "<small>" + E(ln.key) + (fp && fp.stateBasis ? " · " + E(human(fp.stateBasis)) : "") + "</small>" +
+              (fp && fp.stateBasis ? "<small class='cc-line-basis'>Основание: " + E(human(fp.stateBasis)) + "</small>" : "<small>" + E(ln.key) + "</small>") +
               "<span class='cc-obj-meta'><em>звёзд " + ln.stars.length + " · проверено " + ver + "</em>" +
-              (routes ? "<em>маршрутов " + routes + "</em>" : "") + (ln.history.length ? "<em>событий " + ln.history.length + "</em>" : "") + "</span></button>";
+              (routes ? "<em>маршрутов " + routes + "</em>" : "") + (capN ? "<em>капитал " + capN + "</em>" : "") +
+              (crossN ? "<em>пересечений " + crossN + "</em>" : "") + (ln.history.length ? "<em>событий " + ln.history.length + "</em>" : "") + "</span></button>";
           }).join("") + "</div></div>";
       }).join("");
 
