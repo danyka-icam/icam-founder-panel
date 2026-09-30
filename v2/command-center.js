@@ -780,6 +780,10 @@
     var act = M.active;
     var n = { act: 0, blocked: 0, wait: 0, stale: 0, unknown: 0, flow: 0 };
     act.forEach(function (l) { n[l.tone] = (n[l.tone] || 0) + 1; });
+    // Blocker is an orthogonal fact, not a presentation tone. A route whose
+    // move belongs to the Founder may or may not have a blocker.
+    var blockerRoutes = act.filter(function (l) { return (l.risk.blockers + l.objBlockers.length) > 0; });
+    var founderBlocked = blockerRoutes.filter(function (l) { return l.r.ball_owner && H.isFounderOwner(l.r.ball_owner); }).length;
     function tile(tone, label, value, detail, href) {
       return "<a class='cc-pulse-tile st-" + tone + "' href='" + href + "'><span class='cc-pulse-dot'></span>" +
         "<span class='cc-pulse-body'><small>" + E(label) + "</small><strong>" + E(value) + "</strong><em>" + E(detail) + "</em></span></a>";
@@ -787,7 +791,7 @@
     if (!routesOk) return tile("unknown", "Маршруты", "Недоступно", "чтение маршрутов не удалось — состояние не показывается", "#diagnostics");
     return tile("flow", "В движении", n.flow, "движение за последние 7 дней", "#lines") +
       tile("wait", "Ждём внешнего", n.wait, "ход у внешнего владельца — это не риск", "#lines") +
-      tile("blocked", "Есть блокер", n.blocked + n.act, n.act ? "из них " + n.act + " ждут вашего хода" : "явные блокеры из источника", "#lines") +
+      tile("blocked", "Есть блокер", blockerRoutes.length, founderBlocked ? "из них " + founderBlocked + " одновременно ждут вашего хода" : "только явные блокеры из источников", "#lines") +
       tile("stale", "Давно без движения", n.stale, "7+ дней без движения, других сигналов нет", "#lines") +
       tile("unknown", "Нужна сверка", n.unknown, "маршруты без даты движения — неопределённость, не авария", "#lines");
   }
