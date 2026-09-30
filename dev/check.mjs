@@ -76,6 +76,14 @@ for (const w of WIDTHS) {
         return { label: p.querySelector(".cc-insp-title").innerText, stars: p.querySelectorAll(".cc-lnode.star.hl").length };
       });
       check(/линии/i.test(lineSel.label) && lineSel.stars >= 1, `line selection highlights its stars (${lineSel.stars})`);
+      await page.evaluate(() => {
+        const p = document.querySelector('[data-page-panel="links"]');
+        const node = [...p.querySelectorAll('.cc-lnode.line')].find((n) => n.textContent.trim() === 'BrazilPortal');
+        if (node) node.click();
+      });
+      await page.waitForTimeout(120);
+      const bpNav = await page.evaluate(() => !!document.querySelector('[data-page-panel="links"] .cc-insp-nav a[href="#brazilportal"]'));
+      check(bpNav, "exact canonical line BrazilPortal exposes specialized projection link");
       await page.evaluate(() => { location.hash = "command"; });
       await page.waitForTimeout(150);
       await page.evaluate(() => { const d = document.querySelector("[data-page-panel=\"command\"] .cc-org-details"); if (d) d.open = true; });
