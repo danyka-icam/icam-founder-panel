@@ -1307,17 +1307,18 @@
     put("founder", inboxOk ? founderItems.length : "Недоступно");
     put("changes", objectsOk ? changes.length : "Недоступно");
     put("risks", (blockersOk || testingOk) ? blockers.length + riskyTests.length : "Недоступно");
+    put("risks-detail", (blockersOk || testingOk) ? (blockers.length + " блокер(а) Continuity · " + riskyTests.length + " заблокированн. тест(а)") : "источники недоступны");
     put("opportunities", "—");
 
     var founderBox = page.querySelector('[data-s="founder-list"]');
     if (founderBox) {
       if (!inboxOk) {
-        founderBox.innerHTML = unavailableHTML("Входящие Основателя недоступны", "Панель не может подтвердить, есть ли сейчас решения, требующие Основателя.");
+        founderBox.innerHTML = unavailableHTML("Входящие Основателя недоступны", "Панель не может подтвердить, есть ли сейчас запросы на ваше участие.");
       } else if (!founderItems.length) {
-        founderBox.innerHTML = "<div class='signals-empty compact'><strong>Сейчас решений Основателя нет</strong><span>Текущие Входящие Основателя не содержат `needs_founder`.</span></div>";
+        founderBox.innerHTML = "<div class='signals-empty compact'><strong>Сейчас запросов на ваше участие нет</strong><span>Текущие Входящие Основателя не содержат `needs_founder`.</span></div>";
       } else {
         founderBox.innerHTML = "<div class='signals-live-list'>" + founderItems.slice(0, 6).map(function (x) {
-          return "<div class='signals-live-item attention'><b>Решение Основателя</b>" +
+          return "<div class='signals-live-item attention'><b>Запрос к Основателю</b>" +
             "<span>" + esc(x.object_id || "объект не указан") + "</span>" +
             "<small>Входящие Основателя · " + esc(ago(x.opened_at || x.created_at || x.updated_at)) + "</small></div>";
         }).join("") + "</div>";
