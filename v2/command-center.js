@@ -1266,6 +1266,52 @@
       "<details class='cc-system-details'><summary>Открыть системную очередь · " + items.length + "</summary><div class='cc-system-list'>" + items.map(row).join("") + "</div></details>";
   }
 
+  function renderSystemHealth() {
+    var f = M.d.foundationAgg || null;
+    var t = M.d.testingSummary || null;
+    var h = M.d.hubHealth || null;
+
+    function cell(cls, href, title, value, note) {
+      return "<a class='cc-health-cell " + cls + "' href='" + href + "'><span class='cc-health-dot'></span><span><small>" + E(title) + "</small><b>" + E(value) + "</b><em>" + E(note) + "</em></span></a>";
+    }
+
+    var out = [];
+    if (f) {
+      var fs = f.source_status || "состояние не передано";
+      var fsLabel = upper(fs) === "DEGRADED" ? "частично нарушено" : (upper(fs) === "READY" ? "готово" : (upper(fs) === "OK" ? "в норме" : H.humanCode(fs)));
+      var failDurability = A(f.dimensions).filter(function (x) { return x && x.dimension === "artifact_durability_readback" && upper(x.state) === "FAIL"; })[0] || null;
+      var orphanCount = failDurability && failDurability.detail ? Number(failDurability.detail.orphan_receipts || 0) : 0;
+      var fn = orphanCount ? (orphanCount + " осиротевшая расписка хранения: STORED без объекта на диске") :
+        (upper(fs) === "DEGRADED" ? "подробная причина — в Фундаменте" : (f.freshness_state ? "данные: " + H.humanCode(f.freshness_state) : "подробности в Фундаменте"));
+      out.push(cell(upper(fs) === "DEGRADED" ? "warn" : (upper(fs) === "READY" || upper(fs) === "OK" ? "ok" : "neutral"), "#foundation", "Основание", fsLabel, fn));
+    } else {
+      out.push(cell("neutral", "#foundation", "Основание", "нет данных", "источник не прочитан"));
+    }
+
+    if (t) {
+      var c = t.counts || {};
+      var parts = [];
+      if (c.BLOCKED != null) parts.push(c.BLOCKED + " заблокировано");
+      if (c.INCONCLUSIVE != null) parts.push(c.INCONCLUSIVE + " без окончательного вывода");
+      if (c.COMPLETED != null) parts.push(c.COMPLETED + " завершено");
+      if (c.INVALIDATED != null) parts.push(c.INVALIDATED + " недействительно");
+      out.push(cell(t.ok === true ? "ok" : "warn", "#testing", "Тестирование", t.ok === true ? "сервис отвечает" : "источник сообщает сбой", parts.join(" · ") || "состояния испытаний не переданы"));
+    } else {
+      out.push(cell("neutral", "#testing", "Тестирование", "нет данных", "источник не прочитан"));
+    }
+
+    if (h) {
+      var hm = Number(h.hash_mismatches || 0), orp = Number(h.orphan_receipts || 0);
+      var cov = h.coverage === "FULL_END_TO_END" ? "полное сквозное покрытие" : H.humanCode(h.coverage || "покрытие не передано");
+      var hn = hm + " расхождений хэшей · " + orp + " осиротевших расписок";
+      out.push(cell(hm > 0 || orp > 0 ? "warn" : "ok", "#documents", "Долговечность документов", cov, hn));
+    } else {
+      out.push(cell("neutral", "#documents", "Долговечность документов", "нет данных", "источник не прочитан"));
+    }
+
+    return "<div class='cc-health-head'><span>Техническая целостность</span><small>состояния источников, не оценка компании</small></div><div class='cc-health-row'>" + out.join("") + "</div>";
+  }
+
   function renderCommand(page) {
     var routesOk = ok("routes");
     var lines = M.active;
@@ -1290,6 +1336,7 @@
     page.querySelector("[data-cc='system-reconciliation']").innerHTML = renderSystemReconciliation();
     page.querySelector("[data-cc='lanes']").innerHTML = routesOk ? renderLanes(lines.slice(0, 10)) : unavailable("Нет маршрутов", "Траектории не строятся.");
     page.querySelector("[data-cc='graph']").innerHTML = renderCommandGraph(routesOk ? lines.slice(0, 10) : []);
+    page.querySelector("[data-cc='system-health']").innerHTML = renderSystemHealth();
     page.querySelector("[data-cc='attention']").innerHTML = routesOk ? renderAttention(lines) : unavailable("Нет current state", "Шкала не строится.");
   }
 

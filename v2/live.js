@@ -1924,7 +1924,7 @@
       var depModel = dependencyModel(routes);
       lastSnapshot = {
         routes: routes, summary: summary, metrics: metrics, inbox: inbox,
-        objects: objects, blockers: blockers, testingSummary: testingSummary,
+        objects: objects, blockers: blockers, testingSummary: testingSummary, hubHealth: hubHealth,
         opsProjection: opsProjection, brazilPortal: brazilPortal,
         foundationAgg: foundationAgg, atlasState: atlasState, twinState: twinState,
         marketSignals: marketSignals, fieldMovement: fieldMovement,
