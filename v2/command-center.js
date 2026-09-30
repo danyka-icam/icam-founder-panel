@@ -280,6 +280,36 @@
     closed: { label: "Закрыт", hint: "маршрут закрыт" }
   };
 
+  function ownerLabel(value) {
+    if (value == null || value === "") return "не назначен";
+    var k = String(value).trim();
+    if (H.isFounderOwner(k)) return "вы";
+    if (/^SYSTEM$/i.test(k)) return "система";
+    if (/^EXTERNAL$/i.test(k)) return "внешний владелец";
+    if (/^NONE$/i.test(k)) return "не назначен";
+    if (/^AGENT$/i.test(k)) return "агент";
+    return human(k);
+  }
+
+  function humanActionText(value) {
+    var raw = String(value == null ? "" : value).trim();
+    if (!raw) return raw;
+    var exact = {
+      "Founder Panel Product Sprint": "Спринт панели Основателя",
+      "Implement and verify authenticated state write-back + founder_outcome projection, then regenerate the 10-line semantic pilot.": "Внедрить и проверить авторизованную запись состояния и проекцию результата Основателя, затем заново собрать 10-строчный смысловой пилот.",
+      "Run a distribution pass (outreach/media) for the published synthesis.": "Провести цикл распространения опубликованного синтеза через адресные контакты и медиа.",
+      "Decide whether to send the drafted preview; no outreach has occurred yet.": "Решить, отправлять ли подготовленное превью; исходящих контактов пока не было.",
+      "Follow up if silence exceeds 5 working days (per tracker note).": "Повторно связаться, если ответа не будет более 5 рабочих дней — согласно трекеру.",
+      "Supply the authorized frozen 96-slot pre-cutoff GitHub evidence dataset and re-execute testing.": "Передать разрешённый замороженный набор из 96 GitHub-слотов до отсечки и повторно запустить тестирование.",
+      "Supply complete source custody artifacts, including the delivered execution lock, execution script, exact parent artifacts, and frozen PSID source environment.": "Передать полный пакет исходных материалов: зафиксированный запуск, сценарий выполнения, точные родительские артефакты и замороженную среду исходных данных PSID.",
+      "Commission independent Third Coder adjudication or resolve coder tooling/linguistic parity before unblinding and scoring primary/genealogical claims.": "Провести независимую сверку третьим кодировщиком либо устранить различия инструментов и языковой паритет до раскрытия данных и оценки основных и генеалогических утверждений."
+    };
+    if (exact[raw]) return exact[raw];
+    if (raw.indexOf("External reproducibility Gate v0.1") === 0) return raw.replace("External reproducibility Gate v0.1", "Внешний гейт воспроизводимости v0.1");
+    if (raw.indexOf("Service operating normally:") === 0) return raw.replace("Service operating normally:", "Сервис работает штатно:");
+    return raw;
+  }
+
   function toneOf(l) {
     if (l.closed) return "closed";
     var blockers = l.risk.blockers + l.objBlockers.length;
@@ -857,7 +887,7 @@
     });
     M.active.filter(function (l) { return l.tone === "act"; }).forEach(function (l) {
       moves.push({
-        kind: "route", title: l.next || "Следующий ход не передан",
+        kind: "route", title: humanActionText(l.next || "Следующий ход не передан"),
         why: l.title + " · " + TONE_META.act.hint +
           (l.risk.blockers + l.objBlockers.length ? " · блокеров " + (l.risk.blockers + l.objBlockers.length) : "") +
           (l.risk.stale != null && l.risk.stale >= H.STALE_DAYS ? " · без движения " + l.risk.stale + " дн." : ""),
@@ -984,8 +1014,8 @@
       "<div class='cc-line-block' title='открытые блокеры: маршрут + объект'><small>Блокеры</small>" +
       (blockersN ? "<span class='cc-count risk'>" + blockersN + "</span>" : "<span class='cc-count ok'>0</span>") + "</div></div>" +
       "<div class='cc-line-cells'>" +
-      "<div class='cc-line-col next'><small>Следующий переход</small><span>" + E(H.cut(l.next || "не передан источником", 90)) + "</span></div>" +
-      "<div class='cc-line-col'><small>Ход у</small><span>" + E(r.ball_owner || "не назначен") + (l.waiting ? " <em class='wait'>· ждём</em>" : "") + "</span></div>" +
+      "<div class='cc-line-col next'><small>Следующий переход</small><span title='" + E(l.next || "") + "'>" + E(H.cut(humanActionText(l.next || "не передан источником"), 90)) + "</span></div>" +
+      "<div class='cc-line-col'><small>Ход у</small><span>" + E(ownerLabel(r.ball_owner)) + (l.waiting ? " <em class='wait'>· ждём</em>" : "") + "</span></div>" +
       "<div class='cc-line-col'><small>Условие движения</small><span>" + E(H.cut(r.review_condition || "не передано", 70)) + "</span></div>" +
       "</div>" +
       "<div class='cc-line-foot'><span class='cc-why'>" + E(why) + "</span>" +
@@ -1149,7 +1179,7 @@
           var reason = [];
           if (l.risk.stale != null && l.risk.stale >= H.STALE_DAYS) reason.push("без движения " + l.risk.stale + " дн.");
           if (l.risk.blockers + l.objBlockers.length) reason.push("блокеров " + (l.risk.blockers + l.objBlockers.length));
-          if (t === "wait") reason.push("ход у «" + l.r.ball_owner + "»");
+          if (t === "wait") reason.push("ход у «" + ownerLabel(l.r.ball_owner) + "»");
           if (l.downstream.length) reason.push("задерживает " + l.downstream.length);
           if (t === "unknown") reason.push("дата движения не передана");
           return "<div class='cc-attn-item'" + sel("line", l.key) + ">" + hexBadge(initials(l.title), t, "xs") +
@@ -1388,7 +1418,7 @@
           }).join("") +
           waits.map(function (l, i) {
             return "<span class='cc-wait-chip st-" + l.tone + "' style='left:" + (82 + (i % 2) * 8) + "%;top:" + (14 + Math.floor(i / 2) % 3 * 26) + "%'" + sel("line", l.key) +
-              " title='" + E(l.title + " → " + (l.next || "переход не передан")) + "'>" + E(initials(l.title)) + "</span>";
+              " title='" + E(l.title + " → " + humanActionText(l.next || "переход не передан")) + "'>" + E(initials(l.title)) + "</span>";
           }).join("") + "</div></div>";
       }).join("") +
       "</div><div class='cc-legend'><span><i class='mk material'></i>материальное событие объекта</span><span><i class='mk obj'></i>прочее событие объекта</span>" +
@@ -1404,8 +1434,8 @@
           E(o && o.last_event_at ? (o.last_summary ? H.cut(o.last_summary, 60) : H.humanCode(o.last_meaning_kind || "событие")) + " · " + H.ago(o.last_event_at) :
             (l.r.last_movement_at ? "движение " + H.ago(l.r.last_movement_at) : "история не передана")) + "</span></div>" +
           "<div class='cc-flow-step now'><small>Настоящее</small><span>" + E(H.humanCode(l.r.stage || l.r.status || "этап не передан")) + "</span>" + toneDot(l.tone) + "</div>" +
-          "<div class='cc-flow-step wait'><small>Ожидание</small><span>" + E(l.r.review_condition ? H.cut(l.r.review_condition, 60) : (l.waiting ? "ждём: " + l.r.ball_owner : "условие не передано")) + "</span></div>" +
-          "<div class='cc-flow-step next'><small>Следующий переход</small><span>" + E(l.next ? H.cut(l.next, 60) : "не передан") + "</span></div></div>";
+          "<div class='cc-flow-step wait'><small>Ожидание</small><span>" + E(l.r.review_condition ? H.cut(l.r.review_condition, 60) : (l.waiting ? "ждём: " + ownerLabel(l.r.ball_owner) : "условие не передано")) + "</span></div>" +
+          "<div class='cc-flow-step next'><small>Следующий переход</small><span title='" + E(l.next || "") + "'>" + E(l.next ? H.cut(humanActionText(l.next), 60) : "не передан") + "</span></div></div>";
       }).join("") : empty("Нет активных маршрутов", "")) + "</div>";
 
     var un = M.events.filter(function (e) { return e.kind === "object" && !e.placed; });
@@ -1942,13 +1972,13 @@
     if (l.star) l.star.line.history.map(eventView).forEach(function (v) { hist.push(histItem(v, "Temporal Universe")); });
     if (l.obj && l.obj.last_event_at) hist.push("<li><b>" + E(dateLabel(l.obj.last_event_at)) + "</b>" + E((l.obj.last_meaning_kind ? H.signalKindRu(l.obj.last_meaning_kind) : "событие объекта") + (l.obj.last_summary ? " — " + H.cut(l.obj.last_summary, 110) : "")) + " <em>· Continuity</em></li>");
     if (r.last_movement_at) hist.push("<li><b>" + E(dateLabel(r.last_movement_at)) + "</b>движение по маршруту <em>· Оркестратор</em></li>");
-    var step = r.next_move ? { text: r.next_move, src: "Оркестратор · next_move" } :
-      (l.rd1 && l.rd1.next_move ? { text: l.rd1.next_move, src: "RD1 · next_move" } :
+    var step = r.next_move ? { text: humanActionText(r.next_move), src: "Оркестратор · next_move" } :
+      (l.rd1 && l.rd1.next_move ? { text: humanActionText(l.rd1.next_move), src: "RD1 · next_move" } :
         { text: "Источник не передал следующий ход. Минимальный шаг — сверить маршрут с владельцем хода и зафиксировать next_move в Оркестраторе.", src: "рекомендация панели: нужна сверка" });
     return inspector({
       badge: hexBadge(initials(l.title), l.tone, "lg"), title: l.title, sub: "Маршрут Оркестратора" + (l.area ? " · " + H.humanCode(l.area) : ""),
       what: para("Маршрут работы в Оркестраторе" + (l.star ? " по звезде «" + l.star.title + "» линии «" + l.star.line.title + "»." : ".") +
-        (!r.ball_owner ? " Владелец хода не назначен." : (l.waiting ? " Ход у «" + r.ball_owner + "»." : " Ход у Основателя."))),
+        (!r.ball_owner ? " Владелец хода не назначен." : " Ход: «" + ownerLabel(r.ball_owner) + "».")),
       where: crumbs([{ t: "ICAM" }, { t: place.world ? place.world.title : (M.tu.ok ? "вне Founder Universe" : "мир не проверен") },
         { t: place.uline ? H.cut(place.uline.title, 22) : "линия не определена" }, { t: l.objId || "без объекта", cur: true }]) +
         (l.origin ? muted("Происхождение объекта (owning_branch): " + l.origin) : ""),
@@ -1960,10 +1990,10 @@
         (l.downstream.length ? " Его остановка явно задержит " + l.downstream.length + " маршрута." : "") +
         (l.star && hasCapital(l.star.line) ? " У канонической линии есть доказанный капитал: " + capitalItems(l.star.line).join("; ") + "." : "")),
       history: hist.length ? "<ul class='cc-hist'>" + hist.join("") + "</ul>" : "",
-      waiting: (r.review_condition ? para(r.review_condition) : (l.waiting ? para("Действия от «" + r.ball_owner + "».") : "")) +
+      waiting: (r.review_condition ? para(r.review_condition) : (l.waiting ? para("Действия от «" + ownerLabel(r.ball_owner) + "».") : "")) +
         (tv && tv.waiting.length ? "<small>Temporal Universe</small>" + titlesList(tv.waiting) : "") +
         (l.rd1 && l.rd1.next_gate ? muted("RD1 · следующий гейт: " + l.rd1.next_gate) : ""),
-      next: l.next ? para(l.next) + (l.nextSource ? muted(l.nextSource) : "") : "",
+      next: l.next ? para(humanActionText(l.next)) + (humanActionText(l.next) !== l.next ? muted("Исходный текст источника: " + l.next) : "") + (l.nextSource ? muted(l.nextSource) : "") : "",
       step: step,
       links: refsBlock("Звезда и линия Founder Universe", l.star ? starRef(l.star) + ulineRef(l.star.line) + worldRef(l.star.world) : "") +
         refsBlock("Зависит от", lineRefs(l.upstream)) + refsBlock("От него зависят", lineRefs(l.downstream)) +

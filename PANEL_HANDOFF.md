@@ -114,6 +114,7 @@ intersections come from Founder Projection (`company_capital`, `capital_in_use`,
 it does not establish causality, a common mechanism or a direct handoff.
 
 Presentation conventions (UI only, no source semantics):
+- Repeated operational action phrases may have an exact Russian UI rendering; the original source text is preserved in tooltip/inspector context and is never rewritten in backend data. Owner codes are rendered as roles (`ME` → «вы», `SYSTEM` → «система», `EXTERNAL` → «внешний владелец`).
 - Route tone for Founder attention: «Нужно ваше действие» (ball owner is the
   Founder and the route is not simply flowing) is the only strong accent;
   «Есть блокер», «Ждём внешнего» (external owner — waiting, not risk),
