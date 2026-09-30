@@ -819,11 +819,11 @@
         "<span class='cc-pulse-body'><small>" + E(label) + "</small><strong>" + E(value) + "</strong><em>" + E(detail) + "</em></span></a>";
     }
     if (!routesOk) return tile("unknown", "Маршруты", "Недоступно", "чтение маршрутов не удалось — состояние не показывается", "#diagnostics");
-    return tile("flow", "В движении", n.flow, "движение за последние 7 дней", "#lines") +
-      tile("wait", "Ждём внешнего", n.wait, "ход у внешнего владельца — это не риск", "#lines") +
-      tile("blocked", "Есть блокер", blockerRoutes.length, founderBlocked ? "из них " + founderBlocked + " одновременно ждут вашего хода" : "только явные блокеры из источников", "#lines") +
-      tile("stale", "Давно без движения", n.stale, "7+ дней без движения, других сигналов нет", "#lines") +
-      tile("unknown", "Нужна сверка", n.unknown, "маршруты без даты движения — неопределённость, не авария", "#lines");
+    return tile("flow", "Маршруты в движении", n.flow, "операционные маршруты: движение за последние 7 дней", "#lines") +
+      tile("wait", "Маршруты ждут внешнего", n.wait, "операционные маршруты: ход у внешнего владельца — это не риск", "#lines") +
+      tile("blocked", "Маршруты с блокером", blockerRoutes.length, founderBlocked ? "из них " + founderBlocked + " одновременно ждут вашего хода" : "только явные блокеры из источников", "#lines") +
+      tile("stale", "Маршруты без движения", n.stale, "операционные маршруты: 7+ дней без движения, других сигналов нет", "#lines") +
+      tile("unknown", "Маршруты на сверке", n.unknown, "нет даты движения — неопределённость, не авария", "#lines");
   }
 
   function reviewCounts() {
