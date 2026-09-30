@@ -1031,14 +1031,14 @@
     if (!M.tu.ok) return "";
     var specs = [
       { title: "Исследовательский ATLAS", href: "#atlas", note: "специализированное состояние ATLAS", ok: M.U.worlds.some(function (w) { return w.title === "Исследовательский ATLAS"; }) },
-      { title: "Digital Twin", href: "#digital-twin", note: "линия «Двойники и синтетические миры»", ok: !!lineByExactTitle("Двойники и синтетические миры") },
-      { title: "BrazilPortal", href: "#brazilportal", note: "каноническая линия «BrazilPortal»", ok: !!lineByExactTitle("BrazilPortal") }
+      { title: "Digital Twin", href: "#digital-twin", note: "линия «Двойники и синтетические миры»", ok: !!lineByExactTitle("Двойники и синтетические миры") }
     ].filter(function (x) { return x.ok; });
     if (!specs.length) return "";
     return "<div class='cc-deep-head'><span>Глубже в контур</span><small>специализированные поверхности только по точному каноническому соответствию</small></div>" +
       "<div class='cc-deep-grid'>" + specs.map(function (x) {
         return "<a class='cc-deep-card' href='" + x.href + "'><b>" + E(x.title) + "</b><small>" + E(x.note) + "</small><em>открыть контур →</em></a>";
-      }).join("") + "</div>";
+      }).join("") + "</div>" +
+      (lineByExactTitle("BrazilPortal") ? "<div class='cc-peripheral-row'><span>Периферийный контур</span><a href='#brazilportal'>BrazilPortal · открыть малое окно →</a></div>" : "");
   }
 
   function lineCard(l) {
