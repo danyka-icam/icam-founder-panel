@@ -84,9 +84,22 @@ const organizationalIntelligence = {
   ]
 };
 
+const stewardReconciliation = {
+  schema_id: "steward-reconciliation-projection.v0.1", compiled_at: new Date().toISOString(), read_only: true,
+  system_reconciliation_count: 3, founder_gate_count: 1, workqueue_observed_count: 4, organizational_intelligence_signal_count: 4, intersection_edge_count: 1,
+  system_reconciliation: [
+    { reconciliation_id: "REC-S1", source: "COMPANY_PATH", subject: "BrazilPortal", gap_class: "CYCLE_EVIDENCE_REQUIRED", route: "SYSTEM_RECONCILIATION", founder_action_required: false, evidence_refs: ["BrazilPortal","CYCLE_EVIDENCE_REQUIRED"] },
+    { reconciliation_id: "REC-S2", source: "COMPANY_PATH", subject: "Atlas advisory", gap_class: "INSUFFICIENT_ORDERED_PATH_EVIDENCE", route: "SYSTEM_RECONCILIATION", founder_action_required: false, evidence_refs: ["Atlas advisory"] },
+    { reconciliation_id: "REC-S3", source: "COMPANY_CAPITAL", subject: "Public proof assets", gap_class: "ROUTE_NOT_CANONICAL", route: "SYSTEM_RECONCILIATION", founder_action_required: false, evidence_refs: ["GAP-PUBLIC"] }
+  ],
+  founder_gates: [{ lifecycle_id: "FDL-1", subject: "Founder approval required for frozen run", route: "FOUNDER_DECISION_LIFECYCLE", founder_action_required: true }],
+  hard_rules: ["System reconciliation gaps never become Founder tasks by default."]
+};
+
 const panelApi = {
   "founder-projection": () => founderProjection,
   "organizational-intelligence": () => organizationalIntelligence,
+  "steward-reconciliation": () => stewardReconciliation,
   "observer/routes": () => ROUTES === "down" ? null : { routes },
   "observer/summary": () => ({ summary: { routes_active: 7 } }),
   "observer/metrics": () => ({ metrics: { operational: { stale_routes_7d: { value: 2 } } } }),

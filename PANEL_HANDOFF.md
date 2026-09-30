@@ -71,6 +71,11 @@ Sources of truth for the modes:
   recorded capital reuse/concentration, canonical route gaps and Founder authority
   gates. Each signal keeps its evidence ceiling and falsification condition; the UI
   does not translate these observations into risk or priority.
+- `GET /founder-ui-preview/api/steward-reconciliation`
+  (`steward-reconciliation-projection.v0.1`): system-only reconciliation queue plus
+  Founder gates. The Command Center renders only `system_reconciliation[]` under
+  «Система разбирает сама»; Founder gates remain represented by formal Founder
+  decisions above. System gaps are never promoted into Founder tasks by the UI.
 - Orchestrator routes + Continuity: current movement of work (stage, next move,
   ball owner, blockers, explicit dependencies). Founder inbox remains a request
   queue; its entries are not promoted to formal decisions by the UI.
@@ -87,6 +92,8 @@ read-only client requests. Degradation:
   Temporal Universe capital remains a limited display fallback only.
 - Organizational Intelligence down / wrong schema → structural observations are
   shown as unavailable; they are not reconstructed from capital or route data.
+- Steward Reconciliation down / wrong schema → the system-only queue is shown as
+  unavailable; no system gap is inferred from canonical line state.
 
 Contract details the panel relies on (reconciled with the live files):
 `schema_id` identifies both payloads; star `temporal` is

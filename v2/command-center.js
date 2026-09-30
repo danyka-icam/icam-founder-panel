@@ -26,6 +26,7 @@
   var ADM_SCHEMA = "atlas-portfolio-admission.v0.";
   var FP_SCHEMA = "founder-projection.v0.";
   var OI_SCHEMA = "organizational-intelligence-projection.v0.";
+  var SR_SCHEMA = "steward-reconciliation-projection.v0.";
   var MATERIAL = ["GATE_RESULT", "DECISION", "STATUS_CHANGE", "STAGE_CHANGE", "TEST_RESULT", "EXTERNAL_EVENT", "NEW_FILE"];
   var ARCHIVE_STATE = /^(CLOSED|ARCHIVED|HISTORICAL|DONE|CANCELLED|COMPLETED|RETIRED|DEPRECATED|INVALIDATED|SUPERSEDED)$/;
   var FALLBACK_DAYS = 60;
@@ -223,7 +224,11 @@
     DEPENDENCY_CONCENTRATION_CANDIDATE: "концентрация использования капитала",
     COMPOUNDING_LOOP: "повторное использование капитала",
     CANONICAL_ROUTE_GAP: "капитал без канонического маршрута",
-    FOUNDER_AUTHORITY_GATE: "шлюз полномочий Основателя"
+    FOUNDER_AUTHORITY_GATE: "шлюз полномочий Основателя",
+    INSUFFICIENT_ORDERED_PATH_EVIDENCE: "недостаточно упорядоченных доказательств",
+    LEADING_MILESTONE_REQUIRED: "нужен ведущий рубеж", CYCLE_EVIDENCE_REQUIRED: "нужно доказательство полного цикла",
+    PORTFOLIO_NOT_DEFINED_BY_ITEMS: "портфель не определён набором объектов", ROUTE_NOT_CANONICAL: "маршрут не канонизирован",
+    SYSTEM_RECONCILIATION: "системная сверка"
   };
 
   function human(code) {
@@ -371,6 +376,15 @@
     var j = d.organizationalIntelligence, sch = schemaOf(j);
     if (!j || !Array.isArray(j.signals)) return { ok: false, reason: "ответ без signals[] — не соответствует контракту" };
     if (sch && String(sch).indexOf(OI_SCHEMA) !== 0) return { ok: false, reason: "неподдерживаемая схема " + sch };
+    return { ok: true, data: j, schema: sch };
+  }
+
+  function readStewardReconciliation(d, sources) {
+    var st = sources.stewardReconciliation;
+    if (!st || !st.ok) return { ok: false, reason: st && st.error ? st.error : "источник не ответил" };
+    var j = d.stewardReconciliation, sch = schemaOf(j);
+    if (!j || !Array.isArray(j.system_reconciliation)) return { ok: false, reason: "ответ без system_reconciliation[] — не соответствует контракту" };
+    if (sch && String(sch).indexOf(SR_SCHEMA) !== 0) return { ok: false, reason: "неподдерживаемая схема " + sch };
     return { ok: true, data: j, schema: sch };
   }
 
@@ -535,6 +549,19 @@
     return OI;
   }
 
+  function buildStewardReconciliation(j, U) {
+    var SR = { raw: j, compiledAt: j.compiled_at || null, items: [], byKey: {}, counts: {},
+      founderGates: A(j.founder_gates), hardRules: A(j.hard_rules) };
+    A(j.system_reconciliation).forEach(function (row, i) {
+      var key = String(row.reconciliation_id || "rec|" + i), subject = String(row.subject || key);
+      var it = { kind: "sysrec", key: key, raw: row, title: subject,
+        gap: String(row.gap_class || ""), source: String(row.source || ""),
+        founderAction: row.founder_action_required === true, ul: exactTitle(U, subject) };
+      SR.items.push(it); SR.byKey[key] = it; SR.counts[it.source] = (SR.counts[it.source] || 0) + 1;
+    });
+    return SR;
+  }
+
   function exactTitle(U, title) {
     if (!U || title == null) return null;
     var ls = U.titleIndex[String(title)];
@@ -553,10 +580,12 @@
     var adm = readAdmission(d, sources);
     var fp = readFounderProjection(d, sources);
     var oi = readOrgIntelligence(d, sources);
+    var sr = readStewardReconciliation(d, sources);
     var U = tu.ok ? buildUniverse(tu.data) : null;
     var AD = adm.ok ? buildAdmission(adm.data, U) : null;
     var FP = fp.ok ? buildFounderProjection(fp.data, U) : null;
     var OI = oi.ok ? buildOrgIntelligence(oi.data, U) : null;
+    var SR = sr.ok ? buildStewardReconciliation(sr.data, U) : null;
 
     var objById = {};
     objects.forEach(function (o) { if (o && o.object_id) objById[String(o.object_id)] = o; });
@@ -659,7 +688,7 @@
     var msActivated = ms && ms.activation_state && ms.activation_state !== "NOT_ACTIVATED";
 
     return {
-      d: d, sources: sources, tu: tu, adm: adm, fp: fp, oi: oi, U: U, AD: AD, FP: FP, OI: OI,
+      d: d, sources: sources, tu: tu, adm: adm, fp: fp, oi: oi, sr: sr, U: U, AD: AD, FP: FP, OI: OI, SR: SR,
       lines: lines, active: lines.filter(function (l) { return !l.closed; }), lineByKey: lineByKey,
       objs: objs, objByKey: objByKey, bridges: bridges, edges: dep.edges.filter(function (e) {
         return lineByKey[e.from] && lineByKey[e.to];
@@ -1147,6 +1176,21 @@
       "<details class='cc-org-details'><summary>Все наблюдения · " + items.length + "</summary><div class='cc-org-list'>" + items.map(row).join("") + "</div></details>";
   }
 
+  function renderSystemReconciliation() {
+    if (!M.sr.ok) return unavailable("Системная сверка недоступна", M.sr.reason || "источник не ответил");
+    var items = M.SR.items, byPath = M.SR.counts.COMPANY_PATH || 0, byCapital = M.SR.counts.COMPANY_CAPITAL || 0;
+    var founderN = items.filter(function (x) { return x.founderAction; }).length;
+    if (!items.length) return empty("Системная очередь пуста", "Steward Reconciliation не передал system_reconciliation[].");
+    function row(it) {
+      return "<button class='cc-sys-row'" + sel("sysrec", it.key) + "><span><b>" + E(H.cut(it.title, 58)) + "</b>" +
+        "<small>" + E(human(it.gap)) + " · " + E(it.source || "источник не указан") + "</small></span><i>›</i></button>";
+    }
+    return "<div class='cc-system-summary'><strong>" + items.length + "</strong><span>пунктов системной сверки</span></div>" +
+      "<div class='cc-system-stats'><span><b>" + byPath + "</b> по каноническим линиям</span><span><b>" + byCapital + "</b> по капиталу без маршрута</span><span><b>" + founderN + "</b> требуют вас</span></div>" +
+      "<div class='cc-foot-note'>Жёсткое правило источника: системные разрывы не становятся задачами Основателя по умолчанию. Founder gate показывается отдельно выше.</div>" +
+      "<details class='cc-system-details'><summary>Открыть системную очередь · " + items.length + "</summary><div class='cc-system-list'>" + items.map(row).join("") + "</div></details>";
+  }
+
   function renderCommand(page) {
     var routesOk = ok("routes");
     var lines = M.active;
@@ -1167,6 +1211,7 @@
       })() : empty("Оркестратор не отдал активных линий", ""));
     page.querySelector("[data-cc='changes']").innerHTML = renderRecentChanges(6);
     page.querySelector("[data-cc='org-intel']").innerHTML = renderOrgIntel();
+    page.querySelector("[data-cc='system-reconciliation']").innerHTML = renderSystemReconciliation();
     page.querySelector("[data-cc='lanes']").innerHTML = routesOk ? renderLanes(lines.slice(0, 10)) : unavailable("Нет маршрутов", "Траектории не строятся.");
     page.querySelector("[data-cc='graph']").innerHTML = renderCommandGraph(routesOk ? lines.slice(0, 10) : []);
     page.querySelector("[data-cc='attention']").innerHTML = routesOk ? renderAttention(lines) : unavailable("Нет current state", "Шкала не строится.");
@@ -2204,6 +2249,24 @@
     });
   }
 
+  function inspectSystemReconciliation(it) {
+    var r = it.raw || {};
+    var link = it.ul ? ulineRef(it.ul) : "";
+    return inspector({
+      badge: "<span class='cc-obj-badge event'>↺</span>",
+      title: it.title, sub: "Системная сверка · " + human(it.gap),
+      what: para("Пункт системной очереди Steward Reconciliation. Он не является задачей Основателя по умолчанию."),
+      where: crumbs([{ t: "ICAM" }, { t: "системная сверка" }, { t: it.source || "источник", cur: true }]),
+      now: "<div>" + codeTag(r.route || "SYSTEM_RECONCILIATION", "tag") + "</div>" +
+        (it.founderAction ? para("Источник требует действия Основателя.") : para("Действие Основателя не требуется.")),
+      why: r.gap_class ? para("Причина: " + human(r.gap_class) + ".") : "",
+      links: (link ? refsBlock("Каноническая линия", link) : muted("Предмет не совпадает точно с названием канонической линии.")) +
+        (A(r.evidence_refs).length ? "<small>Доказательные ссылки</small><div class='cc-caps'>" + A(r.evidence_refs).map(function (x) { return "<span class='cc-cap'>" + E(x) + "</span>"; }).join("") + "</div>" : ""),
+      ceiling: [ceilingRow("ok", "Источник — Steward Reconciliation"), ceilingRow("info", "Панель не повышает системный разрыв до Founder-задачи")],
+      nav: "<a href='#command'>Командный центр →</a>"
+    });
+  }
+
   function inspectOrg(it) {
     var r = it.raw || {};
     var refs = it.lines.map(function (x) { return x.ul ? ulineRef(x.ul) : "<span class='cc-ref dim'>" + E(x.title) + "</span>"; }).join("");
@@ -2271,13 +2334,14 @@
     decision: { label: "Инспектор решения", get: function (k) { return M.FP && M.FP.decisionByKey[k]; }, render: inspectDecision },
     movement: { label: "Инспектор движения", get: function (k) { return M.FP && M.FP.movementByKey[k]; }, render: inspectMovement },
     org: { label: "Инспектор наблюдения", get: function (k) { return M.OI && M.OI.byKey[k]; }, render: inspectOrg },
+    sysrec: { label: "Инспектор системной сверки", get: function (k) { return M.SR && M.SR.byKey[k]; }, render: inspectSystemReconciliation },
     adm: { label: "Инспектор допуска", get: function (k) { return M.AD && M.AD.items[k]; }, render: inspectAdm }
   };
 
   function renderInspectors() {
     var s = ui.selected, def = s && INSPECTORS[s.kind], ent = def && def.get(s.key);
     var html = ent ? def.render(ent, s.key) :
-      "<div class='cc-insp-idle'><b>Инспектор</b><span>Выберите маршрут, мир, линию, звезду, событие, решение, движение, организационное наблюдение, стратегию или элемент допуска — здесь появятся состояние, история, связи и доказательный потолок.</span></div>";
+      "<div class='cc-insp-idle'><b>Инспектор</b><span>Выберите маршрут, мир, линию, звезду, событие, решение, движение, организационное наблюдение, пункт системной сверки, стратегию или элемент допуска — здесь появятся состояние, история, связи и доказательный потолок.</span></div>";
     document.querySelectorAll("[data-cc-inspector]").forEach(function (el) {
       el.innerHTML = "<div class='cc-insp-title'><span>" + E(ent ? def.label : "Инспектор") + "</span></div>" + html;
     });
