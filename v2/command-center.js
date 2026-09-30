@@ -2103,6 +2103,14 @@
     return M.U.trajectories.filter(function (t) { return trajectoryPath(t).some(function (x) { return x.ul === ln; }); });
   }
 
+  function specializedNav(kind, title) {
+    var key = String(title || "");
+    if (kind === "world" && key === "Исследовательский ATLAS") return "<a href='#atlas'>Специализированный ATLAS →</a>";
+    if (kind === "line" && key === "BrazilPortal") return "<a href='#brazilportal'>Продуктовая проекция BrazilPortal →</a>";
+    if (kind === "line" && key === "Двойники и синтетические миры") return "<a href='#digital-twin'>Открыть Digital Twin →</a>";
+    return "";
+  }
+
   function inspectULine(ln) {
     var ver = ln.stars.filter(function (s) { return s.verified; }).length;
     var routes = [], waiting = [], next = [], fp = ln.fp || null;
@@ -2148,7 +2156,7 @@
         fp ? ceilingRow("ok", "Состояние, капитал и пересечения — Founder Projection") : ceilingRow("warn", "Founder Projection недоступен"),
         ceilingRow("info", "Пересечение через общий капитал не означает причинность или прямую передачу")
       ],
-      nav: NAV_TIME
+      nav: NAV_TIME + specializedNav("line", ln.title)
     });
   }
 
@@ -2171,7 +2179,7 @@
       }).join("") + "</ul>" : "",
       links: refsBlock("Линии", w.lines.map(ulineRef).join("")) + refsBlock("Маршруты", lineRefs(routes)),
       ceiling: [ceilingRow("ok", "Состав мира — Temporal Universe"), ceilingRow("info", "Мир объекта определяется только через звезду; owning_branch миром не считается")],
-      nav: NAV_TIME
+      nav: NAV_TIME + specializedNav("world", w.title)
     });
   }
 
