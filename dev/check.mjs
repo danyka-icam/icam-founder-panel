@@ -52,6 +52,8 @@ for (const w of WIDTHS) {
       check(/предложена «atlas advisory» — точной линии нет/.test(pl), "proposed_line matched by exact title only (no fuzzy)");
       check(/H008/.test(pl) && /Человек, представление и действие/.test(pl), "trusted_owner_map shown as owning_branch → line title");
       check(/Company semantic state stack/.test(ln), "capital [{id,title}] shown as proven line capital");
+      check(/Founder Projection/.test(ln) && /Подтверждённые пересечения линий/.test(ln), "links use Founder Projection for shared-capital intersections");
+      check(/Founder inbox: 2/.test(cc), "Founder inbox is shown as requests, not formal decisions");
       check(/Публичный запуск/.test(ln) && /Инвестор видит проверяемое состояние/.test(ln), "trajectory path + north_star shown");
       // selection on the links map lights up the path and switches the inspector
       await page.evaluate(() => { location.hash = "links"; });
@@ -76,23 +78,9 @@ for (const w of WIDTHS) {
       check(stars === 24, `placed column lists 24 stars (${stars})`);
     }
     if (EXPECT === "hero-many") {
-      const hero = () => page.evaluate(() => {
-        const h = document.querySelector('[data-page-panel="command"] [data-cc="hero"]');
-        return { text: h.innerText, cards: [...h.querySelectorAll(".cc-hero-group.decide .cc-hero-item b")].map((b) => b.innerText),
-          moves: h.querySelectorAll(".cc-hero-group.move .cc-hero-item").length, more: (h.querySelector("[data-cc-hero-more]") || {}).innerText || "" };
-      });
-      let h = await hero();
-      check(/9 решений · 2 действия/.test(h.text), "headline: 9 решений · 2 действия");
-      check(h.cards.length + h.moves === 6 && h.moves === 0, `first screen shows 6 cards, decisions first (${h.cards.length}+${h.moves})`);
-      check(h.cards.join("|") === "Решение D-0д|Решение D-1д|Решение D-3д|Решение D-7д|Решение D-12д|Решение D-30д", "decisions ordered by source date, newest first: " + h.cards.join("|"));
-      check(/Показать ещё 5/.test(h.more), "rest hidden under «Показать ещё 5» (" + h.more + ")");
-      await page.evaluate(() => { location.hash = "command"; });
-      await page.click('[data-page-panel="command"] [data-cc-hero-more]');
-      await page.waitForTimeout(150);
-      h = await hero();
-      check(h.cards.length === 9 && h.moves === 2, `expanded shows all 11 (${h.cards.length}+${h.moves})`);
-      check(/D-90д\|Решение D-без-даты-1\|Решение D-без-даты-2$/.test(h.cards.join("|")), "undated last, source order kept among undated");
-      check(/Свернуть/.test(h.more), "collapse button available");
+      check(/2 решения · 2 действия/.test(cc), "formal decisions remain sourced from Founder Projection");
+      check(/Founder inbox: 9/.test(cc), "nine inbox requests remain visible as requests");
+      check(!/Решение D-0д/.test(cc), "Founder inbox items are not promoted into formal decisions");
     }
     if (EXPECT === "tu-down") {
       check(/Реконструкция, не Temporal Universe/.test(tl), "timeline labels fallback as reconstruction");

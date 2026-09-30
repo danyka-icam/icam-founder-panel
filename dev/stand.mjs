@@ -45,7 +45,37 @@ const routes = [
   { route_id: "R-FND2", source_object_id: "FND-001", status: "ACTIVE", stage: "ACTIVE_BUILD", next_move: "Readback byte-for-byte", ball_owner: "Инженер", last_movement_at: iso(6) },
   { route_id: "R-OLD", source_object_id: "RD1-OLD", status: "CLOSED", stage: "DONE", last_movement_at: iso(140) }
 ];
+const founderProjection = {
+  schema_id: "founder-projection.v0.1", compiled_at: new Date().toISOString(), read_only: true,
+  coverage: { path_memory_complete: false, movement_complete: false },
+  lines: [
+    { line: "Финальная стабилизация Foundation", world: "Фундамент и инфраструктура", state: "движется", state_basis: "VERIFIED_RULE",
+      capital_in_use: [{ capital_id: "CAP-STATE", resource: "Company semantic state stack" }],
+      intersections: [{ with: "BrazilPortal", bridge_refs: ["CAP-STATE"], evidence_ceiling: "Shared admitted capital only; not causality." }] },
+    { line: "BrazilPortal", world: "Продукты и порталы", state: "нужна сверка", state_basis: "CYCLE_EVIDENCE_REQUIRED",
+      capital_in_use: [{ capital_id: "CAP-STATE", resource: "Company semantic state stack" }],
+      intersections: [{ with: "Финальная стабилизация Foundation", bridge_refs: ["CAP-STATE"], evidence_ceiling: "Shared admitted capital only; not causality." }] },
+    { line: "Atlas advisory", world: "Продукты и порталы", state: "здоровое ожидание", state_basis: "VERIFIED_RULE", capital_in_use: [], intersections: [] }
+  ],
+  today: {
+    founder_decisions: [
+      { decision_id: "D-1", question: "Разрешить тестовый запуск?", why_now: "Пакет готов к явному решению.", presentation_state: "READY", authority_mode: "RECONCILED_EXISTING_CANON", deadline_or_condition: "До решения запуск запрещён.", choices: [{ canonical: "APPROVE", label: "Одобрить" }, { canonical: "DEFER", label: "Отложить" }] },
+      { decision_id: "D-2", question: "Подтвердить следующий этап?", why_now: "Достигнут текущий рубеж.", presentation_state: "READY", choices: [{ canonical: "APPROVE", label: "Подтвердить" }] }
+    ],
+    company_movements: [
+      { movement_id: "MOV-1", source_system: "Testing", source_object_id: "FND-001", state_family: "BLOCKED_SOURCE_CUSTODY", human_change: "Диагностический тест заблокирован из-за отсутствия исходных материалов.", why_it_matters: "Проблема в передаче данных, а не в проверяемой гипотезе.", evidence_ceiling: "Не является научным опровержением.", next_effect: "Нужен полный пакет исходных материалов.", evidence_count: 2, first_seen: iso(2), last_seen: iso(1) }
+    ]
+  },
+  company_capital: { admitted_count: 1, items: [
+    { id: "CAP-STATE", type: "ORGANIZATIONAL_CAPABILITY", maturity: "REUSED_CAPITAL", preserved_resource: "Company semantic state stack", evidence_ceiling: "Operational capability only.", consumer_lines: ["Финальная стабилизация Foundation", "BrazilPortal"] }
+  ] },
+  organizational_intelligence: { signal_count: 2, founder_action_count: 0 },
+  intersections: { edge_count: 1 }, steward: { system_reconciliation_count: 1, founder_gate_count: 2 },
+  hard_rules: ["Решение Основателя показывается только из Founder Decision Presentation."]
+};
+
 const panelApi = {
+  "founder-projection": () => founderProjection,
   "observer/routes": () => ROUTES === "down" ? null : { routes },
   "observer/summary": () => ({ summary: { routes_active: 7 } }),
   "observer/metrics": () => ({ metrics: { operational: { stale_routes_7d: { value: 2 } } } }),

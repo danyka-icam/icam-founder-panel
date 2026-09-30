@@ -61,15 +61,25 @@ Sources of truth for the modes:
 - `GET /founder-star-view/api/portfolio-admission` (`atlas-portfolio-admission.v0.1`):
   placed / exact-owner candidates / review / owner conflicts. Primary and only
   source for «Размещение» and the «Требуют сверки» KPI.
+- `GET /founder-ui-preview/api/founder-projection` (`founder-projection.v0.1`):
+  canonical line state, Founder Decision Presentation, company movements,
+  admitted company capital, explicit line intersections through shared admitted
+  capital, organizational intelligence, steward reconciliation and hard rules.
+  Formal Founder decisions are sourced only from this projection.
 - Orchestrator routes + Continuity: current movement of work (stage, next move,
-  ball owner, blockers, explicit dependencies).
+  ball owner, blockers, explicit dependencies). Founder inbox remains a request
+  queue; its entries are not promoted to formal decisions by the UI.
 
-Both Founder Universe reads use an 8 s client timeout. Degradation:
+Temporal Universe, Portfolio Admission and Founder Projection use bounded
+read-only client requests. Degradation:
 - Temporal Universe down / wrong schema → «Во времени» shows an explicitly
   labelled reconstruction from routes/objects/RD1; worlds and canonical lines
   are not shown anywhere.
 - Portfolio Admission down / wrong schema → placement is «не проверено»;
   the panel never computes candidate / review / conflict itself.
+- Founder Projection down / wrong schema → formal decisions, canonical line
+  states, company movements and shared-capital intersections are not inferred;
+  Temporal Universe capital remains a limited display fallback only.
 
 Contract details the panel relies on (reconciled with the live files):
 `schema_id` identifies both payloads; star `temporal` is
@@ -84,8 +94,10 @@ Join rules: a route or Continuity object is tied to a star only when its ID
 equals the star's `memory_id`. `owning_branch` is shown as the object's origin,
 never as its world. `unresolved_history` is never attached to objects.
 `exact_owner_candidates` are not stars and are shown as not visible on the
-Founder Map. A shared `ball_owner` is not a resource link; capital comes only
-from a line's explicit `capital` field.
+Founder Map. A shared `ball_owner` is not a resource link. Canonical capital use and line
+intersections come from Founder Projection (`company_capital`, `capital_in_use`,
+`intersections`). An intersection means shared recorded use of admitted capital;
+it does not establish causality, a common mechanism or a direct handoff.
 
 Presentation conventions (UI only, no source semantics):
 - Route tone for Founder attention: «Нужно ваше действие» (ball owner is the
@@ -97,8 +109,8 @@ Presentation conventions (UI only, no source semantics):
 - Source codes (truth_status, binding_class, evidence_status, time_class, kind,
   state, transition) are shown as a Russian label with the original code as a
   small caption / tooltip; the source value itself is never altered.
-- One inspector for route, object, world, line, star, event, admission item and
-  strategy, always ordered: что это → где в системе → сейчас → почему важно →
+- One inspector for route, object, world, line, star, event, formal decision,
+  company movement, admission item and strategy, always ordered: что это → где в системе → сейчас → почему важно →
   история → ждём → следующий переход → связи → доказательный потолок.
 - «Размещение» distinguishes source totals (`counts`) from the active,
   non-archived queue; the nav badge shows the active queue.
@@ -117,7 +129,8 @@ All paths are same-origin under:
 ### Командный центр (was Главная + Оркестратор)
 Reads:
 - `observer/routes`
-- `continuity/founder-inbox`
+- `continuity/founder-inbox` (requests/needs, not formal decisions)
+- `founder-projection` (formal Founder decisions, company movement, canonical line state/capital/intersections)
 - `testing/summary`
 
 Shows:

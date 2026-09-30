@@ -26,6 +26,7 @@
     marketSignals: API + "/signals",
     fieldMovement: API + "/signals/field-movement",
     scannerDiagnostics: API + "/signals/diagnostics",
+    founderProjection: API + "/founder-projection",
     // Founder Universe read-only backend (separate service, same origin).
     temporalUniverse: "/founder-star-view/api/temporal-universe",
     portfolioAdmission: "/founder-star-view/api/portfolio-admission"
@@ -62,6 +63,7 @@
     marketSignals: { ok: false, at: null, error: null },
     fieldMovement: { ok: false, at: null, error: null },
     scannerDiagnostics: { ok: false, at: null, error: null },
+    founderProjection: { ok: false, at: null, error: null },
     temporalUniverse: { ok: false, at: null, error: null },
     portfolioAdmission: { ok: false, at: null, error: null }
   };
@@ -1813,6 +1815,7 @@
       fetchJSON("marketSignals", ENDPOINTS.marketSignals),
       fetchJSON("fieldMovement", ENDPOINTS.fieldMovement),
       fetchJSON("scannerDiagnostics", ENDPOINTS.scannerDiagnostics),
+      fetchJSON("founderProjection", ENDPOINTS.founderProjection, UNIVERSE_TIMEOUT_MS),
       fetchJSON("temporalUniverse", ENDPOINTS.temporalUniverse, UNIVERSE_TIMEOUT_MS),
       fetchJSON("portfolioAdmission", ENDPOINTS.portfolioAdmission, UNIVERSE_TIMEOUT_MS)
     ]).then(function (res) {
@@ -1835,8 +1838,9 @@
       var marketSignals = res[16];
       var fieldMovement = res[17];
       var scannerDiagnostics = res[18];
-      var temporalUniverse = res[19];
-      var portfolioAdmission = res[20];
+      var founderProjection = res[19];
+      var temporalUniverse = res[20];
+      var portfolioAdmission = res[21];
 
       var routes = routesJSON && Array.isArray(routesJSON.routes) ? routesJSON.routes : [];
       var summary = summaryJSON && summaryJSON.summary ? summaryJSON.summary : null;
@@ -1849,7 +1853,8 @@
         opsProjection: opsProjection, brazilPortal: brazilPortal,
         foundationAgg: foundationAgg, atlasState: atlasState, twinState: twinState,
         marketSignals: marketSignals, fieldMovement: fieldMovement,
-        temporalUniverse: temporalUniverse, portfolioAdmission: portfolioAdmission, rd1: {}
+        founderProjection: founderProjection, temporalUniverse: temporalUniverse,
+        portfolioAdmission: portfolioAdmission, rd1: {}
       };
 
       setOrchestratorHeader(sourceState.routes.ok, sourceState.summary.ok, sourceState.metrics.ok);
