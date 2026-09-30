@@ -1273,7 +1273,7 @@
     return m[String(kind || "").toUpperCase()] || "Материальное изменение";
   }
 
-  function renderSignals(objectsResp, blockersResp, inbox, testingSummary, marketSignals) {
+  function renderSignals(objectsResp, blockersResp, inbox, testingSummary, marketSignals, organizationalIntelligence) {
     var page = document.querySelector('[data-page-panel="signals"]');
     if (!page) return;
 
@@ -1452,6 +1452,46 @@
       }
     }
 
+    var orgBox = page.querySelector('[data-s="org-observations"]');
+    if (orgBox) {
+      var oiOk = sourceState.organizationalIntelligence.ok && organizationalIntelligence;
+      var oiClass = {
+        DEPENDENCY_CONCENTRATION_CANDIDATE: "Концентрация использования капитала",
+        COMPOUNDING_LOOP: "Повторное использование капитала",
+        CANONICAL_ROUTE_GAP: "Разрыв канонического маршрута",
+        FOUNDER_AUTHORITY_GATE: "Шлюз полномочий Основателя"
+      };
+      var oiSubjects = {
+        "Commercial audit case experience": "Опыт коммерческих аудитов",
+        "Historical market learning": "Накопленное рыночное обучение",
+        "Public proof assets": "Материалы публичного доказательства",
+        "External validation protocols": "Протоколы внешней валидации",
+        "Institutional opportunity learning": "Опыт по институциональным возможностям"
+      };
+      var oiCeilings = {
+        "Concentration of recorded use only; not evidence of fragility, value, or risk.": "Зафиксирована только концентрация использования; это не доказательство хрупкости, ценности или риска.",
+        "Recorded reuse across multiple lines; does not establish causal performance improvement.": "Зафиксировано повторное использование в нескольких линиях; это не доказывает причинное улучшение результата.",
+        "Recorded capital-route gap only; no inference about business quality or urgency.": "Зафиксирован только разрыв между капиталом и каноническим маршрутом; выводов о качестве бизнеса или срочности нет.",
+        "Current OPEN Founder Decision Lifecycle only.": "Только текущий открытый жизненный цикл решения Основателя."
+      };
+      if (!oiOk) {
+        orgBox.innerHTML = unavailableHTML("Organizational Intelligence недоступен", "Структурные наблюдения не восстанавливаются по косвенным данным.");
+      } else {
+        var oiSignals = Array.isArray(organizationalIntelligence.signals) ? organizationalIntelligence.signals : [];
+        var oiRows = oiSignals.map(function (sig) {
+          var cls = oiClass[sig.class] || humanCode(sig.class || "наблюдение");
+          var subj = oiSubjects[sig.subject] || sig.subject || "объект не указан";
+          var lines = Array.isArray(sig.affected_lines) ? sig.affected_lines : [];
+          var ceiling = oiCeilings[sig.evidence_ceiling] || sig.evidence_ceiling || "доказательный потолок не передан";
+          return "<div class='signals-live-item " + (sig.founder_action_required ? "attention" : "change") + "'><b>" + esc(cls) + "</b>" +
+            "<span>" + esc(subj) + "</span><small>" +
+            (lines.length ? "затронутые линии: " + esc(lines.join(" · ")) + " · " : "") + esc(ceiling) + "</small></div>";
+        });
+        orgBox.innerHTML = oiRows.length ? "<div class='signals-partial-note'>" + esc(oiSignals.length) + " наблюдений · источник не превращает их в рейтинг риска или приоритета</div><div class='signals-live-list'>" + oiRows.join("") + "</div>" :
+          "<div class='signals-empty compact'><strong>Структурных наблюдений сейчас нет</strong><span>Источник доступен и вернул пустой список.</span></div>";
+      }
+    }
+
     var watchBox = page.querySelector('[data-s="watch-list"]');
     if (watchBox) {
       watchBox.innerHTML =
@@ -1463,8 +1503,8 @@
     if (hero) {
       var heroRows = [];
       founderItems.slice(0, 2).forEach(function (x) {
-        heroRows.push("<div class='signals-live-item attention'><b>Решение Основателя</b>" +
-          "<span>" + esc(x.object_id || "объект не указан") + "</span><small>Требует Основателя</small></div>");
+        heroRows.push("<div class='signals-live-item attention'><b>Запрос к Основателю</b>" +
+          "<span>" + esc(x.object_id || "объект не указан") + "</span><small>Founder inbox · запрос на участие</small></div>");
       });
       blockers.slice(0, 2).forEach(function (b) {
         heroRows.push("<div class='signals-live-item risk'><b>Открытый блокер</b>" +
@@ -1480,7 +1520,7 @@
         hero.innerHTML = "<div class='signals-empty hero'><strong>Сейчас нет подтверждённых внутренних сигналов</strong><p>Это не означает, что внешний рынок спокоен: Market Scanner ещё не подключён.</p></div>";
       } else {
         hero.innerHTML = "<div class='signals-live-list'>" + heroRows.join("") + "</div>" +
-          "<div class='signals-partial-note'>Внутренний слой подключён частично. Между типами сигналов Панель не строит собственный рейтинг. Market Scanner / внешние возможности ожидают отдельного источника.</div>";
+          "<div class='signals-partial-note'>Между типами сигналов Панель не строит собственный рейтинг. Рыночный контур и внешние возможности показываются отдельно ниже из Market Scanner.</div>";
       }
     }
 
@@ -1886,7 +1926,7 @@
       renderRegistry(objects, blockers);
       renderDocuments(hubHealth);
       renderTesting(testingSummary, testingRunner);
-      renderSignals(objects, blockers, inbox, testingSummary, marketSignals);
+      renderSignals(objects, blockers, inbox, testingSummary, marketSignals, organizationalIntelligence);
       renderFieldMovement(fieldMovement);
       renderScannerDiagnostics(scannerDiagnostics);
       renderOperationsProjection(opsProjection);
