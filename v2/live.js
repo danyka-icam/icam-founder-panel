@@ -1801,7 +1801,8 @@
       hub: ["hubHealth"],
       scanner: ["marketSignals", "fieldMovement", "scannerDiagnostics"],
       "founder-universe": ["temporalUniverse", "portfolioAdmission"],
-      "atlas-twin": []
+      "founder-command": ["founderProjection", "organizationalIntelligence", "stewardReconciliation"],
+      specialized: ["foundationAgg", "opsProjection", "atlasState", "twinState", "brazilPortal"]
     };
     Object.keys(map).forEach(function (group) {
       var row = page.querySelector('[data-x-source="' + group + '"]');
