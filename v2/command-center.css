@@ -478,6 +478,13 @@ body:before{opacity:.08}
 .cc-world-body em{font-style:normal;font-size:10px;color:var(--muted-2)}
 .cc-world-stars{display:flex;flex-wrap:wrap;gap:4px;margin:3px 0}
 .cc-world-stars i{height:6px;width:calc(6px + var(--n) * 6px);border-radius:3px;background:rgba(169,140,245,.55);box-shadow:0 0 6px rgba(169,140,245,.4)}
+.cc-world-health{display:flex;width:100%;height:4px;overflow:hidden;border-radius:3px;background:rgba(138,162,179,.12);margin-top:2px}
+.cc-world-health i{display:block;flex:var(--w) 1 0;min-width:4px}
+.cc-world-health i.flow{background:var(--cc-flow)}
+.cc-world-health i.wait{background:var(--cc-wait)}
+.cc-world-health i.closed{background:var(--cc-closed)}
+.cc-world-health i.unknown{background:var(--cc-unknown)}
+.cc-world-health-text{color:#b8c7c3!important;font-size:9.5px!important}
 
 .cc-uline{margin-bottom:9px;padding:8px;border:1px solid var(--line);border-radius:12px;background:rgba(8,19,24,.45);cursor:pointer}
 .cc-uline.selected{border-color:rgba(63,207,166,.55);box-shadow:0 0 18px rgba(63,207,166,.12)}

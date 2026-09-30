@@ -890,6 +890,10 @@
         ln.stars.forEach(function (s) { if (s.verified) ver += 1; });
       });
       var routes = M.active.filter(function (l) { return l.star && l.star.world === w; });
+      var health = { flow: 0, wait: 0, closed: 0, unknown: 0 };
+      w.lines.forEach(function (ln) { var t = canonicalTone(ln); health[t] = (health[t] || 0) + 1; });
+      var healthText = [health.flow ? "движется " + health.flow : "", health.wait ? "ждёт " + health.wait : "",
+        health.closed ? "закрыто " + health.closed : "", health.unknown ? "сверка " + health.unknown : ""].filter(Boolean).join(" · ");
       return "<button class='cc-world-card" + (isSelected("world", w.key) ? " selected" : "") + "'" + sel("world", w.key) + ">" +
         "<span class='cc-world-orbit'><i></i></span>" +
         "<span class='cc-world-body'><b>" + E(w.title) + "</b>" +
@@ -897,6 +901,9 @@
         "<span class='cc-world-stars'>" + w.lines.map(function (ln) {
           return "<i title='" + E(ln.title + ": " + ln.stars.length + " звёзд") + "' style='--n:" + Math.min(ln.stars.length, 4) + "'></i>";
         }).join("") + "</span>" +
+        (M.fp.ok ? "<span class='cc-world-health' title='Каноническое состояние линий: " + E(healthText) + "'>" +
+          ["flow","wait","closed","unknown"].map(function (t) { return health[t] ? "<i class='" + t + "' style='--w:" + health[t] + "'></i>" : ""; }).join("") + "</span>" +
+          "<small class='cc-world-health-text'>" + E(healthText) + "</small>" : "") +
         "<em>" + (routes.length ? routes.length + " маршрут(а) в работе" : "маршрутов с точным ID нет") + (ev ? " · событий линий " + ev : "") + (cap ? " · капитал в " + cap + " лин." : "") + "</em></span></button>";
     }).join("") + "</div>";
   }
