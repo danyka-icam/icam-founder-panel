@@ -704,7 +704,7 @@
     body.innerHTML = "<div class='home-live-list'>" +
       items.slice(0, 5).map(function (n) {
         return "<div class='home-live-item'><b>" +
-          esc((n.object_id ? "[" + n.object_id + "] " : "") + cut(n.title || "Требует решения", 84)) +
+          esc((n.object_id ? "[" + n.object_id + "] " : "") + cut(n.title || "Требует участия", 84)) +
           "</b><small>" + esc(cut(n.reason || n.issue_type || "причина не передана", 100)) +
           " · открыто: " + esc(ago(n.opened_at)) + "</small></div>";
       }).join("") + "</div>";
@@ -865,7 +865,7 @@
         return "<div class='registry-mini-item'><b>" + esc(o.name || o.object_id) + "</b><span>" +
           esc(o.object_id || "не определён") + " · " + esc(ruStatus(o.declared_status)) + "</span></div>";
       }).join("") + "</div>" :
-      "<div class='registry-empty compact'><strong>Нет подтверждённых решений уровня Основателя</strong><span>Источник объектов не отметил ни один объект как требующий Основателя.</span></div>";
+      "<div class='registry-empty compact'><strong>Нет объектов, помеченных как требующие участия Основателя</strong><span>Источник объектов не отметил ни один объект флагом needs_founder / needs_nika.</span></div>";
     }
 
     var blockerBox = page.querySelector('[data-g="blockers-list"]');
