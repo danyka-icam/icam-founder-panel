@@ -1034,6 +1034,42 @@
     return "<div class='cc-graph'>" + svg + note + "</div>";
   }
 
+  function renderCapitalIntersectionGraph() {
+    if (!M.fp.ok || !M.FP.intersections.length) {
+      return M.fp.ok ? empty("Пересечений через капитал нет", "Founder Projection не передал общих единиц капитала между линиями.") :
+        unavailable("Founder Projection недоступен", "Пересечения через капитал не проверены.");
+    }
+    var edges = M.FP.intersections, titles = [], seen = {};
+    edges.forEach(function (e) { [e.aTitle, e.bTitle].forEach(function (t) { if (t && !seen[t]) { seen[t] = 1; titles.push(t); } }); });
+    var W = 400, Hh = 260, cx = W / 2, cy = Hh / 2, rx = 145, ry = 88, pos = {};
+    titles.forEach(function (title, i) {
+      var a = -Math.PI / 2 + i * 2 * Math.PI / titles.length;
+      pos[title] = { x: cx + rx * Math.cos(a), y: cy + ry * Math.sin(a), ul: lineByExactTitle(title) };
+    });
+    var svg = "<svg class='cc-graph-svg cc-capital-graph' viewBox='0 0 " + W + " " + Hh + "' role='img' aria-label='Пересечения канонических линий через общий допущенный капитал'>";
+    edges.forEach(function (e) {
+      var a = pos[e.aTitle], b = pos[e.bTitle]; if (!a || !b) return;
+      svg += "<line class='cc-edge capital' x1='" + a.x.toFixed(1) + "' y1='" + a.y.toFixed(1) + "' x2='" + b.x.toFixed(1) + "' y2='" + b.y.toFixed(1) + "'/>";
+    });
+    titles.forEach(function (title) {
+      var p0 = pos[title], ul = p0.ul, tone = ul ? canonicalTone(ul) : "unknown";
+      var attr = ul ? sel("uline", ul.key) + " tabindex='0'" : "";
+      svg += "<g class='cc-node cc-cap-node st-" + tone + (ul && isSelected("uline", ul.key) ? " selected" : "") + "'" + attr + ">" +
+        "<polygon class='cc-node-glow' points='" + hexPoints(p0.x, p0.y, 31) + "'/>" +
+        "<polygon class='cc-node-hex' points='" + hexPoints(p0.x, p0.y, 25) + "'/>" +
+        "<text x='" + p0.x.toFixed(1) + "' y='" + (p0.y + 3).toFixed(1) + "' text-anchor='middle'>" + E(H.cut(title, 9)) + "</text></g>";
+    });
+    svg += "</svg>";
+    return "<div class='cc-graph-sub'><div class='cc-graph-subhead'><b>Пересечения через капитал</b><span>" + edges.length + " связей · " + titles.length + " линий</span></div>" +
+      svg + "<div class='cc-graph-note'>Пунктирная фиолетовая линия = две канонические линии используют один и тот же допущенный капитал. Это не зависимость и не причинное влияние.</div></div>";
+  }
+
+  function renderCommandGraph(lines) {
+    var routePart = lines.length ? "<div class='cc-graph-sub'><div class='cc-graph-subhead'><b>Операционные зависимости</b><span>маршруты Оркестратора</span></div>" + renderGraph(lines) + "</div>" :
+      unavailable("Маршруты недоступны", "Операционные зависимости не проверены.");
+    return routePart + renderCapitalIntersectionGraph();
+  }
+
   function renderAttention(lines) {
     var order = ["act", "blocked", "wait", "stale", "unknown", "flow"];
     return "<div class='cc-attn'>" + order.map(function (t) {
@@ -1068,7 +1104,7 @@
         empty("Оркестратор не отдал активных линий", ""));
     page.querySelector("[data-cc='changes']").innerHTML = renderRecentChanges(6);
     page.querySelector("[data-cc='lanes']").innerHTML = routesOk ? renderLanes(lines.slice(0, 10)) : unavailable("Нет маршрутов", "Траектории не строятся.");
-    page.querySelector("[data-cc='graph']").innerHTML = routesOk ? renderGraph(lines.slice(0, 10)) : unavailable("Нет маршрутов", "Карта связей очищена.");
+    page.querySelector("[data-cc='graph']").innerHTML = renderCommandGraph(routesOk ? lines.slice(0, 10) : []);
     page.querySelector("[data-cc='attention']").innerHTML = routesOk ? renderAttention(lines) : unavailable("Нет current state", "Шкала не строится.");
   }
 

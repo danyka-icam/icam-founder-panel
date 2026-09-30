@@ -238,6 +238,13 @@ body:before{opacity:.08}
 .cc-node-alert{fill:var(--cc-critical)}
 .cc-node .cc-node-alert-t{fill:#1b0706;font-weight:700;font-size:10px}
 .cc-graph-note{font-size:10.5px;color:var(--muted-2);text-align:center;margin-top:6px;line-height:1.4}
+.cc-graph-sub+.cc-graph-sub{margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft)}
+.cc-graph-subhead{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:4px}
+.cc-graph-subhead b{font-size:11.5px;color:#dce8e4;font-weight:600}
+.cc-graph-subhead span{font-size:9.5px;color:var(--muted-2);text-align:right}
+.cc-edge.capital{stroke:rgba(169,140,245,.62);stroke-dasharray:4 4;stroke-width:1.5}
+.cc-cap-node text{font-size:8.5px}
+.cc-capital-graph{max-height:280px}
 
 /* ---- attention scale ----------------------------------------------- */
 .cc-attn{display:flex;flex-direction:column;gap:10px}
