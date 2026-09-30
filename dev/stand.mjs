@@ -70,7 +70,7 @@ function universe(res, mode, file) {
   if (mode === "404") { res.writeHead(404); return res.end("not found"); }
   if (mode === "timeout") return; // never answer; the client aborts
   const body = JSON.parse(fs.readFileSync(path.join(FIX, file), "utf8"));
-  if (mode === "badschema") body.schema = body.schema.replace(/v0\.\d+$/, "v9.0");
+  if (mode === "badschema") body.schema_id = body.schema_id.replace(/v0\.\d+$/, "v9.0");
   res.writeHead(200, { "content-type": "application/json" });
   res.end(JSON.stringify(body));
 }

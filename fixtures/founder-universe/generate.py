@@ -7,9 +7,9 @@ atlas-temporal-universe.v0.1 and atlas-portfolio-admission.v0.1 and matches
 the current production-preview counts (3 worlds / 16 lines / 24 placed stars /
 7 company events / 4 line events / 3 unresolved; memory=113, placed=24,
 exact_owner_candidates=11, review_required=78, owner_conflicts=1).
-Nested shapes that the contract summary does not spell out (world keys,
-history items, temporal, capital, trajectories, conflicts, trusted_owner_map
-values, rules) are ASSUMED here; see README.md.
+Nested shapes (schema_id, temporal, history events, owner_conflicts map,
+trusted_owner_map, capital, strategic_trajectories) follow the live backend
+files as reconciled on 2026-09-30; see README.md for what is still assumed.
 """
 import json, os
 
@@ -39,85 +39,130 @@ WORLDS = [
    ("L-ACCEL", "Акселерация health-tech", []),
  ]),
 ]
+def line_id(i):
+    return "N-%06x" % (0x5a1000 + i * 37)
+
+def event(eid, date, change, why, nxt, transition="ADVANCED", subject=None, line=None, world=None,
+          truth="VERIFIED", binding="EXACT_OBJECT", scope="LINE", target=None, branch=None, evidence=1):
+    return {"event_id": eid, "change": change, "transition": transition, "subject": subject, "line": line, "world": world,
+            "evidence_count": evidence, "truth_status": truth, "why_it_matters": why, "next_milestone": nxt,
+            "source_branch": branch, "scope": scope, "binding_class": binding, "target": target, "date": date}
+
+def item(iid, title, time_class):
+    return {"id": iid, "title": title, "time_class": time_class, "valid_from": None, "recorded_at": None}
+
+def temporal(state=None, waiting=(), nxt=(), history=()):
+    return {"now": {"state": state, "truth": None, "valid_from": None, "recorded_at": None},
+            "waiting": [item("W-%d" % i, t, "CURRENT_STATE") for i, t in enumerate(waiting)],
+            "next_transition": [item("T-%d" % i, t, "FUTURE_CONDITION") for i, t in enumerate(nxt)],
+            "history": list(history)}
+
 CAPITAL = {
-  "L-BP-CORE": {"status": "ALLOCATED", "amount": 120000, "currency": "USD", "source": "seed tranche 1"},
-  "L-CVC": {"status": "REQUESTED", "amount": 50000, "currency": "USD", "source": "CVC pilot budget"},
+  "BrazilPortal": [{"id": "N-c0a001", "title": "Verifiable public research records and DOI-backed artifacts"},
+                   {"id": "N-c0a002", "title": "Company semantic state stack"}],
+  "Корпоративный венчурный контур": [{"id": "N-c0a003", "title": "Pilot budget envelope (CVC)"}],
 }
 LINE_HISTORY = {
-  "L-FND-SOAK": [{"at": "2026-09-26T10:00:00Z", "title": "Обнаружен orphan receipt в soak", "kind": "GATE_RESULT"}],
-  "L-ATLAS": [{"at": "2026-09-29T09:30:00Z", "title": "RC1 принят в read-only", "kind": "STATUS_CHANGE"}],
-  "L-BP-LEGAL": [{"at": "2026-09-28T14:00:00Z", "title": "Юр. проверка раздела «Инвесторам» начата", "kind": "STAGE_CHANGE"}],
-  "L-HSA": [{"at": "2026-09-21T12:00:00Z", "title": "Партнёр прислал черновик MoU", "kind": "EXTERNAL_EVENT"}],
+  "Финальная стабилизация Foundation": [event("E-L1", "2026-09-26", "Soak выявил orphan receipt", "Без закрытия receipt readiness не может стать PASS", "Закрыть orphan receipt", transition="BLOCKED", subject="FND-001", line="Финальная стабилизация Foundation", world="Фундамент и инфраструктура", branch="Foundation")],
+  "Atlas advisory": [event("E-L2", "2026-09-29", "RC1 принят в read-only", "Atlas может отдавать советы без права записи", "Модель данных Atlas v1.2", subject="RD1-ATL", line="Atlas advisory", world="Продукты и порталы", branch="Atlas")],
+  "Юридический контур BrazilPortal": [event("E-L3", "2026-09-28", "Начата юр. проверка раздела «Инвесторам»", "Раздел нельзя публиковать без юридического согласования", "Комментарии юриста", subject="CMP-000007", line="Юридический контур BrazilPortal", world="Продукты и порталы", branch="BrazilPortal", truth="PENDING_RECONCILIATION", binding="PENDING_EXACT_OBJECT_PROOF")],
+  "Health Security Alliance": [event("E-L4", "2026-09-21", "Партнёр прислал черновик MoU", "Открывает путь к совместной программе", "Встреча с партнёром", subject="RD1-HSA", line="Health Security Alliance", world="Исследования и партнёрства", branch="Research")],
 }
 TEMPORAL = {
-  "FND-001": {"past": "Soak выявил orphan receipt", "present": "Финальная стабилизация", "waiting": "Закрытие orphan receipt", "next": "Readiness aggregate PASS"},
-  "CMP-000005": {"past": "Портал собран", "present": "Активная сборка", "waiting": "Комментарии юриста", "next": "Публикация раздела «Инвесторам»"},
-  "FND-005": {"past": "PTC-R0 отложен", "present": "Проспективное обучение", "waiting": "Оценка эпизодов", "next": "Выбор эпизода для пилота"},
-  "RD1-HSA": {"past": "Черновик MoU получен", "present": "Подготовка", "waiting": "Встреча с партнёром", "next": "Подписание MoU"},
+  "FND-001": temporal("Финальная стабилизация", ["Закрытие orphan receipt"], ["Readiness aggregate PASS"],
+                      [event("E-S1", "2026-09-25", "Foundation перешёл в финальный soak", "Последний шаг перед readiness", "Readiness aggregate PASS", subject="FND-001")]),
+  "CMP-000005": temporal("Активная сборка", ["Комментарии юриста"], ["Публикация раздела «Инвесторам»"]),
+  "FND-005": temporal("Проспективное обучение", ["Оценка эпизодов"], ["Выбор эпизода для пилота"],
+                      [event("E-S2", "2026-09-12", "PTC-R0 отложен до стабилизации", "Без протокола нельзя начинать проспективное обучение", "Оценка эпизодов", transition="DEFERRED", subject="FND-005")]),
+  "RD1-HSA": temporal("Подготовка", ["Встреча с партнёром"], ["Подписание MoU"]),
 }
 
 def temporal_universe():
-    worlds, placed = [], []
+    worlds, placed, n = [], [], 0
     for wid, wt, lines in WORLDS:
         wl = []
-        for lid, lt, brs in lines:
+        for _lid, lt, brs in lines:
+            n += 1
+            lid = line_id(n)
             b = []
             for i, (mid, t, ct, ver) in enumerate(brs):
                 b.append({"id": f"{lid}-B{i + 1}", "title": t, "canonical_title": ct, "memory_id": mid, "verified": ver,
-                          "temporal": TEMPORAL.get(mid)})
-                placed.append((mid, lid, wid))
-            wl.append({"id": lid, "title": lt, "branches": b, "capital": CAPITAL.get(lid), "recent_history": LINE_HISTORY.get(lid, [])})
+                          "temporal": TEMPORAL.get(mid, temporal())})
+                placed.append((mid, lt, wt))
+            wl.append({"id": lid, "title": lt, "branches": b, "capital": CAPITAL.get(lt, []), "recent_history": LINE_HISTORY.get(lt, [])})
         worlds.append({"id": wid, "title": wt, "lines": wl})
+    company = [
+        event("E-C1", "2026-07-08", "Запущен портфель Founder Universe", "Все линии получили единое каноническое пространство", "Первые размещённые звёзды", scope="COMPANY"),
+        event("E-C2", "2026-07-21", "RD1 принят в read-only режиме", "Исследования читаются без права записи", "RD1 operation", scope="COMPANY"),
+        event("E-C3", "2026-08-04", "Market Scanner прошёл QA", "Внешние сигналы можно показывать Основателю", "Активация потока сигналов", scope="COMPANY"),
+        event("E-C4", "2026-08-18", "BrazilPortal объявлен приоритетным направлением", "Ресурсы смещаются в продукт для инвесторов", "Раздел «Инвесторам»", transition="PRIORITIZED", scope="COMPANY"),
+        event("E-C5", "2026-09-03", "Панель v2 принята как кандидат интеграции", "Основатель видит компанию в одном месте", "Founder review", scope="COMPANY"),
+        event("E-C6", "2026-09-12", "Personal Twin: safe read projection", "Twin доступен без раскрытия предсказаний", "Оценка эпизодов", scope="COMPANY"),
+        event("E-C7", "2026-09-25", "Foundation перешёл в финальный soak", "Последний шаг перед readiness", "Readiness aggregate PASS", scope="COMPANY", truth="PENDING_RECONCILIATION"),
+    ]
+    unresolved = [
+        event("E-U1", "2026-09-10", "Встреча с фондом из Сингапура", "Возможный внешний партнёр для портала", "Решение о следующей встрече", transition="OBSERVED", subject="Singapore fund", truth="PENDING_RECONCILIATION", binding="PENDING_EXACT_OBJECT_PROOF", scope="PENDING_BINDING", evidence=1),
+        event("E-U2", "2026-08-27", "Черновик тезисов для инвестора", "Нужен владелец, чтобы тезисы попали в линию", "Назначить владельца", transition="CREATED", truth="PENDING_RECONCILIATION", binding="PENDING_EXACT_OBJECT_PROOF", scope="PENDING_BINDING"),
+        event("E-U3", "2026-08-02", "Идея: программа акселерации", "Может стать отдельной линией health-tech", "Решение о размещении", transition="PROPOSED", truth="UNVERIFIED", binding="PENDING_EXACT_OBJECT_PROOF", scope="PENDING_BINDING", evidence=0),
+    ]
     tu = {
-      "schema": "atlas-temporal-universe.v0.1",
+      "schema_id": "atlas-temporal-universe.v0.1",
       "window": {"from": "2026-07-02T00:00:00Z", "to": "2026-09-30T00:00:00Z", "days": 90},
-      "company_history": [
-        {"at": "2026-07-08T10:00:00Z", "title": "Запущен портфель Founder Universe", "kind": "DECISION"},
-        {"at": "2026-07-21T10:00:00Z", "title": "RD1 принят в read-only режиме", "kind": "GATE_RESULT"},
-        {"at": "2026-08-04T10:00:00Z", "title": "Market Scanner прошёл QA", "kind": "TEST_RESULT"},
-        {"at": "2026-08-18T10:00:00Z", "title": "BrazilPortal объявлен приоритетным направлением", "kind": "DECISION"},
-        {"at": "2026-09-03T10:00:00Z", "title": "Панель v2 принята как кандидат интеграции", "kind": "STATUS_CHANGE"},
-        {"at": "2026-09-12T10:00:00Z", "title": "Personal Twin: safe read projection", "kind": "STAGE_CHANGE"},
-        {"at": "2026-09-25T10:00:00Z", "title": "Foundation перешёл в финальный soak", "kind": "STAGE_CHANGE"}],
+      "company_history": company,
       "worlds": worlds,
       "strategic_trajectories": [
-        {"id": "T-PLATFORM", "title": "Платформа для инвесторов", "lines": ["L-ATLAS", "L-BP-CORE", "L-BP-LEGAL"], "status": "ACTIVE"},
-        {"id": "T-TRUST", "title": "Доверенный фундамент", "lines": ["L-FND-SOAK", "L-FND-AUTH", "L-FND-TEST"], "status": "ACTIVE"},
-        {"id": "T-HEALTH", "title": "Health-tech партнёрства", "lines": ["L-HSA", "L-ACCEL"], "status": "FORMING"}],
-      "unresolved_history": [
-        {"at": "2026-09-10T10:00:00Z", "title": "Встреча с фондом из Сингапура", "reason": "нет канонического объекта-владельца"},
-        {"at": "2026-08-27T10:00:00Z", "title": "Черновик тезисов для инвестора", "reason": "владелец не подтверждён"},
-        {"at": "2026-08-02T10:00:00Z", "title": "Идея: программа акселерации", "reason": "не размещено ни в одной линии"}],
+        {"id": "ST-1", "title": "Платформа для инвесторов", "status": "ACTIVE", "horizon": "2026-Q4",
+         "north_star": "Инвестор видит проверяемое состояние компании без посредников",
+         "path": ["Atlas advisory", "Единая модель данных", "Раздел «Инвесторам»", "Публичный запуск"],
+         "publication_contour": "Investor portal", "evidence_basis": ["RC1 read-only", "Юр. проверка начата"]},
+        {"id": "ST-2", "title": "Доверенный фундамент", "status": "ACTIVE", "horizon": "2026-Q4",
+         "north_star": "Каждое утверждение панели доказуемо источником",
+         "path": ["Финальный soak", "Readback byte-for-byte", "Readiness PASS"],
+         "rule": "Никакой зелёный статус без доказательства", "feeds_back_to": ["Платформа для инвесторов"]},
+        {"id": "ST-3", "title": "Health-tech партнёрства", "status": "FORMING", "horizon": "2027",
+         "north_star": "Совместные программы с партнёрами по безопасности здоровья",
+         "path": ["MoU с партнёром", "Пилотная программа", "Акселерация"],
+         "growth_programs": ["Акселерация health-tech"]}],
+      "unresolved_history": unresolved,
       "rules": ["Мир и линия берутся только из канонической Founder Universe",
                 "unresolved_history не привязывается к объектам по сходству",
                 "Звезда видна на карте только после размещения"],
     }
     assert len(worlds) == 3 and sum(len(w["lines"]) for w in worlds) == 16 and len(placed) == 24
-    assert len(tu["company_history"]) == 7 and sum(len(v) for v in LINE_HISTORY.values()) == 4 and len(tu["unresolved_history"]) == 3
+    assert len(company) == 7 and sum(len(v) for v in LINE_HISTORY.values()) == 4 and len(unresolved) == 3
     return tu, placed
 
 def portfolio_admission(placed):
-    owners = {"L-SIGNALS": "Signals", "L-FND-HUB": "Foundation", "L-BP-CORE": "BrazilPortal", "L-ATLAS": "Atlas", "L-HSA": "Research",
-              "L-FND-SOAK": "Foundation", "L-TWIN": "Digital Twin", "L-CVC": "Research", "L-VOICE": "Research"}
-    spec = [("OPS-014", "Market Scanner", "L-SIGNALS", "SERVICE", "ACTIVE"), ("OPS-020", "Документный хаб", "L-FND-HUB", "ARTIFACT", "ACTIVE"),
-            ("MEM-0301", "Тезисы для встречи с инвестором", "L-BP-CORE", "NOTE", "ACTIVE"), ("MEM-0302", "Финмодель Atlas", "L-ATLAS", "DOCUMENT", "ACTIVE"),
-            ("MEM-0303", "Доступ BrazilPortal для команды", "L-BP-CORE", "TASK", "ACTIVE"), ("MEM-0304", "MoU v2", "L-HSA", "DOCUMENT", "ACTIVE"),
-            ("MEM-0305", "Readback протокол", "L-FND-SOAK", "DOCUMENT", "ACTIVE"), ("MEM-0306", "Scanner coverage report", "L-SIGNALS", "REPORT", "ACTIVE"),
-            ("MEM-0307", "Twin episode log", "L-TWIN", "DATASET", "ACTIVE"), ("MEM-0308", "CVC shortlist 2025", "L-CVC", "DOCUMENT", "ARCHIVED"),
-            ("MEM-0309", "Voice corpus v0", "L-VOICE", "DATASET", "HISTORICAL")]
-    cands = [{"memory_id": m, "kind": k, "title": t, "state": s, "evidence_status": "EXACT_OWNER_MATCH", "owning_branch": owners[l],
-              "proposed_line": l, "basis": "owning_branch совпадает с доверенным владельцем линии " + l} for m, t, l, k, s in spec]
+    spec = [  # memory_id, title, proposed_line (exact TU title), kind, state, owning_branch
+        ("OPS-014", "Market Scanner", "Market Scanner", "SERVICE", "ACTIVE", "Signals"),
+        ("OPS-020", "Документный хаб", "Документный хаб", "ARTIFACT", "ACTIVE", "Foundation"),
+        ("MEM-0301", "Тезисы для встречи с инвестором", "BrazilPortal", "NOTE", "ACTIVE", "BrazilPortal"),
+        ("MEM-0302", "Финмодель Atlas", "Atlas advisory", "DOCUMENT", "ACTIVE", "Atlas"),
+        ("MEM-0303", "Доступ BrazilPortal для команды", "BrazilPortal", "TASK", "ACTIVE", "BrazilPortal"),
+        ("MEM-0304", "MoU v2", "Health Security Alliance", "DOCUMENT", "ACTIVE", "Research"),
+        ("MEM-0305", "Readback протокол", "Финальная стабилизация Foundation", "DOCUMENT", "ACTIVE", "Foundation"),
+        ("MEM-0306", "Scanner coverage report", "Market Scanner", "REPORT", "ACTIVE", "Signals"),
+        # near-miss title on purpose: the panel must NOT fuzzy-match it to "Atlas advisory"
+        ("MEM-0307", "Twin episode log", "atlas advisory", "DATASET", "ACTIVE", "Atlas"),
+        ("MEM-0308", "CVC shortlist 2025", "Корпоративный венчурный контур", "DOCUMENT", "ARCHIVED", "Research"),
+        ("MEM-0309", "Voice corpus v0", "Construction voice research", "DATASET", "HISTORICAL", "Research")]
+    cands = [{"memory_id": m, "kind": k, "title": t, "state": s, "evidence_status": "EXACT_OWNER_MATCH", "owning_branch": ob,
+              "proposed_line": l, "basis": "owning_branch «%s» есть в trusted_owner_map" % ob} for m, t, l, k, s, ob in spec]
     reasons = ["владелец не указан", "несколько возможных линий", "owning_branch вне доверенной карты", "нет доказательств принадлежности"]
     kinds = ["NOTE", "DOCUMENT", "TASK", "ARTIFACT", "IDEA"]
     review = [{"memory_id": f"MEM-{1000 + i}", "kind": kinds[i % 5], "title": f"Объект памяти №{1000 + i}",
                "state": "ARCHIVED" if i % 13 == 0 else "ACTIVE", "evidence_status": "INSUFFICIENT" if i % 3 else "UNVERIFIED",
                "owning_branch": [None, "Research", "Foundation", "Unknown"][i % 4], "reason": reasons[i % 4]} for i in range(78)]
     adm = {
-      "schema": "atlas-portfolio-admission.v0.1",
+      "schema_id": "atlas-portfolio-admission.v0.1",
       "compiled_at": "2026-09-30T06:00:00Z",
       "counts": {"memory": 113, "placed": 24, "exact_owner_candidates": 11, "review_required": 78, "owner_conflicts": 1},
-      "trusted_owner_map": {m: {"line": l, "world": w} for m, l, w in placed},
-      "owner_conflicts": [{"memory_id": "MEM-0400", "title": "Бюджет пилота CVC", "owners": ["L-CVC", "L-BP-CORE"], "reason": "два доверенных владельца"}],
+      # owning_branch -> exact canonical line title
+      "trusted_owner_map": {"Signals": "Market Scanner", "Foundation": "Документный хаб", "BrazilPortal": "BrazilPortal",
+                            "Atlas": "Atlas advisory", "Research": "Health Security Alliance",
+                            "H008": "Человек, представление и действие"},
+      # owning_branch -> competing exact line titles
+      "owner_conflicts": {"ATLAS Structural & Epistemic Core": ["Atlas advisory", "Проверка самого ATLAS"]},
       "exact_owner_candidates": cands,
       "review_required": review,
       "rules": ["Кандидат не становится звездой без явного размещения",

@@ -470,7 +470,8 @@ body:before{opacity:.08}
 .cc-uline.selected{border-color:rgba(63,207,166,.55);box-shadow:0 0 18px rgba(63,207,166,.12)}
 .cc-uline-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .cc-uline-head b{display:block;font-size:12.5px;font-weight:500;color:#e6efec}
-.cc-uline-head small{font-size:10px;color:var(--muted-2)}
+.cc-uline-head small{display:block;font-size:10px;color:var(--muted-2)}
+.cc-uline-head small.why{color:#b8c9c5;margin-top:2px}
 .cc-uline-head>span:not(.cc-hex){flex:1;min-width:0}
 .cc-flow.star>.cc-flow-step.none{grid-column:2 / -1;color:var(--muted-2);font-size:10.5px}
 .cc-flow.star>.cc-flow-step.none:before{display:none}
@@ -518,6 +519,34 @@ body:before{opacity:.08}
 .cc-obj-badge.pl-unchecked,.cc-obj-badge.pl-absent{border-style:dashed}
 .cc-obj-badge.star{font-size:18px;color:var(--cc-violet);border-color:var(--cc-violet);box-shadow:0 0 12px rgba(169,140,245,.35)}
 .cc-hist li em{font-style:normal;color:var(--muted-2);font-size:10px}
+
+/* ---- contract reconciliation (third pass) -------------------------- */
+.cc-proof-tag{display:inline-block;margin-top:4px;font-style:normal;font-size:9px;letter-spacing:.04em;color:#c9bdf5;border:1px solid rgba(169,140,245,.3);background:rgba(169,140,245,.07);border-radius:6px;padding:1px 6px}
+.cc-feed-item small.why,.cc-hist small.why{color:#b8c9c5}
+.cc-feed-item small.next,.cc-hist small.next{color:var(--cc-wait)}
+.cc-hist li small{display:block;margin:2px 0 0 84px;font-size:10.5px;line-height:1.4}
+.cc-hist li .cc-proof-tag{margin-left:84px}
+.cc-tag{font-style:normal;font-size:9.5px;margin-left:7px;padding:1px 7px;border-radius:7px;color:var(--cc-flow);border:1px solid rgba(63,207,166,.35)}
+.cc-tag.hz{color:var(--cc-wait);border-color:rgba(90,169,230,.35)}
+.cc-north{margin-top:6px;font-size:11.5px;color:#e3ecd9;line-height:1.45;display:flex;gap:6px}
+.cc-north span{color:var(--gold)}
+.cc-track-node.stage{color:#cfdcd8;border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:8px;padding:4px 9px;font-size:10.5px}
+.cc-track-extra{margin-top:5px;font-size:10.5px;color:var(--muted);line-height:1.4}
+.cc-track-extra i{font-style:normal;color:var(--muted-2);margin-right:6px;text-transform:uppercase;letter-spacing:.06em;font-size:9px}
+.cc-track-none{margin-top:6px;font-size:10.5px;color:var(--muted-2)}
+.cc-caps{display:flex;flex-wrap:wrap;gap:5px}
+.cc-cap{font-size:10.5px;color:#f0dfb4;border:1px solid rgba(229,180,87,.4);background:rgba(229,180,87,.08);border-radius:8px;padding:3px 8px}
+.cc-cap:before{content:"◆ ";color:var(--gold)}
+.cc-ref.miss{cursor:default;color:var(--muted);border-style:dashed;border-color:rgba(138,162,179,.4);background:none}
+.cc-trusted{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+.cc-trusted-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:rgba(8,19,24,.5);font-size:11.5px}
+.cc-trusted-row[data-cc-select]{cursor:pointer}
+.cc-trusted-row .from{color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis}
+.cc-trusted-row>i{font-style:normal;color:var(--muted-2)}
+.cc-trusted-row .to{display:flex;flex-direction:column;min-width:0}
+.cc-trusted-row .to small{font-size:9.5px;color:var(--muted-2)}
+.cc-trusted-row .to.ok{color:#bff0e0}
+.cc-trusted-row .to.miss{color:var(--cc-return)}
 
 /* ---- responsive ----------------------------------------------------- */
 @media(max-width:1560px){

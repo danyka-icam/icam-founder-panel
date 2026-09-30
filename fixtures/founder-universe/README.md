@@ -15,23 +15,27 @@ Counts match production-preview at the time of writing:
 3 unresolved; memory=113, placed=24, exact_owner_candidates=11,
 review_required=78, owner_conflicts=1.
 
-## What is contract, what is assumed
+## Shapes (reconciled with the live backend files, 2026-09-30)
 
-Contract (from the backend summary):
-- TU top level: `window`, `company_history`, `worlds`, `strategic_trajectories`, `unresolved_history`, `rules`
-- `worlds[].lines[]`: `id`, `title`, `branches`, `capital`, `recent_history`
+Both payloads carry `schema_id` (`atlas-temporal-universe.v0.1`,
+`atlas-portfolio-admission.v0.1`). The panel reads `schema_id` first and
+rejects a different schema family as an incompatible source.
+
+Temporal Universe
+- `worlds[].lines[]`: `id` (graph ID `N-…`), `title`, `branches`, `capital`, `recent_history`
 - `branches[]`: `id`, `title`, `canonical_title`, `memory_id`, `verified`, `temporal`
-- Admission top level: `compiled_at`, `counts`, `trusted_owner_map`, `owner_conflicts`, `exact_owner_candidates`, `review_required`, `rules`
-- `exact_owner_candidates[]`: `memory_id`, `kind`, `title`, `state`, `evidence_status`, `owning_branch`, `proposed_line`, `basis`
-- `review_required[]`: `memory_id`, `kind`, `title`, `state`, `evidence_status`, `owning_branch`, `reason`
+- `temporal`: `{now: {state, truth, valid_from, recorded_at}, waiting: [{id, title, time_class, valid_from, recorded_at}], next_transition: [...], history: [event]}`
+  → UI: История ← `history`, Сейчас ← `now.state`, Ждём ← `waiting`, Следующий переход ← `next_transition`
+- history event (company_history, recent_history, unresolved_history, temporal.history):
+  `{event_id, change, transition, subject, line, world, evidence_count, truth_status, why_it_matters, next_milestone, source_branch, scope, binding_class, target, date}`
+  → UI: `change` first, then `why_it_matters`, then `next_milestone`, `date`, and `truth_status · binding_class` as the evidence tag
+- `capital`: `[{id, title}]` — shown as proven capital of the line
+- `strategic_trajectories[]`: `id, title, status, horizon, north_star, path` and optionally `publication_contour, growth_programs, rule, feeds_back_to, evidence_basis`.
+  `path` is a list of human-readable stages; a stage links to a line only on exact title equality.
 
-Assumed here (the panel reads these tolerantly and shows unknown keys as-is):
-- a top-level `schema` string (the panel only rejects a *different* schema family; a missing field is accepted)
-- world keys `id`, `title`
-- history items `{at, title, kind}`; unresolved items `{at, title, reason}`
-- `temporal` as `{past, present, waiting, next}`
-- `capital` as a flat object or `null`
-- `strategic_trajectories[]` as `{id, title, lines: [line ids], status}`
-- `owner_conflicts[]` as `{memory_id, title, owners, reason}`
-- `trusted_owner_map` as `{memory_id: {line, world}}`
-- `rules` as a list of strings
+Portfolio Admission
+- `exact_owner_candidates[].proposed_line` is an exact canonical line **title** (matched by exact equality only; the fixture contains one near-miss, `"atlas advisory"`, which must stay unmatched)
+- `trusted_owner_map`: `{owning_branch: exact line title}`
+- `owner_conflicts`: `{owning_branch: [competing exact line titles]}`
+
+Still assumed (not covered by the reconciliation): `window` as `{from, to, days}`, world keys `id`/`title`, `rules` as a list of strings.

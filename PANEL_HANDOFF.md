@@ -71,6 +71,15 @@ Both Founder Universe reads use an 8 s client timeout. Degradation:
 - Portfolio Admission down / wrong schema → placement is «не проверено»;
   the panel never computes candidate / review / conflict itself.
 
+Contract details the panel relies on (reconciled with the live files):
+`schema_id` identifies both payloads; star `temporal` is
+`{now.state, waiting[], next_transition[], history[]}`; history events are read
+by `change` / `why_it_matters` / `next_milestone` / `date` /
+`truth_status` + `binding_class`; `proposed_line` and the values of
+`trusted_owner_map` (`owning_branch → line title`) and `owner_conflicts`
+(`owning_branch → [line titles]`) are matched to canonical lines by exact title
+only; `capital` is `[{id, title}]`; trajectory `path` is a list of stages.
+
 Join rules: a route or Continuity object is tied to a star only when its ID
 equals the star's `memory_id`. `owning_branch` is shown as the object's origin,
 never as its world. `unresolved_history` is never attached to objects.

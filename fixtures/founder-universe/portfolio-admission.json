@@ -1,5 +1,5 @@
 {
- "schema": "atlas-portfolio-admission.v0.1",
+ "schema_id": "atlas-portfolio-admission.v0.1",
  "compiled_at": "2026-09-30T06:00:00Z",
  "counts": {
   "memory": 113,
@@ -9,114 +9,19 @@
   "owner_conflicts": 1
  },
  "trusted_owner_map": {
-  "FND-001": {
-   "line": "L-FND-SOAK",
-   "world": "W-FOUNDATION"
-  },
-  "FND-002": {
-   "line": "L-FND-SOAK",
-   "world": "W-FOUNDATION"
-  },
-  "FND-003": {
-   "line": "L-FND-AUTH",
-   "world": "W-FOUNDATION"
-  },
-  "FND-004": {
-   "line": "L-FND-HUB",
-   "world": "W-FOUNDATION"
-  },
-  "FND-006": {
-   "line": "L-FND-HUB",
-   "world": "W-FOUNDATION"
-  },
-  "FND-008": {
-   "line": "L-FND-TEST",
-   "world": "W-FOUNDATION"
-  },
-  "FND-010": {
-   "line": "L-FND-DIAG",
-   "world": "W-FOUNDATION"
-  },
-  "CMP-000005": {
-   "line": "L-BP-CORE",
-   "world": "W-PRODUCTS"
-  },
-  "CMP-000006": {
-   "line": "L-BP-CORE",
-   "world": "W-PRODUCTS"
-  },
-  "CMP-000007": {
-   "line": "L-BP-LEGAL",
-   "world": "W-PRODUCTS"
-  },
-  "RD1-ATL": {
-   "line": "L-ATLAS",
-   "world": "W-PRODUCTS"
-  },
-  "RD1-ATL-2": {
-   "line": "L-ATLAS",
-   "world": "W-PRODUCTS"
-  },
-  "OPS-015": {
-   "line": "L-SIGNALS",
-   "world": "W-PRODUCTS"
-  },
-  "OPS-016": {
-   "line": "L-SIGNALS",
-   "world": "W-PRODUCTS"
-  },
-  "FND-005": {
-   "line": "L-TWIN",
-   "world": "W-PRODUCTS"
-  },
-  "FND-005-P": {
-   "line": "L-TWIN",
-   "world": "W-PRODUCTS"
-  },
-  "OPS-021": {
-   "line": "L-OPS",
-   "world": "W-PRODUCTS"
-  },
-  "OPS-022": {
-   "line": "L-OPS",
-   "world": "W-PRODUCTS"
-  },
-  "RD1-HSA": {
-   "line": "L-HSA",
-   "world": "W-RESEARCH"
-  },
-  "RD1-HSA-MOU": {
-   "line": "L-HSA",
-   "world": "W-RESEARCH"
-  },
-  "RD1-OPS": {
-   "line": "L-RD1",
-   "world": "W-RESEARCH"
-  },
-  "RD1-CVC": {
-   "line": "L-CVC",
-   "world": "W-RESEARCH"
-  },
-  "RD1-CVC-P": {
-   "line": "L-CVC",
-   "world": "W-RESEARCH"
-  },
-  "RD1-VOICE": {
-   "line": "L-VOICE",
-   "world": "W-RESEARCH"
-  }
+  "Signals": "Market Scanner",
+  "Foundation": "Документный хаб",
+  "BrazilPortal": "BrazilPortal",
+  "Atlas": "Atlas advisory",
+  "Research": "Health Security Alliance",
+  "H008": "Человек, представление и действие"
  },
- "owner_conflicts": [
-  {
-   "memory_id": "MEM-0400",
-   "title": "Бюджет пилота CVC",
-   "owners": [
-    "L-CVC",
-    "L-BP-CORE"
-   ],
-   "reason": "два доверенных владельца"
-  }
- ],
+ "owner_conflicts": {
+  "ATLAS Structural & Epistemic Core": [
+   "Atlas advisory",
+   "Проверка самого ATLAS"
+  ]
+ },
  "exact_owner_candidates": [
   {
    "memory_id": "OPS-014",
@@ -125,8 +30,8 @@
    "state": "ACTIVE",
    "evidence_status": "EXACT_OWNER_MATCH",
    "owning_branch": "Signals",
-   "proposed_line": "L-SIGNALS",
-   "basis": "owning_branch совпадает с доверенным владельцем линии L-SIGNALS"
+   "proposed_line": "Market Scanner",
+   "basis": "owning_branch «Signals» есть в trusted_owner_map"
   },
   {
    "memory_id": "OPS-020",
@@ -135,8 +40,8 @@
    "state": "ACTIVE",
    "evidence_status": "EXACT_OWNER_MATCH",
    "owning_branch": "Foundation",
-   "proposed_line": "L-FND-HUB",
-   "basis": "owning_branch совпадает с доверенным владельцем линии L-FND-HUB"
+   "proposed_line": "Документный хаб",
+   "basis": "owning_branch «Foundation» есть в trusted_owner_map"
   },
   {
    "memory_id": "MEM-0301",
@@ -145,8 +50,8 @@
    "state": "ACTIVE",
    "evidence_status": "EXACT_OWNER_MATCH",
    "owning_branch": "BrazilPortal",
-   "proposed_line": "L-BP-CORE",
-   "basis": "owning_branch совпадает с доверенным владельцем линии L-BP-CORE"
+   "proposed_line": "BrazilPortal",
+   "basis": "owning_branch «BrazilPortal» есть в trusted_owner_map"
   },
   {
    "memory_id": "MEM-0302",
@@ -155,8 +60,8 @@
    "state": "ACTIVE",
    "evidence_status": "EXACT_OWNER_MATCH",
    "owning_branch": "Atlas",
-   "proposed_line": "L-ATLAS",
-   "basis": "owning_branch совпадает с доверенным владельцем линии L-ATLAS"
+   "proposed_line": "Atlas advisory",
+   "basis": "owning_branch «Atlas» есть в trusted_owner_map"
   },
   {
    "memory_id": "MEM-0303",
@@ -165,8 +70,8 @@
    "state": "ACTIVE",
    "evidence_status": "EXACT_OWNER_MATCH",
    "owning_branch": "BrazilPortal",
-   "proposed_line": "L-BP-CORE",
-   "basis": "owning_branch совпадает с доверенным владельцем линии L-BP-CORE"
+   "proposed_line": "BrazilPortal",
+   "basis": "owning_branch «BrazilPortal» есть в trusted_owner_map"
   },
   {
    "memory_id": "MEM-0304",
@@ -175,8 +80,8 @@
    "state": "ACTIVE",
    "evidence_status": "EXACT_OWNER_MATCH",
    "owning_branch": "Research",
-   "proposed_line": "L-HSA",
-   "basis": "owning_branch совпадает с доверенным владельцем линии L-HSA"
+   "proposed_line": "Health Security Alliance",
+   "basis": "owning_branch «Research» есть в trusted_owner_map"
   },
   {
    "memory_id": "MEM-0305",
@@ -185,8 +90,8 @@
    "state": "ACTIVE",
    "evidence_status": "EXACT_OWNER_MATCH",
    "owning_branch": "Foundation",
-   "proposed_line": "L-FND-SOAK",
-   "basis": "owning_branch совпадает с доверенным владельцем линии L-FND-SOAK"
+   "proposed_line": "Финальная стабилизация Foundation",
+   "basis": "owning_branch «Foundation» есть в trusted_owner_map"
   },
   {
    "memory_id": "MEM-0306",
@@ -195,8 +100,8 @@
    "state": "ACTIVE",
    "evidence_status": "EXACT_OWNER_MATCH",
    "owning_branch": "Signals",
-   "proposed_line": "L-SIGNALS",
-   "basis": "owning_branch совпадает с доверенным владельцем линии L-SIGNALS"
+   "proposed_line": "Market Scanner",
+   "basis": "owning_branch «Signals» есть в trusted_owner_map"
   },
   {
    "memory_id": "MEM-0307",
@@ -204,9 +109,9 @@
    "title": "Twin episode log",
    "state": "ACTIVE",
    "evidence_status": "EXACT_OWNER_MATCH",
-   "owning_branch": "Digital Twin",
-   "proposed_line": "L-TWIN",
-   "basis": "owning_branch совпадает с доверенным владельцем линии L-TWIN"
+   "owning_branch": "Atlas",
+   "proposed_line": "atlas advisory",
+   "basis": "owning_branch «Atlas» есть в trusted_owner_map"
   },
   {
    "memory_id": "MEM-0308",
@@ -215,8 +120,8 @@
    "state": "ARCHIVED",
    "evidence_status": "EXACT_OWNER_MATCH",
    "owning_branch": "Research",
-   "proposed_line": "L-CVC",
-   "basis": "owning_branch совпадает с доверенным владельцем линии L-CVC"
+   "proposed_line": "Корпоративный венчурный контур",
+   "basis": "owning_branch «Research» есть в trusted_owner_map"
   },
   {
    "memory_id": "MEM-0309",
@@ -225,8 +130,8 @@
    "state": "HISTORICAL",
    "evidence_status": "EXACT_OWNER_MATCH",
    "owning_branch": "Research",
-   "proposed_line": "L-VOICE",
-   "basis": "owning_branch совпадает с доверенным владельцем линии L-VOICE"
+   "proposed_line": "Construction voice research",
+   "basis": "owning_branch «Research» есть в trusted_owner_map"
   }
  ],
  "review_required": [

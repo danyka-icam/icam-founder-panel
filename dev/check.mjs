@@ -38,6 +38,16 @@ for (const w of WIDTHS) {
       check(/113/.test(pl) && /Кандидат на точную связь/.test(pl) && /на Founder Map не видна/.test(pl), "placement driven by Portfolio Admission; candidates not visible on map");
       check(!/Общий владелец хода/.test(ln), "links: no shared-ball_owner resource claim");
       check(/Фундамент и инфраструктура/.test(cc), "command center shows canonical worlds");
+      // real contract shapes (schema_id, temporal, history events, maps, capital, path)
+      check(/Без закрытия receipt readiness/.test(tl) && /Soak выявил orphan receipt/.test(tl), "history event: change + why_it_matters shown");
+      check(/PENDING_RECONCILIATION/.test(tl), "history event: truth_status / binding_class shown as proof tag");
+      check(!/event_id|"change"|\{"/.test(tl + pl + cc + ln), "no raw JSON of known event fields");
+      check(/Финальная стабилизация/.test(tl) && /Закрытие orphan receipt/.test(tl) && /Readiness aggregate PASS/.test(tl), "temporal: now.state / waiting / next_transition shown");
+      check(/ATLAS Structural & Epistemic Core/.test(pl) && /Проверка самого ATLAS/.test(pl), "owner_conflicts map normalised into a card");
+      check(/предложена «atlas advisory» — точной линии нет/.test(pl), "proposed_line matched by exact title only (no fuzzy)");
+      check(/H008/.test(pl) && /Человек, представление и действие/.test(pl), "trusted_owner_map shown as owning_branch → line title");
+      check(/Company semantic state stack/.test(ln), "capital [{id,title}] shown as proven line capital");
+      check(/Публичный запуск/.test(ln) && /Инвестор видит проверяемое состояние/.test(ln), "trajectory path + north_star shown");
       const stars = await page.evaluate(() => document.querySelectorAll('[data-page-panel="placement"] .cc-pcol.pl-placed .cc-pcard').length);
       check(stars === 24, `placed column lists 24 stars (${stars})`);
     }

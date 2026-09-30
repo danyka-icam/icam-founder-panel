@@ -37,14 +37,10 @@
     closed: { label: "Закрыта", hint: "статус маршрута закрыт" }
   };
 
-  // Labels for the keys of a star's `temporal` block. Keys not listed here are
-  // rendered as-is, so nothing the source sends is hidden or renamed silently.
-  var TEMPORAL_LABELS = {
-    past: "Прошлое", present: "Настоящее", now: "Настоящее", current: "Настоящее",
-    waiting: "Ожидание", waiting_for: "Ожидание", pending: "Ожидание",
-    next: "Следующий переход", next_transition: "Следующий переход", expected: "Следующий переход"
-  };
-  var TEMPORAL_ORDER = ["Прошлое", "Настоящее", "Ожидание", "Следующий переход"];
+  // Columns of a star's `temporal` block (atlas-temporal-universe.v0.1):
+  // history[] → История, now.state → Сейчас, waiting[] → Ждём,
+  // next_transition[] → Следующий переход.
+  var TEMPORAL_ORDER = ["История", "Сейчас", "Ждём", "Следующий переход"];
 
   var BUCKET_META = {
     placed: { title: "Размещены", hint: "звёзды на текущей Founder Map" },
@@ -85,7 +81,7 @@
 
   // Generic readers for nested items whose inner shape the contract summary
   // does not pin down (history entries, trajectories, conflicts, rules).
-  var TEXT_KEYS = ["title", "summary", "label", "text", "name", "description", "event", "what"];
+  var TEXT_KEYS = ["change", "title", "summary", "label", "text", "name", "description", "event", "what"];
   var TIME_KEYS = ["at", "date", "occurred_at", "timestamp", "ts", "time", "observed_at", "happened_at"];
 
   function pickText(o) {
@@ -115,6 +111,86 @@
       return "<span class='cc-kv'><i>" + E(k) + "</i>" + E(H.cut(scalar(o[k]), 80)) + "</span>";
     }).join("");
   }
+
+  // Temporal Universe history event: {event_id, change, transition, subject,
+  // line, world, evidence_count, truth_status, why_it_matters, next_milestone,
+  // source_branch, scope, binding_class, target, date}. Known fields are read
+  // by name; only an event without them falls back to the generic readers.
+  function eventView(h) {
+    if (h == null || typeof h !== "object") return { main: h == null ? "" : String(h), why: "", next: "", at: null, proof: "", known: false, raw: h };
+    var known = h.change != null || h.why_it_matters != null || h.next_milestone != null || h.event_id != null;
+    return {
+      main: h.change || pickText(h) || "",
+      why: h.why_it_matters || "",
+      next: h.next_milestone || "",
+      at: h.date && isFinite(new Date(h.date).getTime()) ? h.date : pickTime(h),
+      proof: [h.truth_status, h.binding_class].filter(Boolean).join(" · "),
+      transition: h.transition || "",
+      subject: h.subject || "",
+      known: known, raw: h
+    };
+  }
+
+  function eventBody(v, title) {
+    return "<b>" + E(H.cut(title || v.main || "событие", 90)) + "</b>" +
+      (title && v.main ? "<small>" + E(H.cut(v.main, 110)) + "</small>" : "") +
+      (v.why ? "<small class='why'>" + E(H.cut(v.why, 120)) + "</small>" : "") +
+      (v.next ? "<small class='next'>→ " + E(H.cut(v.next, 90)) + "</small>" : "") +
+      (!v.known && v.raw && typeof v.raw === "object" ? "<small>" + E(H.cut(kvText(v.raw, TEXT_KEYS.concat(TIME_KEYS)), 120)) + "</small>" : "") +
+      (v.proof ? "<em class='cc-proof-tag'>" + E(v.proof) + "</em>" : "");
+  }
+
+  function listItems(v) {
+    if (v == null) return [];
+    return (Array.isArray(v) ? v : [v]).map(function (x) {
+      if (x && typeof x === "object") return { title: x.title || pickText(x) || x.id || "—", timeClass: x.time_class || null };
+      return { title: String(x), timeClass: null };
+    });
+  }
+
+  function temporalView(t) {
+    var out = { history: [], now: null, waiting: [], next: [], extra: {}, any: false };
+    if (!t || typeof t !== "object") return out;
+    Object.keys(t).forEach(function (k) {
+      var v = t[k];
+      if (k === "history") out.history = out.history.concat(A(v).map(eventView));
+      else if (k === "now") out.now = v && typeof v === "object" ? (v.state != null ? String(v.state) : null) : (v != null ? String(v) : null);
+      else if (k === "waiting") out.waiting = out.waiting.concat(listItems(v));
+      else if (k === "next_transition") out.next = out.next.concat(listItems(v));
+      // legacy aliases, kept only for compatibility with older payloads
+      else if (k === "present" || k === "current") { if (out.now == null && v != null) out.now = scalar(v); }
+      else if (k === "past") { if (v != null) out.history.push(eventView(typeof v === "object" ? v : { change: String(v) })); }
+      else if (k === "waiting_for" || k === "pending") out.waiting = out.waiting.concat(listItems(v));
+      else if (k === "next" || k === "expected") out.next = out.next.concat(listItems(v));
+      else out.extra[k] = v;
+    });
+    out.any = !!(out.history.length || out.now || out.waiting.length || out.next.length);
+    return out;
+  }
+
+  function temporalCells(tv) {
+    var last = tv.history.slice().sort(function (a, b) { return String(b.at || "").localeCompare(String(a.at || "")); })[0];
+    var join = function (xs) { return xs.map(function (x) { return x.title; }).join("; "); };
+    return {
+      "История": last ? last.main + (last.at ? " · " + H.ago(last.at) : "") + (tv.history.length > 1 ? " (+" + (tv.history.length - 1) + ")" : "") : null,
+      "Сейчас": tv.now,
+      "Ждём": tv.waiting.length ? join(tv.waiting) : null,
+      "Следующий переход": tv.next.length ? join(tv.next) : null
+    };
+  }
+
+  // Exact title equality only. A title shared by several lines resolves to
+  // nothing rather than to a guess.
+  function lineByExactTitle(title) { return exactTitle(M && M.U, title); }
+
+  function capitalItems(ln) {
+    var c = ln.capital;
+    if (c == null) return [];
+    if (Array.isArray(c)) return c.map(function (x) { return x && typeof x === "object" ? (x.title || x.id || pickText(x)) : String(x); }).filter(Boolean);
+    if (typeof c === "object") return Object.keys(c).length ? [kvText(c, [])] : [];
+    return [String(c)];
+  }
+  function hasCapital(ln) { return capitalItems(ln).length > 0; }
 
   function hexPoints(cx, cy, r) {
     var pts = [];
@@ -150,7 +226,7 @@
 
   // ------------------------------------------------------------------ source gates
 
-  function schemaOf(j) { return j && (j.schema || j.schema_version || j.$schema) || null; }
+  function schemaOf(j) { return j && (j.schema_id || j.schema || j.schema_version) || null; }
 
   function readUniverse(d, sources) {
     var st = sources.temporalUniverse;
@@ -175,7 +251,7 @@
   // ------------------------------------------------------------------ model
 
   function buildUniverse(j) {
-    var U = { worlds: [], lines: [], stars: [], lineById: {}, starByMemory: {}, starByKey: {}, events: [] };
+    var U = { worlds: [], lines: [], stars: [], lineById: {}, titleIndex: {}, starByMemory: {}, starByKey: {}, events: [] };
     A(j.worlds).forEach(function (w, wi) {
       var world = { id: String(w.id || w.world_id || "W" + wi), title: w.title || w.name || w.id || "Мир " + (wi + 1), raw: w, lines: [] };
       A(w.lines).forEach(function (ln, li) {
@@ -198,16 +274,18 @@
           if (star.memoryId) U.starByMemory[star.memoryId] = star;
         });
         line.history.forEach(function (h) {
-          U.events.push({ scope: "line", line: line, world: world, item: h, at: pickTime(h), text: pickText(h) || "событие линии" });
+          var v = eventView(h);
+          U.events.push({ scope: "line", line: line, world: world, item: h, v: v, at: v.at, text: v.main || "событие линии" });
         });
         world.lines.push(line);
         U.lines.push(line);
         U.lineById[line.key] = line;
+        (U.titleIndex[String(line.title)] = U.titleIndex[String(line.title)] || []).push(line);
       });
       U.worlds.push(world);
     });
-    U.company = A(j.company_history).map(function (h) { return { scope: "company", item: h, at: pickTime(h), text: pickText(h) || "событие компании" }; });
-    U.unresolved = A(j.unresolved_history).map(function (h) { return { scope: "unresolved", item: h, at: pickTime(h), text: pickText(h) || "событие" }; });
+    U.company = A(j.company_history).map(function (h) { var v = eventView(h); return { scope: "company", item: h, v: v, at: v.at, text: v.main || "событие компании" }; });
+    U.unresolved = A(j.unresolved_history).map(function (h) { var v = eventView(h); return { scope: "unresolved", item: h, v: v, at: v.at, text: v.main || "событие" }; });
     U.trajectories = A(j.strategic_trajectories);
     U.rules = Array.isArray(j.rules) ? j.rules : (j.rules && typeof j.rules === "object" ? Object.keys(j.rules).map(function (k) { return k + ": " + scalar(j.rules[k]); }) : []);
     U.window = j.window || null;
@@ -217,8 +295,11 @@
   function buildAdmission(j, U) {
     var AD = { counts: j.counts || {}, compiledAt: j.compiled_at || null, rules: [], items: {}, byMemory: {}, buckets: {} };
     AD.rules = Array.isArray(j.rules) ? j.rules : (j.rules && typeof j.rules === "object" ? Object.keys(j.rules).map(function (k) { return k + ": " + scalar(j.rules[k]); }) : []);
-    var trusted = j.trusted_owner_map;
-    AD.trustedCount = Array.isArray(trusted) ? trusted.length : (trusted && typeof trusted === "object" ? Object.keys(trusted).length : 0);
+    // trusted_owner_map: owning_branch → exact canonical line title.
+    var trusted = j.trusted_owner_map && typeof j.trusted_owner_map === "object" && !Array.isArray(j.trusted_owner_map) ? j.trusted_owner_map : {};
+    AD.trusted = Object.keys(trusted).map(function (branch) {
+      return { branch: branch, title: trusted[branch] == null ? null : String(trusted[branch]), ul: exactTitle(U, trusted[branch]) };
+    });
     Object.keys(BUCKET_META).forEach(function (k) { AD.buckets[k] = []; });
 
     function add(bucket, src, raw, i) {
@@ -228,17 +309,32 @@
         raw: raw, memoryId: raw.memory_id ? String(raw.memory_id) : null,
         title: raw.title || pickText(raw) || raw.memory_id || "объект памяти",
         star: raw.memory_id && U ? U.starByMemory[String(raw.memory_id)] || null : null,
-        proposedLine: raw.proposed_line && U ? U.lineById[String(raw.proposed_line)] || null : null
+        proposedLine: raw.proposed_line != null ? exactTitle(U, raw.proposed_line) : null,
+        conflictLines: raw.lines ? A(raw.lines).map(function (t) { return { title: String(t), ul: exactTitle(U, t) }; }) : null
       };
       AD.items[it.key] = it;
       AD.buckets[it.bucket].push(it);
       if (it.memoryId && !AD.byMemory[it.memoryId]) AD.byMemory[it.memoryId] = it;
     }
-    A(j.owner_conflicts).forEach(function (x, i) { add("conflict", "owner_conflicts", x || {}, i); });
+    // owner_conflicts: {owning_branch: [competing exact line titles]} (array form tolerated).
+    var oc = j.owner_conflicts;
+    var ocList = Array.isArray(oc) ? oc : (oc && typeof oc === "object" ? Object.keys(oc).map(function (k) {
+      return { owning_branch: k, lines: A(oc[k]).map(String) };
+    }) : []);
+    ocList.forEach(function (x, i) {
+      var raw = x || {};
+      if (raw.owning_branch && !raw.title) raw = { owning_branch: raw.owning_branch, lines: raw.lines, title: "«" + raw.owning_branch + "» указывает на несколько линий" };
+      add("conflict", "owner_conflicts", raw, i);
+    });
     j.exact_owner_candidates.forEach(function (x, i) { add("candidate", "exact_owner_candidates", x || {}, i); });
     j.review_required.forEach(function (x, i) { add("review", "review_required", x || {}, i); });
-    AD.trusted = trusted && typeof trusted === "object" && !Array.isArray(trusted) ? trusted : null;
     return AD;
+  }
+
+  function exactTitle(U, title) {
+    if (!U || title == null) return null;
+    var ls = U.titleIndex[String(title)];
+    return ls && ls.length === 1 ? ls[0] : null;
   }
 
   function buildModel(d) {
@@ -431,7 +527,6 @@
     if (!M.adm.ok) return { bucket: "unchecked", label: "не проверено — Portfolio Admission недоступен" };
     if (x.star) return { bucket: "placed", label: "размещена звездой" };
     if (x.adm) return { bucket: x.adm.bucket, label: BUCKET_META[x.adm.bucket].title.toLowerCase() + (x.adm.bucket === "archive" ? " (из " + x.adm.source + ")" : "") };
-    if (M.AD.trusted && M.AD.trusted[x.key]) return { bucket: "placed", label: "в trusted_owner_map" };
     return { bucket: "absent", label: "нет в слое допуска" };
   }
 
@@ -545,7 +640,7 @@
     return "<div class='cc-worlds'>" + M.U.worlds.map(function (w) {
       var stars = 0, ver = 0, ev = 0, cap = 0;
       w.lines.forEach(function (ln) {
-        stars += ln.stars.length; ev += ln.history.length; if (ln.capital != null) cap += 1;
+        stars += ln.stars.length; ev += ln.history.length; if (hasCapital(ln)) cap += 1;
         ln.stars.forEach(function (s) { if (s.verified) ver += 1; });
       });
       var routes = M.active.filter(function (l) { return l.star && l.star.world === w; });
@@ -611,8 +706,8 @@
       return "<div class='cc-feed'>" + ev.map(function (e) {
         var isLine = e.scope === "line";
         return "<div class='cc-feed-item " + (isLine ? "material" : "company") + "'" + (isLine ? sel("uline", e.line.key) : "") + ">" +
-          "<i></i><div><b>" + E(H.cut(isLine ? e.line.title : "Компания", 40)) + "</b><small>" + E(H.cut(e.text, 90)) +
-          (isLine ? " · " + E(e.world.title) : "") + "</small></div><span>" + E(H.ago(e.at)) + "</span></div>";
+          "<i></i><div>" + eventBody({ main: e.v.main, why: e.v.why, next: "", proof: e.v.proof, known: e.v.known, raw: e.v.raw },
+            (isLine ? e.line.title + " · " + e.world.title : "Компания")) + "</div><span>" + E(dateLabel(e.at)) + "</span></div>";
       }).join("") + "</div><div class='cc-foot-note'>Temporal Universe · company_history и recent_history линий.</div>";
     }
     if (!ok("objects") && !ok("routes")) return unavailable("Нет источников с датами", "Изменения не выводятся из прошлых данных.");
@@ -736,17 +831,6 @@
 
   // ------------------------------------------------------------------ Во времени
 
-  function temporalCells(t) {
-    var cells = {};
-    var extra = {};
-    if (t) Object.keys(t).forEach(function (k) {
-      var lab = TEMPORAL_LABELS[k];
-      if (lab && cells[lab] == null) cells[lab] = scalar(t[k]);
-      else extra[k] = t[k];
-    });
-    return { cells: cells, extra: extra };
-  }
-
   function universeRange() {
     var w = M.U.window, to = null, from = null;
     if (w && typeof w === "object") {
@@ -782,7 +866,7 @@
     function dot(e, i, cls, attrs) {
       var t = new Date(e.at).getTime(), out = t < R.from ? " older" : "";
       return "<span class='cc-dot " + cls + out + "' style='left:" + x(e.at) + "%;top:" + (18 + (i % 3) * 22) + "%'" + (attrs || "") +
-        " title='" + E(e.text + " · " + dateLabel(e.at)) + "'></span>";
+        " title='" + E(e.text + (e.v && e.v.why ? " — " + e.v.why : "") + " · " + dateLabel(e.at)) + "'></span>";
     }
     var lanes = [];
     lanes.push("<div class='cc-swim-lane company'><div class='cc-swim-name'><b>Компания</b><small>" + U.company.length + " событ. · company_history</small></div>" +
@@ -792,7 +876,7 @@
       var evs = U.events.filter(function (e) { return e.world === w && e.at; });
       var waiting = [];
       w.lines.forEach(function (ln) {
-        var hasNext = ln.stars.some(function (s) { var tc = temporalCells(s.temporal).cells; return tc["Ожидание"] || tc["Следующий переход"]; });
+        var hasNext = ln.stars.some(function (s) { var tv = temporalView(s.temporal); return tv.waiting.length || tv.next.length; });
         if (hasNext) waiting.push(ln);
       });
       lanes.push("<div class='cc-swim-lane'><div class='cc-swim-name'><b>" + E(w.title) + "</b><small>" + w.lines.length + " лин. · " + evs.length + " событ.</small></div>" +
@@ -818,20 +902,23 @@
       return "<div class='cc-world'><div class='cc-world-head'><span class='cc-world-dot'></span><b>" + E(w.title) + "</b>" +
         "<small>" + w.lines.length + " лин. · " + w.lines.reduce(function (n, l) { return n + l.stars.length; }, 0) + " звёзд</small></div>" +
         w.lines.map(function (ln) {
-          var last = ln.history.filter(function (h) { return pickTime(h); }).sort(function (a, b) { return String(pickTime(b)).localeCompare(String(pickTime(a))); })[0];
+          var last = ln.history.map(eventView).filter(function (v) { return v.at; }).sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); })[0];
           return "<div class='cc-uline" + (isSelected("uline", ln.key) ? " selected" : "") + "'" + sel("uline", ln.key) + ">" +
             "<div class='cc-uline-head'>" + hexBadge(initials(ln.title), "flow", "sm") + "<span><b>" + E(ln.title) + "</b><small>" +
-            ln.stars.length + " звёзд" + (last ? " · " + E(H.cut(pickText(last), 50)) + " · " + E(H.ago(pickTime(last))) : " · событий в окне нет") + "</small></span>" +
-            (ln.capital != null ? "<i class='cc-capchip'>капитал</i>" : "") + "</div>" +
+            ln.stars.length + " звёзд" + (last ? " · " + E(H.cut(last.main, 60)) + " · " + E(dateLabel(last.at)) : " · событий в окне нет") + "</small>" +
+            (last && last.why ? "<small class='why'>" + E(H.cut(last.why, 110)) + "</small>" : "") +
+            (last && last.proof ? "<em class='cc-proof-tag'>" + E(last.proof) + "</em>" : "") + "</span>" +
+            (hasCapital(ln) ? "<i class='cc-capchip'>капитал</i>" : "") + "</div>" +
             (ln.stars.length ? ln.stars.map(function (s) {
-              var tc = temporalCells(s.temporal);
+              var tv = temporalView(s.temporal), tc = temporalCells(tv);
               return "<div class='cc-flow star" + (s.verified ? " verified" : "") + (isSelected("star", s.key) ? " selected" : "") + "'" + sel("star", s.key) + ">" +
                 "<div class='cc-flow-name'><span class='cc-star-dot" + (s.verified ? " v" : "") + "'></span><span><b>" + E(H.cut(s.title, 30)) + "</b><small>" +
                 E((s.memoryId || "без memory_id") + (s.verified ? " · проверена" : " · не проверена")) + "</small></span></div>" +
-                (Object.keys(tc.cells).length ? TEMPORAL_ORDER.map(function (lab, i) {
+                (tv.any ? TEMPORAL_ORDER.map(function (lab, i) {
                   var cls = ["past", "now", "wait", "next"][i];
-                  return "<div class='cc-flow-step " + cls + "'><small>" + lab + "</small><span>" + E(tc.cells[lab] ? H.cut(tc.cells[lab], 60) : "не передано") + "</span></div>";
-                }).join("") : "<div class='cc-flow-step none'><span>Источник не передал temporal для этой звезды — прошлое, настоящее и переход не показываются.</span></div>") + "</div>";
+                  var empt = lab === "История" ? "истории нет" : lab === "Сейчас" ? "состояние не передано" : "—";
+                  return "<div class='cc-flow-step " + cls + "'><small>" + lab + "</small><span>" + E(tc[lab] ? H.cut(tc[lab], 70) : empt) + "</span></div>";
+                }).join("") : "<div class='cc-flow-step none'><span>temporal звезды пуст: истории, состояния, ожидания и перехода источник не передал.</span></div>") + "</div>";
             }).join("") : "<div class='cc-uline-empty'>У линии нет размещённых звёзд.</div>") +
             "</div>";
         }).join("") + "</div>";
@@ -843,14 +930,14 @@
     page.querySelector("[data-cc='unplaced-title']").textContent = "Неразрешённая история";
     page.querySelector("[data-cc='unplaced-sub']").textContent = "unresolved_history — не привязана ни к одному объекту";
     page.querySelector("[data-cc='unplaced']").innerHTML = U.unresolved.length ? "<div class='cc-feed'>" + U.unresolved.map(function (e) {
-      return "<div class='cc-feed-item unplaced static'><i></i><div><b>" + E(H.cut(e.text, 60)) + "</b><small>" +
-        E(kvText(e.item, TEXT_KEYS.concat(TIME_KEYS)) || "без пояснения") + "</small></div><span>" + E(e.at ? H.ago(e.at) : "без даты") + "</span></div>";
+      return "<div class='cc-feed-item unplaced static'><i></i><div>" + eventBody(e.v) + "</div><span>" + E(e.at ? dateLabel(e.at) : "без даты") + "</span></div>";
     }).join("") + "</div><div class='cc-foot-note'>Панель не привязывает эти события к объектам по тематическому сходству. Они остаются неразмещёнными, пока источник не разместит их явно.</div>" :
       empty("Неразрешённой истории нет", "unresolved_history пуст.");
 
     page.querySelector("[data-cc='bounds']").innerHTML = "<ul class='cc-bounds'>" +
       U.rules.map(function (r) { return "<li><b>Правило источника:</b> " + E(scalar(r)) + "</li>"; }).join("") +
-      "<li>Прошлое / настоящее / ожидание / следующий переход звезды — поле <b>temporal</b> из Temporal Universe; пустые ячейки означают, что источник их не передал.</li>" +
+      "<li>История / Сейчас / Ждём / Следующий переход звезды — <b>temporal.history</b>, <b>now.state</b>, <b>waiting</b>, <b>next_transition</b> из Temporal Universe; пустое значение означает, что источник его не передал.</li>" +
+      "<li>События показываются как изменение → почему важно → следующая веха; пометка — truth_status и binding_class источника.</li>" +
       "<li>У ожидания и следующего перехода нет даты — они стоят в зоне ожидания без срока.</li>" +
       "<li>Маршруты Оркестратора связаны со звёздами только по точному совпадению ID объекта и memory_id.</li>" +
       "</ul>";
@@ -971,41 +1058,56 @@
     page.querySelector("[data-cc='resources']").innerHTML = renderCapital();
   }
 
-  function trajectoryLines(t) {
-    var raw = t && typeof t === "object" ? (t.lines || t.line_ids || t.path || t.steps || []) : [];
+  // strategic_trajectories[].path is a sequence of human-readable stages, not
+  // line IDs. A stage becomes a link only when it equals a canonical line title
+  // exactly; everything else stays a plain stage of the strategy.
+  function trajectoryPath(t) {
+    var raw = t && typeof t === "object" ? (t.path || t.steps || t.lines || []) : [];
     return A(raw).map(function (x) {
-      var id = typeof x === "object" && x ? (x.id || x.line_id || x.line) : x;
-      var ul = id != null ? M.U.lineById[String(id)] : null;
-      return ul ? { ul: ul } : { text: typeof x === "object" ? pickText(x) || JSON.stringify(x) : String(x) };
+      var text = x && typeof x === "object" ? (x.title || pickText(x) || x.id || "") : String(x);
+      return { text: text, ul: lineByExactTitle(text) };
     });
   }
+
+  var TRAJECTORY_EXTRA = [
+    ["publication_contour", "Публикационный контур"], ["growth_programs", "Программы роста"], ["rule", "Правило"],
+    ["feeds_back_to", "Питает"], ["evidence_basis", "Основание"]
+  ];
 
   function renderTrajectories() {
     if (!M.tu.ok) return unavailable("Траектории недоступны", "strategic_trajectories приходят только из Temporal Universe.");
     if (!M.U.trajectories.length) return empty("Стратегических траекторий нет", "Temporal Universe передал пустой strategic_trajectories.");
+    var known = ["id", "title", "status", "horizon", "north_star", "path", "steps", "lines"].concat(TRAJECTORY_EXTRA.map(function (x) { return x[0]; }));
     return "<div class='cc-tracks'>" + M.U.trajectories.map(function (t) {
-      var steps = trajectoryLines(t);
-      var title = pickText(t) || (typeof t === "string" ? t : "Траектория");
-      var meta = t && typeof t === "object" ? kvText(t, TEXT_KEYS.concat(["lines", "line_ids", "path", "steps", "id"])) : "";
-      return "<div class='cc-track'><div class='cc-track-head'><b>" + E(title) + "</b><small>" + E(meta || "strategic_trajectories") + "</small></div>" +
-        (steps.length ? "<div class='cc-track-path'>" + steps.map(function (s, i) {
-          return (i ? "<span class='cc-track-sep'></span>" : "") + (s.ul ?
-            "<button class='cc-track-node st-flow'" + sel("uline", s.ul.key) + ">" + E(H.cut(s.ul.title, 22)) + "</button>" :
-            "<span class='cc-track-node st-unknown' title='нет такой линии в worlds[]'>" + E(H.cut(s.text, 22)) + "</span>");
-        }).join("") + "</div>" : "") + "</div>";
-    }).join("") + "</div><div class='cc-foot-note'>Траектории и их состав — из Temporal Universe. Серый узел — ссылка, которой нет среди линий worlds[].</div>";
+      if (!t || typeof t !== "object") return "<div class='cc-track'><div class='cc-track-head'><b>" + E(scalar(t)) + "</b></div></div>";
+      var steps = trajectoryPath(t);
+      var rest = kvText(t, known);
+      return "<div class='cc-track'><div class='cc-track-head'><b>" + E(t.title || t.id || "Траектория") + "</b>" +
+        (t.status ? "<i class='cc-tag'>" + E(t.status) + "</i>" : "") + (t.horizon ? "<i class='cc-tag hz'>горизонт " + E(scalar(t.horizon)) + "</i>" : "") + "</div>" +
+        (t.north_star ? "<div class='cc-north'><span>✦</span>" + E(scalar(t.north_star)) + "</div>" : "") +
+        (steps.length ? "<div class='cc-track-path'>" + steps.map(function (st, i) {
+          return (i ? "<span class='cc-track-sep'></span>" : "") + (st.ul ?
+            "<button class='cc-track-node st-flow' title='точное совпадение с линией Founder Universe'" + sel("uline", st.ul.key) + ">" + E(H.cut(st.text, 28)) + "</button>" :
+            "<span class='cc-track-node stage'>" + E(H.cut(st.text, 28)) + "</span>");
+        }).join("") + "</div>" : "<div class='cc-track-none'>path не передан</div>") +
+        TRAJECTORY_EXTRA.filter(function (x) { return t[x[0]] != null && t[x[0]] !== "" && !(Array.isArray(t[x[0]]) && !t[x[0]].length); }).map(function (x) {
+          return "<div class='cc-track-extra'><i>" + E(x[1]) + "</i>" + E(H.cut(scalar(t[x[0]]), 140)) + "</div>";
+        }).join("") +
+        (rest ? "<div class='cc-track-extra'><i>прочее</i>" + E(H.cut(rest, 140)) + "</div>" : "") + "</div>";
+    }).join("") + "</div><div class='cc-foot-note'>Этапы — поле path. Подсвеченный этап точно совпадает с названием канонической линии; остальные — этапы стратегии без привязки к линии.</div>";
   }
 
   function renderCapital() {
     if (!M.tu.ok) return "<div class='cc-proof'>" + proofRow("no", "Капитал и ресурсы", "—", "Temporal Universe недоступен — capital линий не прочитан") + "</div>";
-    var withCap = M.U.lines.filter(function (ln) { return ln.capital != null; });
+    var withCap = M.U.lines.filter(hasCapital);
+    var total = withCap.reduce(function (n, ln) { return n + capitalItems(ln).length; }, 0);
     return "<div class='cc-proof'>" +
-      proofRow(withCap.length ? "ok" : "none", "Капитал линий", withCap.length, "явное поле capital линии в Temporal Universe") +
+      proofRow(withCap.length ? "ok" : "none", "Доказанный капитал линий", total, withCap.length ? "явное поле capital у " + withCap.length + " линий Temporal Universe" : "ни у одной линии capital не передан") +
       proofRow("no", "Общие ресурсы между линиями", "—", "источник не передаёт ресурсных связей; общий владелец хода ресурсом не считается") +
       "</div>" +
       (withCap.length ? "<div class='cc-owner-list'>" + withCap.map(function (ln) {
-        return "<div class='cc-owner'" + sel("uline", ln.key) + "><b>" + E(ln.title) + " <small>· " + E(ln.world.title) + "</small></b><div class='cc-kvs'>" +
-          (typeof ln.capital === "object" ? kvHTML(ln.capital) : "<span class='cc-kv'>" + E(scalar(ln.capital)) + "</span>") + "</div></div>";
+        return "<div class='cc-owner'" + sel("uline", ln.key) + "><b>" + E(ln.title) + " <small>· " + E(ln.world.title) + "</small></b><div class='cc-caps'>" +
+          capitalItems(ln).map(function (c) { return "<span class='cc-cap'>" + E(H.cut(c, 70)) + "</span>"; }).join("") + "</div></div>";
       }).join("") + "</div>" : "");
   }
 
@@ -1043,7 +1145,7 @@
         "<rect x='" + (colX.line - 90) + "' y='" + (y - 12) + "' width='180' height='24' rx='7'/>" +
         "<polygon points='" + hexPoints(colX.line - 76, y, 7) + "'/>" +
         "<text x='" + (colX.line - 63) + "' y='" + (y + 4) + "'>" + E(H.cut(ln.title, 22)) + "</text>" +
-        (ln.capital != null ? "<text class='cc-lnode-cap' x='" + (colX.line + 82) + "' y='" + (y + 4) + "' text-anchor='end'>$</text>" : "") +
+        (hasCapital(ln) ? "<text class='cc-lnode-cap' x='" + (colX.line + 82) + "' y='" + (y + 4) + "' text-anchor='end'>$</text>" : "") +
         (routed ? "<circle class='cc-lnode-route' cx='" + (colX.line + 96) + "' cy='" + y + "' r='4'/>" : "") + "</g>";
     });
     U.stars.forEach(function (st) {
@@ -1141,7 +1243,7 @@
             var ver = ln.stars.filter(function (s) { return s.verified; }).length;
             var routes = ln.stars.reduce(function (n, s) { return n + s.routes.length; }, 0);
             return "<button class='cc-obj pl-placed" + (isSelected("uline", ln.key) ? " selected" : "") + "'" + sel("uline", ln.key) + ">" +
-              "<span class='cc-obj-top'><b>" + E(H.cut(ln.title, 32)) + "</b>" + (ln.capital != null ? "<i class='cc-flag cap'>капитал</i>" : "") + "</span>" +
+              "<span class='cc-obj-top'><b>" + E(H.cut(ln.title, 32)) + "</b>" + (hasCapital(ln) ? "<i class='cc-flag cap'>капитал</i>" : "") + "</span>" +
               "<small>" + E(ln.key) + "</small>" +
               "<span class='cc-obj-meta'><em>звёзд " + ln.stars.length + " · проверено " + ver + "</em>" +
               (routes ? "<em>маршрутов " + routes + "</em>" : "") + (ln.history.length ? "<em>событий " + ln.history.length + "</em>" : "") + "</span></button>";
@@ -1188,6 +1290,7 @@
     if (!M.adm.ok) {
       sums.innerHTML = "";
       rules.innerHTML = empty("Правила допуска недоступны", "rules приходят только из Portfolio Admission.");
+      page.querySelector("[data-cc='placement-trusted']").innerHTML = empty("Доверенная карта недоступна", "trusted_owner_map приходит только из Portfolio Admission.");
       board.innerHTML = "<div class='cc-pboard-off'>" + banner("unchecked", "Размещение не проверено",
         "Portfolio Admission недоступен (" + M.adm.reason + "). Панель не вычисляет кандидатов, сверку или конфликты сама — ни один объект не помечается как «требует сверки».") +
         (M.tu.ok ? "<div class='cc-foot-note'>Для справки: на Founder Map сейчас " + M.U.stars.length + " звёзд (Temporal Universe). Это видимость, а не результат допуска.</div>" : "") + "</div>";
@@ -1209,9 +1312,9 @@
     board.innerHTML = ["placed", "candidate", "review", "conflict", "archive"].map(function (b) {
       var meta = BUCKET_META[b], body, n;
       if (b === "placed") {
-        n = M.tu.ok ? placedStars.length : (c.placed != null ? c.placed : AD.trustedCount);
+        n = M.tu.ok ? placedStars.length : (c.placed != null ? c.placed : "—");
         body = M.tu.ok ? (placedStars.length ? placedStars.map(starCard).join("") : empty("Звёзд нет", "")) :
-          empty("Список звёзд недоступен", "Temporal Universe не ответил. Счётчик placed — из Portfolio Admission" + (AD.trustedCount ? ", trusted_owner_map: " + AD.trustedCount + " записей" : "") + ".");
+          empty("Список звёзд недоступен", "Temporal Universe не ответил. Счётчик placed — из Portfolio Admission counts.");
       } else {
         var items = AD.buckets[b];
         n = items.length;
@@ -1221,6 +1324,13 @@
       return "<section class='cc-pcol pl-" + b + "'><header><b>" + E(meta.title) + " <em>" + E(n) + "</em></b><small>" + E(meta.hint) +
         (archived ? " · ещё " + archived + " в архиве" : "") + "</small></header><div class='cc-pcol-body'>" + body + "</div></section>";
     }).join("");
+
+    page.querySelector("[data-cc='placement-trusted']").innerHTML = AD.trusted.length ? "<div class='cc-trusted'>" + AD.trusted.map(function (t) {
+      return "<div class='cc-trusted-row'" + (t.ul ? sel("uline", t.ul.key) : "") + "><span class='from'>" + E(t.branch) + "</span><i>→</i>" +
+        (t.ul ? "<span class='to ok'>" + E(t.title) + "<small>" + E(t.ul.world.title) + "</small></span>" :
+          "<span class='to miss'>" + E(t.title || "—") + "<small>" + E(M.tu.ok ? "в Temporal Universe нет линии с точно таким названием" : "линия не проверена — Temporal Universe недоступен") + "</small></span>") + "</div>";
+    }).join("") + "</div><div class='cc-foot-note'>Доверенная карта: происхождение объекта (owning_branch) → точное название канонической линии. Это основание для кандидатов, а не размещение: сама по себе запись не делает объект звездой.</div>" :
+      empty("Доверенная карта пуста", "trusted_owner_map не содержит записей.");
 
     rules.innerHTML = "<ul class='cc-bounds'>" + AD.rules.map(function (r) { return "<li><b>Правило допуска:</b> " + E(scalar(r)) + "</li>"; }).join("") +
       "<li>Кандидат с предложенной линией — это структурная принадлежность, а не видимость: на Founder Map он не появляется, пока не станет звездой.</li>" +
@@ -1235,11 +1345,28 @@
       "<span class='" + (s.verified ? "yes" : "no") + "'>" + (s.verified ? "проверена" : "не проверена") + "</span></div></div>";
   }
 
+  function proposedText(it) {
+    var r = it.raw;
+    if (r.proposed_line == null) return "линия не предложена";
+    if (it.proposedLine) return "предложена линия: " + H.cut(it.proposedLine.title, 24);
+    return "предложена «" + H.cut(String(r.proposed_line), 24) + "» — " + (M.tu.ok ? "точной линии нет" : "линия не проверена");
+  }
+
+  function conflictLinesHTML(it) {
+    return "<div class='cc-refs'>" + (it.conflictLines || []).map(function (c) {
+      return c.ul ? ulineRef(c.ul) : "<span class='cc-ref miss' title='нет линии с точно таким названием'>" + E(H.cut(c.title, 28)) + "</span>";
+    }).join("") + "</div>";
+  }
+
   function admCard(it) {
     var r = it.raw, vis = mapVisibility(it.memoryId);
-    var member = it.sourceBucket === "candidate" ?
-      (it.proposedLine ? { cls: "maybe", text: "предложена линия: " + H.cut(it.proposedLine.title, 22) } : { cls: "maybe", text: "предложена линия: " + (r.proposed_line || "—") }) :
-      { cls: "no", text: "линия не определена" };
+    if (it.conflictLines) {
+      return "<div class='cc-pcard pl-" + it.bucket + (isSelected("adm", it.key) ? " selected" : "") + "'" + sel("adm", it.key) + ">" +
+        "<b>" + E(H.cut(r.owning_branch || it.title, 40)) + "</b>" +
+        "<small class='warn'>происхождение указывает на " + it.conflictLines.length + " линии — решается вручную</small>" +
+        conflictLinesHTML(it) + "</div>";
+    }
+    var member = it.sourceBucket === "candidate" ? { cls: "maybe", text: proposedText(it) } : { cls: "no", text: "линия не определена" };
     var reason = it.sourceBucket === "review" ? r.reason : (it.sourceBucket === "candidate" ? r.basis : (r.reason || kvText(r, ["memory_id", "title", "kind", "state", "evidence_status", "owning_branch"])));
     return "<div class='cc-pcard pl-" + it.bucket + (isSelected("adm", it.key) ? " selected" : "") + "'" + sel("adm", it.key) + ">" +
       "<b>" + E(H.cut(it.title, 34)) + "</b>" +
@@ -1280,8 +1407,8 @@
     if (l.star) explain.push("В Founder Universe это звезда «" + l.star.title + "» линии «" + l.star.line.title + "» (мир «" + l.star.world.title + "»).");
 
     var hist = [];
-    if (l.star) l.star.line.history.forEach(function (h) {
-      hist.push("<li><b>" + E(pickTime(h) ? H.ago(pickTime(h)) : "без даты") + "</b>" + E(H.cut(pickText(h) || "событие линии", 110)) + " <em>· Temporal Universe</em></li>");
+    if (l.star) l.star.line.history.map(eventView).forEach(function (v) {
+      hist.push(histItem(v, "Temporal Universe"));
     });
     if (l.obj && l.obj.last_event_at) hist.push("<li><b>" + E(H.ago(l.obj.last_event_at)) + "</b>" + E((l.obj.last_meaning_kind ? H.signalKindRu(l.obj.last_meaning_kind) : "событие объекта") + (l.obj.last_summary ? " — " + H.cut(l.obj.last_summary, 110) : "")) + " <em>· Continuity</em></li>");
     if (r.last_movement_at) hist.push("<li><b>" + E(H.ago(r.last_movement_at)) + "</b>движение по маршруту <em>· Оркестратор</em></li>");
@@ -1311,10 +1438,10 @@
       section("Человеческим языком", "<p>" + E(explain.join(" ")) + "</p>") +
       section("Почему важна", "<p>" + E(r.priority ? "Приоритет в источнике: " + r.priority + "." : "Источник не передаёт обоснование важности.") +
         (l.downstream.length ? " " + E("Её остановка явно задержит " + l.downstream.length + " маршрута.") : "") +
-        (l.star && l.star.line.capital != null ? " " + E("У канонической линии есть поле capital.") : "") + "</p>") +
+        (l.star && hasCapital(l.star.line) ? " " + E("У канонической линии есть доказанный капитал: " + capitalItems(l.star.line).join("; ") + ".") : "") + "</p>") +
       section("Недавняя история", hist.length ? "<ul class='cc-hist'>" + hist.join("") + "</ul>" : "<p class='muted'>Датированных событий нет.</p>") +
       section("Что система ждёт", "<p>" + E(r.review_condition || (l.waiting ? "Действия от «" + r.ball_owner + "»." : "Условие не передано.")) + "</p>" +
-        (l.star && temporalCells(l.star.temporal).cells["Ожидание"] ? "<p class='muted'>Temporal Universe · ожидание: " + E(temporalCells(l.star.temporal).cells["Ожидание"]) + "</p>" : "") +
+        (l.star && temporalView(l.star.temporal).waiting.length ? "<p class='muted'>Temporal Universe · ждём: " + E(temporalView(l.star.temporal).waiting.map(function (w) { return w.title; }).join("; ")) + "</p>" : "") +
         (l.rd1 && l.rd1.next_gate ? "<p class='muted'>RD1 · следующий гейт: " + E(l.rd1.next_gate) + "</p>" : "")) +
       section("Следующий переход", "<p>" + E(l.next || "Не передан источником.") + "</p>" + (l.nextSource ? "<p class='muted'>" + E(l.nextSource) + "</p>" : "")) +
       section("Блокеры", blockers.length || objBlockers.length ?
@@ -1329,6 +1456,12 @@
       section("Доказательный потолок", "<ul class='cc-ceiling'>" + ceiling.join("") + "</ul>") +
       "<div class='cc-insp-step'><h4>Минимальный следующий шаг</h4><p>" + E(step.text) + "</p><small>" + E(step.src) + "</small></div>" +
       "<div class='cc-insp-nav'><a href='#timeline'>Во времени →</a><a href='#links'>Связи →</a></div>";
+  }
+
+  function trustedNote(origin) {
+    if (!M.adm.ok) return "";
+    var t = M.AD.trusted.filter(function (e) { return e.branch === String(origin); })[0];
+    return t ? " · в доверенной карте → «" + E(t.title) + "»" + (t.ul ? "" : " (линии с точно таким названием нет)") : " · в доверенной карте нет";
   }
 
   function inspectObject(x) {
@@ -1352,13 +1485,13 @@
       "<div><h3>" + E(x.title) + "</h3><small>Объект Continuity · " + E(x.key) + "</small></div></div>" +
       section("Где в структуре", crumbs([{ t: "ICAM" }, { t: x.star ? x.star.world.title : (M.tu.ok ? "вне Founder Universe" : "мир не проверен") },
         { t: x.star ? H.cut(x.star.line.title, 20) : "линия не определена" }, { t: x.key, cur: true }]) +
-        (x.origin ? "<p class='muted'>Происхождение (owning_branch): " + E(x.origin) + "</p>" : "")) +
+        (x.origin ? "<p class='muted'>Происхождение (owning_branch): " + E(x.origin) + trustedNote(x.origin) + "</p>" : "")) +
       section("Текущее состояние", "<div class='cc-insp-state'><span class='cc-state st-flow'><i></i>" + E(H.ruStatus(o.declared_status)) + "</span>" +
         "<small>допуск: " + E(p.label) + "</small></div>") +
       section("Человеческим языком", "<p>" + E(explain.join(" ")) + "</p>") +
       section("Недавняя история", o.last_event_at ? "<ul class='cc-hist'><li><b>" + E(H.ago(o.last_event_at)) + "</b>" +
         E((o.last_meaning_kind ? H.signalKindRu(o.last_meaning_kind) : "событие") + (o.last_summary ? " — " + H.cut(o.last_summary, 120) : "")) + "</li></ul>" : "<p class='muted'>Событий нет — last_event_at не передан.</p>") +
-      section("Следующий переход", "<p>" + E(x.star && temporalCells(x.star.temporal).cells["Следующий переход"] || x.rd1 && (x.rd1.next_gate || x.rd1.next_move) || (x.lines[0] && x.lines[0].next) || "Не передан источником.") + "</p>") +
+      section("Следующий переход", "<p>" + E(x.star && temporalCells(temporalView(x.star.temporal))["Следующий переход"] || x.rd1 && (x.rd1.next_gate || x.rd1.next_move) || (x.lines[0] && x.lines[0].next) || "Не передан источником.") + "</p>") +
       section("Блокеры", x.blockers.length ? "<ul class='cc-blockers'>" + x.blockers.map(function (b) {
         return "<li>" + E(H.cut(b.title || b.blocker || "открытый блокер", 110)) + " · " + E(b.status || "открыт") + "</li>";
       }).join("") + "</ul>" : "<p class='muted'>Открытых нетестовых блокеров нет.</p>") +
@@ -1376,23 +1509,38 @@
       "<div class='cc-insp-nav'><a href='#placement'>Размещение →</a><a href='#timeline'>Во времени →</a></div>";
   }
 
+  function histItem(v, src) {
+    return "<li><b>" + E(v.at ? dateLabel(v.at) : "без даты") + "</b>" + E(H.cut(v.main || "событие", 110)) +
+      (v.why ? "<small class='why'>" + E(H.cut(v.why, 140)) + "</small>" : "") +
+      (v.next ? "<small class='next'>→ " + E(H.cut(v.next, 100)) + "</small>" : "") +
+      (v.proof ? "<em class='cc-proof-tag'>" + E(v.proof) + "</em>" : "") +
+      (src ? " <em>· " + E(src) + "</em>" : "") + "</li>";
+  }
+
   function inspectStar(s) {
-    var tc = temporalCells(s.temporal);
+    var tv = temporalView(s.temporal), tc = temporalCells(tv);
     var explain = "Звезда «" + s.title + "»" + (s.canonical && s.canonical !== s.title ? " (каноническое имя «" + s.canonical + "»)" : "") +
       " размещена в линии «" + s.line.title + "» мира «" + s.world.title + "». " +
       (s.verified ? "Принадлежность проверена источником." : "Принадлежность источником не проверена (verified = false).") +
+      (tv.now ? " Сейчас: " + tv.now + "." : "") +
+      (tv.waiting.length ? " Ждём: " + tv.waiting.map(function (w) { return w.title; }).join("; ") + "." : "") +
       (s.routes.length ? " По ней идёт маршрут Оркестратора «" + s.routes[0].title + "»." : " Маршрута Оркестратора с этим ID нет.");
-    var extraKeys = Object.keys(tc.extra);
+    var extraKeys = Object.keys(tv.extra);
+    var list = function (xs, emptyText) {
+      return xs.length ? "<ul class='cc-hist'>" + xs.map(function (x) {
+        return "<li><b>" + E(x.timeClass ? H.humanCode(x.timeClass) : "—") + "</b>" + E(x.title) + "</li>";
+      }).join("") + "</ul>" : "<p class='muted'>" + E(emptyText) + "</p>";
+    };
     return "<div class='cc-insp-head'><span class='cc-obj-badge pl-placed star'>★</span>" +
       "<div><h3>" + E(s.title) + "</h3><small>Звезда Founder Universe · " + E(s.memoryId || "без memory_id") + "</small></div></div>" +
       section("Где в структуре", crumbs([{ t: "ICAM" }, { t: s.world.title }, { t: H.cut(s.line.title, 22) }, { t: s.memoryId || s.key, cur: true }])) +
-      section("Текущее состояние", "<div class='cc-insp-state st-" + (s.verified ? "flow" : "unknown") + "'><span class='cc-state st-" + (s.verified ? "flow" : "unknown") + "'><i></i>" +
-        (s.verified ? "проверена" : "не проверена") + "</span><small>на Founder Map</small><em>" + E(tc.cells["Настоящее"] || "настоящее не передано") + "</em></div>") +
+      section("Сейчас", "<div class='cc-insp-state st-" + (s.verified ? "flow" : "unknown") + "'><span class='cc-state st-" + (s.verified ? "flow" : "unknown") + "'><i></i>" +
+        (s.verified ? "проверена" : "не проверена") + "</span><small>на Founder Map</small><em>" + E(tv.now || "now.state не передан") + "</em></div>") +
       section("Человеческим языком", "<p>" + E(explain) + "</p>") +
-      section("Во времени", "<ul class='cc-hist'>" + TEMPORAL_ORDER.map(function (lab) {
-        return "<li><b>" + E(lab) + "</b>" + E(tc.cells[lab] || "не передано") + "</li>";
-      }).join("") + extraKeys.map(function (k) { return "<li><b>" + E(k) + "</b>" + E(scalar(tc.extra[k])) + "</li>"; }).join("") + "</ul>" +
-        (!s.temporal ? "<p class='muted'>Поле temporal у звезды пустое.</p>" : "")) +
+      section("История", tv.history.length ? "<ul class='cc-hist'>" + tv.history.map(function (v) { return histItem(v); }).join("") + "</ul>" : "<p class='muted'>temporal.history пуст.</p>") +
+      section("Ждём", list(tv.waiting, "temporal.waiting пуст.")) +
+      section("Следующий переход", list(tv.next, "temporal.next_transition пуст.")) +
+      (extraKeys.length ? section("Прочие поля temporal", "<ul class='cc-hist'>" + extraKeys.map(function (k) { return "<li><b>" + E(k) + "</b>" + E(scalar(tv.extra[k])) + "</li>"; }).join("") + "</ul>") : "") +
       section("Связи", "<small>Линия</small><div class='cc-refs'>" + ulineRef(s.line) + "</div>" +
         (s.routes.length ? "<small>Маршруты</small><div class='cc-refs'>" + lineRefs(s.routes.map(function (l) { return l.key; })) + "</div>" : "") +
         (s.obj ? "<small>Объект Continuity</small><div class='cc-refs'><button class='cc-ref'" + sel("object", s.memoryId) + ">" + E(H.cut(s.obj.name || s.memoryId, 26)) + "</button></div>" : "")) +
@@ -1401,8 +1549,8 @@
         ceilingRow(s.verified ? "ok" : "warn", s.verified ? "verified = true" : "verified = false: принадлежность не подтверждена") +
         ceilingRow(s.routes.length ? "ok" : "info", s.routes.length ? "Маршрут связан по точному ID" : "Маршрута с этим ID нет") +
         ceilingRow("no", "Связи с другими звёздами, кроме общей линии, не передаются") + "</ul>") +
-      "<div class='cc-insp-step'><h4>Минимальный следующий шаг</h4><p>" + E(s.routes[0] && s.routes[0].next || tc.cells["Следующий переход"] || (s.verified ? "Следующий переход не передан." : "Подтвердить принадлежность звезды линии.")) +
-      "</p><small>" + E(s.routes[0] && s.routes[0].next ? "Оркестратор · next_move" : (tc.cells["Следующий переход"] ? "Temporal Universe · temporal" : "рекомендация панели")) + "</small></div>" +
+      "<div class='cc-insp-step'><h4>Минимальный следующий шаг</h4><p>" + E(s.routes[0] && s.routes[0].next || tc["Следующий переход"] || (s.verified ? "Следующий переход не передан." : "Подтвердить принадлежность звезды линии.")) +
+      "</p><small>" + E(s.routes[0] && s.routes[0].next ? "Оркестратор · next_move" : (tc["Следующий переход"] ? "Temporal Universe · next_transition" : "рекомендация панели")) + "</small></div>" +
       "<div class='cc-insp-nav'><a href='#timeline'>Во времени →</a><a href='#links'>Связи →</a></div>";
   }
 
@@ -1410,23 +1558,21 @@
     var ver = ln.stars.filter(function (s) { return s.verified; }).length;
     var routes = [];
     ln.stars.forEach(function (s) { s.routes.forEach(function (r) { routes.push(r.key); }); });
-    var trajs = M.U.trajectories.filter(function (t) { return trajectoryLines(t).some(function (x) { return x.ul === ln; }); });
+    var trajs = M.U.trajectories.filter(function (t) { return trajectoryPath(t).some(function (x) { return x.ul === ln; }); });
     return "<div class='cc-insp-head'>" + hexBadge(initials(ln.title), "flow", "lg") +
       "<div><h3>" + E(ln.title) + "</h3><small>Каноническая линия · " + E(ln.key) + "</small></div></div>" +
       section("Где в структуре", crumbs([{ t: "ICAM" }, { t: ln.world.title }, { t: H.cut(ln.title, 24), cur: true }])) +
       section("Человеческим языком", "<p>" + E("Линия «" + ln.title + "» мира «" + ln.world.title + "»: " + ln.stars.length + " звёзд, проверено " + ver + ". " +
         (routes.length ? "По её звёздам идёт " + routes.length + " маршрут(а) Оркестратора." : "Маршрутов Оркестратора по её звёздам нет.") +
-        (trajs.length ? " Входит в траекторию «" + pickText(trajs[0]) + "»." : "")) + "</p>") +
-      section("Недавняя история", ln.history.length ? "<ul class='cc-hist'>" + ln.history.map(function (h) {
-        return "<li><b>" + E(pickTime(h) ? H.ago(pickTime(h)) : "без даты") + "</b>" + E(H.cut(pickText(h) || kvText(h, []), 110)) + "</li>";
-      }).join("") + "</ul>" : "<p class='muted'>recent_history пуст.</p>") +
-      section("Капитал", ln.capital == null ? "<p class='muted'>Поле capital не передано — ресурсная связь не показывается.</p>" :
-        "<div class='cc-kvs'>" + (typeof ln.capital === "object" ? kvHTML(ln.capital) : "<span class='cc-kv'>" + E(scalar(ln.capital)) + "</span>") + "</div>") +
+        (trajs.length ? " Является этапом траектории «" + (trajs[0].title || trajs[0].id) + "» (точное совпадение названия)." : "")) + "</p>") +
+      section("Недавняя история", ln.history.length ? "<ul class='cc-hist'>" + ln.history.map(function (h) { return histItem(eventView(h)); }).join("") + "</ul>" : "<p class='muted'>recent_history пуст.</p>") +
+      section("Капитал", hasCapital(ln) ? "<div class='cc-caps'>" + capitalItems(ln).map(function (c) { return "<span class='cc-cap'>" + E(H.cut(c, 80)) + "</span>"; }).join("") + "</div><p class='muted'>явно доказанный капитал линии (capital)</p>" :
+        "<p class='muted'>Капитал не передан — ресурсная связь не показывается.</p>") +
       section("Звёзды", ln.stars.length ? "<div class='cc-refs'>" + ln.stars.map(function (s) {
         return "<button class='cc-ref uni" + (s.verified ? "" : " dim") + "'" + sel("star", s.key) + ">★ " + E(H.cut(s.title, 24)) + "</button>";
       }).join("") + "</div>" : "<p class='muted'>Звёзд нет.</p>") +
       (routes.length ? section("Маршруты", "<div class='cc-refs'>" + lineRefs(routes) + "</div>") : "") +
-      (trajs.length ? section("Траектории", "<p>" + trajs.map(function (t) { return E(pickText(t)); }).join(" · ") + "</p>") : "") +
+      (trajs.length ? section("Траектории", "<p>" + trajs.map(function (t) { return E(t.title || t.id); }).join(" · ") + "</p>") : "") +
       section("Доказательный потолок", "<ul class='cc-ceiling'>" +
         ceilingRow("ok", "Состав, история и капитал — Temporal Universe") +
         ceilingRow("no", "Влияние на другие линии не передаётся источником") + "</ul>") +
@@ -1435,17 +1581,26 @@
 
   function inspectAdm(it) {
     var r = it.raw, vis = mapVisibility(it.memoryId);
-    var what = it.sourceBucket === "candidate" ? "Кандидат на точную связь: слой допуска предлагает линию «" + (it.proposedLine ? it.proposedLine.title : r.proposed_line || "—") + "». Это ещё не звезда: на Founder Map объект не виден, пока его не разместят." :
+    if (it.conflictLines) {
+      return "<div class='cc-insp-head'><span class='cc-obj-badge pl-conflict'>!</span>" +
+        "<div><h3>" + E(r.owning_branch || it.title) + "</h3><small>Portfolio Admission · owner_conflicts</small></div></div>" +
+        section("Человеческим языком", "<p>" + E("Происхождение «" + (r.owning_branch || it.title) + "» указывает сразу на " + it.conflictLines.length +
+          " линии. Пока конфликт не решён, объекты с этим происхождением не размещаются автоматически.") + "</p>") +
+        section("Конкурирующие линии", conflictLinesHTML(it) + "<p class='muted'>Ссылка на линию — только при точном совпадении названия с Temporal Universe.</p>") +
+        "<div class='cc-insp-step'><h4>Минимальный следующий шаг</h4><p>Выбрать одну линию-владельца вручную.</p><small>решение принимается вне панели — панель только читает</small></div>" +
+        "<div class='cc-insp-nav'><a href='#placement'>Размещение →</a></div>";
+    }
+    var what = it.sourceBucket === "candidate" ? "Кандидат на точную связь: " + proposedText(it) + ". Это ещё не звезда: на Founder Map объект не виден, пока его не разместят." :
       it.sourceBucket === "review" ? "Объект памяти требует сверки: " + (r.reason || "причина не указана") + "." :
       "Конфликт владельцев: " + (r.reason || kvText(r, ["title", "memory_id"]) || "подробности не переданы") + ".";
-    var skip = ["title"];
     return "<div class='cc-insp-head'><span class='cc-obj-badge pl-" + it.bucket + "'>" + E(initials(it.title)) + "</span>" +
       "<div><h3>" + E(it.title) + "</h3><small>Portfolio Admission · " + E(it.source) + "</small></div></div>" +
       section("Человеческим языком", "<p>" + E(what) + (it.bucket === "archive" ? " " + E("Состояние «" + r.state + "» — показан в архиве.") : "") + "</p>") +
-      section("Поля источника", "<div class='cc-kvs'>" + kvHTML(r, skip) + "</div>") +
+      section("Поля источника", "<div class='cc-kvs'>" + kvHTML(r, ["title"]) + "</div>") +
       section("Принадлежность и видимость", "<div class='cc-pflags'><span class='" + (it.sourceBucket === "candidate" ? "maybe" : "no") + "'>" +
-        E(it.sourceBucket === "candidate" ? "предложенная линия (структурно)" : "линия не определена") + "</span><span class='" + vis.cls + "'>" + E(vis.text) + "</span></div>" +
-        (r.owning_branch ? "<p class='muted'>owning_branch «" + E(r.owning_branch) + "» — происхождение объекта, не мир.</p>" : "")) +
+        E(it.sourceBucket === "candidate" ? proposedText(it) : "линия не определена") + "</span><span class='" + vis.cls + "'>" + E(vis.text) + "</span></div>" +
+        (r.owning_branch ? "<p class='muted'>owning_branch «" + E(r.owning_branch) + "» — происхождение объекта, не мир.</p>" : "") +
+        (it.sourceBucket === "candidate" && r.proposed_line != null && !it.proposedLine && M.tu.ok ? "<p class='muted'>proposed_line сравнивается с названиями линий только на точное совпадение — похожие названия не считаются.</p>" : "")) +
       (it.proposedLine ? section("Связи", "<small>Предложенная линия</small><div class='cc-refs'>" + ulineRef(it.proposedLine) + "</div>") : "") +
       "<div class='cc-insp-step'><h4>Минимальный следующий шаг</h4><p>" + E(
         it.sourceBucket === "candidate" ? "Подтвердить или отклонить предложенную линию." :
