@@ -1517,13 +1517,17 @@
 <a data-page="atlas" href="#atlas"><span class="dot">A</span><span>ATLAS</span></a>
 <a data-page="digital-twin" href="#digital-twin"><span class="dot">DT</span><span>Digital Twin</span></a>
 <a data-page="brazilportal" href="#brazilportal"><span class="dot">BR</span><span>BrazilPortal</span></a>
-<div class="nav-group">Инструменты системы</div>
+<details class="nav-tools" id="systemTools">
+<summary><span>Инструменты системы</span><em>6</em></summary>
+<div class="nav-tools-links">
 <a data-page="foundation" href="#foundation"><span class="dot">F</span><span>Фундамент</span></a>
 <a data-page="operations" href="#operations"><span class="dot">O</span><span>Операции</span></a>
 <a data-page="registry" href="#registry"><span class="dot">R</span><span>Реестр объектов</span></a>
 <a data-page="documents" href="#documents"><span class="dot">D</span><span>Документы</span></a>
 <a data-page="testing" href="#testing"><span class="dot">T</span><span>Тестирование</span></a>
 <a data-page="diagnostics" href="#diagnostics"><span class="dot">⚙</span><span>Доверие и диагностика</span></a>
+</div>
+</details>
 </nav>
 <div class="side-note">«Сильная система не требует героя. Она умеет держать форму сама.»</div>
 </aside>
@@ -4079,6 +4083,8 @@
     document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
     panel.classList.add("active");
     document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("active",a.dataset.page===key));
+    const tools=document.getElementById("systemTools");
+    if(tools&&["foundation","operations","registry","documents","testing","diagnostics"].includes(key)) tools.open=true;
     window.scrollTo(0,0);
   }
 
