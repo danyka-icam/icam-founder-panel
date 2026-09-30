@@ -1535,17 +1535,18 @@
 <div class="cc-page-grid">
 <div class="cc-body" data-cc-body>
 <section class="cc-kpis" data-cc="kpis"></section>
+<section data-cc="universe"></section>
 <div class="cc-grid-main">
-<article class="cc-panel cc-lines-panel"><header><h2>Линии</h2><small>состояние → следующий переход → условие движения → блокеры → связи</small></header><div data-cc="lines"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel cc-lines-panel"><header><h2>Маршруты в работе</h2><small>состояние → следующий переход → условие движения → блокеры → связи</small></header><div data-cc="lines"><div class="cc-loading">Читаем источники…</div></div></article>
 <div class="cc-side-stack">
 <article class="cc-panel "><header><h2>Требует Основателя</h2><small>только явные needs_founder из Founder inbox</small></header><div data-cc="founder"><div class="cc-loading">Читаем источники…</div></div></article>
-<article class="cc-panel "><header><h2>Что изменилось</h2><small>последние датированные события объектов и линий</small></header><div data-cc="changes"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Что изменилось</h2><small>последние датированные события</small></header><div data-cc="changes"><div class="cc-loading">Читаем источники…</div></div></article>
 </div>
 </div>
 <div class="cc-grid-map">
 <article class="cc-panel cc-lanes-panel"><header><h2>Траектории во времени</h2><small>прошлое → сейчас → ожидание; только реальные отметки времени</small></header><div data-cc="lanes"><div class="cc-loading">Читаем источники…</div></div></article>
-<article class="cc-panel "><header><h2>Карта зависимостей</h2><small>линии и только доказанные связи</small></header><div data-cc="graph"><div class="cc-loading">Читаем источники…</div></div></article>
-<article class="cc-panel "><header><h2>Шкала внимания</h2><small>где линия теряет движение</small></header><div data-cc="attention"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Карта зависимостей</h2><small>маршруты и только доказанные связи</small></header><div data-cc="graph"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Шкала внимания</h2><small>где маршрут теряет движение</small></header><div data-cc="attention"><div class="cc-loading">Читаем источники…</div></div></article>
 </div>
 </div>
 <aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
@@ -1553,17 +1554,18 @@
 </section>
 <section class="page cc-page" data-page-panel="timeline">
 <header class="cc-top">
-<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Во времени</h1><p>Компания → мир → линия → объект: прошлое, настоящее, ожидание и следующий переход</p></div></div>
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Во времени</h1><p>Компания → мир → линия → звезда: прошлое, настоящее, ожидание и следующий переход</p></div></div>
 <div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
 </header>
 <div class="cc-page-grid">
 <div class="cc-body" data-cc-body>
-<article class="cc-panel cc-wide"><header><h2>Временное поле</h2><small>события по мирам за последние 60 дней и линии, ожидающие перехода</small></header><div data-cc="swim"><div class="cc-loading">Читаем источники…</div></div></article>
+<div class="cc-sources" data-cc="source"></div>
+<article class="cc-panel cc-wide"><header><h2>Временное поле</h2><small>события во времени и линии, ожидающие перехода</small></header><div data-cc="swim"><div class="cc-loading">Читаем источники…</div></div></article>
 <div class="cc-grid-2">
-<article class="cc-panel "><header><h2>Структура во времени</h2><small>каждая активная линия: прошлое → настоящее → ожидание → следующий переход</small></header><div data-cc="tree"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Структура во времени</h2><small>прошлое → настоящее → ожидание → следующий переход</small></header><div data-cc="tree"><div class="cc-loading">Читаем источники…</div></div></article>
 <div class="cc-side-stack">
-<article class="cc-panel "><header><h2>Неразмещённые события</h2><small>события объектов, у которых нет линии</small></header><div data-cc="unplaced"><div class="cc-loading">Читаем источники…</div></div></article>
-<article class="cc-panel"><header><h2>Доказательные границы</h2><small>что этот режим не утверждает</small></header><ul class="cc-bounds"><li>Проекции отдают только <b>последнее</b> событие объекта и последнее движение линии — полного журнала нет.</li><li>У следующего перехода нет даты в источнике — он стоит в зоне ожидания без срока.</li><li>«Мир» — поле owning_branch / owner объекта; линия без объекта попадает в «Мир не указан».</li><li>Отдельного temporal-universe источника в текущих проекциях нет: режим собран из observer/routes, continuity/objects и RD1.</li></ul></article>
+<article class="cc-panel "><header><h2 data-cc="unplaced-title">Неразрешённая история</h2><small data-cc="unplaced-sub"></small></header><div data-cc="unplaced"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Доказательные границы</h2><small>что этот режим не утверждает</small></header><div data-cc="bounds"><div class="cc-loading">Читаем источники…</div></div></article>
 </div>
 </div>
 </div>
@@ -1572,17 +1574,18 @@
 </section>
 <section class="page cc-page" data-page-panel="links">
 <header class="cc-top">
-<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Связи и стратегии</h1><p>Какие связи доказаны источниками, где проходят пути и что задержит остановка линии</p></div></div>
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Связи и стратегии</h1><p>Какие связи доказаны источниками, где проходят траектории и что задержит остановка</p></div></div>
 <div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
 </header>
 <div class="cc-page-grid">
 <div class="cc-body" data-cc-body>
-<article class="cc-panel cc-wide"><header><h2>Карта связей</h2><small>миры → линии → объекты; рисуются только доказанные связи</small></header><div data-cc="linkmap"><div class="cc-loading">Читаем источники…</div></div></article>
+<div class="cc-sources" data-cc="source"></div>
+<article class="cc-panel cc-wide"><header><h2>Карта связей</h2><small>миры → линии → звёзды; рисуются только доказанные связи</small></header><div data-cc="linkmap"><div class="cc-loading">Читаем источники…</div></div></article>
 <div class="cc-grid-3">
 <article class="cc-panel "><header><h2>Доказанные и недоказанные связи</h2><small>каждый тип связи и его источник</small></header><div data-cc="proven"><div class="cc-loading">Читаем источники…</div></div></article>
-<article class="cc-panel "><header><h2>Влияние остановки</h2><small>только явные зависимости</small></header><div data-cc="impact"><div class="cc-loading">Читаем источники…</div></div></article>
-<article class="cc-panel "><header><h2>Стратегические траектории</h2><small>объявленные области маршрутов</small></header><div data-cc="strategy"><div class="cc-loading">Читаем источники…</div></div></article>
-<article class="cc-panel "><header><h2>Капитал, ресурсы, пересечения</h2><small>что источник позволяет сказать</small></header><div data-cc="resources"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Влияние остановки</h2><small>только явные зависимости маршрутов</small></header><div data-cc="impact"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Стратегические траектории</h2><small>strategic_trajectories из Temporal Universe</small></header><div data-cc="strategy"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Капитал и ресурсы</h2><small>только явные поля источника</small></header><div data-cc="resources"><div class="cc-loading">Читаем источники…</div></div></article>
 </div>
 </div>
 <aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
@@ -1590,27 +1593,30 @@
 </section>
 <section class="page cc-page" data-page-panel="lines">
 <header class="cc-top">
-<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Линии и объекты</h1><p>Все линии Оркестратора и объекты реестра по мирам</p></div></div>
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Линии и объекты</h1><p>Маршруты Оркестратора, канонические линии Founder Universe и объекты реестра</p></div></div>
 <div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
 </header>
 <div class="cc-page-grid">
 <div class="cc-body" data-cc-body>
 <div class="cc-chips" data-cc="line-filters"></div>
-<article class="cc-panel cc-wide"><header><h2>Линии</h2><small>порядок Оркестратора</small></header><div data-cc="line-grid"><div class="cc-loading">Читаем источники…</div></div></article>
-<article class="cc-panel cc-wide"><header><h2>Объекты по мирам</h2><small>реестр Continuity; цвет рамки — статус размещения</small></header><div data-cc="objects"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel cc-wide"><header><h2>Маршруты</h2><small>порядок Оркестратора</small></header><div data-cc="line-grid"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel cc-wide"><header><h2>Линии Founder Universe</h2><small>канонические линии по мирам — Temporal Universe</small></header><div data-cc="ulines"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel cc-wide"><header><h2>Объекты по мирам</h2><small>мир — только через звезду Founder Universe; owning_branch — происхождение</small></header><div data-cc="objects"><div class="cc-loading">Читаем источники…</div></div></article>
 </div>
 <aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
 </div>
 </section>
 <section class="page cc-page" data-page-panel="placement">
 <header class="cc-top">
-<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Размещение</h1><p>Принадлежность объекта к линии и видимость на главной карте — разные вещи</p></div></div>
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Размещение</h1><p>Принадлежность к линии и видимость на Founder Map — разные вещи</p></div></div>
 <div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
 </header>
 <div class="cc-page-grid">
 <div class="cc-body" data-cc-body>
+<div class="cc-sources" data-cc="source"></div>
 <div class="cc-psums" data-cc="placement-sum"></div>
 <div class="cc-pboard" data-cc="placement"><div class="cc-loading">Читаем источники…</div></div>
+<article class="cc-panel cc-wide"><header><h2>Правила допуска</h2><small>rules из Portfolio Admission и границы панели</small></header><div data-cc="placement-rules"><div class="cc-loading">Читаем источники…</div></div></article>
 </div>
 <aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
 </div>
@@ -3917,10 +3923,11 @@
 <em>—</em>
 <small>Исследования</small>
 </div>
-<div data-x-source="orchestrator"><b>Orchestrator</b><span>routes / summary / metrics</span><em>—</em><em>—</em><small>Оркестратор и часть Главной</small></div>
+<div data-x-source="orchestrator"><b>Orchestrator</b><span>routes / summary / metrics</span><em>—</em><em>—</em><small>Командный центр, Линии</small></div>
 <div data-x-source="testing"><b>Testing</b><span>summary / tests / lineage / runner health</span><em>—</em><em>—</em><small>Тестирование</small></div>
 <div data-x-source="hub"><b>Hub / Durability</b><span>sync health / review queue</span><em>—</em><em>—</em><small>Документы и Фундамент</small></div>
 <div data-x-source="scanner"><b>ATLAS Market Scanner</b><span>market signals / field movement</span><em>НЕ ПОДКЛЮЧЁН</em><em>—</em><small>Сигналы после QA</small></div>
+<div data-x-source="founder-universe"><b>Founder Universe</b><span>temporal-universe / portfolio-admission</span><em>—</em><em>—</em><small>Во времени, Размещение, Связи</small></div>
 <div data-x-source="atlas-twin"><b>ATLAS / Twin</b><span>safe проекция чтенияs</span><em>—</em><em>—</em><small>собственные экраны после подключения</small></div>
 </div>
 </div>

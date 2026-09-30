@@ -25,8 +25,14 @@
     twinState: API + "/panel/twin",
     marketSignals: API + "/signals",
     fieldMovement: API + "/signals/field-movement",
-    scannerDiagnostics: API + "/signals/diagnostics"
+    scannerDiagnostics: API + "/signals/diagnostics",
+    // Founder Universe read-only backend (separate service, same origin).
+    temporalUniverse: "/founder-star-view/api/temporal-universe",
+    portfolioAdmission: "/founder-star-view/api/portfolio-admission"
   };
+  // Only the Founder Universe reads get a client timeout, so a hung service
+  // degrades to "unavailable" instead of stalling the whole read cycle.
+  var UNIVERSE_TIMEOUT_MS = 8000;
 
   var REFRESH_MS = 90000;
   // Latest successful read cycle, shared read-only with command-center.js.
@@ -55,7 +61,9 @@
     twinState: { ok: false, at: null, error: null },
     marketSignals: { ok: false, at: null, error: null },
     fieldMovement: { ok: false, at: null, error: null },
-    scannerDiagnostics: { ok: false, at: null, error: null }
+    scannerDiagnostics: { ok: false, at: null, error: null },
+    temporalUniverse: { ok: false, at: null, error: null },
+    portfolioAdmission: { ok: false, at: null, error: null }
   };
 
   function esc(value) {
@@ -73,8 +81,10 @@
     return Array.isArray(v) ? v : [];
   }
 
-  function fetchJSON(name, url) {
-    return fetch(url, { credentials: "same-origin", cache: "no-store" })
+  function fetchJSON(name, url, timeoutMs) {
+    var ctrl = timeoutMs && window.AbortController ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
+    return fetch(url, { credentials: "same-origin", cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
       .then(function (r) {
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json();
@@ -84,9 +94,11 @@
         return json;
       })
       .catch(function (err) {
-        sourceState[name] = { ok: false, at: new Date().toISOString(), error: String(err && err.message || err) };
+        var msg = err && err.name === "AbortError" ? "timeout " + timeoutMs + "ms" : String(err && err.message || err);
+        sourceState[name] = { ok: false, at: new Date().toISOString(), error: msg };
         return null;
-      });
+      })
+      .then(function (v) { if (timer) clearTimeout(timer); return v; });
   }
 
   function daysSince(iso) {
@@ -1741,6 +1753,7 @@
       testing: ["testingSummary", "testingHealth", "testingRunner"],
       hub: ["hubHealth"],
       scanner: ["marketSignals", "fieldMovement", "scannerDiagnostics"],
+      "founder-universe": ["temporalUniverse", "portfolioAdmission"],
       "atlas-twin": []
     };
     Object.keys(map).forEach(function (group) {
@@ -1799,7 +1812,9 @@
       fetchJSON("twinState", ENDPOINTS.twinState),
       fetchJSON("marketSignals", ENDPOINTS.marketSignals),
       fetchJSON("fieldMovement", ENDPOINTS.fieldMovement),
-      fetchJSON("scannerDiagnostics", ENDPOINTS.scannerDiagnostics)
+      fetchJSON("scannerDiagnostics", ENDPOINTS.scannerDiagnostics),
+      fetchJSON("temporalUniverse", ENDPOINTS.temporalUniverse, UNIVERSE_TIMEOUT_MS),
+      fetchJSON("portfolioAdmission", ENDPOINTS.portfolioAdmission, UNIVERSE_TIMEOUT_MS)
     ]).then(function (res) {
       var routesJSON = res[0];
       var summaryJSON = res[1];
@@ -1820,6 +1835,8 @@
       var marketSignals = res[16];
       var fieldMovement = res[17];
       var scannerDiagnostics = res[18];
+      var temporalUniverse = res[19];
+      var portfolioAdmission = res[20];
 
       var routes = routesJSON && Array.isArray(routesJSON.routes) ? routesJSON.routes : [];
       var summary = summaryJSON && summaryJSON.summary ? summaryJSON.summary : null;
@@ -1831,7 +1848,8 @@
         objects: objects, blockers: blockers, testingSummary: testingSummary,
         opsProjection: opsProjection, brazilPortal: brazilPortal,
         foundationAgg: foundationAgg, atlasState: atlasState, twinState: twinState,
-        marketSignals: marketSignals, fieldMovement: fieldMovement, rd1: {}
+        marketSignals: marketSignals, fieldMovement: fieldMovement,
+        temporalUniverse: temporalUniverse, portfolioAdmission: portfolioAdmission, rd1: {}
       };
 
       setOrchestratorHeader(sourceState.routes.ok, sourceState.summary.ok, sourceState.metrics.ok);

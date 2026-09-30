@@ -52,13 +52,35 @@ Contours (unchanged pages): Фундамент, Исследования, Атл
 The modes make no requests of their own: `live.js` publishes the payloads of
 its read cycle as `window.__PANEL_V2_DATA` and its helpers as
 `window.__PANEL_V2_HELPERS`, then fires `panel-v2-live-ready`.
-Links drawn: line→object by exact ID, line→line by explicit dependency fields,
-shared object_id between lines (structural), world→object by the object's own
-`owning_branch`/`owner`. Nothing causal, strategic or similarity-based is
-inferred. No temporal-universe or Portfolio Admission source exists in the
-current projections; «Во времени» is built from last-event/last-movement
-fields, and the «Кандидат на точную связь» column stays empty with an explicit
-note until such a source is wired.
+
+Sources of truth for the modes:
+- `GET /founder-star-view/api/temporal-universe` (`atlas-temporal-universe.v0.1`):
+  worlds, canonical lines, stars (`branches`), company/line history,
+  strategic trajectories, capital, unresolved history. Primary source for
+  «Во времени», «Связи и стратегии» and the worlds strip.
+- `GET /founder-star-view/api/portfolio-admission` (`atlas-portfolio-admission.v0.1`):
+  placed / exact-owner candidates / review / owner conflicts. Primary and only
+  source for «Размещение» and the «Требуют сверки» KPI.
+- Orchestrator routes + Continuity: current movement of work (stage, next move,
+  ball owner, blockers, explicit dependencies).
+
+Both Founder Universe reads use an 8 s client timeout. Degradation:
+- Temporal Universe down / wrong schema → «Во времени» shows an explicitly
+  labelled reconstruction from routes/objects/RD1; worlds and canonical lines
+  are not shown anywhere.
+- Portfolio Admission down / wrong schema → placement is «не проверено»;
+  the panel never computes candidate / review / conflict itself.
+
+Join rules: a route or Continuity object is tied to a star only when its ID
+equals the star's `memory_id`. `owning_branch` is shown as the object's origin,
+never as its world. `unresolved_history` is never attached to objects.
+`exact_owner_candidates` are not stars and are shown as not visible on the
+Founder Map. A shared `ball_owner` is not a resource link; capital comes only
+from a line's explicit `capital` field.
+
+Local stand: `node dev/stand.mjs` (+ `TU=` / `ADM=` = ok|404|timeout|badschema,
+`ROUTES=ok|down`) and `dev/check.mjs` in Chromium; synthetic fixtures live in
+`fixtures/founder-universe/` (not deployed).
 
 ## Existing safe GET wiring in v2
 

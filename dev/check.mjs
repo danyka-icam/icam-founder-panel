@@ -1,0 +1,60 @@
+// Drives the v2 panel on a running dev stand in Chromium: every Command Center
+// mode at several widths, fails on JS errors or horizontal overflow, and
+// checks the honesty text expected for the stand's TU/ADM mode.
+// Usage: BASE=http://127.0.0.1:8765/founder-ui-preview/v2/ EXPECT=ok|tu-down|adm-down node dev/check.mjs
+// Optional: SHOTS=<dir> writes a full-page screenshot per mode at 1680px.
+import { chromium } from "playwright";
+
+const BASE = process.env.BASE || "http://127.0.0.1:8765/founder-ui-preview/v2/";
+const EXPECT = process.env.EXPECT || "ok";
+const WAIT = Number(process.env.WAIT || 1200);
+const MODES = ["command", "timeline", "links", "lines", "placement"];
+const WIDTHS = (process.env.WIDTHS || "1680,1280,820,390").split(",").map(Number);
+let fails = 0;
+const check = (ok, msg) => { console.log(`  [${ok ? "OK  " : "FAIL"}] ${msg}`); if (!ok) fails++; };
+
+const browser = await chromium.launch();
+for (const w of WIDTHS) {
+  const page = await browser.newPage({ viewport: { width: w, height: 1050 } });
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });
+  await page.goto(BASE + "#command", { waitUntil: "load" });
+  await page.waitForFunction(() => !!window.__PANEL_V2_DATA, null, { timeout: 20000 });
+  await page.waitForTimeout(WAIT);
+  for (const k of MODES) {
+    await page.evaluate((k) => { location.hash = k; }, k);
+    await page.waitForTimeout(250);
+    const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    check(over <= 0, `${k} @${w}: no horizontal overflow (${over}px)`);
+    if (process.env.SHOTS && w === 1680) await page.screenshot({ path: `${process.env.SHOTS}/${EXPECT}-${k}.png`, fullPage: true });
+  }
+  if (w === WIDTHS[0]) {
+    const txt = (k) => page.evaluate((k) => document.querySelector(`[data-page-panel="${k}"]`).innerText, k);
+    const tl = await txt("timeline"), pl = await txt("placement"), cc = await txt("command"), ln = await txt("links");
+    if (EXPECT === "ok") {
+      check(/Temporal Universe/.test(tl) && !/Реконструкция/.test(tl), "timeline uses Temporal Universe, no reconstruction banner");
+      check(/Неразрешённая история/.test(tl), "timeline shows unresolved_history");
+      check(/113/.test(pl) && /Кандидат на точную связь/.test(pl) && /на Founder Map не видна/.test(pl), "placement driven by Portfolio Admission; candidates not visible on map");
+      check(!/Общий владелец хода/.test(ln), "links: no shared-ball_owner resource claim");
+      check(/Фундамент и инфраструктура/.test(cc), "command center shows canonical worlds");
+      const stars = await page.evaluate(() => document.querySelectorAll('[data-page-panel="placement"] .cc-pcol.pl-placed .cc-pcard').length);
+      check(stars === 24, `placed column lists 24 stars (${stars})`);
+    }
+    if (EXPECT === "tu-down") {
+      check(/Реконструкция, не Temporal Universe/.test(tl), "timeline labels fallback as reconstruction");
+      check(/Temporal Universe недоступен/.test(tl), "timeline names the unavailable source");
+      check(/Founder Universe недоступен/.test(cc), "command center says universe unavailable");
+    }
+    if (EXPECT === "adm-down") {
+      check(/Размещение не проверено/.test(pl), "placement says 'не проверено'");
+      check(!/Требуют сверки \d/.test(pl) && !pl.includes("review_required"), "placement does not claim review_required");
+      check(/Не проверено/.test(cc), "command KPI shows 'Не проверено'");
+    }
+  }
+  check(errors.length === 0, `@${w}: no JS errors ${errors.slice(0, 2).join(" | ")}`);
+  await page.close();
+}
+await browser.close();
+console.log(fails ? `FAILED: ${fails}` : "ALL OK");
+process.exit(fails ? 1 : 0);
