@@ -354,9 +354,9 @@
 
   function toneOf(l) {
     if (l.closed) return "closed";
-    var blockers = l.risk.blockers + l.objBlockers.length;
-    if (l.r.ball_owner && H.isFounderOwner(l.r.ball_owner) && (blockers || l.state !== "flow")) return "act";
-    if (blockers) return "blocked";
+    var routeBlockers = l.risk.blockers;
+    if (l.r.ball_owner && H.isFounderOwner(l.r.ball_owner) && (routeBlockers || l.state !== "flow")) return "act";
+    if (routeBlockers) return "blocked";
     if (l.waiting) return "wait";
     if (l.risk.stale == null) return "unknown";
     if (l.risk.stale >= H.STALE_DAYS) return "stale";
@@ -872,7 +872,7 @@
     act.forEach(function (l) { n[l.tone] = (n[l.tone] || 0) + 1; });
     // Blocker is an orthogonal fact, not a presentation tone. A route whose
     // move belongs to the Founder may or may not have a blocker.
-    var blockerRoutes = act.filter(function (l) { return (l.risk.blockers + l.objBlockers.length) > 0; });
+    var blockerRoutes = act.filter(function (l) { return l.risk.blockers > 0; });
     var founderBlocked = blockerRoutes.filter(function (l) { return l.r.ball_owner && H.isFounderOwner(l.r.ball_owner); }).length;
     function tile(tone, label, value, detail, href) {
       return "<a class='cc-pulse-tile st-" + tone + "' href='" + href + "'><span class='cc-pulse-dot'></span>" +
@@ -880,8 +880,8 @@
     }
     if (!routesOk) return tile("unknown", "Маршруты", "Недоступно", "чтение маршрутов не удалось — состояние не показывается", "#diagnostics");
     return tile("flow", "Маршруты в движении", n.flow, "операционные маршруты: движение за последние 7 дней", "#lines") +
-      tile("wait", "Маршруты ждут внешнего", n.wait, "операционные маршруты: ход у внешнего владельца — это не риск", "#lines") +
-      tile("blocked", "Маршруты с блокером", blockerRoutes.length, founderBlocked ? "из них " + founderBlocked + " одновременно ждут вашего хода" : "только явные блокеры из источников", "#lines") +
+      tile("wait", "Маршруты: ход не у вас", n.wait, "система, агент или внешний владелец; это назначение хода, не риск", "#lines") +
+      tile("blocked", "Маршруты с явным блокером", blockerRoutes.length, founderBlocked ? "из них " + founderBlocked + " одновременно назначены вам" : "только blocker-факты самого маршрута", "#lines") +
       tile("stale", "Маршруты без движения", n.stale, "операционные маршруты: 7+ дней без движения, других сигналов нет", "#lines") +
       tile("unknown", "Маршруты на сверке", n.unknown, "нет даты движения — неопределённость, не авария", "#lines");
   }
@@ -959,7 +959,8 @@
       assigned.push({
         kind: "route", title: humanActionText(l.next || "Следующий ход не передан"),
         why: routeDisplayTitle(l.title) + " · маршрут назначен вам · " + priority +
-          (l.risk.blockers + l.objBlockers.length ? " · блокеров " + (l.risk.blockers + l.objBlockers.length) : "") +
+          (l.risk.blockers ? " · блокеров маршрута " + l.risk.blockers : "") +
+          (l.objBlockers.length ? " · у объекта blocker-записей " + l.objBlockers.length + " (не доказаны как блокеры маршрута)" : "") +
           (l.risk.stale != null && l.risk.stale >= H.STALE_DAYS ? " · последнее движение " + l.risk.stale + " дн. назад" : ""),
         ref: l.objId || (l.sourceObjectId ? l.sourceObjectId + " · связь с объектом не подтверждена" : "локальный маршрут"), age: l.r.last_movement_at,
         attr: sel("line", l.key)
@@ -1093,7 +1094,7 @@
 
   function lineCard(l) {
     var r = l.r;
-    var blockersN = l.risk.blockers + l.objBlockers.length;
+    var blockersN = l.risk.blockers;
     var why = r.priority ? "приоритет в источнике: " + r.priority : (l.downstream.length ? "от него явно зависят " + l.downstream.length + " маршрута" : "обоснование важности источником не передано");
     var place = routePlace(l);
     var identityText = l.objId ? l.objId : (l.sourceObjectId ? l.sourceObjectId + " (исходный ID; каноническая связь не подтверждена)" : "канонический объект не связан");
@@ -1103,7 +1104,7 @@
       "<div class='cc-line-head'>" +
       "<div class='cc-line-id'><b>" + E(H.cut(routeDisplayTitle(l.title), 40)) + "</b><small>" + E(where) + "</small></div>" +
       "<div class='cc-line-state'>" + toneDot(l.tone, routeToneLabel(l)) + "<em>" + E(H.cut(human(r.stage || r.status || "этап не передан"), 42)) + "</em></div>" +
-      "<div class='cc-line-block' title='открытые блокеры: маршрут + объект'><small>Блокеры</small>" +
+      "<div class='cc-line-block' title='явные blocker-факты самого маршрута; записи объекта считаются отдельно'><small>Блокеры маршрута</small>" +
       (blockersN ? "<span class='cc-count risk'>" + blockersN + "</span>" : "<span class='cc-count ok'>0</span>") + "</div></div>" +
       "<div class='cc-line-cells'>" +
       "<div class='cc-line-col next'><small>Следующий переход</small><span title='" + E(l.next || "") + "'>" + E(H.cut(humanActionText(l.next || "не передан источником"), 90)) + "</span></div>" +
@@ -1214,7 +1215,7 @@
         "<polygon class='cc-node-glow' points='" + hexPoints(p.x, p.y, 36) + "'/>" +
         "<polygon class='cc-node-hex' points='" + hexPoints(p.x, p.y, 30) + "'/>" +
         "<text x='" + p.x.toFixed(1) + "' y='" + (p.y + 4).toFixed(1) + "' text-anchor='middle'>" + E(H.cut(routeDisplayTitle(l.title), 10)) + "</text>" +
-        (l.risk.blockers + l.objBlockers.length ? "<circle class='cc-node-alert' cx='" + (p.x + 24).toFixed(1) + "' cy='" + (p.y - 22).toFixed(1) + "' r='7'/>" +
+        (l.risk.blockers ? "<circle class='cc-node-alert' cx='" + (p.x + 24).toFixed(1) + "' cy='" + (p.y - 22).toFixed(1) + "' r='7'/>" +
           "<text class='cc-node-alert-t' x='" + (p.x + 24).toFixed(1) + "' y='" + (p.y - 19).toFixed(1) + "' text-anchor='middle'>!</text>" : "") +
         "</g>";
     });
@@ -1270,7 +1271,8 @@
         (items.length ? items.slice(0, 4).map(function (l) {
           var reason = [];
           if (l.risk.stale != null && l.risk.stale >= H.STALE_DAYS) reason.push("без движения " + l.risk.stale + " дн.");
-          if (l.risk.blockers + l.objBlockers.length) reason.push("блокеров " + (l.risk.blockers + l.objBlockers.length));
+          if (l.risk.blockers) reason.push("блокеров маршрута " + l.risk.blockers);
+          if (l.objBlockers.length) reason.push("у объекта записей " + l.objBlockers.length + " · не приписаны маршруту");
           if (t === "wait") reason.push("ход у «" + ownerLabel(l.r.ball_owner) + "»");
           if (l.downstream.length) reason.push("задерживает " + l.downstream.length);
           if (t === "unknown") reason.push("дата движения не передана");
@@ -2238,8 +2240,8 @@
 
   function inspectLine(l) {
     var r = l.r, place = routePlace(l), tv = l.star ? temporalView(l.star.temporal) : null;
-    var blockers = A(r.blockers).map(function (b) { return typeof b === "object" ? (b.title || b.blocker || b.id || "блокер") : String(b); })
-      .concat(l.objBlockers.map(function (b) { return (b.title || b.blocker || "открытый блокер") + " · объект " + (b.object_id || ""); }));
+    var routeBlockerItems = A(r.blockers).map(function (b) { return typeof b === "object" ? (b.title || b.blocker || b.id || "блокер") : String(b); });
+    var objectBlockerItems = l.objBlockers.map(function (b) { return (b.title || b.blocker || "открытая blocker-запись") + " · объект " + (b.object_id || ""); });
     var hist = [];
     if (l.star) l.star.line.history.map(eventView).forEach(function (v) { hist.push(histItem(v, "Temporal Universe")); });
     if (l.obj && l.obj.last_event_at) hist.push("<li><b>" + E(dateLabel(l.obj.last_event_at)) + "</b>" + E((l.obj.last_meaning_kind ? H.signalKindRu(l.obj.last_meaning_kind) : "событие объекта") + (l.obj.last_summary ? " — " + H.cut(humanActionText(l.obj.last_summary), 110) : "")) + " <em>· Continuity</em></li>");
@@ -2256,8 +2258,9 @@
         (l.origin ? muted("Происхождение объекта (owning_branch): " + l.origin) : ""),
       now: "<div class='cc-insp-state st-" + l.tone + "'>" + toneDot(l.tone, routeToneLabel(l)) + "<small>" + E(TONE_META[l.tone].hint) + "</small><em>" +
         E(human(r.stage || r.status || "этап не передан")) + "</em><small>" + E(l.risk.stale == null ? "дата движения не передана" : "последнее движение " + H.ago(r.last_movement_at)) + "</small></div>" +
-        (blockers.length ? "<ul class='cc-blockers'>" + blockers.map(function (b) { return "<li>" + E(H.cut(b, 110)) + "</li>"; }).join("") + "</ul>" :
-          (l.risk.blockers ? para("Источник сообщает " + l.risk.blockers + " блокер(а) без описания.") : "")),
+        (routeBlockerItems.length ? "<small>Явные блокеры маршрута</small><ul class='cc-blockers'>" + routeBlockerItems.map(function (b) { return "<li>" + E(H.cut(b, 110)) + "</li>"; }).join("") + "</ul>" :
+          (l.risk.blockers ? para("Источник сообщает " + l.risk.blockers + " блокер(а) маршрута без описания.") : "")) +
+        (objectBlockerItems.length ? "<div class='cc-object-blocker-context'><small>Контекст связанного объекта · " + objectBlockerItems.length + " записей</small><p>Continuity связывает эти blocker-записи с объектом, но не доказывает, что они блокируют данный маршрут.</p><ul class='cc-blockers context'>" + objectBlockerItems.slice(0,4).map(function (b) { return "<li>" + E(H.cut(b, 110)) + "</li>"; }).join("") + "</ul></div>" : ""),
       why: para((r.priority ? "Приоритет в источнике: " + r.priority + "." : "Источник не передаёт обоснование важности.") +
         (l.downstream.length ? " Его остановка явно задержит " + l.downstream.length + " маршрута." : "") +
         (l.star && hasCapital(l.star.line) ? " У канонической линии есть доказанный капитал: " + capitalItems(l.star.line).join("; ") + "." : "")),
@@ -2280,6 +2283,7 @@
           (l.objMissing ? ceilingRow("warn", "Заявленный канонический объект " + l.objId + " не найден в реестре — нужна сверка") :
             (l.sourceObjectId ? ceilingRow("warn", "Источник маршрута передал ID " + l.sourceObjectId + ", но canonical_mapping_status=" + (l.mappingState || "не передан") + "; это не считается связью с объектом Continuity") : ceilingRow("info", "Маршрут не передаёт каноническую объектную связь"))),
         ceilingRow(l.upstream.length || l.downstream.length ? "ok" : "info", l.upstream.length || l.downstream.length ? "Зависимости — только явные поля источника" : "Явных зависимостей нет; по догадке не строятся"),
+        ceilingRow(l.objBlockers.length ? "info" : "ok", l.objBlockers.length ? "Blocker-записи объекта показаны только как контекст; связь с маршрутом не доказана" : "Blocker-записи объекта к маршруту не приписываются"),
         ceilingRow("no", "Причинное влияние на другие линии — не доказано"),
         ceilingRow("info", "Тон — подача панели, не канонический приоритет")
       ],
