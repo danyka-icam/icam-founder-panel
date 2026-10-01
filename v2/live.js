@@ -823,11 +823,18 @@
     badge.textContent = text;
   }
 
+  function testCollectionState(summary) {
+    return {
+      activeKnown: !!(summary && Array.isArray(summary.active)),
+      recentKnown: !!(summary && Array.isArray(summary.recent))
+    };
+  }
+
   function allTests(summary) {
     var by = {};
     if (!summary) return [];
-    asArray(summary.active).forEach(function (t) { if (t && t.test_id) by[t.test_id] = t; });
-    asArray(summary.recent).forEach(function (t) { if (t && t.test_id) by[t.test_id] = t; });
+    if (Array.isArray(summary.active)) summary.active.forEach(function (t) { if (t && t.test_id) by[t.test_id] = t; });
+    if (Array.isArray(summary.recent)) summary.recent.forEach(function (t) { if (t && t.test_id) by[t.test_id] = t; });
     return Object.keys(by).map(function (k) { return by[k]; });
   }
 
@@ -840,11 +847,15 @@
       note.textContent = "текущее состояние тестов не подтверждено";
       return;
     }
+    var testState = testCollectionState(summary);
+    var testComplete = testState.activeKnown && testState.recentKnown;
     var attention = allTests(summary).filter(function (t) {
       return ["NEEDS_ADJUDICATION", "BLOCKED", "RERUN_REQUIRED"].indexOf(String(t.status || "").toUpperCase()) >= 0;
     });
-    value.textContent = String(attention.length);
-    note.textContent = attention.length ? "проверки, требующие разбора, повтора или снятия блокера" : "нет тестов, требующих внимания";
+    value.textContent = testComplete ? String(attention.length) : "≥ " + String(attention.length);
+    note.textContent = attention.length ?
+      ("из переданных тестов требуют реакции" + (testComplete ? "" : "; набор неполный")) :
+      (testComplete ? "в полном active[] + recent[] таких тестов нет" : "общий ноль не подтверждён: active[] или recent[] не передан");
   }
 
   function renderRegistry(objectsResp, blockersResp) {
@@ -1063,14 +1074,16 @@
       if (q) q.innerHTML = unavailableHTML("Testing summary недоступен", "Очередь проверок не подтверждена.");
       pageBadge("testing", "unavailable", "ИСТОЧНИК НЕДОСТУПЕН");
     } else {
+      var testState = testCollectionState(summary);
+      var testComplete = testState.activeKnown && testState.recentKnown;
       var tests = allTests(summary);
       var waiting = tests.filter(function (t) { return ["REQUESTED", "READY"].indexOf(String(t.status || "").toUpperCase()) >= 0; });
       var adj = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "NEEDS_ADJUDICATION"; });
       var rerun = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "RERUN_REQUIRED"; });
-      var active = asArray(summary.active);
+      var active = testState.activeKnown ? summary.active : [];
 
-      [["waiting", waiting.length], ["active", active.length], ["adjudication", adj.length], ["rerun", rerun.length]].forEach(function (kv) {
-        var e = page.querySelector('[data-t="' + kv[0] + '"]'); if (e) e.textContent = String(kv[1]);
+      [["waiting", waiting.length, testComplete], ["active", active.length, testState.activeKnown], ["adjudication", adj.length, testComplete], ["rerun", rerun.length, testComplete]].forEach(function (kv) {
+        var e = page.querySelector('[data-t="' + kv[0] + '"]'); if (e) e.textContent = kv[2] ? String(kv[1]) : "≥ " + String(kv[1]);
       });
 
       var q = page.querySelector('[data-t="queue"]');
@@ -1080,8 +1093,8 @@
           return "<div class='testing-live-row'><b>" + esc(t.test_id || "—") + "<small>" + esc(t.object_id || "не определён") + "</small></b>" +
             "<span>" + esc(t.owning_branch || "—") + "</span><span>" + esc(testTypesRu(t.test_type)) + "</span>" +
             "<em>" + esc(ruStatus(t.status)) + "</em><span>" + esc(testOutcomeRu(t.next_action || t.scientific_outcome || "—")) + "</span></div>";
-        }).join("") :
-        "<div class='testing-empty compact'><strong>Очередь пуста</strong><span>Testing summary ответил без тестов.</span></div>";
+        }).join("") + (!testComplete ? "<div class='signals-partial-note warn'>Показаны тесты только из переданных массивов; active[] или recent[] отсутствует, список неполный.</div>" : "") :
+        (testComplete ? "<div class='testing-empty compact'><strong>Тестов в текущем summary нет</strong><span>Источник явно передал пустые active[] и recent[].</span></div>" : unavailableHTML("Набор тестов прочитан частично", "Переданный массив пуст, но active[] или recent[] отсутствует — общий ноль не подтверждён."));
       }
 
       var focus = page.querySelector('[data-t="focus"]');
@@ -1089,7 +1102,8 @@
         var primary = adj[0] || null;
         if (primary) {
           var types = testTypesRu(primary.test_type).split(" · ");
-          var evidenceN = asArray(primary.evidence_refs).length;
+          var evidenceKnown = Array.isArray(primary.evidence_refs);
+          var evidenceN = evidenceKnown ? primary.evidence_refs.length : null;
           var proc = testOutcomeRu(primary.procedure_status || "процедурный статус не передан");
           var outcome = testOutcomeRu(primary.scientific_outcome || "научный исход не передан");
           var next = researchTextRu(primary.delivery_next_action || primary.next_action || "следующий ход не передан");
@@ -1102,10 +1116,12 @@
               "<i>→</i>" +
               "<div><small>03 · Следующий ход</small><strong>" + esc(next) + "</strong><span>решение остаётся у владеющей ветки</span></div>" +
             "</div>" +
-            "<div class='testing-focus-meta'><span><small>Что проверялось</small><b>" + esc(types.join(" · ") || "—") + "</b></span><span><small>Доказательств прогона</small><b>" + esc(evidenceN) + " ссылок</b></span><span><small>Публикация результата</small><b>" + esc(primary.delivery_state ? researchTextRu(humanCode(primary.delivery_state)) : "—") + (primary.delivery_revision != null ? " · ревизия " + esc(primary.delivery_revision) : "") + "</b></span><span><small>Обновлено</small><b>" + esc(primary.updated_at ? ago(primary.updated_at) : "—") + "</b></span></div>" +
+            "<div class='testing-focus-meta'><span><small>Что проверялось</small><b>" + esc(types.join(" · ") || "—") + "</b></span><span><small>Доказательств прогона</small><b>" + esc(evidenceN == null ? "—" : evidenceN + " ссылок") + "</b></span><span><small>Публикация результата</small><b>" + esc(primary.delivery_state ? researchTextRu(humanCode(primary.delivery_state)) : "—") + (primary.delivery_revision != null ? " · ревизия " + esc(primary.delivery_revision) : "") + "</b></span><span><small>Обновлено</small><b>" + esc(primary.updated_at ? ago(primary.updated_at) : "—") + "</b></span></div>" +
             "<div class='testing-focus-rule'>Процедурный PASS подтверждает исполнение протокола, а не исследовательскую гипотезу. До разбора владеющей веткой Панель сохраняет научный исход как незавершённый.</div>";
         } else {
-          focus.innerHTML = "<div class='testing-focus-calm'><strong>Нет результатов, ожидающих содержательного разбора</strong><span>По текущему Testing summary состояние NEEDS_ADJUDICATION отсутствует.</span></div>";
+          focus.innerHTML = testComplete ?
+            "<div class='testing-focus-calm'><strong>Нет результатов, ожидающих содержательного разбора</strong><span>Полные active[] + recent[] не содержат NEEDS_ADJUDICATION.</span></div>" :
+            unavailableHTML("Отсутствие NEEDS_ADJUDICATION не подтверждено", "active[] или recent[] не передан; доступная часть не содержит такого состояния.");
         }
       }
 
@@ -1113,22 +1129,22 @@
       if (att) {
         var blocked = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "BLOCKED"; });
         var n = adj.length + rerun.length + blocked.length;
-        att.innerHTML = "<div class='testing-attention-main'><span class='testing-signal-ring'>" + esc(n) + "</span><div><strong>" +
-          (n ? "Есть проверки, требующие реакции" : "Нет тестов, требующих реакции") + "</strong><p>" +
-          (n ? "Разбор: " + adj.length + " · повтор: " + rerun.length + " · заблокировано: " + blocked.length :
-               "Текущая проекция не содержит NEEDS_ADJUDICATION, RERUN_REQUIRED или BLOCKED.") +
+        att.innerHTML = "<div class='testing-attention-main'><span class='testing-signal-ring'>" + esc(testComplete ? n : "≥ " + n) + "</span><div><strong>" +
+          (n ? "Есть проверки, требующие реакции" : (testComplete ? "Нет тестов, требующих реакции" : "Общий ноль не подтверждён")) + "</strong><p>" +
+          (n ? "Разбор: " + adj.length + " · повтор: " + rerun.length + " · заблокировано: " + blocked.length + (testComplete ? "" : " · набор неполный") :
+               (testComplete ? "Полные active[] + recent[] не содержат NEEDS_ADJUDICATION, RERUN_REQUIRED или BLOCKED." : "Доступная часть не содержит этих состояний, но active[] или recent[] не передан.")) +
           "</p></div></div><div class='testing-attention-rule'>Техническое завершение прогона не становится автоматически научным выводом.</div>";
       }
 
       var recentBox = page.querySelector('[data-t="recent"]');
       if (recentBox) {
-        var recent = asArray(summary.recent).slice(0, 6);
+        var recent = testState.recentKnown ? summary.recent.slice(0, 6) : [];
         recentBox.innerHTML = recent.length ? "<div class='testing-mini-list'>" + recent.map(function (t) {
           return "<div class='testing-mini-item'><b>" + esc(t.test_id || "—") + "</b><span>" +
             esc(testOutcomeRu(t.procedure_status || "процедура не указана")) + " · " + esc(testOutcomeRu(t.scientific_outcome || "научный исход не указан")) +
             " · " + esc(ago(t.updated_at)) + "</span></div>";
         }).join("") + "</div>" :
-        "<div class='testing-empty compact'><strong>Недавние результаты не переданы</strong><span>Поле recent в текущем Testing summary пусто; это не доказывает отсутствие завершённых проверок.</span></div>";
+        (testState.recentKnown ? "<div class='testing-empty compact'><strong>recent[] пуст</strong><span>Это не доказывает отсутствие завершённых проверок вне этого списка.</span></div>" : unavailableHTML("Недавние результаты не проверены", "Поле recent[] в Testing summary не передано."));
       }
 
       var adjBox = page.querySelector('[data-t="adjudication-list"]');
@@ -1137,7 +1153,7 @@
           return "<div class='testing-mini-item'><b>" + esc(t.test_id || "—") + "</b><span>" +
             esc(t.owning_branch || "владеющая ветка не указана") + " · " + esc(testOutcomeRu(t.scientific_outcome || "нужен разбор")) + "</span></div>";
         }).join("") + "</div>" :
-        "<div class='testing-empty compact'><strong>Разбор сейчас не требуется</strong><span>Нет тестов в состоянии NEEDS_ADJUDICATION.</span></div>";
+        (testComplete ? "<div class='testing-empty compact'><strong>NEEDS_ADJUDICATION не найден</strong><span>Полные active[] + recent[] не содержат такого состояния.</span></div>" : unavailableHTML("Потребность в разборе не подтверждена", "Доступная часть не содержит NEEDS_ADJUDICATION, но набор тестов неполный."));
       }
 
       pageBadge("testing", sourceState.testingRunner.ok ? "live" : "warn", sourceState.testingRunner.ok ? "ДАННЫЕ ПОДКЛЮЧЕНЫ" : "ДАННЫЕ ЧАСТИЧНО");
