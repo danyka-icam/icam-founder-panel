@@ -2313,7 +2313,7 @@
     return inspector({
       badge: hexBadge(initials(routeDisplayTitle(l.title)), l.tone, "lg"), title: routeDisplayTitle(l.title), sub: "Маршрут Оркестратора" + (routeDisplayTitle(l.title) !== l.title ? " · исходное название: " + l.title : "") + (l.area ? " · " + H.humanCode(l.area) : ""),
       what: para("Маршрут работы в Оркестраторе" + (l.star ? " по звезде «" + l.star.title + "» линии «" + l.star.line.title + "»." : ".") +
-        (!r.ball_owner ? " Владелец хода не назначен." : " Ход: «" + ownerLabel(r.ball_owner) + "».")),
+        (r.ball_owner == null || r.ball_owner === "" ? " Поле ball_owner не передано." : " Ход: «" + ownerLabel(r.ball_owner) + "».")),
       where: crumbs([{ t: "ICAM" }, { t: place.world ? place.world.title : (M.tu.ok ? "связь с Founder Universe не подтверждена" : "мир не проверен") },
         { t: place.uline ? H.cut(place.uline.title, 22) : "линия не определена" }, { t: l.objId || (l.sourceObjectId ? l.sourceObjectId + " · не связано" : "без канонического объекта"), cur: true }]) +
         (l.origin ? muted("Происхождение объекта (owning_branch): " + l.origin) : ""),

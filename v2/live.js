@@ -1415,7 +1415,7 @@
       if (!healthOk) continuity.innerHTML = unavailableHTML("Continuity health недоступен", "Операционная истина не получила подтверждённого health-read.");
       else continuity.innerHTML =
         "<div class='foundation-live-list'>" +
-        "<div class='foundation-live-item'><b>Health endpoint</b><span>" + (health.ok === false ? "сообщает о деградации" : "ответил успешно") + "</span></div>" +
+        "<div class='foundation-live-item'><b>Health endpoint</b><span>" + (health.ok === true ? "источник сообщает OK" : (health.ok === false ? "источник сообщает деградацию" : "поле health.ok не передано")) + "</span></div>" +
         "<div class='foundation-live-item'><b>Системное внимание</b><span>" + esc(systemOpen == null ? "не указано" : systemOpen) + "</span></div></div>";
     }
 
