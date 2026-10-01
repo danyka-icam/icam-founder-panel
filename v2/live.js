@@ -95,6 +95,12 @@
     return isFinite(n) ? n : null;
   }
 
+  function founderFlagState(o) {
+    o = o || {};
+    var known = typeof o.needs_founder === "boolean" || typeof o.needs_nika === "boolean";
+    return { known: known, value: o.needs_founder === true || o.needs_nika === true };
+  }
+
   function fetchJSON(name, url, timeoutMs) {
     var ctrl = timeoutMs && window.AbortController ? new AbortController() : null;
     var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
@@ -894,10 +900,11 @@
     // Absence of last_event_at is an event-history gap, not identity debt.
     // /continuity/objects does not expose a separate identity/mapping verdict.
     var noEventHistory = items.filter(function (o) { return !o.last_event_at; });
-    var founder = items.filter(function (o) { return !!(o.needs_nika || o.needs_founder); });
+    var founder = items.filter(function (o) { return founderFlagState(o).value; });
+    var founderUnknown = items.filter(function (o) { return !founderFlagState(o).known; }).length;
 
     function put(k, v) { var e = page.querySelector('[data-g="' + k + '"]'); if (e) e.textContent = String(v); }
-    put("count", itemsKnown ? items.length : "—"); put("active", itemsKnown ? active.length : "—"); put("unresolved", itemsKnown ? noEventHistory.length : "—"); put("founder", itemsKnown ? founder.length : "—");
+    put("count", itemsKnown ? items.length : "—"); put("active", itemsKnown ? active.length : "—"); put("unresolved", itemsKnown ? noEventHistory.length : "—"); put("founder", itemsKnown ? (founderUnknown ? "≥ " + founder.length : founder.length) : "—");
     var core = page.querySelector('[data-g="identity-core"]'); if (core) core.textContent = String(itemsKnown ? noEventHistory.length : "—");
 
     var list = page.querySelector('[data-g="objects"]');
@@ -925,8 +932,9 @@
       else founderBox.innerHTML = founder.length ? "<div class='registry-mini-list'>" + founder.slice(0, 6).map(function (o) {
         return "<div class='registry-mini-item'><b>" + esc(o.name || o.object_id) + "</b><span>" +
           esc(o.object_id || "не определён") + " · " + esc(ruStatus(o.declared_status)) + "</span></div>";
-      }).join("") + "</div>" :
-      "<div class='registry-empty compact'><strong>Нет объектов, помеченных как требующие участия Основателя</strong><span>Источник объектов не отметил ни один объект флагом needs_founder / needs_nika.</span></div>";
+      }).join("") + "</div>" + (founderUnknown ? "<div class='signals-partial-note warn'>Ещё у " + esc(founderUnknown) + " объект(ов) поля needs_founder / needs_nika не переданы; итог — нижняя граница.</div>" : "") :
+      (founderUnknown ? unavailableHTML("Founder-флаги объектов переданы не полностью", "У " + founderUnknown + " объект(ов) needs_founder / needs_nika не переданы; нулевое состояние не подтверждено.") :
+      "<div class='registry-empty compact'><strong>Нет объектов, явно помеченных как требующие участия Основателя</strong><span>Для всех объектов Founder-флаг передан, явных true нет.</span></div>");
     }
 
     var blockerBox = page.querySelector('[data-g="blockers-list"]');
@@ -1329,12 +1337,13 @@
       var active = lines.filter(function (x) {
         return /^ACTIVE/.test(String(x.object.declared_status || x.projection.status || "").toUpperCase());
       });
-      var founder = lines.filter(function (x) { return !!(x.object.needs_nika || x.object.needs_founder); });
+      var founder = lines.filter(function (x) { return founderFlagState(x.object).value; });
+      var founderFlagsComplete = lines.every(function (x) { return founderFlagState(x.object).known; });
       var founderProjectionRead = !!(sourceState.founderProjection.ok && founderProjection);
       var founderDecisionsKnown = !!(founderProjectionRead && founderProjection.today && Array.isArray(founderProjection.today.founder_decisions));
       var formalDecisions = founderDecisionsKnown ? founderProjection.today.founder_decisions : [];
       var founderNote = page.querySelector('[data-r="founder-note"]');
-      if (founderNote) founderNote.textContent = (rd1Complete ? founder.length : "≥ " + founder.length) + " привязано к исследовательской линии" +
+      if (founderNote) founderNote.textContent = (rd1Complete && founderFlagsComplete ? founder.length : "≥ " + founder.length) + " привязано к исследовательской линии" +
         (founderDecisionsKnown ? (formalDecisions.length ? " · " + formalDecisions.length + " формальное решение без привязки к объекту" : " · формальных решений: 0") : " · Founder Projection: решения не проверены");
       var waiting = lines.filter(function (x) {
         var declared = String(x.object.declared_status || "").toUpperCase();

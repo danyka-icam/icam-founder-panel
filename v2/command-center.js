@@ -2434,7 +2434,7 @@
     if (!M.adm.ok) return "";
     if (!M.AD.trustedKnown) return " · trusted_owner_map не передан";
     var t = M.AD.trusted.filter(function (e) { return e.branch === String(origin); })[0];
-    return t ? " · в доверенной карте → «" + t.title + "»" + (t.ul ? "" : " (линии с точно таким названием нет)") : " · в текущем trusted_owner_map записи нет";
+    return t ? " · в доверенной карте → «" + t.title + "»" + (t.ul ? "" : (M.tu.ok && M.U.linesComplete ? " (линии с точно таким названием нет)" : " (точное совпадение линии не подтверждено: структура линий неполна)")) : " · в текущем trusted_owner_map записи нет";
   }
 
   function inspectObject(x) {
