@@ -240,13 +240,11 @@
   // Explicit dependency extraction only. We do not infer links from names, text or timing.
   function normalizeDependencyItem(x) {
     if (x == null) return null;
+    // A primitive dependency token may resolve only against an explicit route ID.
+    // Structured references must likewise name route_id/id. Object IDs, areas and
+    // titles are provenance/context and are never promoted into route dependencies.
     if (typeof x === "string" || typeof x === "number") return String(x);
-    if (typeof x === "object") {
-      return String(
-        x.route_id || x.id || x.object_id || x.source_object_id ||
-        x.area || x.name || x.title || ""
-      ) || null;
-    }
+    if (typeof x === "object") return String(x.route_id || x.id || "") || null;
     return null;
   }
 
@@ -273,11 +271,10 @@
   function dependencyModel(routes) {
     var byKey = {};
     routes.forEach(function (r) {
-      var keys = [
-        routeKey(r),
-        r.route_id, r.id, r.source_object_id, r.object_id, r.area, r.title
-      ].filter(Boolean).map(String);
-      keys.forEach(function (k) { byKey[k] = r; });
+      // Dependency resolution is fail-closed: only explicit route identifiers.
+      // routeKey() may fall back to provenance fields for local UI identity, so it
+      // is intentionally not used here unless it equals route_id/id.
+      [r.route_id, r.id].filter(Boolean).map(String).forEach(function (k) { byKey[k] = r; });
     });
 
     var edges = [];
