@@ -1352,13 +1352,13 @@
       "<div class='cc-siglab-objective'><small>Цель</small><p>" + E(objective) + "</p></div></div>" +
       "<div class='cc-siglab-metrics'>" +
         "<span><small>Наблюдений в двух потоках</small><b>" + E(observations || "—") + "</b></span>" +
-        "<span><small>Подтверждений в потоках</small><b>" + E(confirmed || "—") + "</b></span>" +
+        "<span><small>Счётчик поля confirmed</small><b>" + E(confirmed || "—") + "</b><i>служебное состояние двух потоков</i></span>" +
         "<span><small>Охват</small><b>" + E(regionN ? regionN + " регионов" : "—") + "</b><i>" + E(sectorN ? sectorN + " классов отраслей" : "") + "</i></span>" +
         "<span><small>Последний перезапуск</small><b>" + E(restarted ? timeLabel(restarted) : "—") + "</b></span>" +
         "<span><small>Следующий цикл</small><b>" + E(d.next_cycle ? timeLabel(d.next_cycle) : "—") + "</b></span>" +
         "<span><small>Следующий рубеж</small><b>" + E(gate) + "</b></span>" +
       "</div>" +
-      "<div class='cc-siglab-foot'>Показывается состояние исследовательского контура, а не вывод о качестве ATLAS. Источник обновляется отдельно от интерфейса.</div>" +
+      "<div class='cc-siglab-foot'>Показывается состояние исследовательского контура, а не вывод о качестве ATLAS. Поля confirmed/degraded — служебные счётчики источника и не интерпретируются Панелью как подтверждение или опровержение гипотезы.</div>" +
     "</a>";
   }
 
