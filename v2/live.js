@@ -1535,8 +1535,14 @@
 
     put("founder", inboxOk ? founderItems.length : "Недоступно");
     put("changes", objectsOk ? changes.length : "Недоступно");
-    put("risks", (blockersOk || testingOk) ? blockers.length + riskyTests.length : "Недоступно");
-    put("risks-detail", (blockersOk || testingOk) ? (blockers.length + " открытых записей Continuity без оценки тяжести · " + riskyTests.length + " тест(а) BLOCKED/RERUN") : "источники недоступны");
+    var riskKnown = blockers.length + riskyTests.length;
+    var riskComplete = blockersOk && testingOk;
+    put("risks", riskComplete ? riskKnown : ((blockersOk || testingOk) ? "≥ " + riskKnown : "Недоступно"));
+    put("risks-detail", riskComplete ?
+      (blockers.length + " открытых записей Continuity без оценки тяжести · " + riskyTests.length + " тест(а) BLOCKED/RERUN") :
+      ((blockersOk || testingOk) ?
+        ((blockersOk ? blockers.length + " Continuity" : "Continuity недоступен") + " · " + (testingOk ? riskyTests.length + " Testing" : "Testing недоступен") + " · итог неполный") :
+        "источники недоступны"));
     var msKpiOk = sourceState.marketSignals.ok && marketSignals;
     var msSignals = msKpiOk ? asArray(marketSignals.signals) : [];
     var msCoverage = msKpiOk ? (marketSignals.source_coverage || {}) : {};
@@ -1593,8 +1599,15 @@
             "<span>" + esc(t.owning_branch || "владеющая ветка не указана") + " · " + esc(ruStatus(t.status)) + "</span>" +
             "<small>Testing · " + esc(t.blocker || t.next_action || "нужна реакция владеющей ветки") + "</small></div>");
         });
-        risksBox.innerHTML = rows.length ? "<div class='signals-live-list'>" + rows.join("") + "</div>" :
-          "<div class='signals-empty compact'><strong>Открытых записей блокеров сейчас нет</strong><span>Текущие Continuity blockers и Testing summary не содержат открытых нетестовых блокеров, BLOCKED или RERUN_REQUIRED.</span></div>";
+        if (rows.length) {
+          risksBox.innerHTML = "<div class='signals-live-list'>" + rows.join("") + "</div>" +
+            (!riskComplete ? "<div class='signals-partial-note warn'>Показаны только доступные источники; полный контур риска сейчас не подтверждён.</div>" : "");
+        } else if (!riskComplete) {
+          risksBox.innerHTML = unavailableHTML("Контур риска прочитан частично",
+            "Доступный источник не содержит BLOCKED/RERUN или открытых блокеров, но второй источник недоступен — нулевой общий риск не подтверждён.");
+        } else {
+          risksBox.innerHTML = "<div class='signals-empty compact'><strong>Открытых записей блокеров сейчас нет</strong><span>Текущие Continuity blockers и Testing summary не содержат открытых нетестовых блокеров, BLOCKED или RERUN_REQUIRED.</span></div>";
+        }
       }
     }
 
