@@ -2061,33 +2061,55 @@
     var inv = data.safety_invariants_status || {};
     var predLabel = TWIN_PREDICTION_LABELS[data.current_prediction] || "Недоступно";
     var needsConf = data.needs_confirmation || 0;
-
+    var scoredN = Number(data.prospective_scored_n || 0);
+    var invNames = {
+      C0_C3_exact_controls: "Точные контрольные варианты C0–C3",
+      experimental_lineage: "Экспериментальное происхождение",
+      pre_action_seal: "Запечатывание до действия",
+      prediction_exposure_guard: "Защита от раскрытия прогноза",
+      prediction_hidden_pre_outcome: "Прогноз скрыт до исхода",
+      score_before_update: "Оценка до обновления модели",
+      semantic_validity_clock: "Часы смысловой валидности",
+      sensor_semantic_gate: "Смысловой фильтр входных каналов",
+      unknown_channel_policy: "Политика неизвестных каналов"
+    };
+    function invValueRu(v) {
+      var x = String(v || "").toUpperCase();
+      if (x === "ENFORCED") return "обязательно соблюдается";
+      if (x === "ABSTAIN") return "воздержание при неопределённости";
+      return humanCode(v || "—");
+    }
     var invRows = Object.keys(inv).length ? Object.keys(inv).map(function (k) {
-      return kv(humanCode(k), humanCode(String(inv[k])));
+      return kv(invNames[k] || humanCode(k), invValueRu(inv[k]));
     }).join("") : "";
+    var modeLabel = String(data.mode || "").toUpperCase() === "WARM_START" ? "тёплый запуск" : humanCode(data.mode || "—");
+    var transferLabel = String(data.ss001_transfer_boundary || "").toUpperCase() === "ENGINEERING_METHODOLOGY_ONLY__NO_EMPIRICAL_TRANSFER" ?
+      "перенесена только инженерная методология; эмпирические результаты SS001 не переносятся" : humanCode(data.ss001_transfer_boundary || "—");
 
     body.innerHTML =
-      "<div class='live-status-box " + liveMode(status) + "'><strong>Personal Twin — " + esc(status) + "</strong>" +
-      "<p>Safe read projection только: вероятности клонов и ранжированные варианты Панель никогда не получает и не показывает.</p></div>" +
+      "<div class='live-status-box " + liveMode(status) + "'><strong>Personal Twin — вычислительный контур доступен</strong>" +
+      "<p>Панель получает только безопасную проекцию чтения: вероятности клонов и ранжированные варианты до исхода сюда не поступают.</p></div>" +
       "<div class='live-summary'>" +
-      "<div class='metric'><small>Объект программы</small><strong>" + esc((po && po.object_id) || "FND-005") + "</strong><span>" + esc((po && po.declared_status) || "") + "</span></div>" +
-      "<div class='metric'><small>Режим</small><strong>" + esc(humanCode(data.mode || "—")) + "</strong><span>runtime mode, не предсказание</span></div>" +
-      "<div class='metric'><small>Активных клонов</small><strong>" + esc(data.clones_active != null ? data.clones_active : "—") + "</strong><span>C0–C7</span></div>" +
-      "<div class='metric'><small>Оценено прогнозов</small><strong>" + esc(data.prospective_scored_n != null ? data.prospective_scored_n : "—") + "</strong><span>prospective_scored_n</span></div></div>" +
+      "<div class='metric'><small>Объект программы</small><strong>" + esc((po && po.object_id) || "FND-005") + "</strong><span>" + esc(humanCode((po && po.declared_status) || "")) + "</span></div>" +
+      "<div class='metric'><small>Режим</small><strong>" + esc(modeLabel) + "</strong><span>режим выполнения, не оценка качества прогноза</span></div>" +
+      "<div class='metric'><small>Активных клонов</small><strong>" + esc(data.clones_active != null ? data.clones_active : "—") + "</strong><span>вычислительные варианты C0–C7</span></div>" +
+      "<div class='metric'><small>Оценено проспективных прогнозов</small><strong>" + esc(data.prospective_scored_n != null ? data.prospective_scored_n : "—") + "</strong><span>исходы, по которым уже можно измерять качество</span></div></div>" +
+      "<div class='twin-proof-boundary'><b>Граница доказанного:</b> состояние LIVE/OK подтверждает доступность вычислительного контура, но не точность прогноза. " +
+        (scoredN === 0 ? "Пока оценено 0 проспективных исходов — предсказательная способность и лучший клон не определены." : "Оценённые исходы существуют, но их качество должно читаться из отдельной доказательной проекции.") + "</div>" +
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Текущее состояние прогноза</h3>" + chip(data.current_prediction || "—") + "</div>" +
       "<div class='live-kv-grid'>" +
       kv("Статус", predLabel) +
-      kv("Commitment (SHA-256)", data.current_commitment ? cut(data.current_commitment, 24) + "…" : "—") +
+      kv("SHA-256 запечатанного обязательства", data.current_commitment ? cut(data.current_commitment, 24) + "…" : "—") +
       kv("Печать создана", data.seal_created_at ? ago(data.seal_created_at) : "—") +
-      kv("Последний исход", data.last_outcome || "—") +
+      kv("Последний исход", data.last_outcome || "исходов пока нет") +
       "</div>" +
       (needsConf > 0 ?
         "<div class='live-status-box warn' style='margin-top:8px'><strong>Ожидает подтверждения: " + esc(needsConf) + "</strong>" +
         "<p>Исход неоднозначен. Панель только показывает ожидание — подтверждение здесь не выполняется.</p></div>" : "") +
       "</div>" +
-      "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Предохранители</h3>" + chip("ENFORCED") + "</div>" +
+      "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Предохранители эксперимента</h3>" + chip("ENFORCED") + "</div>" +
       "<div class='live-kv-grid'>" + invRows + "</div>" +
-      "<small>SS001 transfer boundary: " + esc(humanCode(data.ss001_transfer_boundary || "—")) + "</small></div>";
+      "<small>Граница переноса SS001: " + esc(transferLabel) + ".</small></div>";
   }
 
   function HumanFoundationStatus(value) {
