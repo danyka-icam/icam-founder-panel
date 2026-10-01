@@ -2214,7 +2214,7 @@
       }
       var states = map[group].map(function (k) { return sourceState[k]; });
       var count = states.filter(function (s) { return s.ok; }).length;
-      if (em[0]) em[0].textContent = count === states.length ? "ДОСТУПЕН" : (count ? "ЧАСТИЧНО" : "НЕДОСТУПЕН");
+      if (em[0]) em[0].textContent = count === states.length ? "ЧТЕНИЕ ДОСТУПНО" : (count ? "ЧТЕНИЕ ЧАСТИЧНО" : "ЧТЕНИЕ НЕДОСТУПНО");
       var ats = states.filter(function (s) { return s.at; }).map(function (s) { return s.at; }).sort();
       if (em[1]) em[1].textContent = ats.length ? new Date(ats[ats.length - 1]).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}) : "—";
     });
