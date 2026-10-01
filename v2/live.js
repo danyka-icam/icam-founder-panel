@@ -2254,24 +2254,26 @@
       var passN = passDimsDiag.filter(function (d) { return String(d && d.state || "").toUpperCase() === "PASS"; }).length;
       var dur = dims.filter(function (d) { return d && d.dimension === "artifact_durability_readback"; })[0] || {};
       var dd = dur.detail || {};
-      var scan = scannerDiagnostics || {};
+      var scanAvailable = !!(sourceState.scannerDiagnostics.ok && scannerDiagnostics);
+      var scan = scanAvailable ? scannerDiagnostics : {};
       var cov = scan.source_coverage || {};
       var scanTotal = cov.total_sources == null ? null : Number(cov.total_sources);
       var scanOk = cov.ok_count == null ? null : Number(cov.ok_count);
-      var scanFail = asArray(cov.failing).length;
-      var scanUnknown = asArray(cov.failing).filter(function (x) { return x && !x.known_degraded; }).length;
+      var scanFailingKnown = Array.isArray(cov.failing);
+      var scanFail = scanFailingKnown ? cov.failing.length : null;
+      var scanUnknown = scanFailingKnown ? cov.failing.filter(function (x) { return x && !x.known_degraded; }).length : null;
       var hub = hubHealth || {};
       var readTone = failed ? "warn" : "ok";
       var foundationTone = String(f.source_status || "").toUpperCase() === "DEGRADED" ? "warn" : (String(f.source_status || "").toUpperCase() === "READY" ? "ok" : "neutral");
       var durabilityTone = String(dur.state || "").toUpperCase() === "PASS" ? "ok" : (String(dur.state || "").toUpperCase() === "FAIL" ? "bad" : "neutral");
-      var scannerTone = scanTotal != null && scanOk != null && scanTotal > 0 && scanOk === scanTotal ? "ok" : (scanFail ? "bad" : "neutral");
+      var scannerTone = !scanAvailable ? "warn" : (scanTotal != null && scanOk != null && scanTotal > 0 && scanOk === scanTotal ? "ok" : (scanFail != null && scanFail > 0 ? "bad" : "neutral"));
       trust.innerHTML =
         "<div class='diag-boundary-intro'><div><small>НЕ ЕДИНЫЙ РЕЙТИНГ, А ГРАНИЦЫ ДОКАЗАННОГО</small><b>Доступность интерфейса ≠ здоровье всех источников мира</b><span>Каждое измерение сохраняет собственный источник и область действия.</span></div></div>" +
         "<div class='diag-boundary-grid'>" +
           "<div class='" + readTone + "'><small>Чтение панели</small><b>" + esc(ok + " / " + keys.length) + "</b><span>проекций ответили · ошибок чтения " + esc(failed) + "</span><em>влияет на доступность экранов</em></div>" +
           "<div class='" + foundationTone + "'><small>Системное основание</small><b>" + esc(passDimsDiag.length ? passN + " / " + passDimsDiag.length : "—") + "</b><span>" + esc(mandatoryKnownDiag ? "обязательных измерений пройдено" : "PASS среди переданных dimensions; mandatory не полностью указан") + " · состояние: " + esc(HumanFoundationStatus(f.source_status)) + "</span><em>влияет на утверждение «основание готово»</em></div>" +
           "<div class='" + durabilityTone + "'><small>Долговечность артефактов</small><b>" + esc(dd.objects_on_disk != null ? dd.objects_on_disk + " объектов на диске" : "—") + "</b><span>хэши: " + esc(dd.hash_mismatches == null ? "—" : dd.hash_mismatches) + " расхождений · потеряно: " + esc(dd.artifacts_missing == null ? "—" : dd.artifacts_missing) + " · осиротевших расписок: " + esc(dd.orphan_receipts == null ? "—" : dd.orphan_receipts) + "</span><em>наличие на диске не равно доказанному полному readback</em></div>" +
-          "<div class='" + scannerTone + "'><small>Внешнее рыночное покрытие</small><b>" + esc(scanTotal != null && scanOk != null ? scanOk + " / " + scanTotal : "—") + "</b><span>источников отвечают · отказов " + esc(scanFail) + " · ещё не объяснено " + esc(scanUnknown) + "</span><em>ограничивает внешние рыночные сигналы, а не внутреннее состояние компании</em></div>" +
+          "<div class='" + scannerTone + "'><small>Внешнее рыночное покрытие</small><b>" + esc(scanAvailable && scanTotal != null && scanOk != null ? scanOk + " / " + scanTotal : "—") + "</b><span>" + esc(!scanAvailable ? "диагностика Scanner недоступна" : ("источников отвечают · отказов " + (scanFail == null ? "—" : scanFail) + " · ещё не объяснено " + (scanUnknown == null ? "—" : scanUnknown))) + "</span><em>ограничивает внешние рыночные сигналы, а не внутреннее состояние компании</em></div>" +
         "</div>" +
         "<div class='diag-boundary-freshness'><b>Свежесть не сводится к одному таймеру.</b><span>Фундамент: " + esc(f.freshness_state ? humanCode(f.freshness_state) : "контракт не прочитан") + " · Market Scanner: " + esc(scan.scanner && scan.scanner.freshness_state ? humanCode(scan.scanner.freshness_state) : "контракт не прочитан") + ". Остальные источники не объявляются свежими только потому, что HTTP-чтение успешно.</span></div>" +
         "<div class='diag-boundary-rule'>Панель может одновременно иметь 26/26 успешных чтений и показывать деградацию отдельного upstream-контура. Это не противоречие: первое описывает доступность проекций, второе — состояние данных за ними.</div>";
