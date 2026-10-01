@@ -494,16 +494,17 @@
     var U = { worlds: [], worldById: {}, lines: [], stars: [], lineById: {}, titleIndex: {}, starByMemory: {}, starByKey: {}, events: [], eventByKey: {}, trajByKey: {} };
     function indexEvent(e, key) { e.key = key; U.eventByKey[key] = e; return e; }
     A(j.worlds).forEach(function (w, wi) {
-      var world = { kind: "world", id: String(w.id || w.world_id || "W" + wi), title: w.title || w.name || w.id || "Мир " + (wi + 1), raw: w, lines: [] };
+      var world = { kind: "world", id: String(w.id || w.world_id || "W" + wi), title: w.title || w.name || w.id || "Мир " + (wi + 1), raw: w, lines: [], linesKnown: Array.isArray(w.lines) };
       world.key = world.id;
       U.worldById[world.key] = world;
-      A(w.lines).forEach(function (ln, li) {
+      (world.linesKnown ? w.lines : []).forEach(function (ln, li) {
         var line = {
           kind: "uline", key: String(ln.id || world.id + ":" + li), id: ln.id, title: ln.title || ln.id || "Линия",
           world: world, raw: ln, capital: ln.capital == null ? null : ln.capital,
-          history: A(ln.recent_history), stars: []
+          historyKnown: Array.isArray(ln.recent_history), branchesKnown: Array.isArray(ln.branches),
+          history: Array.isArray(ln.recent_history) ? ln.recent_history : [], stars: []
         };
-        A(ln.branches).forEach(function (b, bi) {
+        (line.branchesKnown ? ln.branches : []).forEach(function (b, bi) {
           var star = {
             kind: "star", key: String(b.memory_id || b.id || line.key + ":" + bi), b: b,
             title: b.title || b.canonical_title || b.memory_id || "Звезда", canonical: b.canonical_title || null,
@@ -530,6 +531,8 @@
       });
       U.worlds.push(world);
     });
+    U.linesComplete = U.worlds.every(function (w) { return w.linesKnown; });
+    U.starsComplete = U.linesComplete && U.lines.every(function (ln) { return ln.branchesKnown; });
     U.company = A(j.company_history).map(function (h, i) { var v = eventView(h); return indexEvent({ scope: "company", item: h, v: v, at: v.at, text: v.main || "событие компании" }, "c|" + i); });
     U.unresolved = A(j.unresolved_history).map(function (h, i) { var v = eventView(h); return indexEvent({ scope: "unresolved", item: h, v: v, at: v.at, text: v.main || "событие" }, "u|" + i); });
     U.trajectories = A(j.strategic_trajectories);
@@ -695,6 +698,13 @@
       else unknown += 1;
     });
     return { yes: yes, no: no, unknown: unknown };
+  }
+
+  function lowerBoundCount(n, known) { return known ? String(n) : "≥ " + n; }
+  function worldStructure(w) {
+    var starsKnown = !!(w.linesKnown && w.lines.every(function (ln) { return ln.branchesKnown; }));
+    var historyKnown = !!(w.linesKnown && w.lines.every(function (ln) { return ln.historyKnown; }));
+    return { linesKnown: !!w.linesKnown, starsKnown: starsKnown, historyKnown: historyKnown };
   }
 
   function buildModel(d) {
@@ -1120,6 +1130,7 @@
       return banner("fallback", "Каноническая карта компании недоступна", "Временная модель компании (Temporal Universe) не ответила (" + M.tu.reason + "). Миры и канонические линии не показываются; маршруты ниже — из Оркестратора.");
     }
     return "<div class='cc-worlds'>" + M.U.worlds.map(function (w) {
+      var ws = worldStructure(w);
       var stars = 0, ev = 0, cap = 0, worldStars = [];
       w.lines.forEach(function (ln) {
         stars += ln.stars.length; ev += ln.history.length; if (hasCapital(ln)) cap += 1;
@@ -1134,14 +1145,14 @@
       return "<button class='cc-world-card" + (isSelected("world", w.key) ? " selected" : "") + "'" + sel("world", w.key) + ">" +
         "<span class='cc-world-orbit'><i></i></span>" +
         "<span class='cc-world-body'><b>" + E(w.title) + "</b>" +
-        "<small>" + w.lines.length + " лин. · " + stars + " звёзд · verified=true " + ver.yes + (ver.no ? " · false " + ver.no : "") + (ver.unknown ? " · не передан " + ver.unknown : "") + "</small>" +
+        "<small>" + lowerBoundCount(w.lines.length, ws.linesKnown) + " лин. · " + lowerBoundCount(stars, ws.starsKnown) + " звёзд · verified=true " + ver.yes + (ver.no ? " · false " + ver.no : "") + (ver.unknown ? " · не передан " + ver.unknown : "") + "</small>" +
         "<span class='cc-world-stars'>" + w.lines.map(function (ln) {
-          return "<i title='" + E(ln.title + ": " + ln.stars.length + " звёзд") + "' style='--n:" + Math.min(ln.stars.length, 4) + "'></i>";
+          return "<i title='" + E(ln.title + ": " + lowerBoundCount(ln.stars.length, ln.branchesKnown) + " звёзд") + "' style='--n:" + Math.min(ln.stars.length, 4) + "'></i>";
         }).join("") + "</span>" +
         (M.fp.ok ? "<span class='cc-world-health' title='Каноническое состояние линий: " + E(healthText) + "'>" +
           ["flow","wait","closed","unknown"].map(function (t) { return health[t] ? "<i class='" + t + "' style='--w:" + health[t] + "'></i>" : ""; }).join("") + "</span>" +
           "<small class='cc-world-health-text'>" + E(healthText) + "</small>" : "") +
-        "<em>" + (!routeDataOk() ? "маршруты не проверены" : (routes.length ? routes.length + " маршрут(а) с точным ID" : "маршрутов с точным ID в текущем чтении нет")) + (ev ? " · событий линий " + ev : "") + (cap ? " · капитал в " + cap + " лин." : "") + "</em></span></button>";
+        "<em>" + (!routeDataOk() ? "маршруты не проверены" : (!ws.starsKnown ? "маршрутов по звёздам ≥ " + routes.length + " · структура звёзд неполна" : (routes.length ? routes.length + " маршрут(а) с точным ID" : "маршрутов с точным ID в текущем чтении нет"))) + (ev || !ws.historyKnown ? " · событий линий " + lowerBoundCount(ev, ws.historyKnown) : "") + (cap ? " · капитал в " + cap + " лин." : "") + "</em></span></button>";
     }).join("") + "</div>";
   }
 
@@ -1581,7 +1592,8 @@
         var hasNext = ln.stars.some(function (s) { var tv = temporalView(s.temporal); return tv.waiting.length || tv.next.length; });
         if (hasNext) waiting.push(ln);
       });
-      lanes.push("<div class='cc-swim-lane'><div class='cc-swim-name'><b>" + E(w.title) + "</b><small>" + w.lines.length + " лин. · " + evs.length + " событ.</small></div>" +
+      var ws = worldStructure(w);
+      lanes.push("<div class='cc-swim-lane'><div class='cc-swim-name'><b>" + E(w.title) + "</b><small>" + lowerBoundCount(w.lines.length, ws.linesKnown) + " лин. · " + lowerBoundCount(evs.length, ws.historyKnown) + " событ.</small></div>" +
         "<div class='cc-swim-track'><span class='cc-swim-now' style='left:80%'></span>" +
         evs.map(function (e, i) { return dot(e, i, "material", sel("event", e.key)); }).join("") +
         waiting.map(function (ln, i) {
@@ -1601,22 +1613,24 @@
 
     // company → world → line → star
     var tree = U.worlds.map(function (w) {
+      var ws = worldStructure(w);
+      var worldStarsN = w.lines.reduce(function (n, l) { return n + l.stars.length; }, 0);
       return "<div class='cc-world'><div class='cc-world-head'><span class='cc-world-dot'></span><b>" + E(w.title) + "</b>" +
-        "<small>" + w.lines.length + " лин. · " + w.lines.reduce(function (n, l) { return n + l.stars.length; }, 0) + " звёзд</small></div>" +
+        "<small>" + lowerBoundCount(w.lines.length, ws.linesKnown) + " лин. · " + lowerBoundCount(worldStarsN, ws.starsKnown) + " звёзд</small></div>" +
         w.lines.map(function (ln) {
           var last = ln.history.map(eventView).filter(function (v) { return v.at; }).sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); })[0];
           return "<div class='cc-uline" + (isSelected("uline", ln.key) ? " selected" : "") + "'" + sel("uline", ln.key) + ">" +
             "<div class='cc-uline-head'>" + hexBadge(initials(ln.title), "flow", "sm") + "<span><b>" + E(ln.title) + "</b><small>" +
-            ln.stars.length + " звёзд" + (last ? " · " + E(H.cut(last.main, 60)) + " · " + E(dateLabel(last.at)) : (Array.isArray(ln.raw && ln.raw.recent_history) ? " · событий в текущей истории нет" : " · recent_history не передан")) + "</small>" +
+            lowerBoundCount(ln.stars.length, ln.branchesKnown) + " звёзд" + (last ? " · " + E(H.cut(last.main, 60)) + " · " + E(dateLabel(last.at)) : (Array.isArray(ln.raw && ln.raw.recent_history) ? " · событий в текущей истории нет" : " · recent_history не передан")) + "</small>" +
             (last && last.why ? "<small class='why'>" + E(H.cut(last.why, 110)) + "</small>" : "") +
             (last ? proofTags(last, true) : "") + "</span>" +
             (hasCapital(ln) ? "<i class='cc-capchip'>капитал</i>" : "") + "</div>" +
-            (ln.stars.length ? ln.stars.map(starAxisRow).join("") : "<div class='cc-uline-empty'>У линии нет размещённых звёзд.</div>") +
+            (ln.stars.length ? ln.stars.map(starAxisRow).join("") : (ln.branchesKnown ? "<div class='cc-uline-empty'>У линии нет размещённых звёзд.</div>" : "<div class='cc-uline-empty'>branches[] не передан — наличие звёзд не проверено.</div>")) +
             "</div>";
         }).join("") + "</div>";
     }).join("");
     page.querySelector("[data-cc='tree']").innerHTML = "<div class='cc-company'><div class='cc-company-head'>" + hexBadge("IC", "flow") +
-      "<span><b>ICAM · компания</b><small>" + U.worlds.length + " мир(а) · " + U.lines.length + " линий · " + U.stars.length + " звёзд · " +
+      "<span><b>ICAM · компания</b><small>" + U.worlds.length + " мир(а) · " + lowerBoundCount(U.lines.length, U.linesComplete) + " линий · " + lowerBoundCount(U.stars.length, U.starsComplete) + " звёзд · " +
       (companyHistoryProvided ? U.company.length + " событий компании" : "company_history не передан") + "</small></span></div>" + (tree || empty("Миров нет", "Temporal Universe ответил без миров.")) + "</div>";
 
     page.querySelector("[data-cc='unplaced-title']").textContent = "Неразрешённая история";
@@ -1746,8 +1760,8 @@
     var rows = [];
     if (M.tu.ok) {
       var ver = verifiedSummary(M.U.stars);
-      rows.push(proofRow("ok", "Мир → линия", M.U.lines.length, "каноническая структура временной модели компании (Temporal Universe)"));
-      rows.push(proofRow("ok", "Линия → звезда", M.U.stars.length, "branches[] линии; verified=true " + ver.yes + (ver.no ? ", verified=false " + ver.no : "") + (ver.unknown ? ", verified не передан " + ver.unknown : "")));
+      rows.push(proofRow(M.U.linesComplete ? "ok" : "warn", "Мир → линия", lowerBoundCount(M.U.lines.length, M.U.linesComplete), M.U.linesComplete ? "каноническая структура Temporal Universe; все world.lines[] переданы" : "не у всех миров передан lines[] — показана нижняя граница"));
+      rows.push(proofRow(M.U.starsComplete ? "ok" : "warn", "Линия → звезда", lowerBoundCount(M.U.stars.length, M.U.starsComplete), (M.U.starsComplete ? "branches[] переданы у всех линий; " : "не у всех линий передан branches[]; показана нижняя граница; ") + "verified=true " + ver.yes + (ver.no ? ", verified=false " + ver.no : "") + (ver.unknown ? ", verified не передан " + ver.unknown : "")));
       var trajProvided = Array.isArray(M.tu.data && M.tu.data.strategic_trajectories);
       var unresolvedProvided = Array.isArray(M.tu.data && M.tu.data.unresolved_history);
       rows.push(!trajProvided ? proofRow("warn", "Стратегические траектории", "—", "поле strategic_trajectories не передано — отсутствие траекторий не подтверждено") :
@@ -2106,7 +2120,8 @@
     page.querySelector("[data-cc='ulines']").innerHTML = !M.tu.ok ?
       unavailable("Канонические линии недоступны", "Временная модель компании (Temporal Universe) не ответила (" + M.tu.reason + ").") :
       M.U.worlds.map(function (w) {
-        return "<div class='cc-objgroup'><div class='cc-world-head'><span class='cc-world-dot'></span><b>" + E(w.title) + "</b><small>" + w.lines.length + " лин.</small></div>" +
+        var ws = worldStructure(w);
+        return "<div class='cc-objgroup'><div class='cc-world-head'><span class='cc-world-dot'></span><b>" + E(w.title) + "</b><small>" + lowerBoundCount(w.lines.length, ws.linesKnown) + " лин.</small></div>" +
           "<div class='cc-objgrid'>" + w.lines.map(function (ln) {
             var ver = verifiedSummary(ln.stars);
             var routes = ln.stars.reduce(function (n, s) { return n + s.routes.length; }, 0);
@@ -2117,9 +2132,9 @@
               "<span class='cc-obj-top'><b>" + E(H.cut(ln.title, 32)) + "</b>" + (capN == null ? "<i class='cc-flag cap'>капитал —</i>" : (capN ? "<i class='cc-flag cap'>капитал " + capN + "</i>" : "")) + "</span>" +
               (fp ? "<span class='cc-tone t-" + tone + "'><i></i>" + E(fp.state) + "</span>" : "<span class='cc-tone t-unknown'><i></i>состояние не передано</span>") +
               (fp && fp.stateBasis ? "<small class='cc-line-basis'>Основание: " + E(human(fp.stateBasis)) + "</small>" : "<small>" + E(ln.key) + "</small>") +
-              "<span class='cc-obj-meta'><em>звёзд " + ln.stars.length + " · verified=true " + ver.yes + (ver.unknown ? " · неизвестно " + ver.unknown : "") + (ver.no ? " · false " + ver.no : "") + "</em>" +
-              (routes ? "<em>маршрутов " + routes + "</em>" : "") + (capN == null ? "<em>капитал —</em>" : (capN ? "<em>капитал " + capN + "</em>" : "")) +
-              (crossN == null && fp ? "<em>пересечения —</em>" : (crossN ? "<em>пересечений " + crossN + "</em>" : "")) + (ln.history.length ? "<em>событий " + ln.history.length + "</em>" : "") + "</span></button>";
+              "<span class='cc-obj-meta'><em>звёзд " + lowerBoundCount(ln.stars.length, ln.branchesKnown) + " · verified=true " + ver.yes + (ver.unknown ? " · неизвестно " + ver.unknown : "") + (ver.no ? " · false " + ver.no : "") + "</em>" +
+              (routes || !ln.branchesKnown ? "<em>маршрутов " + lowerBoundCount(routes, ln.branchesKnown) + "</em>" : "") + (capN == null ? "<em>капитал —</em>" : (capN ? "<em>капитал " + capN + "</em>" : "")) +
+              (crossN == null && fp ? "<em>пересечения —</em>" : (crossN ? "<em>пересечений " + crossN + "</em>" : "")) + (ln.history.length || !ln.historyKnown ? "<em>событий " + lowerBoundCount(ln.history.length, ln.historyKnown) + "</em>" : "") + "</span></button>";
           }).join("") + "</div></div>";
       }).join("");
 
@@ -2180,7 +2195,7 @@
     var srcKeys = ["memory", "placed", "exact_owner_candidates", "review_required", "owner_conflicts"];
     var srcNames = { memory: "в памяти", placed: "размещено", exact_owner_candidates: "кандидатов", review_required: "на сверку", owner_conflicts: "конфликтов" };
     slots["placement-sum"].innerHTML = "<div class='cc-plts'>" +
-      tile("placed", "На Founder Map", M.tu.ok ? M.U.stars.length : (c.placed != null ? c.placed : "—"), M.tu.ok ? "звёзд в Temporal Universe" : "по счётчику источника") +
+      tile("placed", "На Founder Map", M.tu.ok ? lowerBoundCount(M.U.stars.length, M.U.starsComplete) : (c.placed != null ? c.placed : "—"), M.tu.ok ? (M.U.starsComplete ? "звёзд в Temporal Universe" : "нижняя граница: не у всех линий передан branches[]") : "по счётчику источника") +
       tile("candidate", "Кандидаты на точную связь", candActive, candSource !== candActive ? "из " + candSource + " по источнику · " + (candSource - candActive) + " в архиве" : "точный владелец найден источником; ещё не звёзды") +
       tile("review", "Активная очередь сверки", q.review, "из " + reviewCounts().review + " по источнику" + (q.archived ? " · " + (reviewCounts().review - q.review) + " в архиве" : "")) +
       tile("conflict", "Конфликт владельцев", q.conflicts, q.conflicts ? "решается вручную" : "конфликтов нет") +
@@ -2217,14 +2232,15 @@
   // The current Founder Map: world → line → star, compact.
   function founderMap() {
     return "<div class='cc-fmap'>" + M.U.worlds.map(function (w) {
+      var ws = worldStructure(w), starsN = w.lines.reduce(function (n, l) { return n + l.stars.length; }, 0);
       return "<div class='cc-fmap-world'><div class='cc-world-head'><span class='cc-world-dot'></span><b>" + E(w.title) + "</b><small>" +
-        w.lines.reduce(function (n, l) { return n + l.stars.length; }, 0) + " звёзд</small></div>" +
-        w.lines.filter(function (ln) { return ln.stars.length; }).map(function (ln) {
+        lowerBoundCount(starsN, ws.starsKnown) + " звёзд</small></div>" +
+        w.lines.filter(function (ln) { return ln.stars.length || !ln.branchesKnown; }).map(function (ln) {
           return "<div class='cc-fmap-line'><button class='cc-fmap-lt'" + sel("uline", ln.key) + ">" + E(H.cut(ln.title, 34)) + "</button><div class='cc-fmap-stars'>" +
             ln.stars.map(function (sr) {
               return "<button class='cc-fstar" + (sr.verified ? " v" : "") + (isSelected("star", sr.key) ? " selected" : "") + "'" + sel("star", sr.key) +
                 " title='" + E((sr.memoryId || "") + " · " + verifiedLabel(sr)) + "'><i></i>" + E(H.cut(sr.title, 26)) + "</button>";
-            }).join("") + "</div></div>";
+            }).join("") + (!ln.branchesKnown ? "<span class='cc-fmap-unknown'>branches[] не передан</span>" : "") + "</div></div>";
         }).join("") + "</div>";
     }).join("") + "</div>";
   }
@@ -2523,10 +2539,10 @@
     return inspector({
       badge: hexBadge(initials(ln.title), canonicalTone(ln), "lg"),
       title: ln.title, sub: "Каноническая линия · " + ln.key,
-      what: para("Линия мира «" + ln.world.title + "»: " + ln.stars.length + " звёзд; verified=true " + ver.yes + (ver.no ? ", verified=false " + ver.no : "") + (ver.unknown ? ", verified не передан " + ver.unknown : "") + "."),
+      what: para("Линия мира «" + ln.world.title + "»: " + lowerBoundCount(ln.stars.length, ln.branchesKnown) + " звёзд; verified=true " + ver.yes + (ver.no ? ", verified=false " + ver.no : "") + (ver.unknown ? ", verified не передан " + ver.unknown : "") + "."),
       where: crumbs([{ t: "ICAM" }, { t: ln.world.title }, { t: H.cut(ln.title, 24), cur: true }]),
       now: now, why: why,
-      history: ln.history.length ? "<ul class='cc-hist'>" + ln.history.map(function (h) { return histItem(eventView(h)); }).join("") + "</ul>" : "",
+      history: ln.history.length ? "<ul class='cc-hist'>" + ln.history.map(function (h) { return histItem(eventView(h)); }).join("") + "</ul>" : (ln.historyKnown ? "" : muted("recent_history[] не передан — история линии не проверена.")),
       waiting: waiting.length ? titlesList(waiting) : "",
       next: next.length ? titlesList(next) : "",
       links: refsBlock("Мир", worldRef(ln.world)) + refsBlock("Звёзды", ln.stars.map(starRef).join("")) +
@@ -2535,7 +2551,7 @@
           return "<button class='cc-ref'" + sel("strategy", trajectoryKey(t, M.U.trajectories.indexOf(t))) + ">✦ " + E(H.cut(t.title || t.id, 26)) + "</button>";
         }).join("")),
       ceiling: [
-        ceilingRow("ok", "Состав и история — Temporal Universe"),
+        ceilingRow(ln.branchesKnown && ln.historyKnown ? "ok" : "warn", ln.branchesKnown && ln.historyKnown ? "Состав и история — Temporal Universe" : "Состав/история линии переданы не полностью: branches[] или recent_history[] отсутствует"),
         fp ? ceilingRow("ok", "Состояние, капитал и пересечения — Founder Projection") : ceilingRow("warn", "Проекция Основателя (Founder Projection) недоступна"),
         ceilingRow("info", "Пересечение через общий капитал не означает причинность или прямую передачу")
       ],
@@ -2544,6 +2560,7 @@
   }
 
   function inspectWorld(w) {
+    var ws = worldStructure(w);
     var stars = 0, routes = [], cap = [], events = [], worldStars = [];
     w.lines.forEach(function (ln) {
       stars += ln.stars.length; if (hasCapital(ln)) cap.push(ln);
@@ -2554,15 +2571,15 @@
     events.sort(function (a, b) { return String(b.at || "").localeCompare(String(a.at || "")); });
     return inspector({
       badge: "<span class='cc-obj-badge world'>◎</span>", title: w.title, sub: "Мир Founder Universe",
-      what: para("Мир компании: " + w.lines.length + " линий, " + stars + " звёзд; verified=true " + ver.yes + (ver.no ? ", verified=false " + ver.no : "") + (ver.unknown ? ", verified не передан " + ver.unknown : "") + "."),
+      what: para("Мир компании: " + lowerBoundCount(w.lines.length, ws.linesKnown) + " линий, " + lowerBoundCount(stars, ws.starsKnown) + " звёзд; verified=true " + ver.yes + (ver.no ? ", verified=false " + ver.no : "") + (ver.unknown ? ", verified не передан " + ver.unknown : "") + "."),
       where: crumbs([{ t: "ICAM" }, { t: w.title, cur: true }]),
-      now: para(!routeDataOk() ? routeGapText()+"; маршруты по звёздам мира не проверены." : (routes.length ? routes.length + " маршрут(а) Оркестратора связаны со звёздами мира по точному ID." : "В текущем чтении Оркестратора маршрутов по звёздам мира не найдено.")),
+      now: para(!routeDataOk() ? routeGapText()+"; маршруты по звёздам мира не проверены." : (!ws.starsKnown ? "По известным звёздам мира связано маршрутов: ≥ " + routes.length + "; branches[] передан не для всех линий." : (routes.length ? routes.length + " маршрут(а) Оркестратора связаны со звёздами мира по точному ID." : "В текущем чтении Оркестратора маршрутов по звёздам мира не найдено."))),
       why: cap.length ? para("Доказанный капитал есть у линий: " + cap.map(function (l) { return "«" + l.title + "»"; }).join(", ") + ".") : "",
       history: events.length ? "<ul class='cc-hist'>" + events.slice(0, 5).map(function (e) {
         return "<li class='pick'" + sel("event", e.key) + "><b>" + E(e.at ? dateLabel(e.at) : "без даты") + "</b>" + E(H.cut(e.v.main, 100)) + " <em>· " + E(e.line.title) + "</em></li>";
       }).join("") + "</ul>" : "",
       links: refsBlock("Линии", w.lines.map(ulineRef).join("")) + refsBlock("Маршруты", lineRefs(routes)),
-      ceiling: [ceilingRow("ok", "Состав мира — Temporal Universe"), ceilingRow("info", "Мир объекта определяется только через звезду; owning_branch миром не считается")],
+      ceiling: [ceilingRow(ws.linesKnown && ws.starsKnown ? "ok" : "warn", ws.linesKnown && ws.starsKnown ? "Состав мира — Temporal Universe" : "Состав мира передан не полностью: lines[] или branches[] отсутствует"), ceilingRow("info", "Мир объекта определяется только через звезду; owning_branch миром не считается")],
       nav: NAV_TIME + specializedNav("world", w.title)
     });
   }
