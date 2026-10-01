@@ -635,7 +635,7 @@
     A(j.signals).forEach(function (row, i) {
       var key = String(row.signal_id || "oi|" + i), cls = String(row.class || "");
       var it = { kind: "org", key: key, raw: row, cls: cls, title: row.subject || key,
-        founderAction: row.founder_action_required === true, lines: A(row.affected_lines).map(function (t) {
+        founderAction: row.founder_action_required === true, founderActionKnown: typeof row.founder_action_required === "boolean", lines: A(row.affected_lines).map(function (t) {
           return { title: String(t), ul: exactTitle(U, t) };
         }) };
       OI.items.push(it); OI.byKey[key] = it; OI.counts[cls] = (OI.counts[cls] || 0) + 1;
@@ -650,7 +650,7 @@
       var key = String(row.reconciliation_id || "rec|" + i), subject = String(row.subject || key);
       var it = { kind: "sysrec", key: key, raw: row, title: subject,
         gap: String(row.gap_class || ""), source: String(row.source || ""),
-        founderAction: row.founder_action_required === true, ul: exactTitle(U, subject) };
+        founderAction: row.founder_action_required === true, founderActionKnown: typeof row.founder_action_required === "boolean", ul: exactTitle(U, subject) };
       SR.items.push(it); SR.byKey[key] = it; SR.counts[it.source] = (SR.counts[it.source] || 0) + 1;
     });
     return SR;
@@ -1330,7 +1330,7 @@
       var r = it.raw, n = it.lines.length;
       return "<button class='cc-org-row" + (it.founderAction ? " founder" : "") + "'" + sel("org", it.key) + ">" +
         "<span>" + codeTag(it.cls, "tag") + "<b>" + E(H.cut(it.title, 58)) + "</b>" +
-        "<small>" + (n ? n + " канонич. линий" : "линии не указаны") + (it.founderAction ? " · требует действия Основателя" : "") + "</small></span>" +
+        "<small>" + (n ? n + " канонич. линий" : "линии не указаны") + (it.founderAction ? " · требует действия Основателя" : (!it.founderActionKnown ? " · флаг действия не передан" : "")) + "</small></span>" +
         "<i>›</i></button>";
     }
     return "<div class='cc-org-summary'>" + summary + "</div>" +
@@ -1342,13 +1342,14 @@
     if (!M.sr.ok) return unavailable("Системная сверка недоступна", M.sr.reason || "источник не ответил");
     var items = M.SR.items, byPath = M.SR.counts.COMPANY_PATH || 0, byCapital = M.SR.counts.COMPANY_CAPITAL || 0;
     var founderN = items.filter(function (x) { return x.founderAction; }).length;
+    var founderUnknown = items.filter(function (x) { return !x.founderActionKnown; }).length;
     if (!items.length) return empty("Системная очередь пуста", "Steward Reconciliation не передал system_reconciliation[].");
     function row(it) {
       return "<button class='cc-sys-row'" + sel("sysrec", it.key) + "><span><b>" + E(H.cut(it.title, 58)) + "</b>" +
         "<small>" + E(human(it.gap)) + " · " + E(it.source || "источник не указан") + "</small></span><i>›</i></button>";
     }
     return "<div class='cc-system-summary'><strong>" + items.length + "</strong><span>пунктов системной сверки</span></div>" +
-      "<div class='cc-system-stats'><span><b>" + byPath + "</b> по каноническим линиям</span><span><b>" + byCapital + "</b> по капиталу без маршрута</span><span><b>" + founderN + "</b> требуют вас</span></div>" +
+      "<div class='cc-system-stats'><span><b>" + byPath + "</b> по каноническим линиям</span><span><b>" + byCapital + "</b> по капиталу без маршрута</span><span><b>" + founderN + "</b> явно требуют вас" + (founderUnknown ? " · у " + founderUnknown + " флаг не передан" : "") + "</span></div>" +
       "<div class='cc-foot-note'>Жёсткое правило источника: системные разрывы не становятся задачами Основателя по умолчанию. Founder gate показывается отдельно выше.</div>" +
       "<details class='cc-system-details'><summary>Открыть системную очередь · " + items.length + "</summary><div class='cc-system-list'>" + items.map(row).join("") + "</div></details>";
   }
@@ -2638,7 +2639,7 @@
       what: para("Пункт системной очереди Steward Reconciliation. Он не является задачей Основателя по умолчанию."),
       where: crumbs([{ t: "ICAM" }, { t: "системная сверка" }, { t: it.source || "источник", cur: true }]),
       now: "<div>" + codeTag(r.route || "SYSTEM_RECONCILIATION", "tag") + "</div>" +
-        (it.founderAction ? para("Источник требует действия Основателя.") : para("Действие Основателя не требуется.")),
+        (it.founderAction ? para("Источник требует действия Основателя.") : (it.founderActionKnown ? para("Источник явно передал founder_action_required=false.") : para("Поле founder_action_required не передано; необходимость действия Основателя не определена."))),
       why: r.gap_class ? para("Причина: " + human(r.gap_class) + ".") : "",
       links: (link ? refsBlock("Каноническая линия", link) : muted("Предмет не совпадает точно с названием канонической линии.")) +
         (A(r.evidence_refs).length ? "<small>Доказательные ссылки</small><div class='cc-caps'>" + A(r.evidence_refs).map(function (x) { return "<span class='cc-cap'>" + E(x) + "</span>"; }).join("") + "</div>" : ""),
@@ -2656,7 +2657,7 @@
     return inspector({
       badge: "<span class='cc-obj-badge strategy'>OI</span>",
       title: it.title, sub: "Организационное наблюдение · " + human(it.cls),
-      what: "<div>" + codeTag(it.cls, "tag") + "</div>" + (it.founderAction ? para("Источник явно помечает это наблюдение как требующее действия Основателя.") : para("Источник не требует отдельного действия Основателя.")),
+      what: "<div>" + codeTag(it.cls, "tag") + "</div>" + (it.founderAction ? para("Источник явно помечает это наблюдение как требующее действия Основателя.") : (it.founderActionKnown ? para("Источник явно передал founder_action_required=false.") : para("Поле founder_action_required не передано; необходимость отдельного действия Основателя не определена."))),
       where: crumbs([{ t: "ICAM" }, { t: "организационный интеллект", cur: true }]),
       now: it.lines.length ? para("Затронуто канонических линий: " + it.lines.length + ".") : para("Затронутые канонические линии источником не указаны."),
       why: r.evidence_ceiling ? para(r.evidence_ceiling) : "",
