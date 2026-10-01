@@ -916,7 +916,7 @@
   function routePlace(l) {
     if (!M.tu.ok) return { world: null, uline: null, text: "мир не проверен — Temporal Universe недоступен" };
     if (l.star) return { world: l.star.world, uline: l.star.line, text: "мир: " + l.star.world.title + " · линия: " + l.star.line.title };
-    return { world: null, uline: null, text: "не связан с Founder Universe по точному ID" };
+    return { world: null, uline: null, text: M.U.starsComplete ? "точного совпадения с Founder Universe по ID нет" : "связь с Founder Universe не проверена полностью: branches[] передан не для всех линий" };
   }
 
   function placementOfObject(x) {
@@ -928,8 +928,10 @@
   }
 
   function mapVisibility(memoryId) {
-    if (!M.tu.ok) return { cls: "no", text: "видимость не проверена" };
-    return memoryId && M.U.starByMemory[memoryId] ? { cls: "yes", text: "звезда на Founder Map" } : { cls: "no", text: "точного совпадения memory_id на текущей Founder Map нет" };
+    if (!M.tu.ok) return { cls: "maybe", text: "видимость не проверена" };
+    if (memoryId && M.U.starByMemory[memoryId]) return { cls: "yes", text: "звезда на Founder Map" };
+    return M.U.starsComplete ? { cls: "no", text: "точного совпадения memory_id на текущей Founder Map нет" } :
+      { cls: "maybe", text: "совпадение memory_id не найдено в переданной части; branches[] неполон" };
   }
 
   // ------------------------------------------------------------------ Командный центр
@@ -1203,7 +1205,7 @@
       (l.downstream.length ? "<i title='от него зависят'>↓ " + l.downstream.length + "</i>" : "") +
       (l.bridges.length ? "<i title='общий объект'>⇄ " + l.bridges.length + "</i>" : "") +
       (!l.upstream.length && !l.downstream.length && !l.bridges.length && !l.star ?
-        "<i class='muted'>" + E((objectDataOk() && M.tu.ok) ? "явных связей в текущих источниках не найдено" : "часть контуров связей не проверена") + "</i>" : "") +
+        "<i class='muted'>" + E((objectDataOk() && M.tu.ok && M.U.starsComplete) ? "явных связей в текущих источниках не найдено" : "часть контуров связей не проверена") + "</i>" : "") +
       "</span><span class='cc-move'>" + E(l.risk.stale == null ? "движение без даты" : "движение " + H.ago(r.last_movement_at)) + "</span></div>" +
       "</article>";
   }
@@ -2228,7 +2230,7 @@
     slots["placement-trusted"].innerHTML = !AD.trustedKnown ? unavailable("Доверенная карта не проверена", "Поле trusted_owner_map источником не передано.") : AD.trusted.length ? "<div class='cc-trusted'>" + AD.trusted.map(function (t) {
       return "<div class='cc-trusted-row'" + (t.ul ? sel("uline", t.ul.key) : "") + "><span class='from'>" + E(t.branch) + "</span><i>→</i>" +
         (t.ul ? "<span class='to ok'>" + E(t.title) + "<small>" + E(t.ul.world.title) + "</small></span>" :
-          "<span class='to miss'>" + E(t.title || "—") + "<small>" + E(M.tu.ok ? "в Temporal Universe нет линии с точно таким названием" : "линия не проверена — Temporal Universe недоступен") + "</small></span>") + "</div>";
+          "<span class='to miss'>" + E(t.title || "—") + "<small>" + E(!M.tu.ok ? "линия не проверена — Temporal Universe недоступен" : (M.U.linesComplete ? "в Temporal Universe нет линии с точно таким названием" : "точное совпадение не найдено в переданной части; lines[] неполон")) + "</small></span>") + "</div>";
     }).join("") + "</div><div class='cc-foot-note'>Доверенная карта: происхождение объекта (owning_branch) → точное название канонической линии. Это основание для кандидатов, а не размещение: сама по себе запись не делает объект звездой.</div>" :
       empty("Доверенная карта пуста", "trusted_owner_map не содержит записей.");
 
@@ -2258,12 +2260,12 @@
     var r = it.raw;
     if (r.proposed_line == null) return "линия не предложена";
     if (it.proposedLine) return "предложена линия: " + H.cut(it.proposedLine.title, 24);
-    return "предложена «" + H.cut(String(r.proposed_line), 24) + "» — " + (M.tu.ok ? "точной линии нет" : "линия не проверена");
+    return "предложена «" + H.cut(String(r.proposed_line), 24) + "» — " + (!M.tu.ok ? "линия не проверена" : (M.U.linesComplete ? "точной линии нет" : "точное совпадение не найдено в неполной структуре линий"));
   }
 
   function conflictLinesHTML(it) {
     return "<div class='cc-refs'>" + (it.conflictLines || []).map(function (c) {
-      return c.ul ? ulineRef(c.ul) : "<span class='cc-ref miss' title='нет линии с точно таким названием'>" + E(H.cut(c.title, 28)) + "</span>";
+      return c.ul ? ulineRef(c.ul) : "<span class='cc-ref miss' title='" + E(M.tu.ok && M.U.linesComplete ? "нет линии с точно таким названием" : "точное совпадение линии не подтверждено") + "'>" + E(H.cut(c.title, 28)) + "</span>";
     }).join("") + "</div>";
   }
 
@@ -2410,7 +2412,7 @@
         ceilingRow("ok", "Этап, ход и условие — из Оркестратора (observer/routes)"),
         !M.tu.ok ? ceilingRow("warn", "Мир и каноническая линия не проверены — Temporal Universe недоступен") :
           (l.star ? ceilingRow("ok", "Мир и линия — Temporal Universe, точное совпадение " + l.objId + " = memory_id") :
-            (l.objId ? ceilingRow("warn", "В текущем Temporal Universe нет звезды с memory_id " + l.objId + " — связь маршрута с Founder Universe не подтверждена") : ceilingRow("info", "Founder Universe не связывается: у маршрута нет доказанного канонического object_id"))),
+            (l.objId ? ceilingRow("warn", M.U.starsComplete ? "В текущем полном Temporal Universe нет звезды с memory_id " + l.objId + " — связь маршрута с Founder Universe не подтверждена" : "Совпадение со звездой memory_id " + l.objId + " не найдено в переданной части; branches[] неполон, отсутствие звезды не доказано") : ceilingRow("info", "Founder Universe не связывается: у маршрута нет доказанного канонического object_id"))),
         l.obj ? ceilingRow("ok", "Канонический объект " + l.objId + " подтверждён реестром Continuity") :
           (l.objMissing ? ceilingRow("warn", "Заявленный канонический объект " + l.objId + " не найден в реестре — нужна сверка") :
             (l.sourceObjectId ? ceilingRow("warn", "Источник маршрута передал ID " + l.sourceObjectId + ", но canonical_mapping_status=" + (l.mappingState || "не передан") + "; это не считается связью с объектом Continuity") : ceilingRow("info", "Маршрут не передаёт каноническую объектную связь"))),
@@ -2454,7 +2456,7 @@
         refsBlock("Слой допуска", x.adm ? "<button class='cc-ref'" + sel("adm", x.adm.key) + ">" + E(human(x.adm.source === "exact_owner_candidates" ? "кандидат" : x.adm.source === "review_required" ? "на сверке" : "конфликт")) + "</button>" : ""),
       ceiling: [
         ceilingRow("ok", "Идентичность и статус — реестр Continuity"),
-        M.tu.ok ? ceilingRow(x.star ? "ok" : "warn", x.star ? "Мир и линия — Temporal Universe по точному memory_id" : "Звезды с этим ID нет — мир не определён") : ceilingRow("warn", "Мир не проверен — Temporal Universe недоступен"),
+        M.tu.ok ? ceilingRow(x.star ? "ok" : "warn", x.star ? "Мир и линия — Temporal Universe по точному memory_id" : (M.U.starsComplete ? "В полном Temporal Universe звезды с этим ID нет — мир не определён" : "Совпадение звезды по ID не найдено в переданной части; branches[] неполон, мир не определён")) : ceilingRow("warn", "Мир не проверен — Temporal Universe недоступен"),
         M.adm.ok ? ceilingRow("ok", "Статус допуска — Portfolio Admission") : ceilingRow("warn", "Допуск не проверен — Portfolio Admission недоступен"),
         !blockerDataOk() ? ceilingRow("warn", "Blocker-контекст объекта не проверен — "+blockerGapText()) :
           ceilingRow("info", x.blockers.length ? "Blocker-записи объекта показаны из текущего continuity/blockers" : "В текущем continuity/blockers записей для объекта не найдено"),
