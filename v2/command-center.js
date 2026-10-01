@@ -1200,7 +1200,7 @@
   }
 
   function renderLanes(lines) {
-    if (!lines.length) return empty("Нет активных линий", "");
+    if (!lines.length) return empty("Нет маршрутов без явного закрывающего статуса", "");
     var scaleNote = "<div class='cc-lane-axis'><span>−" + LANE_DAYS + " дн.</span><span>−30</span><span>−15</span><span class='now'>сейчас</span><span class='wait'>→ ожидание</span></div>";
     function x(days) { return days == null ? null : Math.max(0, 68 - Math.min(days, LANE_DAYS) / LANE_DAYS * 68); }
     return scaleNote + "<div class='cc-lanes'>" + lines.map(function (l) {
@@ -1485,7 +1485,7 @@
           (hidden > 0 ? "<button class='cc-hero-more cc-routes-more' data-cc-routes-more>Показать ещё " + hidden + " маршрутов</button>" :
             (ui.routesAll && lines.length > 10 ? "<button class='cc-hero-more cc-routes-more' data-cc-routes-more>Свернуть до 10</button>" : "")) +
           "<div class='cc-foot-note'>На главном экране — первые 10 маршрутов в исходном порядке Оркестратора; полный список раскрывается здесь или доступен в «Линии и объекты». Мир и каноническая линия — только по точному ID объекта.</div>";
-      })() : empty("Оркестратор не отдал активных линий", ""));
+      })() : empty("Оркестратор не передал маршрутов без явного закрывающего статуса", ""));
     page.querySelector("[data-cc='changes']").innerHTML = renderRecentChanges(6);
     page.querySelector("[data-cc='org-intel']").innerHTML = renderOrgIntel();
     page.querySelector("[data-cc='system-reconciliation']").innerHTML = renderSystemReconciliation();
@@ -1673,7 +1673,7 @@
       "<span><i class='mk line'></i>движение маршрута</span><span><i class='mk unplaced'></i>объект без маршрута</span><span><i class='mk next'></i>маршрут в ожидании перехода</span></div>";
 
     tree.innerHTML = "<div class='cc-company'><div class='cc-company-head'>" + hexBadge("IC", "unknown") +
-      "<span><b>ICAM · реконструкция</b><small>" + M.active.length + " активн. маршрутов · " + M.objs.length + " объектов · миры не определены</small></span></div>" +
+      "<span><b>ICAM · реконструкция</b><small>" + M.active.length + " маршрутов без явного закрывающего статуса · " + M.objs.length + " объектов · миры не определены</small></span></div>" +
       (M.active.length ? M.active.map(function (l) {
         var o = l.obj;
         return "<div class='cc-flow st-" + l.tone + (isSelected("line", l.key) ? " selected" : "") + "'" + sel("line", l.key) + ">" +
@@ -1684,7 +1684,7 @@
           "<div class='cc-flow-step now'><small>Настоящее</small><span>" + E(human(l.r.stage || l.r.status || "этап не передан")) + "</span>" + toneDot(l.tone, routeToneLabel(l)) + "</div>" +
           "<div class='cc-flow-step wait'><small>Ожидание</small><span>" + E(l.r.review_condition ? H.cut(l.r.review_condition, 60) : (l.waiting ? "ждём: " + ownerLabel(l.r.ball_owner) : "условие не передано")) + "</span></div>" +
           "<div class='cc-flow-step next'><small>Следующий переход</small><span title='" + E(l.next || "") + "'>" + E(l.next ? H.cut(humanActionText(l.next), 60) : "не передан") + "</span></div></div>";
-      }).join("") : empty("Нет активных маршрутов", "")) + "</div>";
+      }).join("") : empty("Нет маршрутов без явного закрывающего статуса", "")) + "</div>";
 
     var un = M.events.filter(function (e) { return e.kind === "object" && !e.placed; });
     unplaced.innerHTML = !ok("routes") ? unavailable("Маршруты недоступны", "Без текущих маршрутов нельзя сказать, у каких объектов их нет.") : un.length ? "<div class='cc-feed'>" + un.slice(0, 10).map(function (e) {
@@ -2046,7 +2046,7 @@
   // ------------------------------------------------------------------ Линии и объекты
 
   var LINE_FILTERS = [
-    { id: "all", label: "Все активные", test: function (l) { return !l.closed; } },
+    { id: "all", label: "Без явного закрывающего статуса", test: function (l) { return !l.closed; } },
     { id: "act", label: "Ход у вас", test: function (l) { return l.tone === "act"; } },
     { id: "blocked", label: "Блокеры", test: function (l) { return l.tone === "blocked"; } },
     { id: "waiting", label: "Ход не у вас", test: function (l) { return l.tone === "wait"; } },

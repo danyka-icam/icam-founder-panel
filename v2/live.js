@@ -412,7 +412,7 @@
   function renderHomeKPIs(routes, inbox) {
     if (sourceState.routes.ok) {
       var active = routes.filter(function (r) { return !isClosed(r); });
-      setHomeKPI("Маршруты", String(active.length), "активные маршруты из текущего чтения Оркестратора");
+      setHomeKPI("Маршруты", String(active.length), "маршруты без явного закрывающего статуса в текущем чтении Оркестратора");
     } else {
       setHomeKPI("Маршруты", "Недоступно", "текущее чтение Оркестратора завершилось ошибкой");
     }
@@ -554,7 +554,7 @@
       '[data-page-panel="orchestrator"] .mine .panel-body',
       active.slice(0, 8),
       depModel,
-      "Оркестратор не отдал активных маршрутов."
+      "В текущем чтении нет маршрутов без явного закрывающего статуса."
     );
 
     var waiting = active.filter(function (r) {
@@ -601,7 +601,7 @@
 
     var active = routes.filter(function (r) { return !isClosed(r); }).slice(0, 8);
     if (!active.length) {
-      board.innerHTML = "<div class='live-empty'>Нет активных маршрутов для визуализации.</div>";
+      board.innerHTML = "<div class='live-empty'>Нет маршрутов без явного закрывающего статуса для визуализации.</div>";
       scale.innerHTML = "<h3>ШКАЛА ВНИМАНИЯ</h3><div class='live-empty'>Нет данных.</div>";
       graph.innerHTML = "<div class='dep-live-message'>Нет данных для графа.</div>";
       return;
@@ -701,7 +701,7 @@
     if (!body) return;
     var active = routes.filter(function (r) { return !isClosed(r); });
     if (!active.length) {
-      body.innerHTML = "<div class='live-empty'>Оркестратор не отдал активных маршрутов.</div>";
+      body.innerHTML = "<div class='live-empty'>В текущем чтении нет маршрутов без явного закрывающего статуса.</div>";
       return;
     }
 
@@ -1981,7 +1981,7 @@
       "<div class='metric'><small>Свежесть</small><strong>"+esc(data.freshness_state?humanCode(data.freshness_state):"не передана")+"</strong><span>последнее движение "+esc(data.last_movement_at?ago(data.last_movement_at):"не передано")+"</span></div>"+
       "<div class='metric'><small>Фактический результат</small><strong>"+esc(operationsProvided?factualKnown+" / "+ops.length:"—")+"</strong><span>закрытие само по себе не считается результатом</span></div></div>"+
       "<div class='operations-proof-boundary'><b>Граница доказанного:</b> "+
-        (operationsProvided?(openOps.length?(ownedOpen+" из "+openOps.length+" открытых обязательств имеют переданного владельца хода; у "+(openOps.length-ownedOpen)+" владелец в этой проекции не передан."):"Источник явно передал operations[] без открытых обязательств."):"Поле operations[] не передано; количество и владельцы открытых обязательств не подтверждены.")+" "+
+        (operationsProvided?(openOps.length?(ownedOpen+" из "+openOps.length+" записей без явного закрывающего статуса имеют переданного владельца хода; у "+(openOps.length-ownedOpen)+" владелец в этой проекции не передан."):"Источник явно передал operations[] без записей с незакрытым статусом."):"Поле operations[] не передано; количество и владельцы записей без явного закрывающего статуса не подтверждены.")+" "+
         (operationsProvided?(factualKnown+" из "+ops.length+" записей передают фактический результат; `closed_at` доказывает закрытие записи, но не бизнес-исход."):"Фактические результаты по операциям также не проверены.")+"</div>";
     var rows=ordered.slice(0,6).map(function(o){
       var owner=ownerDisplay(o);
@@ -1992,7 +1992,7 @@
         (owner==="Недоступно"?"<small>Источник: "+esc(projectionTextRu(o.ball_owner_reason||"владелец хода не передан"))+"</small>":"")+
         (asArray(o.object_level_blockers).length?"<small>У связанного объекта есть "+esc(asArray(o.object_level_blockers).length)+" открытых blocker-записей. Источник прямо запрещает считать их блокерами именно этого обязательства.</small>":"")+"</div>";
     }).join("");
-    body.innerHTML=summary+"<div class='live-list-clean'>"+rows+"</div>"+(ordered.length>6?"<div class='live-more'>Сначала показаны открытые обязательства. Ещё "+(ordered.length-6)+" записей скрыты из обзора.</div>":"");
+    body.innerHTML=summary+"<div class='live-list-clean'>"+rows+"</div>"+(ordered.length>6?"<div class='live-more'>Сначала показаны записи без явного закрывающего статуса. Ещё "+(ordered.length-6)+" записей скрыты из обзора.</div>":"");
   }
 
   function renderBrazilPortalProjection(data) {
@@ -2031,7 +2031,7 @@
       "<div class='metric'><small>Этап</small><strong>"+esc(bpCodeRu(val(data.stage)))+"</strong><span>"+esc(stageKnown?"значение передано источником":"stage.value не передан")+"</span></div></div>"+
       "<div class='bp-identity-proof'><b>"+esc(identityKnown?"Идентичность связана источником.":"Связь идентичности не полностью подтверждена текущей проекцией.")+"</b><span>Компонент "+esc(id.component_id||"—")+" и операционный объект "+esc(id.operational_object_id||"—")+"; отношение: «"+esc(bpCodeRu(id.relation))+"». Ключ чтения Continuity: "+esc(id.canonical_read_key||"—")+".</span></div>"+
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Следующий ход</h3>"+chip(data.source_status)+"</div>"+
-      "<div class='live-kv-grid'>"+kv("Владелец",val(data.owner))+kv("Следующий рубеж",bpCodeRu(val(data.next_gate)))+kv("Следующий ход",projectionTextRu(val(data.next_move)))+kv("Открытые blocker-записи объекта",blockersN==null?"—":blockersN)+kv("Открытые обязательства",commitmentsN==null?"—":commitmentsN)+kv("Последнее материальное событие",data.last_material_event&&data.last_material_event.last_event_at?ago(data.last_material_event.last_event_at):"—")+"</div>"+
+      "<div class='live-kv-grid'>"+kv("Владелец",val(data.owner))+kv("Следующий рубеж",bpCodeRu(val(data.next_gate)))+kv("Следующий ход",projectionTextRu(val(data.next_move)))+kv("Открытые blocker-записи объекта",blockersN==null?"—":blockersN)+kv("Открытые обязательства (поле источника)",commitmentsN==null?"—":commitmentsN)+kv("Последнее материальное событие",data.last_material_event&&data.last_material_event.last_event_at?ago(data.last_material_event.last_event_at):"—")+"</div>"+
       "<small>"+(blockersN==null?"Счётчик open_blockers.count не передан; наличие или отсутствие blocker-записей не подтверждено.":(esc(blockersN)+" blocker-записей связаны с объектом FND-007. Источник не доказывает test-фильтрацию и не передаёт единую оценку тяжести, поэтому Панель не называет их "+(blockersN===1?"одним препятствием":"одинаково критическими препятствиями")+"."))+"</small></div>";
   }
 
