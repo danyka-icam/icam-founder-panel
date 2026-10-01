@@ -1479,16 +1479,17 @@
     function cell(cls, href, title, value, note) {
       return "<a class='cc-health-cell " + cls + "' href='" + href + "'><span class='cc-health-dot'></span><span><small>" + E(title) + "</small><b>" + E(value) + "</b><em>" + E(note) + "</em></span></a>";
     }
+    function numOrNull(v) { if (v == null || v === "") return null; var n = Number(v); return isFinite(n) ? n : null; }
 
     var out = [];
     if (f) {
       var fs = f.source_status || "состояние не передано";
       var fsLabel = f.source_status ? ("источник: " + upper(f.source_status)) : "состояние не передано";
       var failDurability = A(f.dimensions).filter(function (x) { return x && x.dimension === "artifact_durability_readback" && upper(x.state) === "FAIL"; })[0] || null;
-      var orphanCount = failDurability && failDurability.detail && failDurability.detail.orphan_receipts != null ? Number(failDurability.detail.orphan_receipts) : null;
+      var orphanCount = failDurability && failDurability.detail ? numOrNull(failDurability.detail.orphan_receipts) : null;
       var fn = orphanCount != null && orphanCount > 0 ? (orphanCount + " осиротевшая расписка хранения: STORED без объекта на диске") :
         (orphanCount === 0 ? "источник явно передал 0 осиротевших расписок" : (upper(fs) === "DEGRADED" ? "подробная причина — в Фундаменте" : (f.freshness_state ? "данные: " + H.humanCode(f.freshness_state) : "подробности в Фундаменте")));
-      out.push(cell(upper(fs) === "DEGRADED" ? "warn" : (upper(fs) === "READY" || upper(fs) === "OK" ? "ok" : "neutral"), "#foundation", "Основание", fsLabel, fn));
+      out.push(cell(upper(fs) === "DEGRADED" ? "warn" : "neutral", "#foundation", "Основание", fsLabel, fn));
     } else {
       out.push(cell("neutral", "#foundation", "Основание", "нет данных", "источник не прочитан"));
     }
@@ -1508,17 +1509,17 @@
     }
 
     if (h) {
-      var hm = h.hash_mismatches == null ? null : Number(h.hash_mismatches);
-      var orp = h.orphan_receipts == null ? null : Number(h.orphan_receipts);
+      var hm = numOrNull(h.hash_mismatches);
+      var orp = numOrNull(h.orphan_receipts);
       var cov = h.coverage === "FULL_END_TO_END" ? "сквозное после поступления в транспорт" : H.humanCode(h.coverage || "покрытие не передано");
       var hn = (hm == null ? "—" : hm) + " расхождений хэшей · " + (orp == null ? "—" : orp) + " осиротевших расписок" + (h.coverage === "FULL_END_TO_END" ? " · до отправки с Mac этот контур не наблюдает" : "");
-      var hCls = (hm > 0 || orp > 0) ? "warn" : (hm != null && orp != null ? "ok" : "neutral");
+      var hCls = (hm > 0 || orp > 0) ? "warn" : "neutral";
       out.push(cell(hCls, "#documents", "Долговечность документов", cov, hn));
     } else {
       out.push(cell("neutral", "#documents", "Долговечность документов", "нет данных", "источник не прочитан"));
     }
 
-    return "<div class='cc-health-head'><span>Состояние системных контуров</span><small>готовность основания, исполнение Testing и долговечность документов — независимые измерения</small></div><div class='cc-health-row'>" + out.join("") + "</div>";
+    return "<div class='cc-health-head'><span>Состояние системных контуров</span><small>состояние основания, исполнение Testing и показатели долговечности документов — независимые измерения; зелёный PASS здесь не выводится из отсутствия дефектов</small></div><div class='cc-health-row'>" + out.join("") + "</div>";
   }
 
   function renderCommand(page) {
