@@ -2113,8 +2113,8 @@
     var po = data.program_object || {};
     var inv = data.safety_invariants_status || {};
     var predLabel = TWIN_PREDICTION_LABELS[data.current_prediction] || "Недоступно";
-    var needsConf = data.needs_confirmation || 0;
-    var scoredN = Number(data.prospective_scored_n || 0);
+    var needsConf = data.needs_confirmation == null ? null : Number(data.needs_confirmation);
+    var scoredN = data.prospective_scored_n == null ? null : Number(data.prospective_scored_n);
     var invNames = {
       C0_C3_exact_controls: "Точные контрольные варианты C0–C3",
       experimental_lineage: "Экспериментальное происхождение",
@@ -2140,27 +2140,28 @@
       "перенесена только инженерная методология; эмпирические результаты SS001 не переносятся" : humanCode(data.ss001_transfer_boundary || "—");
 
     body.innerHTML =
-      "<div class='live-status-box " + liveMode(status) + "'><strong>Personal Twin — вычислительный контур доступен</strong>" +
+      "<div class='live-status-box " + liveMode(status) + "'><strong>Personal Twin — проекция состояния прочитана</strong>" +
       "<p>Панель получает только безопасную проекцию чтения: вероятности клонов и ранжированные варианты до исхода сюда не поступают.</p></div>" +
       "<div class='live-summary'>" +
-      "<div class='metric'><small>Объект программы</small><strong>" + esc((po && po.object_id) || "FND-005") + "</strong><span>" + esc(humanCode((po && po.declared_status) || "")) + "</span></div>" +
+      "<div class='metric'><small>Объект программы</small><strong>" + esc((po && po.object_id) || "—") + "</strong><span>" + esc((po && po.declared_status) ? humanCode(po.declared_status) : "статус не передан") + "</span></div>" +
       "<div class='metric'><small>Режим</small><strong>" + esc(modeLabel) + "</strong><span>режим выполнения, не оценка качества прогноза</span></div>" +
       "<div class='metric'><small>Активных клонов</small><strong>" + esc(data.clones_active != null ? data.clones_active : "—") + "</strong><span>вычислительные варианты C0–C7</span></div>" +
       "<div class='metric'><small>Оценено проспективных прогнозов</small><strong>" + esc(data.prospective_scored_n != null ? data.prospective_scored_n : "—") + "</strong><span>исходы, по которым уже можно измерять качество</span></div></div>" +
       "<div class='twin-proof-boundary'><b>Граница доказанного:</b> состояние LIVE/OK подтверждает доступность вычислительного контура, но не точность прогноза. " +
-        (scoredN === 0 ? "Пока оценено 0 проспективных исходов — предсказательная способность и лучший клон не определены." : "Оценённые исходы существуют, но их качество должно читаться из отдельной доказательной проекции.") + "</div>" +
+        (scoredN == null ? "Число оценённых проспективных исходов источником не передано — вывод о предсказательной способности не делается." :
+          (scoredN === 0 ? "Пока оценено 0 проспективных исходов — предсказательная способность и лучший клон не определены." : "Оценённые исходы существуют, но их качество должно читаться из отдельной доказательной проекции.")) + "</div>" +
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Текущее состояние прогноза</h3>" + chip(data.current_prediction || "—") + "</div>" +
       "<div class='live-kv-grid'>" +
       kv("Статус", predLabel) +
       kv("SHA-256 запечатанного обязательства", data.current_commitment ? cut(data.current_commitment, 24) + "…" : "—") +
       kv("Печать создана", data.seal_created_at ? ago(data.seal_created_at) : "—") +
-      kv("Последний исход", data.last_outcome || "исходов пока нет") +
+      kv("Последний исход", data.last_outcome || "исход не передан") +
       "</div>" +
-      (needsConf > 0 ?
+      (needsConf != null && needsConf > 0 ?
         "<div class='live-status-box warn' style='margin-top:8px'><strong>Ожидает подтверждения: " + esc(needsConf) + "</strong>" +
         "<p>Исход неоднозначен. Панель только показывает ожидание — подтверждение здесь не выполняется.</p></div>" : "") +
       "</div>" +
-      "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Предохранители эксперимента</h3>" + chip("ENFORCED") + "</div>" +
+      "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Предохранители эксперимента</h3>" + chip(Object.keys(inv).length ? "ИЗ ИСТОЧНИКА" : "—") + "</div>" +
       "<div class='live-kv-grid'>" + invRows + "</div>" +
       "<small>Граница переноса SS001: " + esc(transferLabel) + ".</small></div>";
   }
@@ -2195,21 +2196,22 @@
       var dd = dur.detail || {};
       var scan = scannerDiagnostics || {};
       var cov = scan.source_coverage || {};
-      var scanTotal = Number(cov.total_sources || 0), scanOk = Number(cov.ok_count || 0);
+      var scanTotal = cov.total_sources == null ? null : Number(cov.total_sources);
+      var scanOk = cov.ok_count == null ? null : Number(cov.ok_count);
       var scanFail = asArray(cov.failing).length;
       var scanUnknown = asArray(cov.failing).filter(function (x) { return x && !x.known_degraded; }).length;
       var hub = hubHealth || {};
       var readTone = failed ? "warn" : "ok";
       var foundationTone = String(f.source_status || "").toUpperCase() === "DEGRADED" ? "warn" : (String(f.source_status || "").toUpperCase() === "READY" ? "ok" : "neutral");
       var durabilityTone = String(dur.state || "").toUpperCase() === "PASS" ? "ok" : (String(dur.state || "").toUpperCase() === "FAIL" ? "bad" : "neutral");
-      var scannerTone = scanTotal && scanOk === scanTotal ? "ok" : (scanFail ? "bad" : "neutral");
+      var scannerTone = scanTotal != null && scanOk != null && scanTotal > 0 && scanOk === scanTotal ? "ok" : (scanFail ? "bad" : "neutral");
       trust.innerHTML =
         "<div class='diag-boundary-intro'><div><small>НЕ ЕДИНЫЙ РЕЙТИНГ, А ГРАНИЦЫ ДОКАЗАННОГО</small><b>Доступность интерфейса ≠ здоровье всех источников мира</b><span>Каждое измерение сохраняет собственный источник и область действия.</span></div></div>" +
         "<div class='diag-boundary-grid'>" +
           "<div class='" + readTone + "'><small>Чтение панели</small><b>" + esc(ok + " / " + keys.length) + "</b><span>проекций ответили · ошибок чтения " + esc(failed) + "</span><em>влияет на доступность экранов</em></div>" +
           "<div class='" + foundationTone + "'><small>Системное основание</small><b>" + esc(passN + " / " + (mandatoryN || dims.length || "—")) + "</b><span>обязательных измерений пройдено · состояние: " + esc(HumanFoundationStatus(f.source_status)) + "</span><em>влияет на утверждение «основание готово»</em></div>" +
-          "<div class='" + durabilityTone + "'><small>Долговечность артефактов</small><b>" + esc(dd.objects_on_disk != null ? dd.objects_on_disk + " объектов на диске" : "—") + "</b><span>хэши: " + esc(dd.hash_mismatches || 0) + " расхождений · потеряно: " + esc(dd.artifacts_missing || 0) + " · осиротевших расписок: " + esc(dd.orphan_receipts || 0) + "</span><em>наличие на диске не равно доказанному полному readback</em></div>" +
-          "<div class='" + scannerTone + "'><small>Внешнее рыночное покрытие</small><b>" + esc(scanTotal ? scanOk + " / " + scanTotal : "—") + "</b><span>источников отвечают · отказов " + esc(scanFail) + " · ещё не объяснено " + esc(scanUnknown) + "</span><em>ограничивает внешние рыночные сигналы, а не внутреннее состояние компании</em></div>" +
+          "<div class='" + durabilityTone + "'><small>Долговечность артефактов</small><b>" + esc(dd.objects_on_disk != null ? dd.objects_on_disk + " объектов на диске" : "—") + "</b><span>хэши: " + esc(dd.hash_mismatches == null ? "—" : dd.hash_mismatches) + " расхождений · потеряно: " + esc(dd.artifacts_missing == null ? "—" : dd.artifacts_missing) + " · осиротевших расписок: " + esc(dd.orphan_receipts == null ? "—" : dd.orphan_receipts) + "</span><em>наличие на диске не равно доказанному полному readback</em></div>" +
+          "<div class='" + scannerTone + "'><small>Внешнее рыночное покрытие</small><b>" + esc(scanTotal != null && scanOk != null ? scanOk + " / " + scanTotal : "—") + "</b><span>источников отвечают · отказов " + esc(scanFail) + " · ещё не объяснено " + esc(scanUnknown) + "</span><em>ограничивает внешние рыночные сигналы, а не внутреннее состояние компании</em></div>" +
         "</div>" +
         "<div class='diag-boundary-freshness'><b>Свежесть не сводится к одному таймеру.</b><span>Фундамент: " + esc(f.freshness_state ? humanCode(f.freshness_state) : "контракт не прочитан") + " · Market Scanner: " + esc(scan.scanner && scan.scanner.freshness_state ? humanCode(scan.scanner.freshness_state) : "контракт не прочитан") + ". Остальные источники не объявляются свежими только потому, что HTTP-чтение успешно.</span></div>" +
         "<div class='diag-boundary-rule'>Панель может одновременно иметь 26/26 успешных чтений и показывать деградацию отдельного upstream-контура. Это не противоречие: первое описывает доступность проекций, второе — состояние данных за ними.</div>";
