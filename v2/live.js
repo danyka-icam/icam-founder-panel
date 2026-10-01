@@ -1851,23 +1851,32 @@
       return;
     }
     var sc = diag.scanner || {};
-    put("freshness", sc.freshness_state === "FRESH" ? "Свежий" : sc.freshness_state === "STALE" ? "Устарел" : "Недоступно");
-    put("last-run", sc.last_run_at ? ago(sc.last_run_at) : "Недоступно");
+    var freshnessRaw = sc.freshness_state == null ? null : String(sc.freshness_state).toUpperCase();
+    put("freshness", freshnessRaw === "FRESH" ? "Свежий по контракту Scanner" :
+      (freshnessRaw === "STALE" ? "Устарел по контракту Scanner" : (freshnessRaw ? humanCode(freshnessRaw) : "Статус свежести не передан")));
+    put("last-run", sc.last_run_at ? ago(sc.last_run_at) : "last_run_at не передан");
     var cov = diag.source_coverage || {};
-    put("coverage", cov.status === "UNAVAILABLE" ? "Недоступно" :
-      esc(cov.ok_count) + " / " + esc(cov.total_sources) + " ok" + (cov.status !== "OK" ? " · " + esc(cov.status) : ""));
+    var covKnown = cov.ok_count != null && cov.total_sources != null;
+    put("coverage", cov.status === "UNAVAILABLE" ? "Источник сообщает UNAVAILABLE" :
+      (covKnown ? (esc(cov.ok_count) + " / " + esc(cov.total_sources) + " источников" + (cov.status && cov.status !== "OK" ? " · " + esc(cov.status) : "")) : "Покрытие не подтверждено"));
     var enr = diag.enrichment || {};
-    put("enrichment", diag.flow_activated ?
-      (esc(enr.enriched_signals) + " / " + esc(enr.stored_signals) + " обогащено") : "Flow не активирован");
-    put("ingest", (diag.ingest && diag.ingest.key_configured) ? "Настроен · PATCH выключен" : "Не настроен");
+    var flowKnown = typeof diag.flow_activated === "boolean";
+    put("enrichment", diag.flow_activated === true ?
+      ((enr.enriched_signals != null ? esc(enr.enriched_signals) : "—") + " / " + (enr.stored_signals != null ? esc(enr.stored_signals) : "—") + " обогащено") :
+      (flowKnown ? "Источник явно сообщает: Flow не активирован" : "flow_activated не передан"));
+    var ingest = diag.ingest || {};
+    var keyKnown = typeof ingest.key_configured === "boolean";
+    put("ingest", ingest.key_configured === true ? "Ключ настроен · PATCH выключен" :
+      (keyKnown ? "Источник явно сообщает: ключ не настроен" : "key_configured не передан"));
 
     var failBox = document.querySelector('[data-scan="failing-list"]');
     if (failBox) {
-      var failing = cov.failing || [];
+      var failingKnown = Array.isArray(cov.failing);
+      var failing = failingKnown ? cov.failing : [];
       failBox.innerHTML = failing.length ? failing.map(function (f) {
         return "<div class='runtime-kv'><span>" + esc(f.source_id) + "</span><b>" +
           esc(f.known_degraded ? "known degraded" : "необъяснённый сбой") + " · " + esc(f.error || "") + "</b></div>";
-      }).join("") : "";
+      }).join("") : (failingKnown ? "<div class='runtime-kv'><span>Текущий failing[]</span><b>пуст</b></div>" : "<div class='runtime-kv'><span>failing[]</span><b>поле не передано</b></div>");
     }
   }
 
