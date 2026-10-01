@@ -2040,6 +2040,11 @@
     pageBadge(pageKey, liveMode(sourceStatus)==="live"?"live":"warn", badgeText);
     return page.querySelector('[data-normalized-live="'+pageKey+'"] .panel-body');
   }
+  function sourceStatusLabel(value) {
+    if (value == null || String(value).trim() === "") return "source_status не передан";
+    return "источник сообщает " + String(value);
+  }
+
   function cleanFailure(pageKey,label,stateName) {
     var page=document.querySelector('[data-page-panel="'+pageKey+'"]');
     if (!page) return;
@@ -2075,7 +2080,7 @@
   function renderOperationsProjection(data) {
     if (!sourceState.opsProjection.ok || !data) return cleanFailure("operations","Операции","opsProjection");
     var body=activateNormalized("operations",data.source_status,
-      "ОПЕРАЦИИ · "+humanCode(data.source_status)+" · "+humanCode(data.freshness_state));
+      "ОПЕРАЦИИ · "+sourceStatusLabel(data.source_status)+" · "+humanCode(data.freshness_state));
     if(!body)return;
     var c=data.counts||{}, operationsProvided=Array.isArray(data.operations), ops=operationsProvided?data.operations:[];
     var isClosedCommitment=function(o){return ["DONE","CLOSED","ARCHIVED","CANCELLED"].indexOf(String(o.status||"").toUpperCase())>=0;};
@@ -2084,7 +2089,7 @@
     var ownedOpen=openOps.filter(function(o){return ownerDisplay(o)!=="Недоступно";}).length;
     var factualKnown=ops.filter(function(o){return o.factual_result && String(o.factual_result).toUpperCase()!=="UNAVAILABLE";}).length;
     var ordered=openOps.concat(closedOps);
-    var summary="<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Операционная проекция — "+esc(humanCode(data.source_status))+"</strong>"+
+    var summary="<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Операционная проекция — "+esc(sourceStatusLabel(data.source_status))+"</strong>"+
       "<p>"+(String(data.freshness_state).toUpperCase()==="STALE"?"Проекция устарела по собственному контракту: нового движения обязательств в окне свежести не было. Это не означает, что обязательства автоматически отменены или просрочены.":"Состояние прочитано из серверной проекции.")+"</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Открытые обязательства</small><strong>"+esc(operationsProvided?openOps.length:"—")+"</strong><span>"+esc(operationsProvided?"из "+ops.length+" записей проекции":"operations[] не передан")+"</span></div>"+
@@ -2110,7 +2115,7 @@
     if (!sourceState.brazilPortal.ok || !data) return cleanFailure("brazilportal","BrazilPortal","brazilPortal");
     var sv=data.status_views||{}, id=data.identity||{};
     var body=activateNormalized("brazilportal",data.source_status,
-      "BRAZILPORTAL · "+(String(data.source_status||"").toUpperCase()==="DEGRADED"?"ЧАСТИЧНО ОГРАНИЧЕНО":humanCode(data.source_status)));
+      "BRAZILPORTAL · "+sourceStatusLabel(data.source_status));
     if(!body)return;
     function val(x){return x&&x.value!=null?x.value:"—";}
     function bpCodeRu(v){
@@ -2133,7 +2138,7 @@
     var blockersN=(data.open_blockers&&data.open_blockers.count!=null)?data.open_blockers.count:null;
     var commitmentsN=(data.open_commitments&&data.open_commitments.count!=null)?data.open_commitments.count:null;
     body.innerHTML=
-      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>BrazilPortal — "+esc(bpCodeRu(data.source_status))+ (stale?" · данные устарели":"") +"</strong>"+
+      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>BrazilPortal — "+esc(sourceStatusLabel(data.source_status))+ (stale?" · данные устарели":"") +"</strong>"+
       "<p>"+(stale?"Последнее материальное движение: "+esc(data.last_movement_at?ago(data.last_movement_at):"не передано")+". ":"")+(unresolved?"Спроецированный статус пока не связан с каноном; объявленный статус сохраняется отдельно.":"Состояние прочитано из нормализованной проекции.")+"</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Объявленный статус</small><strong>"+esc(bpCodeRu(sv.declared_status))+"</strong><span>что объект объявляет о себе</span></div>"+
@@ -2149,7 +2154,7 @@
   function renderFoundationAggregateClean(data) {
     if (!sourceState.foundationAgg.ok || !data) return cleanFailure("foundation","Фундамент","foundationAgg");
     var body=activateNormalized("foundation",data.source_status,
-      "ФУНДАМЕНТ · "+humanCode(data.source_status));
+      "ФУНДАМЕНТ · "+sourceStatusLabel(data.source_status));
     if(!body)return;
     var names={
       continuity_source_health:"Контур Continuity",
@@ -2187,10 +2192,10 @@
     var blockingProvided=Array.isArray(data.blocking_reasons);
     var blocking=blockingProvided?data.blocking_reasons:[];
     body.innerHTML=
-      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Готовность основания — "+esc(humanCode(data.source_status))+"</strong>"+
+      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Состояние основания — "+esc(sourceStatusLabel(data.source_status))+"</strong>"+
       "<p>"+(blockingProvided?(blocking.length?"Есть подтверждённый блокирующий дефект. Зелёный READY не показывается.":"Источник явно передал пустой blocking_reasons[]. Готовность определяется агрегированным source_status, а не этим нулём отдельно."):"Поле blocking_reasons не передано; отсутствие блокирующих причин не подтверждено.")+"</p></div>"+
       "<div class='live-summary'>"+
-      "<div class='metric'><small>Общий статус</small><strong>"+esc(humanCode(data.source_status))+"</strong><span>серверная агрегированная проекция — единственный источник готовности</span></div>"+
+      "<div class='metric'><small>Общий статус</small><strong>"+esc(sourceStatusLabel(data.source_status))+"</strong><span>серверная агрегированная проекция — единственный источник этого статуса</span></div>"+
       "<div class='metric'><small>Свежесть</small><strong>"+esc(data.freshness_state?humanCode(data.freshness_state):"не передана")+"</strong><span>поле freshness_state серверной проекции</span></div>"+
       "<div class='metric'><small>PASS</small><strong>"+esc(passBase.length?passCount+" / "+passBase.length:"—")+"</strong><span>"+esc(mandatoryKnown?"обязательные измерения":"переданные dimensions; mandatory не полностью указан")+"</span></div>"+
       "<div class='metric'><small>Блокирующие причины</small><strong>"+esc(blockingProvided?blocking.length:"—")+"</strong><span>"+esc(blockingProvided?"по явному blocking_reasons[]":"поле не передано")+"</span></div></div>"+
@@ -2203,7 +2208,7 @@
     if (!sourceState.atlasState.ok || !data) return cleanFailure("atlas","Атлас","atlasState");
     var status = data.source_status == null ? null : String(data.source_status);
     var body=activateNormalized("atlas",status,
-      "АТЛАС · "+(status ? humanCode(status) : "СТАТУС НЕ ПЕРЕДАН"));
+      "АТЛАС · "+sourceStatusLabel(status));
     if(!body)return;
     var reason = data.degraded_reason || data.reason || null;
     var errorClass = data.error_class || null;
@@ -2211,7 +2216,7 @@
     var nextStep = data.next_action || data.next_step || null;
     var noStateSource = String(errorClass || "").toUpperCase() === "NO_ATLAS_STATE_SOURCE";
     body.innerHTML=
-      "<div class='live-status-box "+liveMode(status)+"'><strong>Атлас — статус источника: "+esc(status ? humanCode(status) : "не передан")+"</strong>"+
+      "<div class='live-status-box "+liveMode(status)+"'><strong>Атлас — "+esc(sourceStatusLabel(status))+"</strong>"+
       "<p>"+esc(reason || (errorClass ? "Класс состояния: "+errorClass+"." : "Панель показывает только серверную проекцию и не достраивает каноническое состояние ATLAS по документам или косвенным признакам."))+"</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Проекция чтения Панели</small><strong>Прочитана</strong><span>endpoint ответил в текущем цикле</span></div>"+
