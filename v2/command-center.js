@@ -681,6 +681,8 @@
     var OI = oi.ok ? buildOrgIntelligence(oi.data, U) : null;
     var SR = sr.ok ? buildStewardReconciliation(sr.data, U) : null;
 
+    var objectsOk = !!(sources.objects && sources.objects.ok);
+    var routesOk = !!(sources.routes && sources.routes.ok);
     var objById = {};
     objects.forEach(function (o) { if (o && o.object_id) objById[String(o.object_id)] = o; });
 
@@ -703,7 +705,7 @@
       return {
         kind: "line", key: key, r: r, idx: idx,
         title: titleOf(r), objId: objId, sourceObjectId: sourceObjectId, mappingState: mappingState || null,
-        obj: obj, objMissing: !!(objId && !obj),
+        obj: obj, objMissing: !!(objectsOk && objId && !obj),
         risk: risk, closed: closed, state: state, rd1: rd1, area: area, star: star,
         origin: obj ? (obj.owning_branch || obj.owner || null) : null,
         waiting: !closed && /^EXTERNAL$/i.test(String(r.ball_owner || "").trim()),
@@ -1683,14 +1685,18 @@
       rows.push(proofRow(M.U.trajectories.length ? "ok" : "none", "Стратегические траектории", M.U.trajectories.length, "strategic_trajectories"));
       rows.push(proofRow(M.U.unresolved.length ? "warn" : "ok", "Неразрешённая история", M.U.unresolved.length, "не привязана ни к чему; по сходству не привязывается"));
       var routed = M.lines.filter(function (l) { return l.star; }).length;
-      rows.push(proofRow(routed ? "ok" : "none", "Маршрут → звезда", routed, "точное совпадение ID объекта маршрута и memory_id звезды"));
+      rows.push(!ok("routes") ? proofRow("warn", "Маршрут → звезда", "—", "Источник маршрутов недоступен — связи маршрутов со звёздами не проверены") :
+        proofRow(routed ? "ok" : "none", "Маршрут → звезда", routed, "точное совпадение ID объекта маршрута и memory_id звезды"));
     } else {
       rows.push(proofRow("no", "Мир → линия → звезда", "—", "Временная модель компании (Temporal Universe) недоступна: " + M.tu.reason));
     }
-    rows.push(proofRow(M.edges.length ? "ok" : "none", "Маршрут → маршрут", M.edges.length, M.edges.length ? "явные dependency-поля маршрутов" : "источник не передаёт зависимостей между маршрутами"));
+    rows.push(!ok("routes") ? proofRow("warn", "Маршрут → маршрут", "—", "Источник маршрутов недоступен — зависимости не проверены") :
+      proofRow(M.edges.length ? "ok" : "none", "Маршрут → маршрут", M.edges.length, M.edges.length ? "явные dependency-поля маршрутов" : "текущий источник маршрутов не передаёт явных зависимостей"));
     rows.push(proofRow(M.fp.ok && M.FP.intersections.length ? "ok" : (M.fp.ok ? "none" : "warn"), "Линия ⇄ линия через общий капитал", M.fp.ok ? M.FP.intersections.length : "—", M.fp.ok ? "Проекция Основателя (Founder Projection): совместное подтверждённое использование допущенного капитала; не причинность" : "Проекция Основателя (Founder Projection) недоступна"));
-    rows.push(proofRow(M.bridges.length ? "ok" : "none", "Общий объект", M.bridges.length, "два маршрута ссылаются на один объект, подтверждённый реестром Continuity — структурная связь"));
-    rows.push(proofRow(M.dangling.length ? "warn" : "ok", "Висячие ссылки маршрутов", M.dangling.length, "маршрут ссылается на объект, которого нет в реестре Continuity"));
+    rows.push(!ok("routes") || !ok("objects") ? proofRow("warn", "Общий объект", "—", "Маршруты или реестр Continuity недоступны — общие объекты не проверены") :
+      proofRow(M.bridges.length ? "ok" : "none", "Общий объект", M.bridges.length, M.bridges.length ? "два маршрута ссылаются на один объект, подтверждённый реестром Continuity — структурная связь" : "в текущих маршрутах и реестре общих подтверждённых объектов не найдено"));
+    rows.push(!ok("routes") || !ok("objects") ? proofRow("warn", "Висячие ссылки маршрутов", "—", "Маршруты или реестр Continuity недоступны — отсутствие висячих ссылок не подтверждено") :
+      proofRow(M.dangling.length ? "warn" : "ok", "Висячие ссылки маршрутов", M.dangling.length, M.dangling.length ? "маршрут ссылается на object_id, которого нет в текущем реестре Continuity" : "в текущем чтении маршрутов и реестра таких ссылок не найдено"));
     rows.push(proofRow("no", "Причинные связи", "—", "ни один источник не передаёт causal-отношений; не рисуются"));
     page.querySelector("[data-cc='proven']").innerHTML = "<div class='cc-proof'>" + rows.join("") + "</div>";
 
