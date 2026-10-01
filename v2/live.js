@@ -1745,6 +1745,42 @@
       "<div class='metric'><small>Следующий шаг</small><strong>Создать источник состояния</strong><span>объект Continuity или постоянный сервис состояния</span></div></div>";
   }
 
+  function renderAtlasSignalLab(data) {
+    var card = document.querySelector("[data-atlas-siglab]");
+    if (!card) return;
+    var body = card.querySelector(".panel-body");
+    var badge = card.querySelector("[data-atlas-siglab-state]");
+    if (!body) return;
+    if (!sourceState.signalLabStatus.ok || !data) {
+      if (badge) { badge.className = "state unavailable"; badge.textContent = "НЕДОСТУПНО"; }
+      body.innerHTML = "<div class='live-status-box warn'><strong>Signal Lab сейчас не прочитан</strong><p>Панель не показывает прошлое значение как текущее.</p></div>";
+      return;
+    }
+    var running = String(data.health || "").toUpperCase() === "RUNNING";
+    if (badge) { badge.className = "state " + (running ? "live" : "warn"); badge.textContent = running ? "НАБЛЮДЕНИЕ ИДЁТ" : humanCode(data.health || "—"); }
+    var stage=data.current_stage||{}, live=data.live||{}, control=live.control||{}, treatment=live.treatment||{};
+    var observations=Number(control.observations||0)+Number(treatment.observations||0);
+    var confirmed=Number(control.confirmed||0)+Number(treatment.confirmed||0);
+    var regions=asArray(data.scope&&data.scope.regions), sectors=asArray(data.scope&&data.scope.sectors), review=data.latest_review||{};
+    var restarts=[data.last_restart&&data.last_restart.control,data.last_restart&&data.last_restart.treatment].filter(Boolean);
+    var restart=restarts.length?restarts.sort(function(a,b){return new Date(b)-new Date(a);})[0]:null;
+    var label=function(v){var m={GLOBAL_COMPARATIVE_EXPANSION:"глобальное сравнительное расширение",GLOBAL_UNIVERSE_FREEZE:"заморозка глобальной выборки",REVIEW_READY_NO_PREDECLARED_PASS_FAIL_THRESHOLD:"обзор готов; заранее заданного порога PASS/FAIL нет",IN_PROGRESS:"в работе",PENDING:"ожидает"};return m[String(v||"")]||humanCode(v||"—");};
+    var dt=function(v){return v?new Date(v).toLocaleString("ru-RU",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"—";};
+    body.innerHTML =
+      "<div class='live-status-box "+(running?"ok":"warn")+"'><strong>ATLAS Signal Lab — "+esc(label(data.phase))+"</strong><p>Это наблюдаемый исследовательский процесс. Он не заполняет поля канонической модели ATLAS и не повышает доказательный статус результатов.</p></div>"+
+      "<div class='live-summary atlas-siglab-summary'>"+
+      "<div class='metric'><small>Этап</small><strong>"+esc(stage.index&&stage.total?stage.index+" / "+stage.total:"—")+"</strong><span>"+esc(stage.label||label(stage.name))+"</span></div>"+
+      "<div class='metric'><small>Наблюдений</small><strong>"+esc(observations||"—")+"</strong><span>контрольный + смысловой потоки</span></div>"+
+      "<div class='metric'><small>Подтверждений</small><strong>"+esc(confirmed||"—")+"</strong><span>сумма состояний двух потоков</span></div>"+
+      "<div class='metric'><small>Следующий цикл</small><strong>"+esc(dt(data.next_cycle))+"</strong><span>"+esc(label(data.next_gate))+"</span></div></div>"+
+      "<div class='live-item-clean atlas-siglab-objective'><div class='live-item-clean-head'><h3>Цель текущего расширения</h3>"+chip(stage.status||data.health||"—")+"</div><p>"+esc(data.objective||"Цель не передана источником.")+"</p>"+
+      "<div class='live-kv-grid'>"+kv("Охват",regions.length?regions.length+" регионов":"—")+kv("Целевая выборка",data.scope&&data.scope.target_systems||"—")+kv("Классы отраслей",sectors.length||"—")+kv("Последний перезапуск",dt(restart))+"</div></div>"+
+      "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Два живых потока</h3><small>показываются раздельно, чтобы не скрывать различия</small></div><div class='atlas-siglab-streams'>"+
+      "<div><small>Контрольный поток</small><b>"+esc(control.observations!=null?control.observations+" наблюдений":"—")+"</b><span>"+esc(control.confirmed!=null?control.confirmed+" подтверждений":"")+(control.degraded!=null?" · "+esc(control.degraded)+" деградированных":"")+"</span></div>"+
+      "<div><small>Смысловой поток</small><b>"+esc(treatment.observations!=null?treatment.observations+" наблюдений":"—")+"</b><span>"+esc(treatment.confirmed!=null?treatment.confirmed+" подтверждений":"")+(treatment.degraded!=null?" · "+esc(treatment.degraded)+" деградированных":"")+"</span></div></div></div>"+
+      (Object.keys(review).length?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Последний обзор</h3><small>"+esc(label(review.gate_status))+"</small></div><div class='live-kv-grid'>"+kv("Длительность",review.duration_hours!=null?Number(review.duration_hours).toFixed(1)+" ч":"—")+kv("Кандидатов",review.candidate_count_union!=null?review.candidate_count_union:"—")+kv("Строгих расхождений пары",review.strict_pair_divergences!=null?review.strict_pair_divergences:"—")+kv("Файл обзора",review.file||"—")+"</div></div>":"");
+  }
+
   // Founder-safe prediction-state labels only. Never render clone
   // probabilities, ranked candidates, or any text that would let the
   // predicted choice be inferred before outcome -- per
@@ -1964,6 +2000,7 @@
       renderBrazilPortalProjection(brazilPortal);
       renderFoundationAggregateClean(foundationAgg);
       renderAtlasStateClean(atlasState);
+      renderAtlasSignalLab(signalLabStatus);
       renderTwinStateClean(twinState);
       renderDiagnostics();
 
