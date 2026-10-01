@@ -1266,7 +1266,18 @@
       return Promise.resolve();
     }
 
-    var items = asArray(objectsResp.items);
+    if (!Array.isArray(objectsResp.items)) {
+      pageBadge("research", "warn", "OBJECTS ENDPOINT ОТВЕТИЛ · items[] НЕ ПЕРЕДАН");
+      ["active-count", "founder-count", "waiting-count", "identity-count"].forEach(function (k) {
+        var e = page.querySelector('[data-r="' + k + '"]'); if (e) e.textContent = "—";
+      });
+      var missingItems = page.querySelector('[data-r="lines"]');
+      if (missingItems) missingItems.innerHTML = unavailableHTML("Исследовательский портфель не проверен", "Continuity objects ответил, но поле items[] не передано. Пустой портфель из этого не следует.");
+      sourceState.researchRD1 = { ok: false, complete: false, at: new Date().toISOString(), error: "objects.items missing" };
+      return Promise.resolve();
+    }
+
+    var items = objectsResp.items;
     var attempted = items.length;
     var successes = 0;
     var now = new Date().toISOString();
@@ -1281,10 +1292,12 @@
         .then(function (p) { successes += 1; return p || { object_id: o.object_id, available: false }; })
         .catch(function () { return { object_id: o.object_id, available: false, __fetch_error: true }; });
     })).then(function (projections) {
+      var rd1Complete = successes === attempted;
       sourceState.researchRD1 = {
         ok: attempted === 0 ? true : successes > 0,
+        complete: rd1Complete,
         at: now,
-        error: successes === attempted ? null : (attempted - successes) + " projection read(s) failed"
+        error: rd1Complete ? null : (attempted - successes) + " projection read(s) failed"
       };
 
       var byId = {};
@@ -1307,10 +1320,12 @@
         return /^ACTIVE/.test(String(x.object.declared_status || x.projection.status || "").toUpperCase());
       });
       var founder = lines.filter(function (x) { return !!(x.object.needs_nika || x.object.needs_founder); });
-      var formalDecisions = asArray(founderProjection && founderProjection.today && founderProjection.today.founder_decisions);
+      var founderProjectionRead = !!(sourceState.founderProjection.ok && founderProjection);
+      var founderDecisionsKnown = !!(founderProjectionRead && founderProjection.today && Array.isArray(founderProjection.today.founder_decisions));
+      var formalDecisions = founderDecisionsKnown ? founderProjection.today.founder_decisions : [];
       var founderNote = page.querySelector('[data-r="founder-note"]');
-      if (founderNote) founderNote.textContent = founder.length + " привязано к исследовательской линии" +
-        (formalDecisions.length ? " · " + formalDecisions.length + " формальное решение без привязки к объекту" : "");
+      if (founderNote) founderNote.textContent = (rd1Complete ? founder.length : "≥ " + founder.length) + " привязано к исследовательской линии" +
+        (founderDecisionsKnown ? (formalDecisions.length ? " · " + formalDecisions.length + " формальное решение без привязки к объекту" : " · формальных решений: 0") : " · Founder Projection: решения не проверены");
       var waiting = lines.filter(function (x) {
         var declared = String(x.object.declared_status || "").toUpperCase();
         var projected = String(x.projection.status || "").toUpperCase();
@@ -1322,10 +1337,10 @@
       var noSemanticFreshness = lines.filter(function (x) { return !x.projection.semantic_freshness; });
 
       function put(k, v) { var e = page.querySelector('[data-r="' + k + '"]'); if (e) e.textContent = String(v); }
-      put("active-count", active.length);
-      put("founder-count", founder.length + (formalDecisions.length ? " + " + formalDecisions.length : ""));
-      put("waiting-count", waiting.length);
-      put("identity-count", noSemanticFreshness.length);
+      put("active-count", rd1Complete ? active.length : "≥ " + active.length);
+      put("founder-count", (rd1Complete && founderDecisionsKnown) ? (founder.length + (formalDecisions.length ? " + " + formalDecisions.length : "")) : "≥ " + (founder.length + formalDecisions.length));
+      put("waiting-count", rd1Complete ? waiting.length : "≥ " + waiting.length);
+      put("identity-count", rd1Complete ? noSemanticFreshness.length : "≥ " + noSemanticFreshness.length);
 
       var linesBox = page.querySelector('[data-r="lines"]');
       if (linesBox) {
@@ -1336,11 +1351,13 @@
           return "<div class='research-live-row'><b>" + esc(researchObjectTitle(o)) +
             "<small>" + esc(o.object_id || "ID не определён") + "</small></b>" +
             "<span title='" + esc(stageRaw) + "'>" + esc(researchTextRu(humanCode(stageRaw))) + "</span>" +
-            "<span>" + esc(researchTextRu(p.owner || "не назначен")) + "</span>" +
+            "<span>" + esc(researchTextRu(p.owner || "владелец хода не передан")) + "</span>" +
             "<span title='" + esc(nextRaw) + "'>" + esc(researchTextRu(humanCode(nextRaw))) + "</span>" +
             "<small>" + esc(researchTextRu(humanCode(ruStatus(p.status || o.declared_status || "—")))) + "</small></div>";
         }).join("") :
-        "<div class='research-empty'><strong>Исследовательских линий в текущей RD1-проекции нет</strong><span>Continuity ответил, но ни один объект не удовлетворил явному research/RD1-контракту.</span></div>";
+        (rd1Complete ?
+          "<div class='research-empty'><strong>Исследовательских линий в текущей RD1-проекции нет</strong><span>Все RD1-проекции прочитаны; ни один объект не удовлетворил явному research/RD1-контракту.</span></div>" :
+          unavailableHTML("Исследовательский портфель прочитан частично", "Часть RD1-проекций недоступна; общий ноль исследовательских линий не подтверждён."));
       }
 
       function mini(container, rows, emptyTitle, emptyText) {
@@ -1359,14 +1376,17 @@
           esc(d.question || "Вопрос решения не передан") + (d.why_now ? " · " + esc(d.why_now) : "") +
           "</span><small>Founder Projection не передаёт object_id / memory_id. Панель не связывает решение с исследовательской линией по похожему тексту.</small></div>");
       });
+      var attentionComplete = rd1Complete && founderDecisionsKnown;
       mini(page.querySelector('[data-r="attention"]'), founderAttentionRows,
-        "Решений Основателя в исследовательском контуре нет", "Ни объектная/RD1-проекция, ни Founder Projection не передали текущего решения.");
+        attentionComplete ? "Решений Основателя в исследовательском контуре нет" : "Контур решений прочитан частично",
+        attentionComplete ? "Полные RD1-проекции и Founder Projection не передали текущего решения." : "Часть RD1-проекций или founder_decisions[] не подтверждена; общий ноль решений не выводится.");
 
       mini(page.querySelector('[data-r="waiting"]'), waiting.slice(0, 6).map(function (x) {
         var o = x.object, p = x.projection;
         return "<div class='research-mini-item'><b>" + esc(researchObjectTitle(o)) + "</b><span>" +
-          "ждём: " + esc(researchTextRu(p.next_gate || p.next_move || "условие не описано")) + " · ход: " + esc(researchTextRu(p.owner || "не назначен")) + "</span></div>";
-      }), "Линий в ожидании не найдено", "Нет явного PARKED / WAITING / AWAITING или внешнего владельца хода.");
+          "ждём: " + esc(researchTextRu(p.next_gate || p.next_move || "условие не описано")) + " · ход: " + esc(researchTextRu(p.owner || "владелец хода не передан")) + "</span></div>";
+      }), rd1Complete ? "Линий в ожидании не найдено" : "Контур ожидания прочитан частично",
+        rd1Complete ? "Нет явного PARKED / WAITING / AWAITING или внешнего владельца хода." : "Часть RD1-проекций недоступна; общий ноль ожидания не подтверждён.");
 
       var MATERIAL = ["GATE_RESULT", "DECISION", "STATUS_CHANGE", "STAGE_CHANGE", "TEST_RESULT", "EXTERNAL_EVENT"];
       var material = lines.filter(function (x) {
@@ -1377,23 +1397,29 @@
 
       var bridge = page.querySelector('[data-r="system-bridge"]');
       if (bridge) {
-        var tests = sourceState.testingSummary.ok ? allTests(testingSummary) : [];
+        var testingRead = !!(sourceState.testingSummary.ok && testingSummary);
+        var researchTestState = testCollectionState(testingSummary);
+        var testingAny = !!(testingRead && (researchTestState.activeKnown || researchTestState.recentKnown));
+        var testingComplete = !!(testingRead && researchTestState.activeKnown && researchTestState.recentKnown);
+        var tests = testingAny ? allTests(testingSummary) : [];
         var adjudication = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "NEEDS_ADJUDICATION"; });
         var blockedTests = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "BLOCKED"; });
-        var openTestStates = asArray(testingSummary && testingSummary.active);
+        var openTestStates = researchTestState.activeKnown ? testingSummary.active : [];
         var rq = sourceState.hubHealth.ok && hubHealth ? (hubHealth.review_queue || {}) : {};
         var reviewN = rq.manual_review_required;
         var leadTest = adjudication[0] || blockedTests[0] || openTestStates[0] || null;
         var latest = material[0] || null;
-        var testTitle = leadTest ? (leadTest.test_id || "проверка без ID") : "нет проверки, требующей реакции";
-        var testNote = leadTest ? researchTextRu(humanCode(leadTest.scientific_outcome || leadTest.next_action || leadTest.status || "состояние не передано")) : "по текущему Testing summary";
-        var latestTitle = latest ? researchObjectTitle(latest.object) : "материальных изменений нет";
-        var latestNote = latest ? researchTextRu(latest.object.last_summary || latest.object.last_meaning_kind || "") : "по текущей RD1-проекции";
+        var testTitle = leadTest ? (leadTest.test_id || "проверка без ID") : (testingComplete ? "нет проверки, требующей реакции" : "набор Testing неполный");
+        var testNote = leadTest ? researchTextRu(humanCode(leadTest.scientific_outcome || leadTest.next_action || leadTest.status || "состояние не передано")) :
+          (testingComplete ? "по полному active[] + recent[]" : (testingRead ? "active[] / recent[] переданы не полностью" : "Testing summary недоступен"));
+        var latestTitle = latest ? researchObjectTitle(latest.object) : (rd1Complete ? "материальных изменений нет" : "материальные изменения не проверены полностью");
+        var latestNote = latest ? researchTextRu(latest.object.last_summary || latest.object.last_meaning_kind || "") :
+          (rd1Complete ? "по полной RD1-проекции" : "часть RD1-проекций недоступна");
         bridge.innerHTML =
           "<div class='research-bridge-head'><div><small>ИССЛЕДОВАТЕЛЬСКИЙ ПУЛЬС</small><b>Вопрос → доказательство → независимая проверка → следующий переход</b></div><span>источники не смешиваются</span></div>" +
           "<div class='research-bridge-grid'>" +
-          "<a href='#research' class='research-bridge-cell'><small>Портфель</small><strong>" + esc(active.length) + " объявлены активными</strong><span>" + esc(waiting.length) + " ждут условия · участие Основателя: " + esc(founder.length) + " привязано" + (formalDecisions.length ? " · " + esc(formalDecisions.length) + " формально без объектной связи" : "") + "</span></a>" +
-          "<a href='#testing' class='research-bridge-cell " + (adjudication.length || blockedTests.length ? "attention" : "") + "'><small>Независимая проверка</small><strong>" + esc(openTestStates.length) + " открытых состояний · " + esc(adjudication.length) + " на разборе</strong><span>active[] не означает текущее исполнение · " + esc(testTitle) + " · " + esc(testNote) + "</span></a>" +
+          "<a href='#research' class='research-bridge-cell'><small>Портфель</small><strong>" + esc(rd1Complete ? active.length : "≥ " + active.length) + " объявлены активными</strong><span>" + esc(rd1Complete ? waiting.length : "≥ " + waiting.length) + " ждут условия · участие Основателя: " + esc(rd1Complete ? founder.length : "≥ " + founder.length) + " привязано" + (founderDecisionsKnown ? (formalDecisions.length ? " · " + esc(formalDecisions.length) + " формально без объектной связи" : "") : " · формальные решения не проверены") + "</span></a>" +
+          "<a href='#testing' class='research-bridge-cell " + (adjudication.length || blockedTests.length ? "attention" : "") + "'><small>Независимая проверка</small><strong>" + esc(researchTestState.activeKnown ? openTestStates.length : "—") + " в active[] · " + esc(testingComplete ? adjudication.length : "≥ " + adjudication.length) + " на разборе</strong><span>active[] не означает текущее исполнение · " + esc(testTitle) + " · " + esc(testNote) + "</span></a>" +
           "<a href='#research' class='research-bridge-cell'><small>Последнее материальное изменение</small><strong>" + esc(latestTitle) + "</strong><span>" + esc(cut(latestNote, 120)) + (latest ? " · " + esc(ago(latest.object.last_event_at)) : "") + "</span></a>" +
           "<a href='#documents' class='research-bridge-cell'><small>Доказательный контур компании</small><strong>" + esc(reviewN == null ? "нет счётчика" : reviewN + " на ручном разборе") + "</strong><span>общесистемная очередь Hub; не приписывается исследованию без связи с объектом</span></a>" +
           "</div><div class='research-bridge-rule'>Панель не превращает завершённый прогон в научный вывод и не считает общую очередь документов доказательствами конкретной исследовательской линии без явной связи.</div>";
@@ -1403,24 +1429,28 @@
         var o = x.object;
         return "<div class='research-mini-item'><b>" + esc(researchObjectTitle(o)) + "</b><span>" +
           esc(researchTextRu(o.last_summary)) + " · " + esc(o.last_meaning_kind || "изменение") + " · " + esc(ago(o.last_event_at)) + "</span></div>";
-      }), "Существенного результата не найдено", "Нет материального GATE_RESULT / DECISION / STATUS_CHANGE / STAGE_CHANGE / TEST_RESULT / EXTERNAL_EVENT.");
+      }), rd1Complete ? "Существенного результата не найдено" : "Результаты прочитаны частично",
+        rd1Complete ? "Нет материального GATE_RESULT / DECISION / STATUS_CHANGE / STAGE_CHANGE / TEST_RESULT / EXTERNAL_EVENT." : "Часть RD1-проекций недоступна; отсутствие материального результата не подтверждено.");
 
       var nextGates = lines.filter(function (x) { return !!x.projection.next_gate; });
       mini(page.querySelector('[data-r="next-gates"]'), nextGates.slice(0, 6).map(function (x) {
         return "<div class='research-mini-item'><b>" + esc(researchObjectTitle(x.object)) + "</b><span>" +
           esc(researchTextRu(x.projection.next_gate)) + " · следующий ход: " + esc(researchTextRu(x.projection.next_move || "не указан")) + "</span></div>";
-      }), "Следующая проверка не определена", "Ни одна текущая RD1-проекция не отдала next_gate.");
+      }), rd1Complete ? "Следующая проверка не передана" : "Следующие проверки прочитаны частично",
+        rd1Complete ? "Ни одна полностью прочитанная RD1-проекция не отдала next_gate." : "Часть RD1-проекций недоступна; общий вывод о next_gate не делается.");
 
       mini(page.querySelector('[data-r="changes"]'), material.slice(0, 6).map(function (x) {
         var o = x.object;
         return "<div class='research-mini-item'><b>" + esc(o.object_id || "ID не определён") + " · " + esc(researchObjectTitle(o)) + "</b><span>" +
           esc(researchTextRu(o.last_summary)) + " · " + esc(ago(o.last_event_at)) + "</span></div>";
-      }), "Материальных изменений нет", "Текущая проекция не содержит материальных событий по исследовательским линиям.");
+      }), rd1Complete ? "Материальных изменений нет" : "Изменения прочитаны частично",
+        rd1Complete ? "Полная текущая RD1-проекция не содержит материальных событий по исследовательским линиям." : "Часть RD1-проекций недоступна; общий ноль материальных изменений не подтверждён.");
 
-      var blockersOk = sourceState.blockers.ok;
+      var blockersComplete = !!(sourceState.blockers.ok && blockersResp && Array.isArray(blockersResp.items));
+      var researchComplete = !!(sourceState.researchRD1.ok && sourceState.researchRD1.complete && blockersComplete && founderDecisionsKnown);
       pageBadge("research",
-        sourceState.researchRD1.ok ? (blockersOk ? "live" : "warn") : "unavailable",
-        sourceState.researchRD1.ok ? (blockersOk ? "ДАННЫЕ ПОДКЛЮЧЕНЫ" : "ДАННЫЕ ЧАСТИЧНО") : "RD1-ПРОЕКЦИЯ НЕДОСТУПНА"
+        sourceState.researchRD1.ok ? (researchComplete ? "live" : "warn") : "unavailable",
+        sourceState.researchRD1.ok ? (researchComplete ? "ИССЛЕДОВАТЕЛЬСКИЙ КОНТУР ПОЛОН" : "ИССЛЕДОВАТЕЛЬСКИЕ ДАННЫЕ ЧАСТИЧНЫ") : "RD1-ПРОЕКЦИЯ НЕДОСТУПНА"
       );
     });
   }
