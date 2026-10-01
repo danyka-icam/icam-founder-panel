@@ -906,7 +906,7 @@
         return "<div class='registry-mini-item'><b>" + esc(o.name || o.object_id) + "</b><span>" +
           esc(ruStatus(o.declared_status)) + " · " + esc(ago(o.last_event_at)) + "</span></div>";
       }).join("") + "</div>" :
-      "<div class='registry-empty compact'><strong>Нет подтверждённых событий</strong><span>Источник объектов ответил, но last_event_at отсутствует.</span></div>";
+      "<div class='registry-empty compact'><strong>Нет событий с датой</strong><span>Источник объектов ответил, но last_event_at не передан. Это не считается проблемой идентичности или доказательством отсутствия изменений.</span></div>";
     }
 
     pageBadge("registry", sourceState.blockers.ok ? "live" : "warn", sourceState.blockers.ok ? "ДАННЫЕ ПОДКЛЮЧЕНЫ" : "ДАННЫЕ ЧАСТИЧНО");
