@@ -1304,10 +1304,10 @@
         var tests = sourceState.testingSummary.ok ? allTests(testingSummary) : [];
         var adjudication = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "NEEDS_ADJUDICATION"; });
         var blockedTests = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "BLOCKED"; });
-        var runningTests = asArray(testingSummary && testingSummary.active);
+        var openTestStates = asArray(testingSummary && testingSummary.active);
         var rq = sourceState.hubHealth.ok && hubHealth ? (hubHealth.review_queue || {}) : {};
         var reviewN = rq.manual_review_required;
-        var leadTest = adjudication[0] || blockedTests[0] || runningTests[0] || null;
+        var leadTest = adjudication[0] || blockedTests[0] || openTestStates[0] || null;
         var latest = material[0] || null;
         var testTitle = leadTest ? (leadTest.test_id || "проверка без ID") : "нет проверки, требующей реакции";
         var testNote = leadTest ? researchTextRu(humanCode(leadTest.scientific_outcome || leadTest.next_action || leadTest.status || "состояние не передано")) : "по текущему Testing summary";
@@ -1316,8 +1316,8 @@
         bridge.innerHTML =
           "<div class='research-bridge-head'><div><small>ИССЛЕДОВАТЕЛЬСКИЙ ПУЛЬС</small><b>Вопрос → доказательство → независимая проверка → следующий переход</b></div><span>источники не смешиваются</span></div>" +
           "<div class='research-bridge-grid'>" +
-          "<a href='#research' class='research-bridge-cell'><small>Портфель</small><strong>" + esc(active.length) + " активных линий</strong><span>" + esc(waiting.length) + " ждут условия · " + esc(founder.length) + " требуют Основателя</span></a>" +
-          "<a href='#testing' class='research-bridge-cell " + (adjudication.length || blockedTests.length ? "attention" : "") + "'><small>Независимая проверка</small><strong>" + esc(runningTests.length) + " в работе · " + esc(adjudication.length) + " на разборе</strong><span>" + esc(testTitle) + " · " + esc(testNote) + "</span></a>" +
+          "<a href='#research' class='research-bridge-cell'><small>Портфель</small><strong>" + esc(active.length) + " объявлены активными</strong><span>" + esc(waiting.length) + " ждут условия · участие Основателя: " + esc(founder.length) + " привязано" + (formalDecisions.length ? " · " + esc(formalDecisions.length) + " формально без объектной связи" : "") + "</span></a>" +
+          "<a href='#testing' class='research-bridge-cell " + (adjudication.length || blockedTests.length ? "attention" : "") + "'><small>Независимая проверка</small><strong>" + esc(openTestStates.length) + " открытых состояний · " + esc(adjudication.length) + " на разборе</strong><span>active[] не означает текущее исполнение · " + esc(testTitle) + " · " + esc(testNote) + "</span></a>" +
           "<a href='#research' class='research-bridge-cell'><small>Последнее материальное изменение</small><strong>" + esc(latestTitle) + "</strong><span>" + esc(cut(latestNote, 120)) + (latest ? " · " + esc(ago(latest.object.last_event_at)) : "") + "</span></a>" +
           "<a href='#documents' class='research-bridge-cell'><small>Доказательный контур компании</small><strong>" + esc(reviewN == null ? "нет счётчика" : reviewN + " на ручном разборе") + "</strong><span>общесистемная очередь Hub; не приписывается исследованию без связи с объектом</span></a>" +
           "</div><div class='research-bridge-rule'>Панель не превращает завершённый прогон в научный вывод и не считает общую очередь документов доказательствами конкретной исследовательской линии без явной связи.</div>";
