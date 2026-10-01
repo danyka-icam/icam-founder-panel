@@ -956,10 +956,16 @@
   }
 
   function reviewCounts() {
-    var c = M.AD.counts;
+    var c = M.AD.counts || {};
+    function num(v) { if (v == null || v === "") return null; var n = Number(v); return isFinite(n) ? n : null; }
+    var reviewFromCount = num(c.review_required);
+    var conflictsFromCount = num(c.owner_conflicts);
     return {
-      review: Number(c.review_required != null ? c.review_required : M.AD.buckets.review.length) || 0,
-      conflicts: Number(c.owner_conflicts != null ? c.owner_conflicts : M.AD.buckets.conflict.length) || 0
+      review: reviewFromCount != null ? reviewFromCount : M.AD.buckets.review.length, reviewKnown: true,
+      sourceConflicts: conflictsFromCount != null ? conflictsFromCount : (M.AD.ownerConflictsKnown ? M.AD.buckets.conflict.length + M.AD.buckets.archive.filter(function (it) { return it.sourceBucket === "conflict"; }).length : null),
+      sourceConflictsKnown: conflictsFromCount != null || M.AD.ownerConflictsKnown,
+      conflicts: M.AD.ownerConflictsKnown ? M.AD.buckets.conflict.length : null,
+      conflictsKnown: M.AD.ownerConflictsKnown
     };
   }
 
@@ -969,11 +975,12 @@
     var r = reviewCounts();
     var archivedReview = M.AD.buckets.archive.filter(function (it) { return it.sourceBucket === "review"; }).length;
     var archivedConflict = M.AD.buckets.archive.filter(function (it) { return it.sourceBucket === "conflict"; }).length;
+    var activeKnown = r.conflictsKnown;
     return {
-      sourceTotal: r.review + r.conflicts,
-      archived: archivedReview + archivedConflict,
-      review: M.AD.buckets.review.length, conflicts: M.AD.buckets.conflict.length,
-      active: M.AD.buckets.review.length + M.AD.buckets.conflict.length
+      sourceTotal: r.sourceConflictsKnown ? r.review + r.sourceConflicts : null,
+      archived: activeKnown ? archivedReview + archivedConflict : archivedReview,
+      review: M.AD.buckets.review.length, conflicts: r.conflictsKnown ? M.AD.buckets.conflict.length : null,
+      active: M.AD.buckets.review.length + M.AD.buckets.conflict.length, activeKnown: activeKnown
     };
   }
 
@@ -1092,8 +1099,8 @@
         ("накоплено в хранилище · текущий Scanner " + scanOk + "/" + scanTotal + " источников") :
         "свежесть и покрытие Scanner не подтверждены");
     chips.push("<a class='cc-meta" + (scanDegraded ? " warn" : "") + "' href='#signals'><i>◉</i>рыночные сигналы: <b>" + E(marketLabel) + "</b><span class='cc-meta-sub'>" + E(marketSub) + "</span></a>");
-    chips.push("<a class='cc-meta' href='#placement'><i>⌖</i>качество карты: <b>" + (q ? q.active + " в активной очереди" : "Не проверено") + "</b>" +
-      (q ? "<span class='cc-meta-sub'>по источнику " + q.sourceTotal + (q.archived ? " · " + q.archived + " в архиве" : "") + "</span>" : "") + "</a>");
+    chips.push("<a class='cc-meta' href='#placement'><i>⌖</i>качество карты: <b>" + (q ? (q.activeKnown ? q.active : "≥ " + q.active) + " в активной очереди" : "Не проверено") + "</b>" +
+      (q ? "<span class='cc-meta-sub'>" + (q.sourceTotal == null ? "owner_conflicts не передан; показана нижняя граница" : "по источнику " + q.sourceTotal + (q.archived ? " · " + q.archived + " в архиве" : "")) + "</span>" : "") + "</a>");
     if (inboxDataOk() && M.inboxItems.length) {
       chips.push("<span class='cc-meta'><i>!</i>Входящие Основателя: <b>" + M.inboxItems.length + "</b><span class='cc-meta-sub'>запросы на участие, не автоматически решения</span></span>");
     }
@@ -2189,7 +2196,8 @@
     }
     var AD = M.AD, c = AD.counts, q = activeQueue();
     var candActive = AD.buckets.candidate.length;
-    var candSource = Number(c.exact_owner_candidates != null ? c.exact_owner_candidates : candActive) || 0;
+    var candCountRaw = c.exact_owner_candidates != null && c.exact_owner_candidates !== "" ? Number(c.exact_owner_candidates) : null;
+    var candSource = candCountRaw != null && isFinite(candCountRaw) ? candCountRaw : candActive;
     function tile(cls, label, value, sub) {
       return "<div class='cc-plt pl-" + cls + "'><small>" + E(label) + "</small><strong>" + E(value) + "</strong><span>" + E(sub) + "</span></div>";
     }
@@ -2199,8 +2207,8 @@
       tile("placed", "На Founder Map", M.tu.ok ? lowerBoundCount(M.U.stars.length, M.U.starsComplete) : (c.placed != null ? c.placed : "—"), M.tu.ok ? (M.U.starsComplete ? "звёзд в Temporal Universe" : "нижняя граница: не у всех линий передан branches[]") : "по счётчику источника") +
       tile("candidate", "Кандидаты на точную связь", candActive, candSource !== candActive ? "из " + candSource + " по источнику · " + (candSource - candActive) + " в архиве" : "точный владелец найден источником; ещё не звёзды") +
       tile("review", "Активная очередь сверки", q.review, "из " + reviewCounts().review + " по источнику" + (q.archived ? " · " + (reviewCounts().review - q.review) + " в архиве" : "")) +
-      tile("conflict", "Конфликт владельцев", q.conflicts, q.conflicts ? "решается вручную" : "конфликтов нет") +
-      tile("archive", "Архив", AD.buckets.archive.length, "архивные и исторические элементы допуска") + "</div>" +
+      tile("conflict", "Конфликт владельцев", q.conflicts == null ? "—" : q.conflicts, q.conflicts == null ? "owner_conflicts не передан; наличие конфликтов не подтверждено" : (q.conflicts ? "решается вручную" : "конфликтов нет")) +
+      tile("archive", "Архив", AD.ownerConflictsKnown ? AD.buckets.archive.length : "≥ " + AD.buckets.archive.length, AD.ownerConflictsKnown ? "архивные и исторические элементы допуска" : "нижняя граница: owner_conflicts не передан") + "</div>" +
       "<div class='cc-pl-source'><b>Счётчики источника</b> " + srcKeys.filter(function (k) { return c[k] != null; }).map(function (k) {
         return "<span title='" + E(k) + "'>" + E(srcNames[k]) + " <b>" + E(c[k]) + "</b></span>";
       }).join("") + Object.keys(c).filter(function (k) { return srcKeys.indexOf(k) < 0; }).map(function (k) {
@@ -2829,9 +2837,9 @@
     renderInspectors();
     var navCount = document.querySelector("[data-cc-nav-count='placement']");
     if (navCount) {
-      var n = M.adm.ok ? activeQueue().active : 0;
-      navCount.textContent = n ? String(n) : "";
-      navCount.title = M.adm.ok ? "активная очередь сверки и конфликтов (без архива)" : "";
+      var q = M.adm.ok ? activeQueue() : null;
+      navCount.textContent = q && q.active ? (q.activeKnown ? String(q.active) : "≥" + q.active) : "";
+      navCount.title = q ? (q.activeKnown ? "активная очередь сверки и конфликтов (без архива)" : "нижняя граница активной очереди: owner_conflicts не передан") : "";
     }
   }
 
