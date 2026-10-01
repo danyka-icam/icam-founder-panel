@@ -1155,7 +1155,8 @@
       (l.upstream.length ? "<i title='зависит от'>↑ " + l.upstream.length + "</i>" : "") +
       (l.downstream.length ? "<i title='от него зависят'>↓ " + l.downstream.length + "</i>" : "") +
       (l.bridges.length ? "<i title='общий объект'>⇄ " + l.bridges.length + "</i>" : "") +
-      (!l.upstream.length && !l.downstream.length && !l.bridges.length && !l.star ? "<i class='muted'>явных связей нет</i>" : "") +
+      (!l.upstream.length && !l.downstream.length && !l.bridges.length && !l.star ?
+        "<i class='muted'>" + E((ok("objects") && M.tu.ok) ? "явных связей в текущих источниках не найдено" : "часть контуров связей не проверена") + "</i>" : "") +
       "</span><span class='cc-move'>" + E(l.risk.stale == null ? "движение без даты" : "движение " + H.ago(r.last_movement_at)) + "</span></div>" +
       "</article>";
   }
@@ -1259,7 +1260,9 @@
     });
     svg += "</svg>";
     var note = (!M.edges.length && !M.bridges.length) ?
-      "<div class='cc-graph-note'>Источник не передаёт явных связей между этими маршрутами. Стрелки по догадке не рисуются.</div>" :
+      "<div class='cc-graph-note'>" + E(!ok("objects") ?
+        "В текущем чтении маршрутов явных route-dependencies не найдено; связи через общий объект не проверены, потому что Registry недоступен." :
+        "В текущем чтении маршрутов и Registry явных route-dependencies или общих подтверждённых объектов не найдено. Стрелки по догадке не рисуются.") + "</div>" :
       "<div class='cc-graph-note'>Стрелка — явная зависимость из источника · пунктир — общий объект (структурная связь, не причинная).</div>";
     return "<div class='cc-graph'>" + svg + note + "</div>";
   }
