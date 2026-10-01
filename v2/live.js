@@ -226,12 +226,8 @@
   }
 
   function isFounderOwner(owner) {
-    var s = String(owner || "").toLowerCase();
-    return s.indexOf("founder") !== -1 ||
-           s.indexOf("основател") !== -1 ||
-           s.indexOf("nika") !== -1 ||
-           s.indexOf("ника") !== -1 ||
-           s === "me";
+    var s = String(owner || "").trim().toLowerCase();
+    return ["me", "founder", "основатель", "nika", "ника"].indexOf(s) >= 0;
   }
 
   function blockerCount(r) {
@@ -1922,7 +1918,7 @@
         heroRows.push("<div class='signals-live-item change'><b>" + esc(o.name || o.object_id || "Изменение") + "</b>" +
           "<span>" + esc(signalKindRu(o.last_meaning_kind)) + "</span><small>" + esc(ago(o.last_event_at)) + "</small></div>");
       });
-      var heroComplete = objectsOk && blockersOk && inboxOk;
+      var heroComplete = objectsOk && blockerLifecycleComplete && inboxOk;
       var heroReadAny = objectsRead || blockersRead || inboxRead;
       if (!heroReadAny) {
         hero.innerHTML = unavailableHTML("Внутренние источники сигналов недоступны", "Панель не сохраняет старую ленту как текущую.");
@@ -1935,7 +1931,7 @@
       } else {
         hero.innerHTML = "<div class='signals-live-list'>" + heroRows.join("") + "</div>" +
           "<div class='signals-partial-note" + (!heroComplete ? " warn" : "") + "'>Между типами сигналов Панель не строит собственный рейтинг. Запись блокера не повышается до критического риска без оценки источника." +
-          (!heroComplete ? " Часть внутренних коллекций сейчас недоступна или не передана; лента неполная." : "") + " Внешнее наблюдение показано отдельно ниже.</div>";
+          (!heroComplete ? " Часть внутренних коллекций или lifecycle-статусов сейчас недоступна/не определена; лента неполная." : "") + " Внешнее наблюдение показано отдельно ниже.</div>";
       }
     }
 

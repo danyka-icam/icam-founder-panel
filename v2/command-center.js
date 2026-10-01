@@ -1761,7 +1761,7 @@
     unplaced.innerHTML = (!routeDataOk() || !objectDataOk()) ? unavailable("Связь объектов с маршрутами не проверена полностью", (!routeDataOk() ? routeGapText() : objectGapText()) + ". Нельзя доказать, у каких объектов маршрутов нет.") : un.length ? "<div class='cc-feed'>" + un.slice(0, 10).map(function (e) {
       return "<div class='cc-feed-item unplaced'" + sel("object", e.key) + "><i></i><div><b>" + E(H.cut(e.title, 40)) + "</b><small>" +
         E(e.what + (e.summary ? " · " + H.cut(e.summary, 60) : "")) + "</small></div><span>" + E(H.ago(e.at)) + "</span></div>";
-    }).join("") + "</div>" : empty("Таких событий нет", "Все датированные события относятся к объектам с маршрутом.");
+    }).join("") + "</div>" : empty("Объектов с датированным событием без маршрута не найдено", "Registry и routes[] прочитаны полностью; среди объектов с last_event_at нет объекта без маршрута.");
   }
 
   // ------------------------------------------------------------------ Связи и стратегии
