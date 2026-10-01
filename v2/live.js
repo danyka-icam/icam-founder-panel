@@ -2054,16 +2054,23 @@
       var extra = "";
       if (d.dimension === "artifact_durability_readback") {
         var det = d.detail || {};
+        var explicitCleanCounts = det.hash_mismatches === 0 && det.artifacts_missing === 0;
+        var explicitOrphanFailure = String(d.state || "").toUpperCase() === "FAIL" && det.orphan_receipts != null && Number(det.orphan_receipts) > 0;
+        var proofNote = d.blocking_reason ?
+          "Причина состояния передана в blocking_reason выше; Панель не заменяет её собственной причинной моделью." :
+          (explicitCleanCounts && explicitOrphanFailure ?
+            "Источник явно передал 0 потерянных артефактов, 0 расхождений хэшей и ненулевой orphan_receipts при state=FAIL. Панель показывает это сочетание, но не идентифицирует конкретную расписку без поля источника." :
+            "Поля readback показаны буквально. Причина PASS/FAIL сверх переданных state, detail и blocking_reason Панелью не выводится.");
         extra = "<div class='foundation-proof-grid'>" +
           "<span><small>На диске</small><b>" + esc(det.objects_on_disk != null ? det.objects_on_disk : "—") + "</b></span>" +
           "<span><small>Расхождения хэшей</small><b>" + esc(det.hash_mismatches != null ? det.hash_mismatches : "—") + "</b></span>" +
           "<span><small>Потерянные артефакты</small><b>" + esc(det.artifacts_missing != null ? det.artifacts_missing : "—") + "</b></span>" +
           "<span><small>Осиротевшие расписки</small><b>" + esc(det.orphan_receipts != null ? det.orphan_receipts : "—") + "</b></span></div>" +
-          "<div class='foundation-proof-note'><b>Что именно доказано:</b> источник не сообщает о потерянных артефактах или несовпадении хэшей. FAIL вызван несогласованностью «расписка STORED ↔ объект на диске». Идентификатор конкретной расписки текущая проекция чтения не раскрывает, поэтому Панель его не угадывает.</div>";
+          "<div class='foundation-proof-note'><b>Граница интерпретации:</b> " + esc(proofNote) + "</div>";
       }
       return "<div class='live-item-clean'><div class='live-item-clean-head'><h3>"+esc(names[d.dimension]||d.dimension)+"</h3>"+chip(d.state)+"</div>"+
         (d.blocking_reason?"<div class='live-warning'>"+esc(projectionTextRu(d.blocking_reason))+"</div>":"")+ extra +
-        "<small>Доказано: "+esc(d.proven_by_source||"источник не указан")+"</small></div>";
+        "<small>"+esc(d.proven_by_source ? "Источник доказательства: "+d.proven_by_source : "proven_by_source не передан")+"</small></div>";
     }).join("");
     var blockingProvided=Array.isArray(data.blocking_reasons);
     var blocking=blockingProvided?data.blocking_reasons:[];
