@@ -1377,7 +1377,7 @@
     }
 
     put("readiness", (healthOk || hubOk || objectsOk) ? "Не доказано" : "Недоступно");
-    put("continuity", !healthOk ? "Недоступно" : (health.ok === false ? "Деградация" : "Доступен"));
+    put("continuity", !healthOk ? "Недоступно" : (health.ok === true ? "Источник сообщает OK" : (health.ok === false ? "Источник сообщает деградацию" : "Статус health.ok не передан")));
     put("recovery", "Не подтверждено");
 
     var systemOpen = null;
