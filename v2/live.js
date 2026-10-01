@@ -2006,7 +2006,15 @@
       "<small>SS001 transfer boundary: " + esc(humanCode(data.ss001_transfer_boundary || "—")) + "</small></div>";
   }
 
-  function renderDiagnostics() {
+  function HumanFoundationStatus(value) {
+    var s = String(value || "").toUpperCase();
+    if (s === "DEGRADED") return "частично ограничено";
+    if (s === "READY" || s === "OK") return "готово";
+    if (s === "UNAVAILABLE") return "недоступно";
+    return humanCode(value || "не передано");
+  }
+
+  function renderDiagnostics(foundationAgg, scannerDiagnostics, hubHealth) {
     var page = document.querySelector('[data-page-panel="diagnostics"]');
     if (!page) return;
     var keys = Object.keys(sourceState);
@@ -2017,6 +2025,36 @@
     var un = page.querySelector('[data-x="unavailable"]'); if (un) un.textContent = String(failed);
     var stale = page.querySelector('[data-x="stale"]'); if (stale) stale.textContent = "—";
     var err = page.querySelector('[data-x="errors"]'); if (err) err.textContent = String(failed);
+
+    var trust = page.querySelector('[data-x="trust-chain"]');
+    if (trust) {
+      var f = foundationAgg || {};
+      var dims = asArray(f.dimensions);
+      var passN = dims.filter(function (d) { return String(d && d.state || "").toUpperCase() === "PASS"; }).length;
+      var mandatoryN = dims.filter(function (d) { return d && d.mandatory; }).length;
+      var dur = dims.filter(function (d) { return d && d.dimension === "artifact_durability_readback"; })[0] || {};
+      var dd = dur.detail || {};
+      var scan = scannerDiagnostics || {};
+      var cov = scan.source_coverage || {};
+      var scanTotal = Number(cov.total_sources || 0), scanOk = Number(cov.ok_count || 0);
+      var scanFail = asArray(cov.failing).length;
+      var scanUnknown = asArray(cov.failing).filter(function (x) { return x && !x.known_degraded; }).length;
+      var hub = hubHealth || {};
+      var readTone = failed ? "warn" : "ok";
+      var foundationTone = String(f.source_status || "").toUpperCase() === "DEGRADED" ? "warn" : (String(f.source_status || "").toUpperCase() === "READY" ? "ok" : "neutral");
+      var durabilityTone = String(dur.state || "").toUpperCase() === "PASS" ? "ok" : (String(dur.state || "").toUpperCase() === "FAIL" ? "bad" : "neutral");
+      var scannerTone = scanTotal && scanOk === scanTotal ? "ok" : (scanFail ? "bad" : "neutral");
+      trust.innerHTML =
+        "<div class='diag-boundary-intro'><div><small>НЕ ЕДИНЫЙ РЕЙТИНГ, А ГРАНИЦЫ ДОКАЗАННОГО</small><b>Доступность интерфейса ≠ здоровье всех источников мира</b><span>Каждое измерение сохраняет собственный источник и область действия.</span></div></div>" +
+        "<div class='diag-boundary-grid'>" +
+          "<div class='" + readTone + "'><small>Чтение панели</small><b>" + esc(ok + " / " + keys.length) + "</b><span>проекций ответили · ошибок чтения " + esc(failed) + "</span><em>влияет на доступность экранов</em></div>" +
+          "<div class='" + foundationTone + "'><small>Системное основание</small><b>" + esc(passN + " / " + (mandatoryN || dims.length || "—")) + "</b><span>обязательных измерений пройдено · состояние: " + esc(HumanFoundationStatus(f.source_status)) + "</span><em>влияет на утверждение «основание готово»</em></div>" +
+          "<div class='" + durabilityTone + "'><small>Долговечность артефактов</small><b>" + esc(dd.objects_on_disk != null ? dd.objects_on_disk + " сохранено" : "—") + "</b><span>хэши: " + esc(dd.hash_mismatches || 0) + " расхождений · потеряно: " + esc(dd.artifacts_missing || 0) + " · осиротевших расписок: " + esc(dd.orphan_receipts || 0) + "</span><em>влияет на доказательство сохранности и обратного чтения</em></div>" +
+          "<div class='" + scannerTone + "'><small>Внешнее рыночное покрытие</small><b>" + esc(scanTotal ? scanOk + " / " + scanTotal : "—") + "</b><span>источников отвечают · отказов " + esc(scanFail) + " · ещё не объяснено " + esc(scanUnknown) + "</span><em>ограничивает внешние рыночные сигналы, а не внутреннее состояние компании</em></div>" +
+        "</div>" +
+        "<div class='diag-boundary-freshness'><b>Свежесть не сводится к одному таймеру.</b><span>Фундамент: " + esc(f.freshness_state ? humanCode(f.freshness_state) : "контракт не прочитан") + " · Market Scanner: " + esc(scan.scanner && scan.scanner.freshness_state ? humanCode(scan.scanner.freshness_state) : "контракт не прочитан") + ". Остальные источники не объявляются свежими только потому, что HTTP-чтение успешно.</span></div>" +
+        "<div class='diag-boundary-rule'>Панель может одновременно иметь 26/26 успешных чтений и показывать деградацию отдельного upstream-контура. Это не противоречие: первое описывает доступность проекций, второе — состояние данных за ними.</div>";
+    }
 
     var map = {
       continuity: ["continuityHealth", "objects", "blockers", "inbox"],
@@ -2129,7 +2167,7 @@
         objects: objects, blockers: blockers, testingSummary: testingSummary, hubHealth: hubHealth,
         opsProjection: opsProjection, brazilPortal: brazilPortal,
         foundationAgg: foundationAgg, atlasState: atlasState, twinState: twinState,
-        marketSignals: marketSignals, fieldMovement: fieldMovement,
+        marketSignals: marketSignals, fieldMovement: fieldMovement, scannerDiagnostics: scannerDiagnostics,
         founderProjection: founderProjection, organizationalIntelligence: organizationalIntelligence,
         stewardReconciliation: stewardReconciliation, signalLabStatus: signalLabStatus, temporalUniverse: temporalUniverse,
         portfolioAdmission: portfolioAdmission, rd1: {}
@@ -2164,10 +2202,10 @@
       renderAtlasStateClean(atlasState);
       renderAtlasSignalLab(signalLabStatus);
       renderTwinStateClean(twinState);
-      renderDiagnostics();
+      renderDiagnostics(foundationAgg, scannerDiagnostics, hubHealth);
 
       renderResearch(objects, blockers, testingSummary, hubHealth).then(function () {
-        renderDiagnostics();
+        renderDiagnostics(foundationAgg, scannerDiagnostics, hubHealth);
         updateTrust();
         if (lastSnapshot) lastSnapshot.sources = JSON.parse(JSON.stringify(sourceState));
         window.__PANEL_V2_DATA = lastSnapshot;
