@@ -384,6 +384,17 @@
     return "Ход у: " + ownerLabel(owner);
   }
 
+  function routeToneHint(l) {
+    if (!l) return "состояние не передано";
+    if (l.tone !== "wait") return TONE_META[l.tone].hint;
+    var owner = String(l.r && l.r.ball_owner || "").trim();
+    if (/^EXTERNAL$/i.test(owner)) return "следующий ход у внешней стороны; это ожидание, не риск";
+    if (/^SYSTEM$/i.test(owner)) return "следующий ход назначен системе; это не действие Основателя";
+    if (/^AGENT$/i.test(owner)) return "следующий ход назначен агенту; это не действие Основателя";
+    if (!owner || /^NONE$|^UNAVAILABLE$/i.test(owner)) return "владелец следующего хода не определён";
+    return "следующий ход у «" + ownerLabel(owner) + "»";
+  }
+
   function toneDot(tone, label) {
     return "<span class='cc-tone t-" + tone + "'><i></i>" + E(label || TONE_META[tone].label) + "</span>";
   }
@@ -2256,7 +2267,7 @@
       where: crumbs([{ t: "ICAM" }, { t: place.world ? place.world.title : (M.tu.ok ? "вне Founder Universe" : "мир не проверен") },
         { t: place.uline ? H.cut(place.uline.title, 22) : "линия не определена" }, { t: l.objId || (l.sourceObjectId ? l.sourceObjectId + " · не связано" : "без канонического объекта"), cur: true }]) +
         (l.origin ? muted("Происхождение объекта (owning_branch): " + l.origin) : ""),
-      now: "<div class='cc-insp-state st-" + l.tone + "'>" + toneDot(l.tone, routeToneLabel(l)) + "<small>" + E(TONE_META[l.tone].hint) + "</small><em>" +
+      now: "<div class='cc-insp-state st-" + l.tone + "'>" + toneDot(l.tone, routeToneLabel(l)) + "<small>" + E(routeToneHint(l)) + "</small><em>" +
         E(human(r.stage || r.status || "этап не передан")) + "</em><small>" + E(l.risk.stale == null ? "дата движения не передана" : "последнее движение " + H.ago(r.last_movement_at)) + "</small></div>" +
         (routeBlockerItems.length ? "<small>Явные блокеры маршрута</small><ul class='cc-blockers'>" + routeBlockerItems.map(function (b) { return "<li>" + E(H.cut(b, 110)) + "</li>"; }).join("") + "</ul>" :
           (l.risk.blockers ? para("Источник сообщает " + l.risk.blockers + " блокер(а) маршрута без описания.") : "")) +
