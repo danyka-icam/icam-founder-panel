@@ -1572,19 +1572,25 @@
     var page = document.querySelector('[data-page-panel="signals"]');
     if (!page) return;
 
-    var objectsOk = sourceState.objects.ok && objectsResp;
-    var blockersOk = sourceState.blockers.ok && blockersResp;
-    var inboxOk = sourceState.inbox.ok && inbox;
-    var testingOk = sourceState.testingSummary.ok && testingSummary;
+    var objectsRead = !!(sourceState.objects.ok && objectsResp);
+    var objectsOk = !!(objectsRead && Array.isArray(objectsResp.items));
+    var blockersRead = !!(sourceState.blockers.ok && blockersResp);
+    var blockersOk = !!(blockersRead && Array.isArray(blockersResp.items));
+    var inboxRead = !!(sourceState.inbox.ok && inbox);
+    var inboxOk = !!(inboxRead && Array.isArray(inbox.needs_founder));
+    var testingRead = !!(sourceState.testingSummary.ok && testingSummary);
+    var signalTestState = testCollectionState(testingSummary);
+    var testingAny = !!(testingRead && (signalTestState.activeKnown || signalTestState.recentKnown));
+    var testingComplete = !!(testingRead && signalTestState.activeKnown && signalTestState.recentKnown);
 
     function put(k, value) {
       var e = page.querySelector('[data-s="' + k + '"]');
       if (e) e.textContent = String(value);
     }
 
-    var founderItems = inboxOk && Array.isArray(inbox.needs_founder) ? inbox.needs_founder : [];
+    var founderItems = inboxOk ? inbox.needs_founder : [];
     var MATERIAL = ["GATE_RESULT", "DECISION", "STATUS_CHANGE", "STAGE_CHANGE", "TEST_RESULT", "EXTERNAL_EVENT", "NEW_FILE"];
-    var changes = objectsOk ? asArray(objectsResp.items).filter(function (o) {
+    var changes = objectsOk ? objectsResp.items.filter(function (o) {
       var objectType = String(o.object_type || "").toUpperCase();
       var declared = String(o.declared_status || "").toUpperCase();
       var isTestFixture = objectType === "TEST" || declared === "TEST";
@@ -1594,28 +1600,31 @@
       return String(b.last_event_at || "").localeCompare(String(a.last_event_at || ""));
     }) : [];
 
-    var blockers = blockersOk ? asArray(blockersResp.items).filter(function (b) {
+    var blockers = blockersOk ? blockersResp.items.filter(function (b) {
       return !b.is_test && String(b.status || "").toUpperCase() !== "CLEARED";
     }) : [];
 
-    var riskyTests = testingOk ? allTests(testingSummary).filter(function (t) {
+    var riskyTests = testingAny ? allTests(testingSummary).filter(function (t) {
       return ["BLOCKED", "RERUN_REQUIRED"].indexOf(String(t.status || "").toUpperCase()) >= 0;
     }) : [];
 
-    put("founder", inboxOk ? founderItems.length : "Недоступно");
-    put("changes", objectsOk ? changes.length : "Недоступно");
+    put("founder", inboxOk ? founderItems.length : (inboxRead ? "—" : "Недоступно"));
+    put("changes", objectsOk ? changes.length : (objectsRead ? "—" : "Недоступно"));
     var riskKnown = blockers.length + riskyTests.length;
-    var riskComplete = blockersOk && testingOk;
-    put("risks", riskComplete ? riskKnown : ((blockersOk || testingOk) ? "≥ " + riskKnown : "Недоступно"));
+    var riskAny = blockersOk || testingAny;
+    var riskComplete = blockersOk && testingComplete;
+    put("risks", riskComplete ? riskKnown : (riskAny ? "≥ " + riskKnown : "Недоступно"));
     put("risks-detail", riskComplete ?
-      (blockers.length + " открытых записей Continuity без оценки тяжести · " + riskyTests.length + " тест(а) BLOCKED/RERUN") :
-      ((blockersOk || testingOk) ?
-        ((blockersOk ? blockers.length + " Continuity" : "Continuity недоступен") + " · " + (testingOk ? riskyTests.length + " Testing" : "Testing недоступен") + " · итог неполный") :
-        "источники недоступны"));
+      (blockers.length + " записей Continuity без оценки тяжести · " + riskyTests.length + " тест(а) BLOCKED/RERUN") :
+      (riskAny ?
+        ((blockersOk ? blockers.length + " Continuity" : (blockersRead ? "Continuity items[] не передан" : "Continuity недоступен")) + " · " +
+         (testingComplete ? riskyTests.length + " Testing" : (testingAny ? "Testing ≥ " + riskyTests.length + " · набор неполный" : (testingRead ? "Testing active[]/recent[] не переданы" : "Testing недоступен"))) + " · итог неполный") :
+        "доказательные коллекции риска недоступны"));
     var msKpiOk = sourceState.marketSignals.ok && marketSignals;
-    var msSignals = msKpiOk ? asArray(marketSignals.signals) : [];
+    var msSignalsKnown = !!(msKpiOk && Array.isArray(marketSignals.signals));
+    var msSignals = msSignalsKnown ? marketSignals.signals : [];
     var msCoverage = msKpiOk ? (marketSignals.source_coverage || {}) : {};
-    put("opportunities", msKpiOk ? msSignals.length : "Недоступно");
+    put("opportunities", !msKpiOk ? "Недоступно" : (msSignalsKnown ? msSignals.length : "—"));
     var marketKpiNote = page.querySelector('[data-s="market-kpi-note"]');
     if (marketKpiNote) {
       if (!msKpiOk) marketKpiNote.textContent = "внешний сигнальный источник сейчас недоступен";
@@ -1625,10 +1634,12 @@
 
     var founderBox = page.querySelector('[data-s="founder-list"]');
     if (founderBox) {
-      if (!inboxOk) {
+      if (!inboxRead) {
         founderBox.innerHTML = unavailableHTML("Входящие Основателя недоступны", "Панель не может подтвердить, есть ли сейчас запросы на ваше участие.");
+      } else if (!inboxOk) {
+        founderBox.innerHTML = unavailableHTML("Коллекция запросов не проверена", "Founder inbox ответил, но needs_founder[] не передан.");
       } else if (!founderItems.length) {
-        founderBox.innerHTML = "<div class='signals-empty compact'><strong>Сейчас запросов на ваше участие нет</strong><span>Текущие Входящие Основателя не содержат `needs_founder`.</span></div>";
+        founderBox.innerHTML = "<div class='signals-empty compact'><strong>needs_founder[] пуст</strong><span>Источник явно передал пустую коллекцию запросов.</span></div>";
       } else {
         founderBox.innerHTML = "<div class='signals-live-list'>" + founderItems.slice(0, 6).map(function (x) {
           return "<div class='signals-live-item attention'><b>Запрос к Основателю</b>" +
@@ -1640,8 +1651,10 @@
 
     var changesBox = page.querySelector('[data-s="changes-list"]');
     if (changesBox) {
-      if (!objectsOk) {
+      if (!objectsRead) {
         changesBox.innerHTML = unavailableHTML("Continuity objects недоступны", "Материальные изменения не выводятся из прошлых данных.");
+      } else if (!objectsOk) {
+        changesBox.innerHTML = unavailableHTML("Коллекция объектов не проверена", "Endpoint ответил, но items[] не передан; отсутствие изменений не подтверждено.");
       } else if (!changes.length) {
         changesBox.innerHTML = "<div class='signals-empty compact'><strong>Материальных изменений нет в текущей проекции</strong><span>Ни один объект не содержит последнего события разрешённого материального типа.</span></div>";
       } else {
@@ -1655,8 +1668,8 @@
 
     var risksBox = page.querySelector('[data-s="risks-list"]');
     if (risksBox) {
-      if (!blockersOk && !testingOk) {
-        risksBox.innerHTML = unavailableHTML("Источники риска недоступны", "Панель не вычисляет собственный риск без подтверждённого источника.");
+      if (!riskAny) {
+        risksBox.innerHTML = unavailableHTML("Коллекции риска не подтверждены", "Нет доступной явной коллекции Continuity blocker items[] или Testing active[]/recent[].");
       } else {
         var rows = blockers.slice(0, 6).map(function (b) {
           return "<div class='signals-live-item risk'><b>Запись блокера</b>" +
@@ -1673,7 +1686,7 @@
             (!riskComplete ? "<div class='signals-partial-note warn'>Показаны только доступные источники; полный контур риска сейчас не подтверждён.</div>" : "");
         } else if (!riskComplete) {
           risksBox.innerHTML = unavailableHTML("Контур риска прочитан частично",
-            "Доступный источник не содержит BLOCKED/RERUN или открытых блокеров, но второй источник недоступен — нулевой общий риск не подтверждён.");
+            "Доступная часть не содержит BLOCKED/RERUN или blocker-записей, но одна или несколько коллекций отсутствуют либо неполны — нулевой общий риск не подтверждён.");
         } else {
           risksBox.innerHTML = "<div class='signals-empty compact'><strong>Открытых записей блокеров сейчас нет</strong><span>Текущие Continuity blockers и Testing summary не содержат открытых нетестовых блокеров, BLOCKED или RERUN_REQUIRED.</span></div>";
         }
@@ -1691,7 +1704,8 @@
       var summaryRu = (enr && enr.summary_ru) || sig.summary_ru || "";
       var whyRu = (enr && enr.why_it_matters_ru) || sig.why_it_matters_ru || "";
       var axes = Array.isArray(sig.axis) ? sig.axis : [];
-      var evidence = Array.isArray(sig.evidence) ? sig.evidence : [];
+      var evidenceKnown = Array.isArray(sig.evidence);
+      var evidence = evidenceKnown ? sig.evidence : [];
       var sourceName = (sig.source && (sig.source.name || sig.source.url)) || "источник не указан";
       var sourceUrl = sig.source && sig.source.url;
       var sigIdAttr = esc(sig.signal_id || "");
@@ -1701,7 +1715,7 @@
       var drawerBody = "<div class='market-card-drawer-body'>" +
         "<div class='market-card-drawer-row'><span>Источник</span><b>" + esc((sig.source && sig.source.name) || "—") + "</b></div>" +
         "<div class='market-card-drawer-row'><span>Адрес источника</span><b>" + (sourceUrl ? esc(sourceUrl) : "—") + "</b></div>" +
-        "<div class='market-card-drawer-row'><span>Свидетельства (" + esc(evidence.length) + ")</span></div>" +
+        "<div class='market-card-drawer-row'><span>Свидетельства (" + esc(evidenceKnown ? evidence.length : "—") + ")</span></div>" +
         (evidence.length ?
           "<ul class='market-card-evidence-list'>" + evidence.map(function (e) {
             return "<li>" + esc(typeof e === "string" ? e : JSON.stringify(e)) + "</li>";
@@ -1717,7 +1731,7 @@
         (whyRu ? "<p class='market-card-why'>" + esc(whyRu) + "</p>" : "") +
         "<div class='market-card-meta'>" +
         (axes.length ? "<span>" + esc(axes.join(", ")) + "</span>" : "") +
-        "<span>свидетельств: " + esc(evidence.length) + "</span>" +
+        "<span>свидетельств: " + esc(evidenceKnown ? evidence.length : "—") + "</span>" +
         "<span>" + esc(sourceName) + "</span>" +
         "<span>" + esc(ago(sig.observed_at)) + "</span>" +
         "<span>" + esc(marketSignalStateRu((enr && enr.recommended_action) || sig.status)) + "</span>" +
@@ -1748,15 +1762,16 @@
       var coverage = msOk ? marketSignals.source_coverage : null;
       var coverageNote = "";
       if (coverage) {
-        var kdCount = (coverage.failing || []).filter(function (f) { return f.known_degraded; }).length;
-        var freshCount = (coverage.failing || []).length - kdCount;
+        var coverageFailingKnown = Array.isArray(coverage.failing);
+        var coverageFailing = coverageFailingKnown ? coverage.failing : [];
+        var kdCount = coverageFailingKnown ? coverageFailing.filter(function (f) { return f.known_degraded; }).length : null;
+        var freshCount = coverageFailingKnown ? coverageFailing.length - kdCount : null;
         var covOk = coverage.ok_count == null ? null : Number(coverage.ok_count);
         var covTotal = coverage.total_sources == null ? null : Number(coverage.total_sources);
         var degraded = String(coverage.status || "").indexOf("DEGRADED") === 0 || (covTotal != null && covOk != null && covOk < covTotal);
         coverageNote = "<div class='signals-partial-note market-coverage-note" + (degraded ? " warn" : "") + "'>Текущее покрытие внешних источников: <b>" +
           esc(covOk == null ? "—" : covOk) + " / " + esc(covTotal == null ? "—" : covTotal) + "</b>" +
-          (kdCount ? " · известных деградаций " + esc(kdCount) : "") +
-          (freshCount ? " · <b>необъяснённых сбоев " + esc(freshCount) + "</b>" : "") +
+          (coverageFailingKnown ? (kdCount ? " · известных деградаций " + esc(kdCount) : "") + (freshCount ? " · <b>необъяснённых сбоев " + esc(freshCount) + "</b>" : "") : " · failing[] не передан") +
           (degraded ? "<br><span>Карточки ниже — уже сохранённые наблюдения. Они не доказывают, что соответствующий внешний источник доступен сейчас.</span>" : "") + "</div>";
       }
 
@@ -1773,10 +1788,11 @@
           "<div class='signals-empty compact'><strong>В хранилище нет новых сигналов</strong>" +
           "<span>Поток активирован, но текущее состояние внешнего покрытия оценивается отдельно ниже.</span></div>" + coverageNote;
       } else {
-        var msRows = (marketSignals.signals || []).slice(0, 6).map(marketCardHTML).join("");
-        opportunitiesBox.innerHTML = (msRows ?
+        var msRows = msSignalsKnown ? msSignals.slice(0, 6).map(marketCardHTML).join("") : "";
+        opportunitiesBox.innerHTML = (!msSignalsKnown ?
+          unavailableHTML("Сохранённые сигналы не проверены", "Источник ответил, но signals[] не передан.") : (msRows ?
           "<div class='signals-live-list'>" + msRows + "</div>" :
-          "<div class='signals-empty compact'><strong>Поток активирован, сохранённых сигналов пока нет</strong><span>Текущее состояние внешних источников показано отдельно и не выводится из факта активации потока.</span></div>")
+          "<div class='signals-empty compact'><strong>signals[] пуст</strong><span>Поток активирован; текущее состояние внешних источников показано отдельно и не выводится из факта активации.</span></div>"))
           + coverageNote;
         if (msRows) wireMarketCardDrawers(opportunitiesBox);
       }
@@ -1807,8 +1823,10 @@
       };
       if (!oiOk) {
         orgBox.innerHTML = unavailableHTML("Organizational Intelligence недоступен", "Структурные наблюдения не восстанавливаются по косвенным данным.");
+      } else if (!Array.isArray(organizationalIntelligence.signals)) {
+        orgBox.innerHTML = unavailableHTML("Структурные наблюдения не проверены", "Organizational Intelligence ответил, но signals[] не передан.");
       } else {
-        var oiSignals = Array.isArray(organizationalIntelligence.signals) ? organizationalIntelligence.signals : [];
+        var oiSignals = organizationalIntelligence.signals;
         var oiRows = oiSignals.map(function (sig) {
           var cls = oiClass[sig.class] || humanCode(sig.class || "наблюдение");
           var subj = oiSubjects[sig.subject] || sig.subject || "объект не указан";
@@ -1819,7 +1837,7 @@
             (lines.length ? "затронутые линии: " + esc(lines.join(" · ")) + " · " : "") + esc(ceiling) + "</small></div>";
         });
         orgBox.innerHTML = oiRows.length ? "<div class='signals-partial-note'>" + esc(oiSignals.length) + " наблюдений · источник не превращает их в рейтинг риска или приоритета</div><div class='signals-live-list'>" + oiRows.join("") + "</div>" :
-          "<div class='signals-empty compact'><strong>Структурных наблюдений сейчас нет</strong><span>Источник доступен и вернул пустой список.</span></div>";
+          "<div class='signals-empty compact'><strong>signals[] пуст</strong><span>Источник Organizational Intelligence явно передал пустую коллекцию наблюдений.</span></div>";
       }
     }
 
@@ -1846,8 +1864,11 @@
           "<span>" + esc(signalKindRu(o.last_meaning_kind)) + "</span><small>" + esc(ago(o.last_event_at)) + "</small></div>");
       });
       var heroComplete = objectsOk && blockersOk && inboxOk;
-      if (!objectsOk && !blockersOk && !inboxOk) {
+      var heroReadAny = objectsRead || blockersRead || inboxRead;
+      if (!heroReadAny) {
         hero.innerHTML = unavailableHTML("Внутренние источники сигналов недоступны", "Панель не сохраняет старую ленту как текущую.");
+      } else if (!objectsOk && !blockersOk && !inboxOk) {
+        hero.innerHTML = unavailableHTML("Внутренние коллекции сигналов не подтверждены", "Endpoints ответили частично, но items[] / needs_founder[] не переданы.");
       } else if (!heroRows.length && !heroComplete) {
         hero.innerHTML = unavailableHTML("Внутренний контур сигналов прочитан частично", "Доступные источники не вернули элементов для этого блока, но общий ноль не подтверждён: часть внутренних источников недоступна.");
       } else if (!heroRows.length) {
@@ -1855,11 +1876,13 @@
       } else {
         hero.innerHTML = "<div class='signals-live-list'>" + heroRows.join("") + "</div>" +
           "<div class='signals-partial-note" + (!heroComplete ? " warn" : "") + "'>Между типами сигналов Панель не строит собственный рейтинг. Запись блокера не повышается до критического риска без оценки источника." +
-          (!heroComplete ? " Часть внутренних источников сейчас недоступна; лента неполная." : "") + " Внешнее наблюдение показано отдельно ниже.</div>";
+          (!heroComplete ? " Часть внутренних коллекций сейчас недоступна или не передана; лента неполная." : "") + " Внешнее наблюдение показано отдельно ниже.</div>";
       }
     }
 
-    var anyInternal = objectsOk || blockersOk || inboxOk || testingOk;
+    var anyInternal = objectsOk || blockersOk || inboxOk || testingAny;
+    var anyInternalRead = objectsRead || blockersRead || inboxRead || testingRead;
+    var internalComplete = objectsOk && blockersOk && inboxOk && testingComplete;
     var msBadgeOk = sourceState.marketSignals.ok && marketSignals;
     var cov = msBadgeOk ? (marketSignals.source_coverage || {}) : {};
     var covTotal = cov.total_sources == null ? null : Number(cov.total_sources);
@@ -1869,8 +1892,9 @@
       (marketSignals.activation_state === "NOT_ACTIVATED" ? "ВНЕШНИЙ ПОТОК НЕ АКТИВИРОВАН" :
         (covTotal != null && covOk != null ? "ВНЕШНЕЕ ПОКРЫТИЕ " + covOk + "/" + covTotal : "ВНЕШНЕЕ ПОКРЫТИЕ НЕ ПОДТВЕРЖДЕНО"));
     pageBadge("signals",
-      anyInternal ? (covDegraded ? "warn" : "live") : "unavailable",
-      anyInternal ? ("ВНУТРЕННИЕ ДАННЫЕ ПОДКЛЮЧЕНЫ · " + externalText) : "ВНУТРЕННИЕ ИСТОЧНИКИ НЕДОСТУПНЫ"
+      anyInternal ? (internalComplete && !covDegraded ? "live" : "warn") : (anyInternalRead ? "warn" : "unavailable"),
+      anyInternal ? ((internalComplete ? "ВНУТРЕННИЕ КОЛЛЕКЦИИ ПОЛНЫ" : "ВНУТРЕННИЕ ДАННЫЕ ЧАСТИЧНЫ") + " · " + externalText) :
+        (anyInternalRead ? "ВНУТРЕННИЕ ENDPOINTS ОТВЕТИЛИ, КОЛЛЕКЦИИ НЕ ПОДТВЕРЖДЕНЫ" : "ВНУТРЕННИЕ ИСТОЧНИКИ НЕДОСТУПНЫ")
     );
   }
 
