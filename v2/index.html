@@ -2084,9 +2084,9 @@
 <span data-r="founder-note">привязанные к линиям события / формальные решения без объектной связи</span>
 </article>
 <article class="card">
-<small>Ждём / на паузе</small>
+<small>Явно ждём / на паузе</small>
 <strong data-r="waiting-count">—</strong>
-<span>внешний ответ, данные, условие возврата или сознательный парк</span>
+<span>только явные PARKED / WAITING / AWAITING или владелец EXTERNAL; отсутствие такого поля не считается ожиданием</span>
 </article>
 <article class="card">
 <small>Без отметки смысловой свежести</small>
@@ -2821,12 +2821,12 @@
 <article class="card">
 <small>Объявлены активными</small>
 <strong data-g="active">—</strong>
-<span>declared_status начинается с ACTIVE; это не доказательство фактического движения</span>
+<span>declared_status начинается с ACTIVE; при непереданном статусе показана нижняя граница; это не доказательство фактического движения</span>
 </article>
 <article class="card">
 <small>Без событийной истории</small>
 <strong data-g="unresolved">—</strong>
-<span>зарегистрированы, но last_event_at пока отсутствует</span>
+<span>явно передан пустой last_event_at; если поле отсутствует целиком, показана нижняя граница</span>
 </article>
 <article class="card">
 <small>Помечены для Основателя</small>

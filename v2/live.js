@@ -897,15 +897,17 @@
     var itemsKnown = Array.isArray(objectsResp.items);
     var items = itemsKnown ? objectsResp.items : [];
     var active = items.filter(function (o) { return /^ACTIVE/.test(String(o.declared_status || "").toUpperCase()); });
-    // Absence of last_event_at is an event-history gap, not identity debt.
-    // /continuity/objects does not expose a separate identity/mapping verdict.
-    var noEventHistory = items.filter(function (o) { return !o.last_event_at; });
+    var statusUnknown = items.filter(function (o) { return !Object.prototype.hasOwnProperty.call(o, "declared_status") || o.declared_status == null || o.declared_status === ""; }).length;
+    // Explicit null/empty last_event_at is an event-history gap, not identity debt.
+    // An absent field is weaker: the current projection did not provide the value.
+    var noEventHistory = items.filter(function (o) { return Object.prototype.hasOwnProperty.call(o, "last_event_at") && !o.last_event_at; });
+    var eventHistoryUnknown = items.filter(function (o) { return !Object.prototype.hasOwnProperty.call(o, "last_event_at"); }).length;
     var founder = items.filter(function (o) { return founderFlagState(o).value; });
     var founderUnknown = items.filter(function (o) { return !founderFlagState(o).known; }).length;
 
     function put(k, v) { var e = page.querySelector('[data-g="' + k + '"]'); if (e) e.textContent = String(v); }
-    put("count", itemsKnown ? items.length : "—"); put("active", itemsKnown ? active.length : "—"); put("unresolved", itemsKnown ? noEventHistory.length : "—"); put("founder", itemsKnown ? (founderUnknown ? "≥ " + founder.length : founder.length) : "—");
-    var core = page.querySelector('[data-g="identity-core"]'); if (core) core.textContent = String(itemsKnown ? noEventHistory.length : "—");
+    put("count", itemsKnown ? items.length : "—"); put("active", itemsKnown ? (statusUnknown ? "≥ " + active.length : active.length) : "—"); put("unresolved", itemsKnown ? (eventHistoryUnknown ? "≥ " + noEventHistory.length : noEventHistory.length) : "—"); put("founder", itemsKnown ? (founderUnknown ? "≥ " + founder.length : founder.length) : "—");
+    var core = page.querySelector('[data-g="identity-core"]'); if (core) core.textContent = String(itemsKnown ? (eventHistoryUnknown ? "≥ " + noEventHistory.length : noEventHistory.length) : "—");
 
     var list = page.querySelector('[data-g="objects"]');
     if (list) {
@@ -1337,6 +1339,9 @@
       var active = lines.filter(function (x) {
         return /^ACTIVE/.test(String(x.object.declared_status || x.projection.status || "").toUpperCase());
       });
+      var activeStatusComplete = lines.every(function (x) {
+        return !!(x.object.declared_status || x.projection.status);
+      });
       var founder = lines.filter(function (x) { return founderFlagState(x.object).value; });
       var founderFlagsComplete = lines.every(function (x) { return founderFlagState(x.object).known; });
       var founderProjectionRead = !!(sourceState.founderProjection.ok && founderProjection);
@@ -1356,8 +1361,8 @@
       var noSemanticFreshness = lines.filter(function (x) { return !x.projection.semantic_freshness; });
 
       function put(k, v) { var e = page.querySelector('[data-r="' + k + '"]'); if (e) e.textContent = String(v); }
-      put("active-count", rd1Complete ? active.length : "≥ " + active.length);
-      put("founder-count", (rd1Complete && founderDecisionsKnown) ? (founder.length + (formalDecisions.length ? " + " + formalDecisions.length : "")) : "≥ " + (founder.length + formalDecisions.length));
+      put("active-count", rd1Complete && activeStatusComplete ? active.length : "≥ " + active.length);
+      put("founder-count", (rd1Complete && founderFlagsComplete && founderDecisionsKnown) ? (founder.length + (formalDecisions.length ? " + " + formalDecisions.length : "")) : "≥ " + (founder.length + formalDecisions.length));
       put("waiting-count", rd1Complete ? waiting.length : "≥ " + waiting.length);
       put("identity-count", rd1Complete ? noSemanticFreshness.length : "≥ " + noSemanticFreshness.length);
 
