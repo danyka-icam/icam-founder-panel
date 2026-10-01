@@ -1442,8 +1442,9 @@
     var objective = d.objective || "Цель не передана источником.";
     var stageLabel = st.label || human(st.name || "этап не передан");
     var scope = d.scope || {};
-    var regionN = A(scope.regions).length;
-    var sectorN = A(scope.sectors).length;
+    var regionsKnown = Array.isArray(scope.regions), sectorsKnown = Array.isArray(scope.sectors);
+    var regionN = regionsKnown ? scope.regions.length : null;
+    var sectorN = sectorsKnown ? scope.sectors.length : null;
 
     return "<a class='cc-siglab-link' href='#atlas' aria-label='Открыть исследовательский ATLAS'>" +
       "<div class='cc-siglab-head'><span>ATLAS · SIGNAL LAB</span><em class='" + (running ? "on" : "off") + "'><i></i>" + E(running ? "наблюдение идёт" : human(d.health || "состояние не передано")) + "</em></div>" +
@@ -1452,7 +1453,7 @@
       "<div class='cc-siglab-metrics'>" +
         "<span><small>Наблюдений в двух потоках</small><b>" + E(observations == null ? "—" : observations) + "</b></span>" +
         "<span><small>Счётчик поля confirmed</small><b>" + E(confirmed == null ? "—" : confirmed) + "</b><i>служебное состояние двух потоков</i></span>" +
-        "<span><small>Охват</small><b>" + E(regionN ? regionN + " регионов" : "—") + "</b><i>" + E(sectorN ? sectorN + " классов отраслей" : "") + "</i></span>" +
+        "<span><small>Охват</small><b>" + E(regionN == null ? "—" : regionN + " регионов") + "</b><i>" + E(sectorN == null ? "" : sectorN + " классов отраслей") + "</i></span>" +
         "<span><small>Последний перезапуск</small><b>" + E(restarted ? timeLabel(restarted) : "—") + "</b></span>" +
         "<span><small>Следующий цикл</small><b>" + E(d.next_cycle ? timeLabel(d.next_cycle) : "—") + "</b></span>" +
         "<span><small>Следующий рубеж</small><b>" + E(gate) + "</b></span>" +

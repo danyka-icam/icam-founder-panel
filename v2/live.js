@@ -2247,7 +2247,8 @@
     function pairTotal(a,b){a=countOrNull(a);b=countOrNull(b);return a!=null&&b!=null?a+b:null;}
     var observations=pairTotal(control.observations,treatment.observations);
     var confirmed=pairTotal(control.confirmed,treatment.confirmed);
-    var regions=asArray(data.scope&&data.scope.regions), sectors=asArray(data.scope&&data.scope.sectors), review=data.latest_review||{};
+    var regionsKnown=!!(data.scope&&Array.isArray(data.scope.regions)), sectorsKnown=!!(data.scope&&Array.isArray(data.scope.sectors));
+    var regions=regionsKnown?data.scope.regions:[], sectors=sectorsKnown?data.scope.sectors:[], review=data.latest_review||{};
     var restarts=[data.last_restart&&data.last_restart.control,data.last_restart&&data.last_restart.treatment].filter(Boolean);
     var restart=restarts.length?restarts.sort(function(a,b){return new Date(b)-new Date(a);})[0]:null;
     var label=function(v){var m={GLOBAL_COMPARATIVE_EXPANSION:"глобальное сравнительное расширение",GLOBAL_UNIVERSE_FREEZE:"заморозка глобальной выборки",REVIEW_READY_NO_PREDECLARED_PASS_FAIL_THRESHOLD:"обзор готов; заранее заданного порога PASS/FAIL нет",IN_PROGRESS:"в работе",PENDING:"ожидает"};return m[String(v||"")]||humanCode(v||"—");};
@@ -2255,12 +2256,12 @@
     body.innerHTML =
       "<div class='live-status-box "+(running?"ok":"warn")+"'><strong>ATLAS Signal Lab — "+esc(label(data.phase))+"</strong><p>Это наблюдаемый исследовательский процесс. Он не заполняет поля канонической модели ATLAS и не повышает доказательный статус результатов.</p></div>"+
       "<div class='live-summary atlas-siglab-summary'>"+
-      "<div class='metric'><small>Этап</small><strong>"+esc(stage.index&&stage.total?stage.index+" / "+stage.total:"—")+"</strong><span>"+esc(stage.label||label(stage.name))+"</span></div>"+
+      "<div class='metric'><small>Этап</small><strong>"+esc(stage.index!=null&&stage.total!=null?stage.index+" / "+stage.total:"—")+"</strong><span>"+esc(stage.label||label(stage.name))+"</span></div>"+
       "<div class='metric'><small>Наблюдений</small><strong>"+esc(observations==null?"—":observations)+"</strong><span>сумма только если оба потока передали счётчик</span></div>"+
       "<div class='metric'><small>Счётчик confirmed</small><strong>"+esc(confirmed==null?"—":confirmed)+"</strong><span>сумма только если оба потока передали поле; не приравнивается к подтверждённым выводам ATLAS</span></div>"+
       "<div class='metric'><small>Следующий цикл</small><strong>"+esc(dt(data.next_cycle))+"</strong><span>"+esc(label(data.next_gate))+"</span></div></div>"+
       "<div class='live-item-clean atlas-siglab-objective'><div class='live-item-clean-head'><h3>Цель текущего расширения</h3><span class='live-chip "+liveMode(stage.status||"—")+"'>"+esc(stage.status?label(stage.status):"статус этапа не передан")+"</span></div><p>"+esc(data.objective||"Цель не передана источником.")+"</p>"+
-      "<div class='live-kv-grid'>"+kv("Охват",regions.length?regions.length+" регионов":"—")+kv("Целевая выборка",data.scope&&data.scope.target_systems||"—")+kv("Классы отраслей",sectors.length||"—")+kv("Последний перезапуск",dt(restart))+"</div></div>"+
+      "<div class='live-kv-grid'>"+kv("Охват",regionsKnown?regions.length+" регионов":"—")+kv("Целевая выборка",data.scope&&data.scope.target_systems||"—")+kv("Классы отраслей",sectorsKnown?sectors.length:"—")+kv("Последний перезапуск",dt(restart))+"</div></div>"+
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Два живых потока</h3><small>показываются раздельно, чтобы не скрывать различия</small></div><div class='atlas-siglab-streams'>"+
       "<div><small>Контрольный поток</small><b>"+esc(control.observations!=null?control.observations+" наблюдений":"—")+"</b><span>confirmed: "+esc(control.confirmed!=null?control.confirmed:"—")+(control.degraded!=null?" · degraded: "+esc(control.degraded):"")+"</span></div>"+
       "<div><small>Смысловой поток</small><b>"+esc(treatment.observations!=null?treatment.observations+" наблюдений":"—")+"</b><span>confirmed: "+esc(treatment.confirmed!=null?treatment.confirmed:"—")+(treatment.degraded!=null?" · degraded: "+esc(treatment.degraded):"")+"</span></div></div><small>Поля confirmed/degraded показаны как счётчики источника без собственной научной интерпретации Панели.</small></div>"+
