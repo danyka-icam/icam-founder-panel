@@ -710,7 +710,7 @@
         next: r.next_move || (rd1 && (rd1.next_gate || rd1.next_move)) || null,
         nextSource: r.next_move ? "Оркестратор · next_move" : (rd1 && rd1.next_gate ? "RD1 · next_gate" : (rd1 && rd1.next_move ? "RD1 · next_move" : null)),
         upstream: [], downstream: [], bridges: [],
-        objBlockers: objId ? openBlockers.filter(function (b) { return String(b.object_id || "") === objId; }) : []
+        objBlockers: obj ? openBlockers.filter(function (b) { return String(b.object_id || "") === objId; }) : []
       };
     });
 
@@ -725,12 +725,14 @@
 
     var linesByObj = {};
     lines.forEach(function (l) {
-      if (!l.objId) return;
+      // A shared-object bridge requires the object itself to exist in Continuity.
+      // Two routes merely claiming the same unknown ID is not enough.
+      if (!l.objId || !l.obj) return;
       (linesByObj[l.objId] = linesByObj[l.objId] || []).push(l);
     });
 
-    // Structural bridge: two routes point at the same canonical object. This is
-    // a shared-identity fact, not a causal, strategic or resource claim.
+    // Structural bridge: two routes point at the same registry-confirmed object.
+    // This is a shared-identity fact, not a causal, strategic or resource claim.
     var bridges = [];
     Object.keys(linesByObj).forEach(function (id) {
       var ls = linesByObj[id];
@@ -1674,7 +1676,7 @@
     }
     rows.push(proofRow(M.edges.length ? "ok" : "none", "Маршрут → маршрут", M.edges.length, M.edges.length ? "явные dependency-поля маршрутов" : "источник не передаёт зависимостей между маршрутами"));
     rows.push(proofRow(M.fp.ok && M.FP.intersections.length ? "ok" : (M.fp.ok ? "none" : "warn"), "Линия ⇄ линия через общий капитал", M.fp.ok ? M.FP.intersections.length : "—", M.fp.ok ? "Проекция Основателя (Founder Projection): совместное подтверждённое использование допущенного капитала; не причинность" : "Проекция Основателя (Founder Projection) недоступна"));
-    rows.push(proofRow(M.bridges.length ? "ok" : "none", "Общий объект", M.bridges.length, "два маршрута ссылаются на один object_id — структурная связь"));
+    rows.push(proofRow(M.bridges.length ? "ok" : "none", "Общий объект", M.bridges.length, "два маршрута ссылаются на один объект, подтверждённый реестром Continuity — структурная связь"));
     rows.push(proofRow(M.dangling.length ? "warn" : "ok", "Висячие ссылки маршрутов", M.dangling.length, "маршрут ссылается на объект, которого нет в реестре Continuity"));
     rows.push(proofRow("no", "Причинные связи", "—", "ни один источник не передаёт causal-отношений; не рисуются"));
     page.querySelector("[data-cc='proven']").innerHTML = "<div class='cc-proof'>" + rows.join("") + "</div>";
