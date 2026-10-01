@@ -639,8 +639,9 @@
   }
 
   function buildOrgIntelligence(j, U) {
-    var OI = { raw: j, compiledAt: j.compiled_at || null, items: [], byKey: {}, counts: {} };
-    A(j.signals).forEach(function (row, i) {
+    var signalsKnown = Array.isArray(j.signals);
+    var OI = { raw: j, compiledAt: j.compiled_at || null, items: [], byKey: {}, counts: {}, signalsKnown: signalsKnown };
+    (signalsKnown ? j.signals : []).forEach(function (row, i) {
       var key = String(row.signal_id || "oi|" + i), cls = String(row.class || "");
       var it = { kind: "org", key: key, raw: row, cls: cls, title: row.subject || key,
         founderAction: row.founder_action_required === true, founderActionKnown: typeof row.founder_action_required === "boolean", lines: A(row.affected_lines).map(function (t) {
@@ -652,9 +653,13 @@
   }
 
   function buildStewardReconciliation(j, U) {
+    var systemKnown = Array.isArray(j.system_reconciliation);
+    var founderGatesKnown = Array.isArray(j.founder_gates);
+    var hardRulesKnown = Array.isArray(j.hard_rules);
     var SR = { raw: j, compiledAt: j.compiled_at || null, items: [], byKey: {}, counts: {},
-      founderGates: A(j.founder_gates), hardRules: A(j.hard_rules) };
-    A(j.system_reconciliation).forEach(function (row, i) {
+      systemKnown: systemKnown, founderGatesKnown: founderGatesKnown, hardRulesKnown: hardRulesKnown,
+      founderGates: founderGatesKnown ? j.founder_gates : [], hardRules: hardRulesKnown ? j.hard_rules : [] };
+    (systemKnown ? j.system_reconciliation : []).forEach(function (row, i) {
       var key = String(row.reconciliation_id || "rec|" + i), subject = String(row.subject || key);
       var it = { kind: "sysrec", key: key, raw: row, title: subject,
         gap: String(row.gap_class || ""), source: String(row.source || ""),
@@ -1342,7 +1347,8 @@
   function renderOrgIntel() {
     if (!M.oi.ok) return unavailable("Организационный интеллект недоступен", M.oi.reason || "источник не ответил");
     var items = M.OI.items, c = M.OI.counts;
-    if (!items.length) return empty("Структурных наблюдений нет", "Источник ответил пустым signals[].");
+    if (!M.OI.signalsKnown) return unavailable("Структурные наблюдения не проверены", "Organizational Intelligence ответил, но поле signals[] не передано.");
+    if (!items.length) return empty("Структурных наблюдений нет", "Источник явно передал пустой signals[].");
     var summary = [
       ["COMPOUNDING_LOOP", "повторное использование"],
       ["DEPENDENCY_CONCENTRATION_CANDIDATE", "концентрация использования"],
@@ -1363,10 +1369,11 @@
 
   function renderSystemReconciliation() {
     if (!M.sr.ok) return unavailable("Системная сверка недоступна", M.sr.reason || "источник не ответил");
+    if (!M.SR.systemKnown) return unavailable("Системная очередь не проверена", "Steward Reconciliation ответил, но поле system_reconciliation[] не передано.");
     var items = M.SR.items, byPath = M.SR.counts.COMPANY_PATH || 0, byCapital = M.SR.counts.COMPANY_CAPITAL || 0;
     var founderN = items.filter(function (x) { return x.founderAction; }).length;
     var founderUnknown = items.filter(function (x) { return !x.founderActionKnown; }).length;
-    if (!items.length) return empty("Системная очередь пуста", "Steward Reconciliation не передал system_reconciliation[].");
+    if (!items.length) return empty("Системная очередь пуста", "Источник явно передал пустой system_reconciliation[].");
     function row(it) {
       return "<button class='cc-sys-row'" + sel("sysrec", it.key) + "><span><b>" + E(H.cut(it.title, 58)) + "</b>" +
         "<small>" + E(human(it.gap)) + " · " + E(it.source || "источник не указан") + "</small></span><i>›</i></button>";
@@ -1401,7 +1408,10 @@
     var restarts = [d.last_restart && d.last_restart.control, d.last_restart && d.last_restart.treatment].filter(Boolean);
     var restarted = restarts.length ? restarts.sort(function (a,b) { return new Date(b) - new Date(a); })[0] : null;
     var running = upper(d.health) === "RUNNING";
-    var stageN = Number(st.index || 0), stageTotal = Number(st.total || 0);
+    var stageN = st.index == null || st.index === "" ? null : Number(st.index);
+    var stageTotal = st.total == null || st.total === "" ? null : Number(st.total);
+    if (!isFinite(stageN)) stageN = null;
+    if (!isFinite(stageTotal)) stageTotal = null;
     var gateLabels = {
       GLOBAL_UNIVERSE_FREEZE: "заморозка глобальной выборки",
       OFFICIAL_SOURCE_DISCOVERY: "квалификация официальных источников",
@@ -1417,7 +1427,7 @@
 
     return "<a class='cc-siglab-link' href='#atlas' aria-label='Открыть исследовательский ATLAS'>" +
       "<div class='cc-siglab-head'><span>ATLAS · SIGNAL LAB</span><em class='" + (running ? "on" : "off") + "'><i></i>" + E(running ? "наблюдение идёт" : human(d.health || "состояние не передано")) + "</em></div>" +
-      "<div class='cc-siglab-main'><div class='cc-siglab-stage'><small>Текущий этап</small><b>" + E(stageN && stageTotal ? stageN + " из " + stageTotal : "—") + "</b><span>" + E(stageLabel) + "</span></div>" +
+      "<div class='cc-siglab-main'><div class='cc-siglab-stage'><small>Текущий этап</small><b>" + E(stageN != null && stageTotal != null ? stageN + " из " + stageTotal : "—") + "</b><span>" + E(stageLabel) + "</span></div>" +
       "<div class='cc-siglab-objective'><small>Цель</small><p>" + E(objective) + "</p></div></div>" +
       "<div class='cc-siglab-metrics'>" +
         "<span><small>Наблюдений в двух потоках</small><b>" + E(observations == null ? "—" : observations) + "</b></span>" +
