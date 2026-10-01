@@ -1789,7 +1789,7 @@
     if (!fmOk || fieldMovement.status !== "AVAILABLE") {
       if (badge) {
         badge.className = "state unavailable";
-        badge.textContent = !fmOk ? "ИСТОЧНИК НЕДОСТУПЕН" : "ИСТОЧНИК ОЖИДАЕТ АКТИВАЦИИ";
+        badge.textContent = !fmOk ? "АГРЕГАТ НЕДОСТУПЕН" : "АГРЕГАТ ЕЩЁ НЕ СФОРМИРОВАН";
       }
       (fieldMovement && fieldMovement.axes || []).forEach(function (a) {
         var el = document.querySelector('[data-fm="' + a.axis + '"]');
@@ -1800,7 +1800,7 @@
       return;
     }
 
-    if (badge) { badge.className = "state live"; badge.textContent = "ИСТОЧНИК ПОДКЛЮЧЁН"; }
+    if (badge) { badge.className = "state live"; badge.textContent = "АГРЕГАТ ДОСТУПЕН"; }
     fieldMovement.axes.forEach(function (a) {
       var el = document.querySelector('[data-fm="' + a.axis + '"]');
       var note = document.querySelector('[data-fm-note="' + a.axis + '"]');
