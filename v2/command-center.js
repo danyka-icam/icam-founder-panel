@@ -2293,7 +2293,7 @@
       section("История", x.history || muted("датированная история в этом представлении не передана")) +
       section("Ждём", x.waiting || muted("ожидание не передано")) +
       section("Следующий переход", (x.next || muted("не передан источником")) +
-        (x.step ? "<div class='cc-insp-step'><h4>Минимальный следующий шаг</h4><p>" + E(x.step.text) + "</p><small>" + E(x.step.src) + "</small></div>" : "")) +
+        (x.step ? "<div class='cc-insp-step'><h4>Следующий шаг</h4><p>" + E(x.step.text) + "</p><small>" + E(x.step.src) + "</small></div>" : "")) +
       section("Связи", x.links || muted("связи в этом представлении не переданы")) +
       section("Доказательный потолок", "<ul class='cc-ceiling'>" + (x.ceiling || []).join("") + "</ul>") +
       (x.nav ? "<div class='cc-insp-nav'>" + x.nav + "</div>" : "");
@@ -2366,20 +2366,14 @@
 
   function inspectObject(x) {
     var o = x.o, p = placementOfObject(x), tv = x.star ? temporalView(x.star.temporal) : null;
-    var step = p.bucket === "unchecked" ? "Дождаться Portfolio Admission: без него размещение не оценивается." :
-      p.bucket === "review" ? "Разобрать причину сверки из слоя допуска: " + (x.adm && x.adm.raw.reason || "причина не указана") + "." :
-      p.bucket === "candidate" ? "Подтвердить или отклонить предложенную линию — до этого объект не звезда." :
-      p.bucket === "conflict" ? "Решить конфликт владельцев вручную." :
-      p.bucket === "archive" ? "Действий не требуется: архив." :
-      p.bucket === "absent" ? "Объекта нет в слое допуска — проверить, попадает ли он в память портфеля." :
-      (x.lines[0] && x.lines[0].next) || "Следующий ход не передан источником.";
+    var sourceStep = (x.rd1 && (x.rd1.next_gate || x.rd1.next_move)) || (x.lines[0] && x.lines[0].next) || null;
     return inspector({
       badge: "<span class='cc-obj-badge pl-" + p.bucket + "'>" + E(initials(x.title)) + "</span>", title: x.title, sub: "Объект Continuity · " + x.key,
       what: para("Объект реестра Continuity со статусом «" + H.ruStatus(o.declared_status) + "»." + (x.founder ? " Помечен как требующий Основателя." : "")),
       where: crumbs([{ t: "ICAM" }, { t: x.star ? x.star.world.title : (M.tu.ok ? "связь с Founder Universe не подтверждена" : "мир не проверен") },
         { t: x.star ? H.cut(x.star.line.title, 20) : "линия не определена" }, { t: x.key, cur: true }]) +
         (x.origin ? muted("Происхождение (owning_branch): " + x.origin + trustedNote(x.origin)) : ""),
-      now: "<div class='cc-insp-state'><span class='cc-state st-flow'><i></i>" + E(H.ruStatus(o.declared_status)) + "</span><small>допуск: " + E(p.label) + "</small>" +
+      now: "<div class='cc-insp-state'><span class='cc-state st-unknown'><i></i>" + E(H.ruStatus(o.declared_status)) + "</span><small>допуск: " + E(p.label) + "</small>" +
         (tv && tv.now ? "<em>Temporal Universe: " + E(tv.now) + "</em>" : "") + "</div>" +
         (x.blockers.length ? "<ul class='cc-blockers'>" + x.blockers.map(function (b) { return "<li>" + E(H.cut(b.title || b.blocker || "открытый блокер", 110)) + "</li>"; }).join("") + "</ul>" : ""),
       why: x.star ? para("Это звезда Founder Map в линии «" + x.star.line.title + "».") : "",
@@ -2387,7 +2381,7 @@
         E((o.last_meaning_kind ? H.signalKindRu(o.last_meaning_kind) : "событие") + (o.last_summary ? " — " + H.cut(humanActionText(o.last_summary), 120) : "")) + " <em>· Continuity</em></li></ul>" : "",
       waiting: tv && tv.waiting.length ? titlesList(tv.waiting) : "",
       next: (tv && tv.next.length ? titlesList(tv.next) : "") || ((x.rd1 && (x.rd1.next_gate || x.rd1.next_move)) || (x.lines[0] && x.lines[0].next) ? para(humanActionText((x.rd1 && (x.rd1.next_gate || x.rd1.next_move)) || x.lines[0].next)) : ""),
-      step: { text: humanActionText(step), src: "по данным слоя допуска и Continuity" },
+      step: sourceStep ? { text: humanActionText(sourceStep), src: (x.rd1 && (x.rd1.next_gate || x.rd1.next_move)) ? "RD1 · следующий ход/гейт" : "Оркестратор · next_move" } : null,
       links: refsBlock("Звезда", x.star ? starRef(x.star) + ulineRef(x.star.line) : "") +
         refsBlock("Маршруты", lineRefs(x.lines.map(function (l) { return l.key; }))) +
         refsBlock("Слой допуска", x.adm ? "<button class='cc-ref'" + sel("adm", x.adm.key) + ">" + E(human(x.adm.source === "exact_owner_candidates" ? "кандидат" : x.adm.source === "review_required" ? "на сверке" : "конфликт")) + "</button>" : ""),
