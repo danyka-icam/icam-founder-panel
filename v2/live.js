@@ -1232,13 +1232,14 @@
         var owner = String(x.projection.owner || "").toUpperCase();
         return /PARKED|PREPARING/.test(st) || /EXTERNAL|CONDITION/.test(owner);
       });
-      var identity = lines.filter(function (x) { return !x.projection.semantic_freshness; });
+      // Missing semantic_freshness is a freshness-observability gap, not identity debt.
+      var noSemanticFreshness = lines.filter(function (x) { return !x.projection.semantic_freshness; });
 
       function put(k, v) { var e = page.querySelector('[data-r="' + k + '"]'); if (e) e.textContent = String(v); }
       put("active-count", active.length);
       put("founder-count", founder.length);
       put("waiting-count", waiting.length);
-      put("identity-count", identity.length);
+      put("identity-count", noSemanticFreshness.length);
 
       var linesBox = page.querySelector('[data-r="lines"]');
       if (linesBox) {

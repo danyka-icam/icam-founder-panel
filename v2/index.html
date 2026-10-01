@@ -1628,7 +1628,7 @@
 <div data-cc="placement-sum"></div>
 <article class="cc-panel cc-wide"><header><h2>Текущая Founder Map</h2><small>мир → линия → звезда; что видно на карте сейчас</small></header><div data-cc="pl-map"><div class="cc-loading">Читаем источники…</div></div></article>
 <div class="cc-pl-grid">
-<article class="cc-panel pl-col pl-candidate"><header><h2>Безопасные кандидаты</h2><small>точный владелец из допуска — ещё не звёзды, на карте не видны</small></header><div data-cc="pl-cand"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel pl-col pl-candidate"><header><h2>Кандидаты на точную связь</h2><small>точный владелец найден источником — ещё не звёзды и не решение о размещении</small></header><div data-cc="pl-cand"><div class="cc-loading">Читаем источники…</div></div></article>
 <article class="cc-panel pl-col pl-review"><header><h2>Активная очередь сверки</h2><small>элементы без архивного состояния — то, что реально ждёт разбора</small></header><div data-cc="pl-queue"><div class="cc-loading">Читаем источники…</div></div></article>
 <article class="cc-panel pl-col pl-conflict"><header><h2>Конфликт владельцев</h2><small>одно происхождение указывает на несколько линий — решается вручную</small></header><div data-cc="pl-conflict"><div class="cc-loading">Читаем источники…</div></div></article>
 </div>
@@ -2074,9 +2074,9 @@
 </div>
 <section class="strip research-kpis-v2">
 <article class="card">
-<small>Активные линии</small>
+<small>Объявлены активными</small>
 <strong data-r="active-count">—</strong>
-<span>исследования, которые сейчас реально движутся</span>
+<span>объекты с declared_status ACTIVE*; это не доказательство фактического движения</span>
 </article>
 <article class="card">
 <small>Требует моего участия</small>
@@ -2089,9 +2089,9 @@
 <span>внешний ответ, данные, условие возврата или сознательный парк</span>
 </article>
 <article class="card">
-<small>Проблемы идентичности</small>
+<small>Без отметки смысловой свежести</small>
 <strong data-r="identity-count">—</strong>
-<span>объект или исследовательская линия требуют уточнения идентичности</span>
+<span>RD1 не передал semantic_freshness; это не считается проблемой идентичности</span>
 </article>
 </section>
 <section class="research-system-bridge" data-r="system-bridge"><div class="research-empty compact"><strong>Собираем исследовательский пульс…</strong><span>RD1, независимые проверки и общесистемный доказательный контур читаются раздельно.</span></div></section>
