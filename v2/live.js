@@ -1250,7 +1250,7 @@
 
       function put(k, v) { var e = page.querySelector('[data-r="' + k + '"]'); if (e) e.textContent = String(v); }
       put("active-count", active.length);
-      put("founder-count", founder.length);
+      put("founder-count", founder.length + (formalDecisions.length ? " + " + formalDecisions.length : ""));
       put("waiting-count", waiting.length);
       put("identity-count", noSemanticFreshness.length);
 
