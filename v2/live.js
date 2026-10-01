@@ -1918,21 +1918,37 @@
     if (!sourceState.brazilPortal.ok || !data) return cleanFailure("brazilportal","BrazilPortal","brazilPortal");
     var sv=data.status_views||{}, id=data.identity||{};
     var body=activateNormalized("brazilportal",data.source_status,
-      "BRAZILPORTAL · "+humanCode(data.source_status));
+      "BRAZILPORTAL · "+(String(data.source_status||"").toUpperCase()==="DEGRADED"?"ЧАСТИЧНО ОГРАНИЧЕНО":humanCode(data.source_status)));
     if(!body)return;
     function val(x){return x&&x.value!=null?x.value:"—";}
+    function bpCodeRu(v){
+      var raw=String(v||"");
+      var m={
+        ACTIVE_BUILD:"активная сборка",
+        RESTORE_TARGET_SET:"цель восстановления зафиксирована",
+        UNRESOLVED:"не разрешена",
+        READ_ONLY_RECONCILIATION_FIRST:"сначала сверка в режиме только чтения",
+        CLEAN_PRE_SERVER_FACTORY_RESTORE_PASS:"подтвердить чистое восстановление досерверной фабрики",
+        DIFFERENT_NAMESPACES_SAME_SYSTEM:"одна система, разные пространства имён",
+        STALE:"устарело", DEGRADED:"частично ограничено"
+      };
+      return m[raw]||humanCode(raw||"—");
+    }
     var unresolved=String(sv.projected_status_canonical_relation||"").toUpperCase()==="UNRESOLVED";
+    var stale=String(data.freshness_state||"").toUpperCase()==="STALE";
+    var blockersN=(data.open_blockers||{}).count;
     body.innerHTML=
-      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>BrazilPortal — "+esc(humanCode(data.source_status))+"</strong>"+
-      "<p>"+(unresolved?"Спроецированный статус не подтверждён как канонический. Панель показывает его отдельно от объявленного.":"Состояние прочитано из нормализованной проекции.")+"</p></div>"+
+      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>BrazilPortal — "+esc(bpCodeRu(data.source_status))+ (stale?" · данные устарели":"") +"</strong>"+
+      "<p>"+(stale?"Последнее материальное движение: "+esc(data.last_movement_at?ago(data.last_movement_at):"не передано")+". ":"")+(unresolved?"Спроецированный статус пока не связан с каноном; объявленный статус сохраняется отдельно.":"Состояние прочитано из нормализованной проекции.")+"</p></div>"+
       "<div class='live-summary'>"+
-      "<div class='metric'><small>Объявленный статус</small><strong>"+esc(humanCode(sv.declared_status))+"</strong><span>что объектом объявлено</span></div>"+
-      "<div class='metric'><small>Спроецированный статус</small><strong>"+esc(humanCode(sv.projected_status))+"</strong><span>последнее смысловое событие</span></div>"+
-      "<div class='metric'><small>Каноничность проекции</small><strong>"+esc(humanCode(sv.projected_status_canonical_relation))+"</strong><span>"+(unresolved?"не подтверждена":"подтверждена источником")+"</span></div>"+
-      "<div class='metric'><small>Этап</small><strong>"+esc(humanCode(val(data.stage)))+"</strong><span>с provenance в источнике</span></div></div>"+
+      "<div class='metric'><small>Объявленный статус</small><strong>"+esc(bpCodeRu(sv.declared_status))+"</strong><span>что объект объявляет о себе</span></div>"+
+      "<div class='metric'><small>Спроецированный статус</small><strong>"+esc(bpCodeRu(sv.projected_status))+"</strong><span>что вывело последнее смысловое событие</span></div>"+
+      "<div class='metric'><small>Связь статуса с каноном</small><strong>"+esc(bpCodeRu(sv.projected_status_canonical_relation))+"</strong><span>относится только к спроецированному статусу</span></div>"+
+      "<div class='metric'><small>Этап</small><strong>"+esc(bpCodeRu(val(data.stage)))+"</strong><span>подтверждён источником как факт</span></div></div>"+
+      "<div class='bp-identity-proof'><b>Идентичность не является этой проблемой.</b><span>Компонент "+esc(id.component_id||"—")+" и операционный объект "+esc(id.operational_object_id||"—")+" связаны источником как «"+esc(bpCodeRu(id.relation))+"». Ключ чтения Continuity: "+esc(id.canonical_read_key||"—")+".</span></div>"+
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Следующий ход</h3>"+chip(data.source_status)+"</div>"+
-      "<div class='live-kv-grid'>"+kv("Владелец",val(data.owner))+kv("Следующий гейт",val(data.next_gate))+kv("Следующий ход",projectionTextRu(val(data.next_move)))+kv("Открытые блокеры",(data.open_blockers||{}).count)+kv("Открытые обязательства",(data.open_commitments||{}).count)+kv("Идентичность",(id.component_id||"—")+" ↔ "+(id.operational_object_id||"—"))+"</div>"+
-      "<small>Количество блокеров не подписывается как «нетестовое»: test-фильтрация источником не доказана.</small></div>";
+      "<div class='live-kv-grid'>"+kv("Владелец",val(data.owner))+kv("Следующий рубеж",bpCodeRu(val(data.next_gate)))+kv("Следующий ход",projectionTextRu(val(data.next_move)))+kv("Открытые blocker-записи объекта",blockersN)+kv("Открытые обязательства",(data.open_commitments||{}).count)+kv("Последнее материальное событие",data.last_material_event&&data.last_material_event.last_event_at?ago(data.last_material_event.last_event_at):"—")+"</div>"+
+      "<small>"+esc(blockersN)+" blocker-записей связаны с объектом FND-007. Источник не доказывает test-фильтрацию и не передаёт единую оценку тяжести, поэтому Панель не называет их "+(blockersN===1?"одним препятствием":"одинаково критическими препятствиями")+".</small></div>";
   }
 
   function renderFoundationAggregateClean(data) {
