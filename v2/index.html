@@ -2810,13 +2810,13 @@
 <span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header><div class="direction-bridge tool-bridge"><div><small>Инструмент системы</small><b>Реестр идентичности объектов</b><span>существование объектов и долг идентичности</span></div><nav><a href="#lines">Линии и объекты →</a><a href="#placement">Размещение →</a><a href="#timeline">Во времени →</a></nav></div>
+</header><div class="direction-bridge tool-bridge"><div><small>Инструмент системы</small><b>Реестр объектов</b><span>зарегистрированные объекты и доступная событийная история</span></div><nav><a href="#lines">Линии и объекты →</a><a href="#placement">Размещение →</a><a href="#timeline">Во времени →</a></nav></div>
 <div class="tool-scope-note"><b>Детальный обзор</b><span>дополнительные разрезы появятся только после подключения поддерживающего источника</span></div>
 <section class="strip registry-kpis-v2">
 <article class="card">
 <small>Объекты</small>
 <strong data-g="count">—</strong>
-<span>зарегистрированные канонические объекты</span>
+<span>зарегистрированные объекты в текущей проекции Continuity</span>
 </article>
 <article class="card">
 <small>Активные</small>
@@ -2824,9 +2824,9 @@
 <span>объекты с активным объявленным состоянием</span>
 </article>
 <article class="card">
-<small>Идентичность не подтверждена</small>
+<small>Без событийной истории</small>
 <strong data-g="unresolved">—</strong>
-<span>нет достаточного подтверждения событийной историей</span>
+<span>зарегистрированы, но last_event_at пока отсутствует</span>
 </article>
 <article class="card">
 <small>Требует Основателя</small>
@@ -2862,21 +2862,21 @@
 <article class="card registry-identity-card">
 <div class="panel-head">
 <div class="head-title">
-<h2>ДОЛГ ИДЕНТИЧНОСТИ</h2>
-<small>где название или работа уже есть, а каноническая идентичность ещё не закреплена</small>
+<h2>ГРАНИЦА ИДЕНТИЧНОСТИ</h2>
+<small>что текущий контракт объектов может и не может доказать об идентичности</small>
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
 <div class="panel-body">
 <div class="identity-orbit">
 <div class="identity-core">
-<small>НЕ ПОДТВЕРЖДЕНО</small>
+<small>БЕЗ СОБЫТИЙНОЙ ИСТОРИИ</small>
 <strong data-g="identity-core">—</strong>
-<span>объектов</span>
+<span>объектов; это не долг идентичности</span>
 </div>
 <div class="identity-ring"></div>
 </div>
-<p class="registry-note">Панель не придумывает ID для удобства. Если идентичность неизвестна, состояние остаётся unresolved до решения Реестра.</p>
+<p class="registry-note">Текущий /continuity/objects подтверждает наличие записи и Object ID, но не отдаёт отдельного статуса identity/mapping. Поэтому Панель не вычисляет «долг идентичности» из отсутствия last_event_at: отсутствие события означает только отсутствие подтверждённой событийной истории.</p>
 </div>
 </article>
 </section>
@@ -2916,7 +2916,7 @@
 </article>
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>ОБЪЕКТЫ С ПРЕПЯТСТВИЯМИ</h2><small>канонические объекты, которым мешает открытый системный или веточный блокер</small></div>
+<div class="head-title"><h2>ОТКРЫТЫЕ BLOCKER-ЗАПИСИ ПО ОБЪЕКТАМ</h2><small>записи Continuity, связанные с Object ID; тяжесть и влияние не выводятся по факту OPEN</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
 <div class="panel-body" data-g="blockers-list">

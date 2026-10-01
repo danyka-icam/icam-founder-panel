@@ -851,12 +851,14 @@
 
     var items = asArray(objectsResp.items);
     var active = items.filter(function (o) { return /^ACTIVE/.test(String(o.declared_status || "").toUpperCase()); });
-    var unresolved = items.filter(function (o) { return !o.last_event_at; });
+    // Absence of last_event_at is an event-history gap, not identity debt.
+    // /continuity/objects does not expose a separate identity/mapping verdict.
+    var noEventHistory = items.filter(function (o) { return !o.last_event_at; });
     var founder = items.filter(function (o) { return !!(o.needs_nika || o.needs_founder); });
 
     function put(k, v) { var e = page.querySelector('[data-g="' + k + '"]'); if (e) e.textContent = String(v); }
-    put("count", items.length); put("active", active.length); put("unresolved", unresolved.length); put("founder", founder.length);
-    var core = page.querySelector('[data-g="identity-core"]'); if (core) core.textContent = String(unresolved.length);
+    put("count", items.length); put("active", active.length); put("unresolved", noEventHistory.length); put("founder", founder.length);
+    var core = page.querySelector('[data-g="identity-core"]'); if (core) core.textContent = String(noEventHistory.length);
 
     var list = page.querySelector('[data-g="objects"]');
     if (list) {
@@ -891,10 +893,10 @@
           return !b.is_test && String(b.status || "").toUpperCase() !== "CLEARED";
         });
         blockerBox.innerHTML = blockers.length ? "<div class='registry-mini-list'>" + blockers.slice(0, 6).map(function (b) {
-          return "<div class='registry-mini-item'><b>" + esc(b.title || b.blocker || "Открытое препятствие") + "</b><span>" +
-            esc(b.object_id || "объект не определён") + " · " + esc(b.status || "открыт") + "</span></div>";
+          return "<div class='registry-mini-item'><b>" + esc(b.title || b.blocker || "Открытая blocker-запись") + "</b><span>" +
+            esc(b.object_id || "объект не определён") + " · " + esc(ruStatus(b.status || "OPEN")) + " · тяжесть не передана</span></div>";
         }).join("") + "</div>" :
-        "<div class='registry-empty compact'><strong>Открытых нетестовых блокеров нет</strong><span>По текущей проекции Continuity.</span></div>";
+        "<div class='registry-empty compact'><strong>Открытых нетестовых blocker-записей нет</strong><span>По текущей проекции Continuity.</span></div>";
       }
     }
 
