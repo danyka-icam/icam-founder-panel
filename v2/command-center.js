@@ -533,10 +533,12 @@
   }
 
   function buildAdmission(j, U) {
-    var AD = { counts: j.counts || {}, compiledAt: j.compiled_at || null, rules: [], items: {}, byMemory: {}, buckets: {} };
+    var trustedKnown = !!(j.trusted_owner_map && typeof j.trusted_owner_map === "object" && !Array.isArray(j.trusted_owner_map));
+    var ownerConflictsKnown = Array.isArray(j.owner_conflicts) || !!(j.owner_conflicts && typeof j.owner_conflicts === "object");
+    var AD = { counts: j.counts || {}, compiledAt: j.compiled_at || null, rules: [], items: {}, byMemory: {}, buckets: {}, trustedKnown: trustedKnown, ownerConflictsKnown: ownerConflictsKnown };
     AD.rules = Array.isArray(j.rules) ? j.rules : (j.rules && typeof j.rules === "object" ? Object.keys(j.rules).map(function (k) { return k + ": " + scalar(j.rules[k]); }) : []);
     // trusted_owner_map: owning_branch → exact canonical line title.
-    var trusted = j.trusted_owner_map && typeof j.trusted_owner_map === "object" && !Array.isArray(j.trusted_owner_map) ? j.trusted_owner_map : {};
+    var trusted = trustedKnown ? j.trusted_owner_map : {};
     AD.trusted = Object.keys(trusted).map(function (branch) {
       return { branch: branch, title: trusted[branch] == null ? null : String(trusted[branch]), ul: exactTitle(U, trusted[branch]) };
     });
@@ -885,7 +887,8 @@
     if (!M.adm.ok) return { bucket: "unchecked", label: "не проверено — Portfolio Admission недоступен" };
     if (x.star) return { bucket: "placed", label: "размещена звездой" };
     if (x.adm) return { bucket: x.adm.bucket, label: BUCKET_META[x.adm.bucket].title.toLowerCase() + (x.adm.bucket === "archive" ? " (из " + x.adm.source + ")" : "") };
-    return { bucket: "absent", label: "нет в слое допуска" };
+    if (!M.AD.ownerConflictsKnown) return { bucket: "unchecked", label: "не проверено полностью — owner_conflicts не передан" };
+    return { bucket: "absent", label: "в текущем полном слое допуска записи нет" };
   }
 
   function mapVisibility(memoryId) {
@@ -2156,11 +2159,14 @@
     slots["pl-map"].innerHTML = M.tu.ok ? founderMap() : unavailable("Список звёзд недоступен", "Temporal Universe не ответил. Счётчик placed — из Portfolio Admission counts.");
     slots["pl-cand"].innerHTML = AD.buckets.candidate.length ? AD.buckets.candidate.map(admCard).join("") : empty("Кандидатов нет", "");
     slots["pl-queue"].innerHTML = AD.buckets.review.length ? AD.buckets.review.map(admCard).join("") : empty("Активная очередь пуста", "");
-    slots["pl-conflict"].innerHTML = AD.buckets.conflict.length ? AD.buckets.conflict.map(admCard).join("") : empty("Конфликтов нет", "");
-    slots["pl-archive"].innerHTML = AD.buckets.archive.length ? "<div class='cc-archive-grid'>" + AD.buckets.archive.map(admCard).join("") + "</div>" : empty("Архив пуст", "");
-    slots["pl-archive-n"].textContent = String(AD.buckets.archive.length);
+    slots["pl-conflict"].innerHTML = AD.buckets.conflict.length ? AD.buckets.conflict.map(admCard).join("") :
+      (AD.ownerConflictsKnown ? empty("Конфликтов нет в текущем owner_conflicts", "Источник передал пустой набор.") : unavailable("Конфликты владельцев не проверены", "Поле owner_conflicts источником не передано."));
+    slots["pl-archive"].innerHTML = AD.buckets.archive.length ? "<div class='cc-archive-grid'>" + AD.buckets.archive.map(admCard).join("") + "</div>" +
+      (!AD.ownerConflictsKnown ? "<div class='cc-foot-note'>Архив может быть неполным: owner_conflicts источником не передан.</div>" : "") :
+      (AD.ownerConflictsKnown ? empty("Архив пуст в текущих группах допуска", "") : unavailable("Полнота архива не подтверждена", "owner_conflicts не передан; кандидаты и review_required прочитаны отдельно."));
+    slots["pl-archive-n"].textContent = AD.ownerConflictsKnown ? String(AD.buckets.archive.length) : "≥ " + String(AD.buckets.archive.length);
 
-    slots["placement-trusted"].innerHTML = AD.trusted.length ? "<div class='cc-trusted'>" + AD.trusted.map(function (t) {
+    slots["placement-trusted"].innerHTML = !AD.trustedKnown ? unavailable("Доверенная карта не проверена", "Поле trusted_owner_map источником не передано.") : AD.trusted.length ? "<div class='cc-trusted'>" + AD.trusted.map(function (t) {
       return "<div class='cc-trusted-row'" + (t.ul ? sel("uline", t.ul.key) : "") + "><span class='from'>" + E(t.branch) + "</span><i>→</i>" +
         (t.ul ? "<span class='to ok'>" + E(t.title) + "<small>" + E(t.ul.world.title) + "</small></span>" :
           "<span class='to miss'>" + E(t.title || "—") + "<small>" + E(M.tu.ok ? "в Temporal Universe нет линии с точно таким названием" : "линия не проверена — Temporal Universe недоступен") + "</small></span>") + "</div>";
@@ -2360,8 +2366,9 @@
 
   function trustedNote(origin) {
     if (!M.adm.ok) return "";
+    if (!M.AD.trustedKnown) return " · trusted_owner_map не передан";
     var t = M.AD.trusted.filter(function (e) { return e.branch === String(origin); })[0];
-    return t ? " · в доверенной карте → «" + t.title + "»" + (t.ul ? "" : " (линии с точно таким названием нет)") : " · в доверенной карте нет";
+    return t ? " · в доверенной карте → «" + t.title + "»" + (t.ul ? "" : " (линии с точно таким названием нет)") : " · в текущем trusted_owner_map записи нет";
   }
 
   function inspectObject(x) {
@@ -2389,6 +2396,8 @@
         ceilingRow("ok", "Идентичность и статус — реестр Continuity"),
         M.tu.ok ? ceilingRow(x.star ? "ok" : "warn", x.star ? "Мир и линия — Temporal Universe по точному memory_id" : "Звезды с этим ID нет — мир не определён") : ceilingRow("warn", "Мир не проверен — Temporal Universe недоступен"),
         M.adm.ok ? ceilingRow("ok", "Статус допуска — Portfolio Admission") : ceilingRow("warn", "Допуск не проверен — Portfolio Admission недоступен"),
+        !ok("blockers") ? ceilingRow("warn", "Blocker-контекст объекта не проверен — источник continuity/blockers недоступен") :
+          ceilingRow("info", x.blockers.length ? "Blocker-записи объекта показаны из текущего continuity/blockers" : "В текущем continuity/blockers записей для объекта не найдено"),
         ceilingRow("info", "owning_branch — происхождение, не мир"),
         ceilingRow("no", "Кандидаты по сходству названий не вычисляются")
       ],
