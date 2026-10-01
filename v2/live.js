@@ -2059,17 +2059,23 @@
 
   function renderAtlasStateClean(data) {
     if (!sourceState.atlasState.ok || !data) return cleanFailure("atlas","Атлас","atlasState");
-    var body=activateNormalized("atlas",data.source_status,
-      "АТЛАС · BLOCKED_UPSTREAM");
+    var status = data.source_status == null ? null : String(data.source_status);
+    var body=activateNormalized("atlas",status,
+      "АТЛАС · "+(status ? humanCode(status) : "СТАТУС НЕ ПЕРЕДАН"));
     if(!body)return;
+    var reason = data.degraded_reason || data.reason || null;
+    var errorClass = data.error_class || null;
+    var currentState = data.current_state || data.state || null;
+    var nextStep = data.next_action || data.next_step || null;
+    var noStateSource = String(errorClass || "").toUpperCase() === "NO_ATLAS_STATE_SOURCE";
     body.innerHTML=
-      "<div class='live-status-box bad'><strong>Атлас — канонический источник состояния ещё не существует</strong>"+
-      "<p>Проекция Панели подключена и отвечает, но ей неоткуда получить каноническое состояние ATLAS. Поэтому текущее состояние намеренно не строится из документов или косвенных признаков.</p></div>"+
+      "<div class='live-status-box "+liveMode(status)+"'><strong>Атлас — статус источника: "+esc(status ? humanCode(status) : "не передан")+"</strong>"+
+      "<p>"+esc(reason || (errorClass ? "Класс состояния: "+errorClass+"." : "Панель показывает только серверную проекцию и не достраивает каноническое состояние ATLAS по документам или косвенным признакам."))+"</p></div>"+
       "<div class='live-summary'>"+
-      "<div class='metric'><small>Проекция чтения Панели</small><strong>Подключена</strong><span>серверный endpoint отвечает</span></div>"+
-      "<div class='metric'><small>Канонический источник состояния</small><strong>Отсутствует</strong><span title='формальный код: "+esc(data.error_class||"NO_ATLAS_STATE_SOURCE")+"'>состояние ATLAS неоткуда читать</span></div>"+
-      "<div class='metric'><small>Текущее состояние</small><strong>Не строится</strong><span>документы Hub не превращаются в каноничность</span></div>"+
-      "<div class='metric'><small>Следующий системный шаг</small><strong>Создать источник состояния</strong><span>канонический объект Continuity или постоянный сервис состояния</span></div></div>";
+      "<div class='metric'><small>Проекция чтения Панели</small><strong>Прочитана</strong><span>endpoint ответил в текущем цикле</span></div>"+
+      "<div class='metric'><small>Канонический источник состояния</small><strong>"+esc(noStateSource?"Источник сообщает отсутствие":"не определяется Панелью")+"</strong><span>"+esc(errorClass?"формальный код: "+errorClass:"отдельный статус источника не передан")+"</span></div>"+
+      "<div class='metric'><small>Текущее состояние</small><strong>"+esc(currentState?humanCode(currentState):"не передано")+"</strong><span>не выводится локально из документов</span></div>"+
+      "<div class='metric'><small>Следующий системный шаг</small><strong>"+esc(nextStep?projectionTextRu(nextStep):"не передан")+"</strong><span>Панель не создаёт следующий шаг сама</span></div></div>";
   }
 
   function renderAtlasSignalLab(data) {
@@ -2086,8 +2092,10 @@
     var running = String(data.health || "").toUpperCase() === "RUNNING";
     if (badge) { badge.className = "state " + (running ? "live" : "warn"); badge.textContent = running ? "НАБЛЮДЕНИЕ ИДЁТ" : humanCode(data.health || "—"); }
     var stage=data.current_stage||{}, live=data.live||{}, control=live.control||{}, treatment=live.treatment||{};
-    var observations=Number(control.observations||0)+Number(treatment.observations||0);
-    var confirmed=Number(control.confirmed||0)+Number(treatment.confirmed||0);
+    function countOrNull(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+    function pairTotal(a,b){a=countOrNull(a);b=countOrNull(b);return a!=null&&b!=null?a+b:null;}
+    var observations=pairTotal(control.observations,treatment.observations);
+    var confirmed=pairTotal(control.confirmed,treatment.confirmed);
     var regions=asArray(data.scope&&data.scope.regions), sectors=asArray(data.scope&&data.scope.sectors), review=data.latest_review||{};
     var restarts=[data.last_restart&&data.last_restart.control,data.last_restart&&data.last_restart.treatment].filter(Boolean);
     var restart=restarts.length?restarts.sort(function(a,b){return new Date(b)-new Date(a);})[0]:null;
@@ -2097,10 +2105,10 @@
       "<div class='live-status-box "+(running?"ok":"warn")+"'><strong>ATLAS Signal Lab — "+esc(label(data.phase))+"</strong><p>Это наблюдаемый исследовательский процесс. Он не заполняет поля канонической модели ATLAS и не повышает доказательный статус результатов.</p></div>"+
       "<div class='live-summary atlas-siglab-summary'>"+
       "<div class='metric'><small>Этап</small><strong>"+esc(stage.index&&stage.total?stage.index+" / "+stage.total:"—")+"</strong><span>"+esc(stage.label||label(stage.name))+"</span></div>"+
-      "<div class='metric'><small>Наблюдений</small><strong>"+esc(observations||"—")+"</strong><span>контрольный + смысловой потоки</span></div>"+
-      "<div class='metric'><small>Счётчик confirmed</small><strong>"+esc(confirmed||"—")+"</strong><span>1 поле control + treatment; не приравнивается к подтверждённым выводам ATLAS</span></div>"+
+      "<div class='metric'><small>Наблюдений</small><strong>"+esc(observations==null?"—":observations)+"</strong><span>сумма только если оба потока передали счётчик</span></div>"+
+      "<div class='metric'><small>Счётчик confirmed</small><strong>"+esc(confirmed==null?"—":confirmed)+"</strong><span>сумма только если оба потока передали поле; не приравнивается к подтверждённым выводам ATLAS</span></div>"+
       "<div class='metric'><small>Следующий цикл</small><strong>"+esc(dt(data.next_cycle))+"</strong><span>"+esc(label(data.next_gate))+"</span></div></div>"+
-      "<div class='live-item-clean atlas-siglab-objective'><div class='live-item-clean-head'><h3>Цель текущего расширения</h3><span class='live-chip "+liveMode(stage.status||data.health||"—")+"'>"+esc(label(stage.status||data.health||"—"))+"</span></div><p>"+esc(data.objective||"Цель не передана источником.")+"</p>"+
+      "<div class='live-item-clean atlas-siglab-objective'><div class='live-item-clean-head'><h3>Цель текущего расширения</h3><span class='live-chip "+liveMode(stage.status||"—")+"'>"+esc(stage.status?label(stage.status):"статус этапа не передан")+"</span></div><p>"+esc(data.objective||"Цель не передана источником.")+"</p>"+
       "<div class='live-kv-grid'>"+kv("Охват",regions.length?regions.length+" регионов":"—")+kv("Целевая выборка",data.scope&&data.scope.target_systems||"—")+kv("Классы отраслей",sectors.length||"—")+kv("Последний перезапуск",dt(restart))+"</div></div>"+
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Два живых потока</h3><small>показываются раздельно, чтобы не скрывать различия</small></div><div class='atlas-siglab-streams'>"+
       "<div><small>Контрольный поток</small><b>"+esc(control.observations!=null?control.observations+" наблюдений":"—")+"</b><span>confirmed: "+esc(control.confirmed!=null?control.confirmed:"—")+(control.degraded!=null?" · degraded: "+esc(control.degraded):"")+"</span></div>"+
