@@ -284,14 +284,14 @@
   //   wait    — the move is with an external owner (waiting, not risk)
   //   stale   — no movement for a while, nothing else known (calm, not alarm)
   //   unknown — movement date not provided (evidence uncertainty)
-  //   flow    — moving normally
+  //   flow    — recent movement recorded; no diagnostic blocker signal
   var TONE_META = {
     act: { label: "Ход на вашей стороне", hint: "владелец следующего хода — вы; срочность этим не определяется" },
     blocked: { label: "Есть блокер", hint: "источник сообщает открытые блокеры" },
-    wait: { label: "Ход не у вас", hint: "следующий ход у другого контура; это ожидание, не оценка риска" },
+    wait: { label: "Ждём внешнего", hint: "следующий ход у внешней стороны; это ожидание, не оценка риска" },
     stale: { label: "Давно без движения", hint: "движения не было 7+ дней; других сигналов нет" },
     unknown: { label: "Нужна сверка", hint: "дата движения не передана — неопределённость, не авария" },
-    flow: { label: "В движении", hint: "движение за последние 7 дней" },
+    flow: { label: "Недавнее движение", hint: "дата последнего движения — менее 7 дней назад; блокеров маршрута не видно" },
     closed: { label: "Закрыт", hint: "маршрут закрыт" }
   };
 
@@ -861,7 +861,7 @@
   function routePlace(l) {
     if (!M.tu.ok) return { world: null, uline: null, text: "мир не проверен — Temporal Universe недоступен" };
     if (l.star) return { world: l.star.world, uline: l.star.line, text: "мир: " + l.star.world.title + " · линия: " + l.star.line.title };
-    return { world: null, uline: null, text: "вне Founder Universe (нет точного ID)" };
+    return { world: null, uline: null, text: "не связан с Founder Universe по точному ID" };
   }
 
   function placementOfObject(x) {
@@ -873,7 +873,7 @@
 
   function mapVisibility(memoryId) {
     if (!M.tu.ok) return { cls: "no", text: "видимость не проверена" };
-    return memoryId && M.U.starByMemory[memoryId] ? { cls: "yes", text: "звезда на Founder Map" } : { cls: "no", text: "на Founder Map не видна" };
+    return memoryId && M.U.starByMemory[memoryId] ? { cls: "yes", text: "звезда на Founder Map" } : { cls: "no", text: "точного совпадения memory_id на текущей Founder Map нет" };
   }
 
   // ------------------------------------------------------------------ Командный центр
@@ -892,8 +892,8 @@
         "<span class='cc-pulse-body'><small>" + E(label) + "</small><strong>" + E(value) + "</strong><em>" + E(detail) + "</em></span></a>";
     }
     if (!routesOk) return tile("unknown", "Маршруты", "Недоступно", "чтение маршрутов не удалось — состояние не показывается", "#diagnostics");
-    return tile("flow", "Маршруты в движении", n.flow, "операционные маршруты: движение за последние 7 дней", "#lines") +
-      tile("wait", "Маршруты: ход не у вас", n.wait, "система, агент или внешний владелец; это назначение хода, не риск", "#lines") +
+    return tile("flow", "Маршруты с недавним движением", n.flow, "дата последнего движения — менее 7 дней назад; блокеров маршрута не видно", "#lines") +
+      tile("wait", "Маршруты: ждём внешнего", n.wait, "следующий ход явно назначен внешней стороне; это ожидание, не оценка риска", "#lines") +
       tile("blocked", "Маршруты с явным блокером", blockerRoutes.length, founderBlocked ? "из них " + founderBlocked + " одновременно назначены вам" : "только blocker-факты самого маршрута", "#lines") +
       tile("stale", "Маршруты без движения", n.stale, "операционные маршруты: 7+ дней без движения, других сигналов нет", "#lines") +
       tile("unknown", "Маршруты на сверке", n.unknown, "нет даты движения — неопределённость, не авария", "#lines");
@@ -1292,7 +1292,7 @@
           if (l.downstream.length) reason.push("задерживает " + l.downstream.length);
           if (t === "unknown") reason.push("дата движения не передана");
           return "<div class='cc-attn-item'" + sel("line", l.key) + ">" + hexBadge(initials(routeDisplayTitle(l.title)), t, "xs") +
-            "<span><b>" + E(H.cut(routeDisplayTitle(l.title), 22)) + "</b><small>" + E(reason.join(" · ") || "в движении") + "</small></span></div>";
+            "<span><b>" + E(H.cut(routeDisplayTitle(l.title), 22)) + "</b><small>" + E(reason.join(" · ") || "недавнее движение; диагностических сигналов нет") + "</small></span></div>";
         }).join("") : "<div class='cc-attn-none'>ничего не ждёт вашего хода</div>") + "</div>";
     }).join("") + "<div class='cc-foot-note'>Тон — подача панели по ходу, блокерам и давности. Отсутствие движения само по себе не считается аварией. Это не канонический приоритет Оркестратора.</div></div>";
   }
@@ -2279,7 +2279,7 @@
       badge: hexBadge(initials(routeDisplayTitle(l.title)), l.tone, "lg"), title: routeDisplayTitle(l.title), sub: "Маршрут Оркестратора" + (routeDisplayTitle(l.title) !== l.title ? " · исходное название: " + l.title : "") + (l.area ? " · " + H.humanCode(l.area) : ""),
       what: para("Маршрут работы в Оркестраторе" + (l.star ? " по звезде «" + l.star.title + "» линии «" + l.star.line.title + "»." : ".") +
         (!r.ball_owner ? " Владелец хода не назначен." : " Ход: «" + ownerLabel(r.ball_owner) + "».")),
-      where: crumbs([{ t: "ICAM" }, { t: place.world ? place.world.title : (M.tu.ok ? "вне Founder Universe" : "мир не проверен") },
+      where: crumbs([{ t: "ICAM" }, { t: place.world ? place.world.title : (M.tu.ok ? "связь с Founder Universe не подтверждена" : "мир не проверен") },
         { t: place.uline ? H.cut(place.uline.title, 22) : "линия не определена" }, { t: l.objId || (l.sourceObjectId ? l.sourceObjectId + " · не связано" : "без канонического объекта"), cur: true }]) +
         (l.origin ? muted("Происхождение объекта (owning_branch): " + l.origin) : ""),
       now: "<div class='cc-insp-state st-" + l.tone + "'>" + toneDot(l.tone, routeToneLabel(l)) + "<small>" + E(routeToneHint(l)) + "</small><em>" +
@@ -2304,7 +2304,7 @@
         ceilingRow("ok", "Этап, ход и условие — из Оркестратора (observer/routes)"),
         !M.tu.ok ? ceilingRow("warn", "Мир и каноническая линия не проверены — Temporal Universe недоступен") :
           (l.star ? ceilingRow("ok", "Мир и линия — Temporal Universe, точное совпадение " + l.objId + " = memory_id") :
-            (l.objId ? ceilingRow("warn", "Нет звезды с memory_id " + l.objId + " — маршрут вне Founder Universe") : ceilingRow("info", "Founder Universe не связывается: у маршрута нет доказанного канонического object_id"))),
+            (l.objId ? ceilingRow("warn", "В текущем Temporal Universe нет звезды с memory_id " + l.objId + " — связь маршрута с Founder Universe не подтверждена") : ceilingRow("info", "Founder Universe не связывается: у маршрута нет доказанного канонического object_id"))),
         l.obj ? ceilingRow("ok", "Канонический объект " + l.objId + " подтверждён реестром Continuity") :
           (l.objMissing ? ceilingRow("warn", "Заявленный канонический объект " + l.objId + " не найден в реестре — нужна сверка") :
             (l.sourceObjectId ? ceilingRow("warn", "Источник маршрута передал ID " + l.sourceObjectId + ", но canonical_mapping_status=" + (l.mappingState || "не передан") + "; это не считается связью с объектом Continuity") : ceilingRow("info", "Маршрут не передаёт каноническую объектную связь"))),
@@ -2335,7 +2335,7 @@
     return inspector({
       badge: "<span class='cc-obj-badge pl-" + p.bucket + "'>" + E(initials(x.title)) + "</span>", title: x.title, sub: "Объект Continuity · " + x.key,
       what: para("Объект реестра Continuity со статусом «" + H.ruStatus(o.declared_status) + "»." + (x.founder ? " Помечен как требующий Основателя." : "")),
-      where: crumbs([{ t: "ICAM" }, { t: x.star ? x.star.world.title : (M.tu.ok ? "вне Founder Universe" : "мир не проверен") },
+      where: crumbs([{ t: "ICAM" }, { t: x.star ? x.star.world.title : (M.tu.ok ? "связь с Founder Universe не подтверждена" : "мир не проверен") },
         { t: x.star ? H.cut(x.star.line.title, 20) : "линия не определена" }, { t: x.key, cur: true }]) +
         (x.origin ? muted("Происхождение (owning_branch): " + x.origin + trustedNote(x.origin)) : ""),
       now: "<div class='cc-insp-state'><span class='cc-state st-flow'><i></i>" + E(H.ruStatus(o.declared_status)) + "</span><small>допуск: " + E(p.label) + "</small>" +
