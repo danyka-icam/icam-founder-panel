@@ -1434,7 +1434,9 @@
     var healthOk = sourceState.continuityHealth.ok && health;
     var hubOk = sourceState.hubHealth.ok && hub;
     var objectsOk = sourceState.objects.ok && objectsResp;
+    var objectsItemsKnown = !!(objectsOk && Array.isArray(objectsResp.items));
     var inboxOk = sourceState.inbox.ok && inbox;
+    var inboxNeedsKnown = !!(inboxOk && Array.isArray(inbox.needs_founder));
 
     function put(k, v) {
       var e = page.querySelector('[data-fnd="' + k + '"]');
@@ -1500,12 +1502,13 @@
     var approval = page.querySelector('[data-fnd="backbone-approval"]');
     if (approval) {
       if (!inboxOk) approval.innerHTML = unavailableHTML("Входящие Основателя недоступны", "Наличие или отсутствие Founder-only решений не подтверждено.");
+      else if (!inboxNeedsKnown) approval.innerHTML = unavailableHTML("Очередь решений не проверена", "Founder inbox ответил, но needs_founder[] не передан.");
       else {
-        var nf = Array.isArray(inbox.needs_founder) ? inbox.needs_founder.length : 0;
+        var nf = inbox.needs_founder.length;
         approval.innerHTML =
           "<div class='foundation-live-list'>" +
-          "<div class='foundation-live-item'><b>Решения уровня Основателя</b><span>" + esc(nf) + " в текущем inbox</span></div>" +
-          "<div class='foundation-live-item'><b>Граница доказательства</b><span>inbox подтверждает очередь решений, но не является аудитом всей A0/A1/A2 authority chain.</span></div></div>";
+          "<div class='foundation-live-item'><b>Решения уровня Основателя</b><span>" + esc(nf) + " в явном needs_founder[]</span></div>" +
+          "<div class='foundation-live-item'><b>Граница доказательства</b><span>inbox подтверждает эту очередь решений, но не является аудитом всей A0/A1/A2 authority chain.</span></div></div>";
       }
     }
 
@@ -1535,8 +1538,9 @@
     var change = page.querySelector('[data-fnd="last-change"]');
     if (change) {
       if (!objectsOk) change.innerHTML = unavailableHTML("Continuity objects недоступны", "Последнее изменение Foundation не выводится из истории чата.");
+      else if (!objectsItemsKnown) change.innerHTML = unavailableHTML("FND-001 не проверен", "Endpoint Continuity objects ответил, но items[] не передан.");
       else {
-        var fnd = asArray(objectsResp.items).find(function (o) { return String(o.object_id || "") === "FND-001"; });
+        var fnd = objectsResp.items.find(function (o) { return String(o.object_id || "") === "FND-001"; });
         if (!fnd) change.innerHTML =
           "<div class='foundation-source-summary warn'><strong>FND-001 не найден в текущей object projection</strong><p>Панель не подставляет другой объект по имени или сходству.</p></div>";
         else change.innerHTML =
