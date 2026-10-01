@@ -2096,8 +2096,8 @@
     var summary="<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Операционная проекция — "+esc(sourceStatusLabel(data.source_status))+"</strong>"+
       "<p>"+(String(data.freshness_state).toUpperCase()==="STALE"?"Проекция устарела по собственному контракту: нового движения обязательств в окне свежести не было. Это не означает, что обязательства автоматически отменены или просрочены.":"Состояние прочитано из серверной проекции.")+"</p></div>"+
       "<div class='live-summary'>"+
-      "<div class='metric'><small>Открытые обязательства</small><strong>"+esc(operationsProvided?openOps.length:"—")+"</strong><span>"+esc(operationsProvided?"из "+ops.length+" записей проекции":"operations[] не передан")+"</span></div>"+
-      "<div class='metric'><small>Владелец известен</small><strong>"+esc(operationsProvided?ownedOpen+" / "+openOps.length:"—")+"</strong><span>только среди открытых обязательств с переданным operations[]</span></div>"+
+      "<div class='metric'><small>Без явного закрывающего статуса</small><strong>"+esc(operationsProvided?openOps.length:"—")+"</strong><span>"+esc(operationsProvided?"из "+ops.length+" записей проекции":"operations[] не передан")+"</span></div>"+
+      "<div class='metric'><small>Владелец известен</small><strong>"+esc(operationsProvided?ownedOpen+" / "+openOps.length:"—")+"</strong><span>только среди записей без явного закрывающего статуса</span></div>"+
       "<div class='metric'><small>Свежесть</small><strong>"+esc(data.freshness_state?humanCode(data.freshness_state):"не передана")+"</strong><span>последнее движение "+esc(data.last_movement_at?ago(data.last_movement_at):"не передано")+"</span></div>"+
       "<div class='metric'><small>Фактический результат</small><strong>"+esc(operationsProvided?factualKnown+" / "+ops.length:"—")+"</strong><span>закрытие само по себе не считается результатом</span></div></div>"+
       "<div class='operations-proof-boundary'><b>Граница доказанного:</b> "+
@@ -2106,11 +2106,12 @@
     var rows=ordered.slice(0,6).map(function(o){
       var owner=ownerDisplay(o);
       var factual=(o.factual_result && String(o.factual_result).toUpperCase()!=="UNAVAILABLE")?projectionTextRu(o.factual_result):"не передан источником";
+      var objectBlockersKnown=Array.isArray(o.object_level_blockers), objectBlockers=objectBlockersKnown?o.object_level_blockers:[];
       return "<div class='live-item-clean'><div class='live-item-clean-head'><h3>"+esc(o.object_id||"Обязательство")+"</h3>"+chip(o.status)+"</div>"+
         "<p>"+esc(cut(operationSummaryRu(o),220))+"</p>"+
         "<div class='live-kv-grid'>"+kv("Ключ обязательства",o.commitment_key)+kv("Открыто",o.opened_at?ago(o.opened_at):"—")+kv("Последнее изменение",o.updated_at?ago(o.updated_at):"—")+kv("Владелец хода",owner)+kv("Условие активации",projectionTextRu(o.activation_condition||"не передано"))+kv("Фактический результат",factual)+"</div>"+
         (owner==="Недоступно"?"<small>Источник: "+esc(projectionTextRu(o.ball_owner_reason||"владелец хода не передан"))+"</small>":"")+
-        (asArray(o.object_level_blockers).length?"<small>У связанного объекта есть "+esc(asArray(o.object_level_blockers).length)+" открытых blocker-записей. Источник прямо запрещает считать их блокерами именно этого обязательства.</small>":"")+"</div>";
+        (objectBlockers.length?"<small>У связанного объекта есть "+esc(objectBlockers.length)+" открытых blocker-записей. Источник прямо запрещает считать их блокерами именно этого обязательства.</small>":(!objectBlockersKnown?"<small>Поле object_level_blockers[] не передано; отсутствие blocker-контекста объекта не подтверждено.</small>":""))+"</div>";
     }).join("");
     body.innerHTML=summary+"<div class='live-list-clean'>"+rows+"</div>"+(ordered.length>6?"<div class='live-more'>Сначала показаны записи без явного закрывающего статуса. Ещё "+(ordered.length-6)+" записей скрыты из обзора.</div>":"");
   }
