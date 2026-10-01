@@ -1404,7 +1404,7 @@
       if (c.INCONCLUSIVE != null) parts.push(c.INCONCLUSIVE + " без окончательного вывода");
       if (c.COMPLETED != null) parts.push(c.COMPLETED + " завершено");
       if (c.INVALIDATED != null) parts.push(c.INVALIDATED + " недействительно");
-      out.push(cell(t.ok === true ? "ok" : "warn", "#testing", "Тестирование", t.ok === true ? "сервис отвечает" : "источник сообщает сбой", parts.join(" · ") || "состояния испытаний не переданы"));
+      out.push(cell(t.ok === true ? "neutral" : "warn", "#testing", "Служба Testing", t.ok === true ? "проекция отвечает" : "источник сообщает сбой", (parts.join(" · ") || "состояния проверок не переданы") + (t.ok === true ? " · доступность сервиса не является оценкой исходов тестов" : "")));
     } else {
       out.push(cell("neutral", "#testing", "Тестирование", "нет данных", "источник не прочитан"));
     }
