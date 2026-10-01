@@ -1901,11 +1901,17 @@
     var page=document.querySelector('[data-page-panel="'+pageKey+'"]');
     if (!page) return null;
     page.classList.add("normalized-live-active");
-    pageBadge(pageKey, liveMode(sourceStatus)==="live"?"live":(liveMode(sourceStatus)==="bad"?"unavailable":"warn"), badgeText);
+    // Reaching this renderer already proves the projection was read. A semantic
+    // BLOCKED/FAIL/UNKNOWN state must not be relabeled as source unavailability.
+    pageBadge(pageKey, liveMode(sourceStatus)==="live"?"live":"warn", badgeText);
     return page.querySelector('[data-normalized-live="'+pageKey+'"] .panel-body');
   }
   function cleanFailure(pageKey,label,stateName) {
-    var body=activateNormalized(pageKey,"UNAVAILABLE","ИСТОЧНИК НЕДОСТУПЕН");
+    var page=document.querySelector('[data-page-panel="'+pageKey+'"]');
+    if (!page) return;
+    page.classList.add("normalized-live-active");
+    pageBadge(pageKey,"unavailable","ИСТОЧНИК НЕДОСТУПЕН");
+    var body=page.querySelector('[data-normalized-live="'+pageKey+'"] .panel-body');
     if (!body) return;
     body.innerHTML="<div class='live-status-box bad'><strong>"+esc(label)+" — недоступно</strong><p>Серверная проекция не ответила. Текущее состояние не подменяется старыми данными.</p></div>";
   }
@@ -1937,7 +1943,7 @@
     var body=activateNormalized("operations",data.source_status,
       "ОПЕРАЦИИ · "+humanCode(data.source_status)+" · "+humanCode(data.freshness_state));
     if(!body)return;
-    var c=data.counts||{}, ops=asArray(data.operations);
+    var c=data.counts||{}, operationsProvided=Array.isArray(data.operations), ops=operationsProvided?data.operations:[];
     var isClosedCommitment=function(o){return ["DONE","CLOSED","ARCHIVED","CANCELLED"].indexOf(String(o.status||"").toUpperCase())>=0;};
     var openOps=ops.filter(function(o){return !isClosedCommitment(o);});
     var closedOps=ops.filter(isClosedCommitment);
@@ -1947,11 +1953,13 @@
     var summary="<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Операционная проекция — "+esc(humanCode(data.source_status))+"</strong>"+
       "<p>"+(String(data.freshness_state).toUpperCase()==="STALE"?"Проекция устарела по собственному контракту: нового движения обязательств в окне свежести не было. Это не означает, что обязательства автоматически отменены или просрочены.":"Состояние прочитано из серверной проекции.")+"</p></div>"+
       "<div class='live-summary'>"+
-      "<div class='metric'><small>Открытые обязательства</small><strong>"+esc(openOps.length)+"</strong><span>из "+esc(ops.length)+" записей проекции</span></div>"+
-      "<div class='metric'><small>Владелец известен</small><strong>"+esc(ownedOpen)+" / "+esc(openOps.length)+"</strong><span>только среди открытых обязательств</span></div>"+
-      "<div class='metric'><small>Свежесть</small><strong>"+esc(humanCode(data.freshness_state))+"</strong><span>последнее движение "+esc(data.last_movement_at?ago(data.last_movement_at):"не передано")+"</span></div>"+
-      "<div class='metric'><small>Фактический результат</small><strong>"+esc(factualKnown)+" / "+esc(ops.length)+"</strong><span>закрытие само по себе не считается результатом</span></div></div>"+
-      "<div class='operations-proof-boundary'><b>Граница доказанного:</b> все "+esc(openOps.length)+" открытых обязательств сейчас не имеют владельца хода в этой проекции. Поле фактического результата также не заполнено; `closed_at` доказывает закрытие записи, но не бизнес-исход.</div>";
+      "<div class='metric'><small>Открытые обязательства</small><strong>"+esc(operationsProvided?openOps.length:"—")+"</strong><span>"+esc(operationsProvided?"из "+ops.length+" записей проекции":"operations[] не передан")+"</span></div>"+
+      "<div class='metric'><small>Владелец известен</small><strong>"+esc(operationsProvided?ownedOpen+" / "+openOps.length:"—")+"</strong><span>только среди открытых обязательств с переданным operations[]</span></div>"+
+      "<div class='metric'><small>Свежесть</small><strong>"+esc(data.freshness_state?humanCode(data.freshness_state):"не передана")+"</strong><span>последнее движение "+esc(data.last_movement_at?ago(data.last_movement_at):"не передано")+"</span></div>"+
+      "<div class='metric'><small>Фактический результат</small><strong>"+esc(operationsProvided?factualKnown+" / "+ops.length:"—")+"</strong><span>закрытие само по себе не считается результатом</span></div></div>"+
+      "<div class='operations-proof-boundary'><b>Граница доказанного:</b> "+
+        (operationsProvided?(openOps.length?(ownedOpen+" из "+openOps.length+" открытых обязательств имеют переданного владельца хода; у "+(openOps.length-ownedOpen)+" владелец в этой проекции не передан."):"Источник явно передал operations[] без открытых обязательств."):"Поле operations[] не передано; количество и владельцы открытых обязательств не подтверждены.")+" "+
+        (operationsProvided?(factualKnown+" из "+ops.length+" записей передают фактический результат; `closed_at` доказывает закрытие записи, но не бизнес-исход."):"Фактические результаты по операциям также не проверены.")+"</div>";
     var rows=ordered.slice(0,6).map(function(o){
       var owner=ownerDisplay(o);
       var factual=(o.factual_result && String(o.factual_result).toUpperCase()!=="UNAVAILABLE")?projectionTextRu(o.factual_result):"не передан источником";
