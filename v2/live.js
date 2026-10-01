@@ -1287,7 +1287,7 @@
       var founderAttentionRows = founder.slice(0, 6).map(function (x) {
         var o = x.object, p = x.projection;
         return "<div class='research-mini-item'><b>" + esc(researchObjectTitle(o)) + "</b><span>" +
-          esc(researchTextRu(p.next_move || o.last_summary || "требуется решение")) + " · " + esc(o.object_id || "ID не определён") + "</span></div>";
+          esc(researchTextRu(p.next_move || o.last_summary || "основание участия не передано")) + " · " + esc(o.object_id || "ID не определён") + "</span></div>";
       });
       formalDecisions.slice(0, Math.max(0, 6 - founderAttentionRows.length)).forEach(function (d) {
         founderAttentionRows.push("<div class='research-mini-item formal-unbound'><b>Формальное решение Основателя · без привязки к линии</b><span>" +
