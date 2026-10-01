@@ -143,11 +143,26 @@
       proofTags(v, true);
   }
 
+  function temporalTextRu(value) {
+    var raw = String(value == null ? "" : value).trim();
+    var exact = {
+      "External response / fresh status confirmation.": "Внешний ответ или новое подтверждение статуса.",
+      "Complete authorized packet not yet recognized by current Testing run: execution lock, execution script, parent artifacts, frozen source data.": "Текущий прогон Testing ещё не распознал полный разрешённый пакет: фиксацию запуска, сценарий исполнения, родительские артефакты и замороженные исходные данные.",
+      "External NIST consideration / no response required from system now.": "Идёт внешнее рассмотрение NIST; сейчас ответ или действие системы не требуется.",
+      "Operationalized mechanisms and frozen scoring/calibration rules are not complete.": "Операционализация механизмов и замороженные правила оценки/калибровки ещё не завершены.",
+      "Outcome windows not yet resolved; first gate around 2026-10-13.": "Окна исходов ещё не разрешились; первый контрольный рубеж ожидается примерно 13 октября 2026 года.",
+      "Outcome windows not yet mature.": "Окна исходов ещё не созрели для оценки.",
+      "External replies / opportunity creation.": "Внешние ответы или появление подтверждённой возможности.",
+      "External program decision/credits.": "Внешнее решение программы или начисление кредитов."
+    };
+    return exact[raw] || raw;
+  }
+
   function listItems(v) {
     if (v == null) return [];
     return (Array.isArray(v) ? v : [v]).map(function (x) {
-      if (x && typeof x === "object") return { title: x.title || pickText(x) || x.id || "—", timeClass: x.time_class || null };
-      return { title: String(x), timeClass: null };
+      if (x && typeof x === "object") return { title: temporalTextRu(x.title || pickText(x) || x.id || "—"), timeClass: x.time_class || null };
+      return { title: temporalTextRu(String(x)), timeClass: null };
     });
   }
 
