@@ -2647,7 +2647,8 @@
   }
 
   function inspectDecision(d) {
-    var r = d.raw || {}, choices = A(r.choices);
+    var r = d.raw || {}, choicesKnown = Array.isArray(r.choices), choices = choicesKnown ? r.choices : [];
+    var consequencesKnown = Array.isArray(r.verified_consequences), consequences = consequencesKnown ? r.verified_consequences : [];
     return inspector({
       badge: "<span class='cc-obj-badge strategy'>?</span>",
       title: d.title, sub: "Формальное решение Основателя · Founder Projection",
@@ -2660,11 +2661,11 @@
       next: r.what_happens_after_choice ? para(r.what_happens_after_choice) : "",
       links: choices.length ? "<small>Допустимые варианты</small><div class='cc-caps'>" + choices.map(function (c) {
         return "<span class='cc-cap'>" + E(c.label || c.canonical || scalar(c)) + "</span>";
-      }).join("") + "</div>" : muted("Варианты решения источником не переданы."),
+      }).join("") + "</div>" : muted(choicesKnown ? "Источник явно передал пустой choices[]." : "Варианты решения источником не переданы."),
       ceiling: [
         ceilingRow("ok", "Решение показано только из Founder Decision Presentation"),
         ceilingRow("info", "Панель read-only: выбор здесь не записывается"),
-        A(r.verified_consequences).length ? ceilingRow("ok", "Проверенные последствия переданы источником") : ceilingRow("info", "Проверенные последствия не переданы")
+        consequencesKnown ? ceilingRow(consequences.length ? "ok" : "info", consequences.length ? "Проверенные последствия переданы источником" : "Источник явно передал пустой verified_consequences[]") : ceilingRow("info", "Поле verified_consequences[] не передано")
       ],
       nav: "<a href='#command'>Командный центр →</a>"
     });
@@ -2695,7 +2696,7 @@
   }
 
   function inspectSystemReconciliation(it) {
-    var r = it.raw || {};
+    var r = it.raw || {}, evidenceRefsKnown = Array.isArray(r.evidence_refs), evidenceRefs = evidenceRefsKnown ? r.evidence_refs : [];
     var link = it.ul ? ulineRef(it.ul) : "";
     return inspector({
       badge: "<span class='cc-obj-badge event'>↺</span>",
@@ -2706,7 +2707,7 @@
         (it.founderAction ? para("Источник требует действия Основателя.") : (it.founderActionKnown ? para("Источник явно передал founder_action_required=false.") : para("Поле founder_action_required не передано; необходимость действия Основателя не определена."))),
       why: r.gap_class ? para("Причина: " + human(r.gap_class) + ".") : "",
       links: (link ? refsBlock("Каноническая линия", link) : muted("Предмет не совпадает точно с названием канонической линии.")) +
-        (A(r.evidence_refs).length ? "<small>Доказательные ссылки</small><div class='cc-caps'>" + A(r.evidence_refs).map(function (x) { return "<span class='cc-cap'>" + E(x) + "</span>"; }).join("") + "</div>" : ""),
+        (evidenceRefs.length ? "<small>Доказательные ссылки</small><div class='cc-caps'>" + evidenceRefs.map(function (x) { return "<span class='cc-cap'>" + E(x) + "</span>"; }).join("") + "</div>" : muted(evidenceRefsKnown ? "Источник явно передал пустой evidence_refs[]." : "Поле evidence_refs[] не передано.")),
       ceiling: [ceilingRow("ok", "Источник — Steward Reconciliation"), ceilingRow("info", "Панель не повышает системный разрыв до Founder-задачи")],
       nav: "<a href='#command'>Командный центр →</a>"
     });
