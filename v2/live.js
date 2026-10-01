@@ -418,9 +418,11 @@
     }
 
     if (sourceState.inbox.ok) {
-      var needs = inbox && Array.isArray(inbox.needs_founder) ? inbox.needs_founder : [];
-      var declared = inbox && inbox.summary && inbox.summary.needs_founder != null ? inbox.summary.needs_founder : needs.length;
-      setHomeKPI("Внимание Основателя", String(declared), "реальные элементы Founder inbox");
+      var needsKnown = !!(inbox && Array.isArray(inbox.needs_founder));
+      var needs = needsKnown ? inbox.needs_founder : [];
+      var summaryKnown = !!(inbox && inbox.summary && inbox.summary.needs_founder != null);
+      var declared = summaryKnown ? inbox.summary.needs_founder : (needsKnown ? needs.length : null);
+      setHomeKPI("Внимание Основателя", declared == null ? "—" : String(declared), summaryKnown ? "счётчик inbox.summary.needs_founder" : (needsKnown ? "по явному needs_founder[]" : "счётчик и needs_founder[] не переданы"));
     } else {
       setHomeKPI("Внимание Основателя", "Недоступно", "Founder inbox не подтвердил текущее состояние");
     }
@@ -710,9 +712,9 @@
         var info = riskInfo(r, depModel);
         return "<div class='home-live-item'><b>" + esc(cut(routeName(r), 40)) + " — " +
           esc(cut(r.next_move || r.title || "следующий ход не передан", 80)) + "</b>" +
-          "<small>ход у: " + esc(r.ball_owner || "не назначен") +
+          "<small>ход у: " + esc(r.ball_owner == null || r.ball_owner === "" ? "поле не передано" : r.ball_owner) +
           " · " + esc(info.stale == null ? "движение без даты" : "движение " + ago(r.last_movement_at)) +
-          (info.blockers ? " · блокеров " + info.blockers : "") +
+          (info.blockers ? " · блокеров " + info.blockers : (!info.blockersKnown ? " · blocker-поле не передано" : "")) +
           "</small></div>";
       }).join("") +
       "</div><div class='source-note'>Порядок строк получен из Оркестратора; Панель не создаёт свой рейтинг.</div>";
@@ -721,9 +723,14 @@
   function renderHomeNeeds(inbox) {
     var body = document.querySelector('[data-page-panel="home"] .home-panel.need .body');
     if (!body) return;
-    var items = inbox && Array.isArray(inbox.needs_founder) ? inbox.needs_founder : [];
+    var itemsKnown = !!(inbox && Array.isArray(inbox.needs_founder));
+    var items = itemsKnown ? inbox.needs_founder : [];
+    if (!itemsKnown) {
+      body.innerHTML = unavailableHTML("Запросы к Основателю не проверены", "Founder inbox прочитан, но поле needs_founder[] не передано.");
+      return;
+    }
     if (!items.length) {
-      body.innerHTML = "<div class='live-empty'>Сейчас нет решений, которые источник помечает как требующие Основателя.</div>";
+      body.innerHTML = "<div class='live-empty'>Источник явно передал пустой needs_founder[].</div>";
       return;
     }
     body.innerHTML = "<div class='home-live-list'>" +
