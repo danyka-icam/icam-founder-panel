@@ -1754,7 +1754,7 @@
       if (!objectsOk && !blockersOk && !inboxOk) {
         hero.innerHTML = unavailableHTML("Внутренние источники сигналов недоступны", "Панель не сохраняет старую ленту как текущую.");
       } else if (!heroRows.length) {
-        hero.innerHTML = "<div class='signals-empty hero'><strong>Сейчас нет подтверждённых внутренних сигналов</strong><p>Это не означает, что внешний рынок спокоен: Market Scanner ещё не подключён.</p></div>";
+        hero.innerHTML = "<div class='signals-empty hero'><strong>По текущим внутренним источникам сигналов для этого блока нет</strong><p>Это ничего не говорит о состоянии внешнего рынка. Внешнее наблюдение и текущее покрытие Scanner показываются отдельно ниже.</p></div>";
       } else {
         hero.innerHTML = "<div class='signals-live-list'>" + heroRows.join("") + "</div>" +
           "<div class='signals-partial-note'>Между типами сигналов Панель не строит собственный рейтинг. OPEN-запись блокера не повышается до критического риска без оценки источника. Внешнее наблюдение показано отдельно ниже.</div>";
