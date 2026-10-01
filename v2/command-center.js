@@ -358,6 +358,7 @@
     if (l.r.ball_owner && H.isFounderOwner(l.r.ball_owner) && (routeBlockers || l.state !== "flow")) return "act";
     if (routeBlockers) return "blocked";
     if (l.waiting) return "wait";
+    if (!l.risk.blockersKnown) return "unknown";
     if (l.risk.stale == null) return "unknown";
     if (l.risk.stale >= H.STALE_DAYS) return "stale";
     return "flow";
@@ -1143,7 +1144,7 @@
       "<div class='cc-line-id'><b>" + E(H.cut(routeDisplayTitle(l.title), 40)) + "</b><small>" + E(where) + "</small></div>" +
       "<div class='cc-line-state'>" + toneDot(l.tone, routeToneLabel(l)) + "<em>" + E(H.cut(human(r.stage || r.status || "этап не передан"), 42)) + "</em></div>" +
       "<div class='cc-line-block' title='явные blocker-факты самого маршрута; записи объекта считаются отдельно'><small>Блокеры маршрута</small>" +
-      (blockersN ? "<span class='cc-count risk'>" + blockersN + "</span>" : "<span class='cc-count ok'>0</span>") + "</div></div>" +
+      (blockersN == null ? "<span class='cc-count'>—</span>" : (blockersN ? "<span class='cc-count risk'>" + blockersN + "</span>" : "<span class='cc-count ok'>0</span>")) + "</div></div>" +
       "<div class='cc-line-cells'>" +
       "<div class='cc-line-col next'><small>Следующий переход</small><span title='" + E(l.next || "") + "'>" + E(H.cut(humanActionText(l.next || "не передан источником"), 90)) + "</span></div>" +
       "<div class='cc-line-col'><small>Ход у</small><span>" + E(ownerLabel(r.ball_owner)) + (l.waiting ? " <em class='wait'>· ждём</em>" : "") + "</span></div>" +

@@ -224,9 +224,12 @@
 
   function blockerCount(r) {
     if (Array.isArray(r.blockers)) return r.blockers.length;
-    if (typeof r.blockers === "number") return r.blockers;
-    if (r.blocker_count != null) return Number(r.blocker_count) || 0;
-    return 0;
+    if (typeof r.blockers === "number") return isFinite(r.blockers) ? r.blockers : null;
+    if (r.blocker_count != null) {
+      var n = Number(r.blocker_count);
+      return isFinite(n) ? n : null;
+    }
+    return null;
   }
 
   function metricValue(metrics, key) {
@@ -297,20 +300,24 @@
   function riskInfo(r, depModel) {
     var stale = daysSince(r.last_movement_at);
     var blockers = blockerCount(r);
+    var blockersKnown = blockers != null;
     var downstream = depModel.downstream[routeKey(r)] || 0;
     var level = "stable";
 
     if ((stale != null && stale >= CRITICAL_DAYS) ||
         (stale != null && stale >= STALE_DAYS && downstream > 0) ||
-        blockers >= 2) {
+        (blockersKnown && blockers >= 2)) {
       level = "critical";
-    } else if ((stale != null && stale >= STALE_DAYS) || blockers > 0) {
+    } else if ((stale != null && stale >= STALE_DAYS) || (blockersKnown && blockers > 0)) {
       level = "return";
+    } else if (!blockersKnown) {
+      level = "unknown";
     }
 
     return {
       stale: stale,
       blockers: blockers,
+      blockersKnown: blockersKnown,
       downstream: downstream,
       level: level
     };
@@ -508,6 +515,8 @@
     }
     if (risk.blockers) {
       badges.push("<span class='live-badge hot'>блокеров " + risk.blockers + "</span>");
+    } else if (!risk.blockersKnown) {
+      badges.push("<span class='live-badge warn'>blocker-поле не передано</span>");
     }
     if (risk.downstream) {
       badges.push("<span class='live-badge hot'>задерживает " + risk.downstream + " зависим.</span>");
@@ -515,10 +524,10 @@
 
     return "<div class='" + classes.join(" ") + "'>" +
       "<div class='live-route-head'><b>" + esc(cut(routeName(r), 48)) + "</b>" +
-      "<span class='state " + (risk.level === "critical" ? "warn" : "live") + "'>" +
+      "<span class='state " + (risk.level === "stable" ? "live" : "warn") + "'>" +
       esc(r.stage || r.status || "этап не передан") + "</span></div>" +
       "<div class='live-route-next'>" + esc(cut(r.next_move || r.title || "Следующий ход не передан", 120)) + "</div>" +
-      "<div class='live-route-meta'>ход у: " + esc(r.ball_owner || "не назначен") +
+      "<div class='live-route-meta'>ход у: " + esc(r.ball_owner == null || r.ball_owner === "" ? "поле не передано" : r.ball_owner) +
       " · пересмотр: " + esc(cut(r.review_condition || "—", 55)) +
       " · движение: " + esc(ago(r.last_movement_at)) + "</div>" +
       (badges.length ? "<div class='live-badges'>" + badges.join("") + "</div>" : "") +
@@ -615,12 +624,13 @@
       }).join("") +
       "</div>";
 
-    var critical = [], returning = [], stable = [];
+    var critical = [], returning = [], stable = [], unknown = [];
     active.forEach(function (r) {
       var info = riskInfo(r, depModel);
       var item = { r: r, info: info };
       if (info.level === "critical") critical.push(item);
       else if (info.level === "return") returning.push(item);
+      else if (info.level === "unknown") unknown.push(item);
       else stable.push(item);
     });
 
@@ -630,9 +640,10 @@
         var reason = [];
         if (x.info.stale != null && x.info.stale >= STALE_DAYS) reason.push("без движения " + x.info.stale + " дн.");
         if (x.info.blockers) reason.push("блокеров " + x.info.blockers);
+        if (!x.info.blockersKnown) reason.push("blocker-поле не передано");
         if (x.info.downstream) reason.push("задерживает " + x.info.downstream);
         return "<div class='attention " + cls + "'><span>" + (i === 0 ? label : "") + "</span><b>" +
-          esc(cut(routeName(x.r), 34)) + "</b><small>" + esc(reason.join(" · ") || "диагностических признаков нет") + "</small></div>";
+          esc(cut(routeName(x.r), 34)) + "</b><small>" + esc(reason.join(" · ") || "явных диагностических признаков нет") + "</small></div>";
       }).join("");
     }
 
@@ -641,7 +652,8 @@
       "<div class='attention-note'>Визуальная диагностика панели по давности/блокерам. Это не канонический приоритет Оркестратора.</div>" +
       attentionRows(critical, "critical", "Критично") +
       attentionRows(returning, "return", "Вернуться") +
-      attentionRows(stable, "stable", "Без сигнала");
+      attentionRows(unknown, "unknown", "Не проверено") +
+      attentionRows(stable, "stable", "Без явного сигнала");
 
     if (!depModel.edges.length) {
       graph.innerHTML =
