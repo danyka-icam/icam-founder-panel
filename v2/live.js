@@ -516,7 +516,7 @@
     return "<div class='" + classes.join(" ") + "'>" +
       "<div class='live-route-head'><b>" + esc(cut(routeName(r), 48)) + "</b>" +
       "<span class='state " + (risk.level === "critical" ? "warn" : "live") + "'>" +
-      esc(r.stage || r.status || "активен") + "</span></div>" +
+      esc(r.stage || r.status || "этап не передан") + "</span></div>" +
       "<div class='live-route-next'>" + esc(cut(r.next_move || r.title || "Следующий ход не передан", 120)) + "</div>" +
       "<div class='live-route-meta'>ход у: " + esc(r.ball_owner || "не назначен") +
       " · пересмотр: " + esc(cut(r.review_condition || "—", 55)) +
@@ -632,7 +632,7 @@
         if (x.info.blockers) reason.push("блокеров " + x.info.blockers);
         if (x.info.downstream) reason.push("задерживает " + x.info.downstream);
         return "<div class='attention " + cls + "'><span>" + (i === 0 ? label : "") + "</span><b>" +
-          esc(cut(routeName(x.r), 34)) + "</b><small>" + esc(reason.join(" · ") || "движется") + "</small></div>";
+          esc(cut(routeName(x.r), 34)) + "</b><small>" + esc(reason.join(" · ") || "диагностических признаков нет") + "</small></div>";
       }).join("");
     }
 
@@ -641,7 +641,7 @@
       "<div class='attention-note'>Визуальная диагностика панели по давности/блокерам. Это не канонический приоритет Оркестратора.</div>" +
       attentionRows(critical, "critical", "Критично") +
       attentionRows(returning, "return", "Вернуться") +
-      attentionRows(stable, "stable", "Стабильно");
+      attentionRows(stable, "stable", "Без сигнала");
 
     if (!depModel.edges.length) {
       graph.innerHTML =
