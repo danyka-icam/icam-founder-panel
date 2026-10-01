@@ -1238,9 +1238,11 @@
       if (founderNote) founderNote.textContent = founder.length + " привязано к исследовательской линии" +
         (formalDecisions.length ? " · " + formalDecisions.length + " формальное решение без привязки к объекту" : "");
       var waiting = lines.filter(function (x) {
-        var st = String(x.object.declared_status || x.projection.status || "").toUpperCase();
+        var declared = String(x.object.declared_status || "").toUpperCase();
+        var projected = String(x.projection.status || "").toUpperCase();
         var owner = String(x.projection.owner || "").toUpperCase();
-        return /PARKED|PREPARING/.test(st) || /EXTERNAL|CONDITION/.test(owner);
+        // Waiting is source-stated, not inferred from PREPARING/active design.
+        return /PARKED|WAITING|AWAITING/.test(declared) || /PARKED|WAITING|AWAITING/.test(projected) || /EXTERNAL/.test(owner);
       });
       // Missing semantic_freshness is a freshness-observability gap, not identity debt.
       var noSemanticFreshness = lines.filter(function (x) { return !x.projection.semantic_freshness; });
@@ -1290,7 +1292,7 @@
         var o = x.object, p = x.projection;
         return "<div class='research-mini-item'><b>" + esc(researchObjectTitle(o)) + "</b><span>" +
           "ждём: " + esc(researchTextRu(p.next_gate || p.next_move || "условие не описано")) + " · ход: " + esc(researchTextRu(p.owner || "не назначен")) + "</span></div>";
-      }), "Линий в ожидании не найдено", "Нет PARKED/PREPARING или явного EXTERNAL/CONDITION owner.");
+      }), "Линий в ожидании не найдено", "Нет явного PARKED / WAITING / AWAITING или внешнего владельца хода.");
 
       var MATERIAL = ["GATE_RESULT", "DECISION", "STATUS_CHANGE", "STAGE_CHANGE", "TEST_RESULT", "EXTERNAL_EVENT"];
       var material = lines.filter(function (x) {
