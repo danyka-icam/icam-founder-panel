@@ -1420,11 +1420,11 @@
     var out = [];
     if (f) {
       var fs = f.source_status || "состояние не передано";
-      var fsLabel = upper(fs) === "DEGRADED" ? "частично нарушено" : (upper(fs) === "READY" ? "готово" : (upper(fs) === "OK" ? "в норме" : H.humanCode(fs)));
+      var fsLabel = f.source_status ? ("источник: " + upper(f.source_status)) : "состояние не передано";
       var failDurability = A(f.dimensions).filter(function (x) { return x && x.dimension === "artifact_durability_readback" && upper(x.state) === "FAIL"; })[0] || null;
-      var orphanCount = failDurability && failDurability.detail ? Number(failDurability.detail.orphan_receipts || 0) : 0;
-      var fn = orphanCount ? (orphanCount + " осиротевшая расписка хранения: STORED без объекта на диске") :
-        (upper(fs) === "DEGRADED" ? "подробная причина — в Фундаменте" : (f.freshness_state ? "данные: " + H.humanCode(f.freshness_state) : "подробности в Фундаменте"));
+      var orphanCount = failDurability && failDurability.detail && failDurability.detail.orphan_receipts != null ? Number(failDurability.detail.orphan_receipts) : null;
+      var fn = orphanCount != null && orphanCount > 0 ? (orphanCount + " осиротевшая расписка хранения: STORED без объекта на диске") :
+        (orphanCount === 0 ? "источник явно передал 0 осиротевших расписок" : (upper(fs) === "DEGRADED" ? "подробная причина — в Фундаменте" : (f.freshness_state ? "данные: " + H.humanCode(f.freshness_state) : "подробности в Фундаменте")));
       out.push(cell(upper(fs) === "DEGRADED" ? "warn" : (upper(fs) === "READY" || upper(fs) === "OK" ? "ok" : "neutral"), "#foundation", "Основание", fsLabel, fn));
     } else {
       out.push(cell("neutral", "#foundation", "Основание", "нет данных", "источник не прочитан"));

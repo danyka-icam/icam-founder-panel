@@ -2049,7 +2049,7 @@
       "<p>"+(blockingProvided?(blocking.length?"Есть подтверждённый блокирующий дефект. Зелёный READY не показывается.":"Источник явно передал пустой blocking_reasons[]. Готовность определяется агрегированным source_status, а не этим нулём отдельно."):"Поле blocking_reasons не передано; отсутствие блокирующих причин не подтверждено.")+"</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Общий статус</small><strong>"+esc(humanCode(data.source_status))+"</strong><span>серверная агрегированная проекция — единственный источник готовности</span></div>"+
-      "<div class='metric'><small>Свежесть</small><strong>"+esc(humanCode(data.freshness_state))+"</strong><span>последний успешный срез</span></div>"+
+      "<div class='metric'><small>Свежесть</small><strong>"+esc(data.freshness_state?humanCode(data.freshness_state):"не передана")+"</strong><span>поле freshness_state серверной проекции</span></div>"+
       "<div class='metric'><small>PASS</small><strong>"+esc(passBase.length?passCount+" / "+passBase.length:"—")+"</strong><span>"+esc(mandatoryKnown?"обязательные измерения":"переданные dimensions; mandatory не полностью указан")+"</span></div>"+
       "<div class='metric'><small>Блокирующие причины</small><strong>"+esc(blockingProvided?blocking.length:"—")+"</strong><span>"+esc(blockingProvided?"по явному blocking_reasons[]":"поле не передано")+"</span></div></div>"+
       (blocking.length?"<div class='live-warning'>"+blocking.map(function(x){return esc(projectionTextRu(x));}).join("<br>")+"</div>":"")+
@@ -2132,14 +2132,11 @@
     if (!sourceState.twinState.ok || !data) return cleanFailure("digital-twin","DT","twinState");
     var status = data.source_status;
     if (status === "OFFLINE" || status === "UNAVAILABLE") {
-      // liveMode() doesn't classify OFFLINE as "bad" -- force it explicitly
-      // rather than let an unrecognized status fall through to the "warn"
-      // default, which would visually understate a fully unreachable Twin.
-      var failBody = activateNormalized("digital-twin", "UNAVAILABLE", "DT · " + esc(status));
+      var failBody = activateNormalized("digital-twin", status, "DT · " + esc(status));
       if (!failBody) return;
       failBody.innerHTML =
-        "<div class='live-status-box bad'><strong>Personal Twin — " + esc(status) + "</strong>" +
-        "<p>" + esc(data.degraded_reason || "Twin-процесс не ответил.") + "</p></div>";
+        "<div class='live-status-box bad'><strong>Personal Twin — источник сообщает " + esc(status) + "</strong>" +
+        "<p>" + esc(data.degraded_reason || "Причина этого статуса источником не передана; успешное чтение проекции не доказывает доступность вычислительного процесса.") + "</p></div>";
       return;
     }
 
@@ -2148,7 +2145,7 @@
 
     var po = data.program_object || {};
     var inv = data.safety_invariants_status || {};
-    var predLabel = TWIN_PREDICTION_LABELS[data.current_prediction] || "Недоступно";
+    var predLabel = data.current_prediction == null ? "статус прогноза не передан" : (TWIN_PREDICTION_LABELS[data.current_prediction] || "безопасная метка для этого кода не определена");
     var needsConf = data.needs_confirmation == null ? null : Number(data.needs_confirmation);
     var scoredN = data.prospective_scored_n == null ? null : Number(data.prospective_scored_n);
     var invNames = {
@@ -2183,7 +2180,8 @@
       "<div class='metric'><small>Режим</small><strong>" + esc(modeLabel) + "</strong><span>режим выполнения, не оценка качества прогноза</span></div>" +
       "<div class='metric'><small>Активных клонов</small><strong>" + esc(data.clones_active != null ? data.clones_active : "—") + "</strong><span>вычислительные варианты C0–C7</span></div>" +
       "<div class='metric'><small>Оценено проспективных прогнозов</small><strong>" + esc(data.prospective_scored_n != null ? data.prospective_scored_n : "—") + "</strong><span>исходы, по которым уже можно измерять качество</span></div></div>" +
-      "<div class='twin-proof-boundary'><b>Граница доказанного:</b> состояние LIVE/OK подтверждает доступность вычислительного контура, но не точность прогноза. " +
+      "<div class='twin-proof-boundary'><b>Граница доказанного:</b> текущий source_status — " + esc(status || "не передан") + ". " +
+        ((String(status || "").toUpperCase() === "LIVE" || String(status || "").toUpperCase() === "OK") ? "Источник этим статусом сообщает доступность вычислительного контура; это не доказывает точность прогноза. " : "Панель не повышает этот статус до утверждения о доступности или точности вычислительного контура. ") +
         (scoredN == null ? "Число оценённых проспективных исходов источником не передано — вывод о предсказательной способности не делается." :
           (scoredN === 0 ? "Пока оценено 0 проспективных исходов — предсказательная способность и лучший клон не определены." : "Оценённые исходы существуют, но их качество должно читаться из отдельной доказательной проекции.")) + "</div>" +
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Текущее состояние прогноза</h3>" + chip(data.current_prediction || "—") + "</div>" +
@@ -2204,10 +2202,12 @@
 
   function HumanFoundationStatus(value) {
     var s = String(value || "").toUpperCase();
-    if (s === "DEGRADED") return "частично ограничено";
-    if (s === "READY" || s === "OK") return "готово";
-    if (s === "UNAVAILABLE") return "недоступно";
-    return humanCode(value || "не передано");
+    if (!s) return "не передано";
+    if (s === "DEGRADED") return "источник сообщает DEGRADED";
+    if (s === "READY") return "источник сообщает READY";
+    if (s === "OK") return "источник сообщает OK";
+    if (s === "UNAVAILABLE") return "источник сообщает UNAVAILABLE";
+    return humanCode(value);
   }
 
   function renderDiagnostics(foundationAgg, scannerDiagnostics, hubHealth) {
