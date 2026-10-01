@@ -948,7 +948,8 @@
       pageBadge("documents", "unavailable", "ИСТОЧНИК НЕДОСТУПЕН");
       return;
     }
-    var rq = health.review_queue || {};
+    var reviewQueueKnown = !!(health.review_queue && typeof health.review_queue === "object" && !Array.isArray(health.review_queue));
+    var rq = reviewQueueKnown ? health.review_queue : {};
     var vals = {
       durable: health.objects_on_disk == null ? "—" : health.objects_on_disk,
       review: rq.manual_review_required == null ? "—" : rq.manual_review_required,
@@ -983,9 +984,13 @@
       var canonicalActive = countOrNull(rq.canonical_review_active);
       var historical = countOrNull(rq.historical_testing_review);
       var unknown = countOrNull(rq.unknown_classification);
-      var tests = allTests(testingSummary);
+      var testingAvailable = !!(sourceState.testingSummary.ok && testingSummary);
+      var testingState = testCollectionState(testingSummary);
+      var testingComplete = testingAvailable && testingState.activeKnown && testingState.recentKnown;
+      var tests = testingAvailable ? allTests(testingSummary) : [];
       var adjudication = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "NEEDS_ADJUDICATION"; });
-      var rows = asArray(health.review_rows);
+      var reviewRowsKnown = Array.isArray(health.review_rows);
+      var rows = reviewRowsKnown ? health.review_rows : [];
       var matched = null, matchedTest = null;
       for (var ai = 0; ai < adjudication.length && !matched; ai++) {
         var tid = String(adjudication[ai].test_id || "");
@@ -1000,7 +1005,7 @@
         (authority ? humanCode(authority) : "состояние полномочий не передано");
       evidenceBox.innerHTML =
         "<div class='doc-integrity-boundary'><b>Граница сохранности:</b><span>Hub сообщает " + esc(health.objects_on_disk == null ? "—" : health.objects_on_disk) + " объектов на диске, из них индексировано " + esc(health.indexed_ok == null ? "—" : health.indexed_ok) + ", не индексировано " + esc(health.unindexed == null ? "—" : health.unindexed) + ". Осиротевших расписок: " + esc(health.orphan_receipts == null ? "—" : health.orphan_receipts) + "; расхождений хэшей: " + esc(health.hash_mismatches == null ? "—" : health.hash_mismatches) + ". Наличие файла на диске не повышается до доказанного полного readback.</span></div>" +
-        "<div class='doc-evidence-head'><div><small>КЛАССИФИКАЦИЯ НЕРАЗОБРАННОГО КОНТУРА</small><b>" + esc(roleTotal != null ? roleTotal : (rq.still_unreviewed == null ? "—" : rq.still_unreviewed)) + " артефактов распределены по роли</b></div><span>ручного разбора сейчас: <strong>" + esc(shownCount(manual)) + "</strong></span></div>" +
+        "<div class='doc-evidence-head'><div><small>КЛАССИФИКАЦИЯ НЕРАЗОБРАННОГО КОНТУРА</small><b>" + esc(roleTotal != null ? roleTotal + " артефактов распределены по переданным ролям" : (rq.still_unreviewed != null ? rq.still_unreviewed + " остаются неразобранными; полный role-breakdown не передан" : "разбивка по ролям не передана")) + "</b></div><span>ручного разбора сейчас: <strong>" + esc(shownCount(manual)) + "</strong></span></div>" +
         "<div class='doc-role-grid'>" +
           "<div class='operational'><small>Операционные свидетельства</small><b>" + esc(shownCount(op)) + "</b><span>рабочий след; сам по себе не меняет канон</span></div>" +
           "<div class='working'><small>Рабочие ссылки</small><b>" + esc(shownCount(work)) + "</b><span>справочный материал</span></div>" +
@@ -1010,21 +1015,34 @@
         (matched && matchedTest ?
           "<div class='doc-test-link'><div><small>ТОЧНАЯ СВЯЗЬ С ТЕКУЩЕЙ ПРОВЕРКОЙ</small><b>" + esc(matchedTest.test_id || "—") + "</b><span>Testing: " + esc(ruStatus(matchedTest.status)) + " · Hub: канонический разбор · ревизия " + esc(matched.revision != null ? matched.revision : "—") + "</span></div>" +
           "<div class='doc-test-state'><strong>" + esc(authorityRu) + "</strong><span>связь установлена только по точному test_id; доказательства прогона не приравниваются к принятию научного вывода</span></div></div>" :
-          "<div class='doc-test-link calm'><div><small>СВЯЗЬ С ТЕКУЩЕЙ ПРОВЕРКОЙ</small><b>Нет точного совпадения test_id</b><span>Панель не связывает артефакты с тестом по названию или похожему тексту.</span></div></div>") +
+          ((reviewRowsKnown && testingComplete) ?
+            "<div class='doc-test-link calm'><div><small>СВЯЗЬ С ТЕКУЩЕЙ ПРОВЕРКОЙ</small><b>Точного совпадения test_id в текущих полных наборах не найдено</b><span>Панель не связывает артефакты с тестом по названию или похожему тексту.</span></div></div>" :
+            "<div class='doc-test-link calm'><div><small>СВЯЗЬ С ТЕКУЩЕЙ ПРОВЕРКОЙ</small><b>Полнота сверки не подтверждена</b><span>" + esc(!reviewRowsKnown ? "review_rows не передан Hub." : "Testing active[] или recent[] не передан; отсутствие совпадения не доказано.") + "</span></div></div>")) +
         "<div class='doc-evidence-rule'>Ручная очередь = активный канонический разбор + неизвестная классификация. Исторические тестовые разборы не возвращаются в активную очередь автоматически.</div>";
     }
     var q = page.querySelector('[data-d="queue"]');
     if (q) {
-      var rows = asArray(rq.oldest_5);
-      q.innerHTML = rows.length ? rows.map(function (r) {
-        var ageMin = r.received_at ? Math.max(0, Math.round((Date.now() - new Date(r.received_at).getTime()) / 60000)) : null;
-        return "<div class='document-live-row'><b>" + esc(r.packet_file || "(событие без файла)") + "</b>" +
-          "<span>" + esc(r.claimed_object_id || "не привязан") + "</span>" +
-          "<span>" + esc(r.artifact_class === "CANONICAL_REVIEW" ? "канонический разбор" : (r.artifact_class === "UNKNOWN" ? "не классифицировано" : humanCode(r.artifact_class || "UNKNOWN"))) +
-          (r.classification_reason ? "<small title='" + esc(r.classification_reason) + "'>" + esc(r.classification_reason === "not yet classified" ? "роль ещё не определена" : (r.classification_reason.indexOf("no explicit canonical/operational/working signal") === 0 ? "нет явного сигнала роли" : humanCode(r.classification_reason))) + "</small>" : "") +
-          "</span><small>" + esc(ageMinutesLabel(ageMin)) + "</small></div>";
-      }).join("") :
-      "<div class='documents-empty compact'><strong>Ручного разбора сейчас нет</strong><span>Источник Hub ответил пустой очередью.</span></div>";
+      var oldestKnown = reviewQueueKnown && Array.isArray(rq.oldest_5);
+      var rows = oldestKnown ? rq.oldest_5 : [];
+      var manualQueueCount = rq.manual_review_required == null ? null : Number(rq.manual_review_required);
+      if (rows.length) {
+        q.innerHTML = rows.map(function (r) {
+          var ageMin = r.received_at ? Math.max(0, Math.round((Date.now() - new Date(r.received_at).getTime()) / 60000)) : null;
+          return "<div class='document-live-row'><b>" + esc(r.packet_file || "(событие без файла)") + "</b>" +
+            "<span>" + esc(r.claimed_object_id || "не привязан") + "</span>" +
+            "<span>" + esc(r.artifact_class === "CANONICAL_REVIEW" ? "канонический разбор" : (r.artifact_class === "UNKNOWN" ? "не классифицировано" : humanCode(r.artifact_class || "UNKNOWN"))) +
+            (r.classification_reason ? "<small title='" + esc(r.classification_reason) + "'>" + esc(r.classification_reason === "not yet classified" ? "роль ещё не определена" : (r.classification_reason.indexOf("no explicit canonical/operational/working signal") === 0 ? "нет явного сигнала роли" : humanCode(r.classification_reason))) + "</small>" : "") +
+            "</span><small>" + esc(ageMinutesLabel(ageMin)) + "</small></div>";
+        }).join("");
+      } else if (!reviewQueueKnown) {
+        q.innerHTML = unavailableHTML("Очередь ручного разбора не проверена", "Поле review_queue в Hub не передано.");
+      } else if (!oldestKnown) {
+        q.innerHTML = unavailableHTML("Детали очереди не переданы", "review_queue прочитан, но oldest_5 отсутствует; нулевую очередь Панель не выводит.");
+      } else if (manualQueueCount === 0) {
+        q.innerHTML = "<div class='documents-empty compact'><strong>Ручная очередь равна 0 по источнику</strong><span>Hub явно передал manual_review_required=0 и пустой oldest_5[].</span></div>";
+      } else {
+        q.innerHTML = "<div class='documents-empty compact'><strong>oldest_5[] пуст, но общий ноль не подтверждён</strong><span>Счётчик manual_review_required не равен явному нулю или не передан.</span></div>";
+      }
     }
     var oldestCard = page.querySelector('[data-d="oldest"]');
     if (oldestCard) {
