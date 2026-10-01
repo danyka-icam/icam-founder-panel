@@ -549,7 +549,9 @@
     );
 
     var waiting = active.filter(function (r) {
-      return r.ball_owner && !isFounderOwner(r.ball_owner);
+      // Waiting is an explicit external-owner state. SYSTEM / AGENT mean
+      // the move is assigned elsewhere, not that the route is waiting.
+      return /^EXTERNAL$/i.test(String(r.ball_owner || "").trim());
     });
     renderRoutePanel(
       '[data-page-panel="orchestrator"] .waiting .panel-body',

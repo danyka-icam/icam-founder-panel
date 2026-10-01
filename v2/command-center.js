@@ -706,7 +706,7 @@
         obj: obj, objMissing: !!(objId && !obj),
         risk: risk, closed: closed, state: state, rd1: rd1, area: area, star: star,
         origin: obj ? (obj.owning_branch || obj.owner || null) : null,
-        waiting: !closed && !!r.ball_owner && !/^(NONE|UNAVAILABLE)$/i.test(String(r.ball_owner)) && !H.isFounderOwner(r.ball_owner),
+        waiting: !closed && /^EXTERNAL$/i.test(String(r.ball_owner || "").trim()),
         next: r.next_move || (rd1 && (rd1.next_gate || rd1.next_move)) || null,
         nextSource: r.next_move ? "Оркестратор · next_move" : (rd1 && rd1.next_gate ? "RD1 · next_gate" : (rd1 && rd1.next_move ? "RD1 · next_move" : null)),
         upstream: [], downstream: [], bridges: [],
