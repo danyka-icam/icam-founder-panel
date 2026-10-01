@@ -3647,7 +3647,7 @@
 <div class="panel-head">
 <div class="head-title">
 <h2>ИСПОЛНИТЕЛЬ ТЕСТОВ</h2>
-<small>готова ли инфраструктура выполнить следующую проверку</small>
+<small>отвечает ли локальный раннер и какая конфигурация ему доступна</small>
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
@@ -3656,9 +3656,9 @@
 <span class="runner-orb"></span>
 <div><small>Состояние</small><strong data-t="runner-state">—</strong><em data-t="runner-note">источник не подключён</em></div>
 </div>
-<div class="runner-kv"><span>Доступные провайдеры</span><b data-t="runner-providers">—</b></div>
+<div class="runner-kv"><span>Сконфигурировано провайдеров</span><b data-t="runner-providers">—</b></div>
 <div class="runner-kv"><span>Последняя проверка здоровья</span><b data-t="runner-health-at">—</b></div>
-<p class="testing-note">Список провайдеров не должен быть зашит в интерфейсе: он читается из реального состояния раннера.</p>
+<p class="testing-note">Количество читается из конфигурации раннера. Это не проверка фактической доступности внешних провайдеров.</p>
 </div>
 </article>
 </section>
@@ -3672,8 +3672,8 @@
 <section class="card testing-queue-card">
 <div class="panel-head">
 <div class="head-title">
-<h2>ТЕКУЩИЕ ПРОГОНЫ</h2>
-<small>запрос → исполнение → результат → разбор → при необходимости повтор</small>
+<h2>СОСТОЯНИЯ ПРОВЕРОК</h2>
+<small>запрос → исполнение → результат → разбор → при необходимости повтор; строки не означают одновременное исполнение</small>
 </div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>

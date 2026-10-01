@@ -1138,8 +1138,8 @@
       var names = Array.isArray(runner.providers)
         ? runner.providers.filter(function (p) { return runner[p + "_configured"]; })
         : Object.keys(runner).filter(function (k) { return /_configured$/.test(k) && runner[k]; }).map(function (k) { return k.replace(/_configured$/, ""); });
-      if (state) state.textContent = "Доступен";
-      if (note) note.textContent = "последнее чтение успешно";
+      if (state) state.textContent = "Раннер отвечает";
+      if (note) note.textContent = "конфигурация прочитана; доступность внешних провайдеров этим не проверена";
       if (providers) providers.textContent = String(names.length);
       if (healthAt) healthAt.textContent = sourceState.testingRunner.at ? new Date(sourceState.testingRunner.at).toLocaleTimeString("ru-RU", {hour:"2-digit",minute:"2-digit"}) : "—";
     }
