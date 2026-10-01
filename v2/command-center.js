@@ -2074,7 +2074,7 @@
     var srcNames = { memory: "в памяти", placed: "размещено", exact_owner_candidates: "кандидатов", review_required: "на сверку", owner_conflicts: "конфликтов" };
     slots["placement-sum"].innerHTML = "<div class='cc-plts'>" +
       tile("placed", "На Founder Map", M.tu.ok ? M.U.stars.length : (c.placed != null ? c.placed : "—"), M.tu.ok ? "звёзд в Temporal Universe" : "по счётчику источника") +
-      tile("candidate", "Безопасные кандидаты", candActive, candSource !== candActive ? "из " + candSource + " по источнику · " + (candSource - candActive) + " в архиве" : "точный владелец, ещё не звёзды") +
+      tile("candidate", "Кандидаты на точную связь", candActive, candSource !== candActive ? "из " + candSource + " по источнику · " + (candSource - candActive) + " в архиве" : "точный владелец найден источником; ещё не звёзды") +
       tile("review", "Активная очередь сверки", q.review, "из " + reviewCounts().review + " по источнику" + (q.archived ? " · " + (reviewCounts().review - q.review) + " в архиве" : "")) +
       tile("conflict", "Конфликт владельцев", q.conflicts, q.conflicts ? "решается вручную" : "конфликтов нет") +
       tile("archive", "Архив", AD.buckets.archive.length, "архивные и исторические элементы допуска") + "</div>" +
@@ -2132,6 +2132,47 @@
     }).join("") + "</div>";
   }
 
+  function admissionKindRu(v) {
+    var m={RESEARCH:"исследование",FORECAST:"прогноз",IDEA:"идея",INFRASTRUCTURE:"инфраструктура",LEARNING:"обучение",PUBLICATION:"публикация",COMMERCIAL:"коммерческий объект",TEST:"проверка"};
+    return m[String(v||"").toUpperCase()]||"тип не описан";
+  }
+
+  function admissionStateRu(v) {
+    var m={
+      ACTIVE:"активно",ACTIVE_THEORY:"активная теория",AWAITING_OUTCOME:"ждёт исхода",BLOCKED_AUTHORITY:"остановлено границей полномочий",
+      BLOCKED_EVIDENCE:"остановлено из-за недостатка доказательств",BUILD:"сборка",COMPLETED:"завершено",CONTAMINATED:"контаминировано",
+      DORMANT:"неактивно",FROZEN:"заморожено",HELD:"удерживается без продолжения",HISTORICAL:"историческое",INCONCLUSIVE:"без окончательного вывода",
+      NARROWED:"область вывода сужена",NEEDS_RECONCILIATION:"нужна сверка",NEGATIVE_RESULT:"отрицательный результат",PARKED:"на паузе",READY:"готово",
+      SYNTHETIC_GATE_PASS:"синтетическая проверка пройдена",TO_FREEZE:"готовится к заморозке",WAITING_DATE:"ждёт даты",WAITING_EXTERNAL:"ждёт внешнего ответа"
+    };
+    return m[String(v||"").toUpperCase()]||"состояние не описано";
+  }
+
+  function admissionEvidenceRu(v) {
+    var m={
+      ARCHIVED_EVIDENCE:"архивное доказательство",CLOSED_HANDOFF:"передача закрыта",CONFIRMATORY_CLOSED:"подтверждающая проверка закрыта",
+      DEPENDENCY_WAIT:"ожидание зависимости",ENGINEERING_READY_NOT_EXECUTED:"инженерно готово, но не исполнено",FORMAL_THEORY_NODE:"формальный теоретический узел",
+      FROZEN_ACCESS_FAILURE:"зафиксированный отказ доступа",FROZEN_PROSPECTIVE_PROTOCOL:"замороженный проспективный протокол",GOVERNANCE_EVIDENCE:"доказательство по управлению полномочиями",
+      HISTORICAL_VALIDATION_PARKED:"историческая проверка на паузе",LEDGER_ACTIVE_HARNESS:"реестр активного тестового контура",LEDGER_FOUNDER_DECISION:"решение Основателя зафиксировано в реестре",
+      LEDGER_FROZEN_O1:"замороженная запись O1",LEDGER_FROZEN_R4:"замороженная запись R4",LEDGER_PLUS_DRIVE_ARTIFACTS:"реестр и артефакты хранилища",
+      LEDGER_RECONCILED:"реестр сверен",MEMORY_ONLY:"только память, без отдельного артефакта",MODEL_CANDIDATE:"кандидат модели",NOT_FROZEN:"не заморожено",
+      PARTIAL:"частичное подтверждение",PRE_FREEZE:"до заморозки",RECONCILED_ARTIFACT_LINEAGE:"происхождение артефактов сверено",RECONCILED_MULTI_SOURCE:"сверено по нескольким источникам",
+      RECOVERED_HISTORY:"восстановленная история",REGISTRY_CORROBORATED_PRIMARY_RESULT_NOT_RECOVERED:"реестр подтверждает основной результат, исходный артефакт не восстановлен",
+      STATE_MODEL_INCOMPLETE:"модель состояния неполна",SUBMITTED_VALIDATION_DEFERRED:"передано; проверка отложена",UC12_REQ10_V03_PASS:"техническая проверка UC12/REQ10 v0.3 пройдена",
+      UNTESTED_HYPOTHESIS:"непроверенная гипотеза",VERIFIED_ARTIFACT:"проверенный артефакт",VERIFIED_LIVE:"проверено на живом контуре"
+    };
+    return m[String(v||"").toUpperCase()]||"доказательный статус не описан";
+  }
+
+  function admissionReasonRu(v) {
+    var m={NO_OWNING_BRANCH:"владеющая ветка не указана",OWNER_CONFLICT:"конфликт владельцев",OWNER_NOT_REGISTERED:"владелец не зарегистрирован",EXACT_OWNER_FROM_ADMITTED_OBJECTS:"точный владелец найден среди уже допущенных объектов"};
+    return m[String(v||"").toUpperCase()]||String(v||"");
+  }
+
+  function sourceCodeHint(label, code) {
+    return "<span class='cc-adm-human' title='формальный код источника: "+E(String(code||"—"))+"'>"+E(label)+"</span>";
+  }
+
   function admCard(it) {
     var r = it.raw, vis = mapVisibility(it.memoryId);
     if (it.conflictLines) {
@@ -2144,10 +2185,10 @@
     var reason = it.sourceBucket === "review" ? r.reason : (it.sourceBucket === "candidate" ? r.basis : (r.reason || kvText(r, ["memory_id", "title", "kind", "state", "evidence_status", "owning_branch"])));
     return "<div class='cc-pcard pl-" + it.bucket + (isSelected("adm", it.key) ? " selected" : "") + "'" + sel("adm", it.key) + ">" +
       "<b>" + E(H.cut(it.title, 34)) + "</b>" +
-      "<small>" + [it.memoryId ? E(it.memoryId) : "", r.kind ? codeTag(r.kind) : "", r.state ? codeTag(r.state) : "", r.evidence_status ? codeTag(r.evidence_status) : ""].filter(Boolean).join(" · ") + "</small>" +
+      "<small>" + [it.memoryId ? E(it.memoryId) : "", r.kind ? sourceCodeHint(admissionKindRu(r.kind),r.kind) : "", r.state ? sourceCodeHint(admissionStateRu(r.state),r.state) : "", r.evidence_status ? sourceCodeHint(admissionEvidenceRu(r.evidence_status),r.evidence_status) : ""].filter(Boolean).join(" · ") + "</small>" +
       (r.owning_branch ? "<small>происхождение: " + E(r.owning_branch) + "</small>" : "") +
-      (reason ? "<small class='" + (it.sourceBucket === "candidate" ? "basis" : "warn") + "'>" + E(H.cut(scalar(reason), 110)) + "</small>" : "") +
-      (it.bucket === "archive" ? "<small>из группы " + E(it.source) + "</small>" : "") +
+      (reason ? "<small class='" + (it.sourceBucket === "candidate" ? "basis" : "warn") + "'>" + E(H.cut(admissionReasonRu(reason), 150)) + "</small>" : "") +
+      (it.bucket === "archive" ? "<small>исходная группа: " + E(it.source === "exact_owner_candidates" ? "кандидаты на точную связь" : it.source === "review_required" ? "очередь сверки" : it.source === "owner_conflicts" ? "конфликты владельцев" : it.source) + "</small>" : "") +
       "<div class='cc-pflags'><span class='" + member.cls + "'>" + E(member.text) + "</span><span class='" + vis.cls + "'>" + E(vis.text) + "</span></div></div>";
   }
 
@@ -2581,7 +2622,7 @@
     return inspector({
       badge: "<span class='cc-obj-badge pl-" + it.bucket + "'>" + E(initials(it.title)) + "</span>", title: it.title,
       sub: "Portfolio Admission · " + (cand ? "кандидат" : it.sourceBucket === "review" ? "на сверке" : "конфликт") + (it.bucket === "archive" ? " · архив" : ""),
-      what: para((cand ? "Безопасный кандидат на точную связь. Это ещё не звезда." : "Объект памяти, который требует сверки.") +
+      what: para((cand ? "Кандидат на точную связь: источник нашёл точного владельца среди допущенных объектов. Это ещё не звезда и не решение о размещении." : "Объект памяти, который требует сверки.") +
         (it.bucket === "archive" ? " Состояние «" + human(r.state) + "» — показан в архиве." : "")) +
         "<div class='cc-kvs'>" + [r.kind ? codeTag(r.kind, "tag") : "", r.state ? codeTag(r.state, "tag") : "", r.evidence_status ? codeTag(r.evidence_status, "tag") : ""].join("") + "</div>",
       where: crumbs([{ t: "ICAM" }, { t: "слой допуска" }, { t: it.memoryId || "без memory_id", cur: true }]) +
