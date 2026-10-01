@@ -2159,7 +2159,7 @@
 
     var total = page.querySelector('[data-x="trust"]'); if (total) total.textContent = ok + "/" + keys.length;
     var un = page.querySelector('[data-x="unavailable"]'); if (un) un.textContent = String(failed);
-    var stale = page.querySelector('[data-x="stale"]'); if (stale) stale.textContent = "—";
+    var stale = page.querySelector('[data-x="stale"]'); if (stale) stale.textContent = "раздельно";
     var err = page.querySelector('[data-x="errors"]'); if (err) err.textContent = String(failed);
 
     var trust = page.querySelector('[data-x="trust-chain"]');
@@ -2234,7 +2234,7 @@
       current.textContent = active ? active.textContent.trim() : "—";
     }
 
-    pageBadge("diagnostics", failed ? (ok ? "warn" : "unavailable") : "live", failed ? (ok ? "ДАННЫЕ ЧАСТИЧНО" : "ИСТОЧНИКИ НЕДОСТУПНЫ") : "ИСТОЧНИКИ ДОСТУПНЫ");
+    pageBadge("diagnostics", failed ? (ok ? "warn" : "unavailable") : "live", failed ? (ok ? "ПРОЕКЦИИ ЧТЕНИЯ ЧАСТИЧНО" : "ПРОЕКЦИИ ЧТЕНИЯ НЕДОСТУПНЫ") : "ПРОЕКЦИИ ЧТЕНИЯ ДОСТУПНЫ");
   }
 
   function boot() {
