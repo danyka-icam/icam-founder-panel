@@ -542,6 +542,7 @@
     U.unresolved = A(j.unresolved_history).map(function (h, i) { var v = eventView(h); return indexEvent({ scope: "unresolved", item: h, v: v, at: v.at, text: v.main || "событие" }, "u|" + i); });
     U.trajectories = A(j.strategic_trajectories);
     U.trajectories.forEach(function (t, i) { U.trajByKey[String(t && t.id || "T" + i)] = t; });
+    U.rulesKnown = Array.isArray(j.rules) || !!(j.rules && typeof j.rules === "object");
     U.rules = Array.isArray(j.rules) ? j.rules : (j.rules && typeof j.rules === "object" ? Object.keys(j.rules).map(function (k) { return k + ": " + scalar(j.rules[k]); }) : []);
     U.window = j.window || null;
     return U;
@@ -550,7 +551,8 @@
   function buildAdmission(j, U) {
     var trustedKnown = !!(j.trusted_owner_map && typeof j.trusted_owner_map === "object" && !Array.isArray(j.trusted_owner_map));
     var ownerConflictsKnown = Array.isArray(j.owner_conflicts) || !!(j.owner_conflicts && typeof j.owner_conflicts === "object");
-    var AD = { counts: j.counts || {}, compiledAt: j.compiled_at || null, rules: [], items: {}, byMemory: {}, buckets: {}, trustedKnown: trustedKnown, ownerConflictsKnown: ownerConflictsKnown };
+    var rulesKnown = Array.isArray(j.rules) || !!(j.rules && typeof j.rules === "object");
+    var AD = { counts: j.counts || {}, compiledAt: j.compiled_at || null, rules: [], rulesKnown: rulesKnown, items: {}, byMemory: {}, buckets: {}, trustedKnown: trustedKnown, ownerConflictsKnown: ownerConflictsKnown };
     AD.rules = Array.isArray(j.rules) ? j.rules : (j.rules && typeof j.rules === "object" ? Object.keys(j.rules).map(function (k) { return k + ": " + scalar(j.rules[k]); }) : []);
     // trusted_owner_map: owning_branch → exact canonical line title.
     var trusted = trustedKnown ? j.trusted_owner_map : {};
@@ -1666,8 +1668,9 @@
       empty("Неразрешённой истории нет в текущей проекции", "Temporal Universe явно передал пустой unresolved_history[]."));
 
     page.querySelector("[data-cc='bounds']").innerHTML = "<ul class='cc-bounds'>" +
-      U.rules.map(function (r) { return "<li><b>Правило источника:</b> " + E(scalar(r)) + "</li>"; }).join("") +
-      "<li>История / Сейчас / Ждём / Следующий переход звезды — <b>temporal.history</b>, <b>now.state</b>, <b>waiting</b>, <b>next_transition</b> из Temporal Universe; пустое значение означает, что источник его не передал.</li>" +
+      (!U.rulesKnown ? "<li><b>rules не передан:</b> правила источника в текущем Temporal Universe не проверены.</li>" :
+        (U.rules.length ? U.rules.map(function (r) { return "<li><b>Правило источника:</b> " + E(scalar(r)) + "</li>"; }).join("") : "<li><b>rules:</b> источник явно передал пустой набор правил.</li>")) +
+      "<li>История / Сейчас / Ждём / Следующий переход звезды — <b>temporal.history</b>, <b>now.state</b>, <b>waiting</b>, <b>next_transition</b> из Temporal Universe; явное пустое значение и отсутствующее поле различаются Панелью и не схлопываются в одно состояние.</li>" +
       "<li>События показываются как изменение → почему важно → следующая веха; пометка — truth_status и binding_class источника.</li>" +
       "<li>У ожидания и следующего перехода нет даты — они стоят в зоне ожидания без срока.</li>" +
       "<li>Маршруты Оркестратора связаны со звёздами только по точному совпадению ID объекта и memory_id.</li>" +
@@ -2249,8 +2252,10 @@
     }).join("") + "</div><div class='cc-foot-note'>Доверенная карта: происхождение объекта (owning_branch) → точное название канонической линии. Это основание для кандидатов, а не размещение: сама по себе запись не делает объект звездой.</div>" :
       empty("Доверенная карта пуста", "trusted_owner_map не содержит записей.");
 
-    slots["placement-rules"].innerHTML = "<ul class='cc-bounds'>" + AD.rules.map(function (r) { return "<li><b>Правило допуска:</b> " + E(scalar(r)) + "</li>"; }).join("") +
-      "<li>Кандидат с предложенной линией — это структурная принадлежность, а не видимость: на Founder Map он не появляется, пока не станет звездой.</li>" +
+    slots["placement-rules"].innerHTML = "<ul class='cc-bounds'>" +
+      (!AD.rulesKnown ? "<li><b>rules не передан:</b> правила Portfolio Admission в текущем ответе не проверены.</li>" :
+        (AD.rules.length ? AD.rules.map(function (r) { return "<li><b>Правило допуска источника:</b> " + E(scalar(r)) + "</li>"; }).join("") : "<li><b>rules:</b> источник явно передал пустой набор правил допуска.</li>")) +
+      "<li><b>Граница Панели:</b> кандидат с предложенной линией — структурная принадлежность, а не видимость: на Founder Map он не появляется, пока не станет звездой.</li>" +
       "<li>owning_branch показан как происхождение объекта, а не как его мир.</li>" +
       "<li>Архив — элементы допуска с архивным или историческим state; исходная группа указана на карточке.</li></ul>";
   }
