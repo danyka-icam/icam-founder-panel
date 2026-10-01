@@ -1164,7 +1164,7 @@
     return projectionTextRu(raw);
   }
 
-  function renderResearch(objectsResp, blockersResp, testingSummary, hubHealth) {
+  function renderResearch(objectsResp, blockersResp, testingSummary, hubHealth, founderProjection) {
     var page = document.querySelector('[data-page-panel="research"]');
     if (!page) return Promise.resolve();
     if (!sourceState.objects.ok || !objectsResp) {
@@ -1219,6 +1219,10 @@
         return /^ACTIVE/.test(String(x.object.declared_status || x.projection.status || "").toUpperCase());
       });
       var founder = lines.filter(function (x) { return !!(x.object.needs_nika || x.object.needs_founder); });
+      var formalDecisions = asArray(founderProjection && founderProjection.today && founderProjection.today.founder_decisions);
+      var founderNote = page.querySelector('[data-r="founder-note"]');
+      if (founderNote) founderNote.textContent = founder.length + " привязано к исследовательской линии" +
+        (formalDecisions.length ? " · " + formalDecisions.length + " формальное решение без привязки к объекту" : "");
       var waiting = lines.filter(function (x) {
         var st = String(x.object.declared_status || x.projection.status || "").toUpperCase();
         var owner = String(x.projection.owner || "").toUpperCase();
@@ -1254,11 +1258,18 @@
           "<div class='research-empty compact'><strong>" + esc(emptyTitle) + "</strong><span>" + esc(emptyText) + "</span></div>";
       }
 
-      mini(page.querySelector('[data-r="attention"]'), founder.slice(0, 6).map(function (x) {
+      var founderAttentionRows = founder.slice(0, 6).map(function (x) {
         var o = x.object, p = x.projection;
         return "<div class='research-mini-item'><b>" + esc(researchObjectTitle(o)) + "</b><span>" +
           esc(researchTextRu(p.next_move || o.last_summary || "требуется решение")) + " · " + esc(o.object_id || "ID не определён") + "</span></div>";
-      }), "Решений Основателя по исследовательским линиям нет", "По текущей объектной и RD1-проекции.");
+      });
+      formalDecisions.slice(0, Math.max(0, 6 - founderAttentionRows.length)).forEach(function (d) {
+        founderAttentionRows.push("<div class='research-mini-item formal-unbound'><b>Формальное решение Основателя · без привязки к линии</b><span>" +
+          esc(d.question || "Вопрос решения не передан") + (d.why_now ? " · " + esc(d.why_now) : "") +
+          "</span><small>Founder Projection не передаёт object_id / memory_id. Панель не связывает решение с исследовательской линией по похожему тексту.</small></div>");
+      });
+      mini(page.querySelector('[data-r="attention"]'), founderAttentionRows,
+        "Решений Основателя в исследовательском контуре нет", "Ни объектная/RD1-проекция, ни Founder Projection не передали текущего решения.");
 
       mini(page.querySelector('[data-r="waiting"]'), waiting.slice(0, 6).map(function (x) {
         var o = x.object, p = x.projection;
@@ -2215,7 +2226,7 @@
       renderTwinStateClean(twinState);
       renderDiagnostics(foundationAgg, scannerDiagnostics, hubHealth);
 
-      renderResearch(objects, blockers, testingSummary, hubHealth).then(function () {
+      renderResearch(objects, blockers, testingSummary, hubHealth, founderProjection).then(function () {
         renderDiagnostics(foundationAgg, scannerDiagnostics, hubHealth);
         updateTrust();
         if (lastSnapshot) lastSnapshot.sources = JSON.parse(JSON.stringify(sourceState));
