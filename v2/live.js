@@ -1994,7 +1994,10 @@
     }
     var unresolved=String(sv.projected_status_canonical_relation||"").toUpperCase()==="UNRESOLVED";
     var stale=String(data.freshness_state||"").toUpperCase()==="STALE";
-    var blockersN=(data.open_blockers||{}).count;
+    var stageKnown=!!(data.stage&&data.stage.value!=null);
+    var identityKnown=!!(id.component_id&&id.operational_object_id&&id.relation);
+    var blockersN=(data.open_blockers&&data.open_blockers.count!=null)?data.open_blockers.count:null;
+    var commitmentsN=(data.open_commitments&&data.open_commitments.count!=null)?data.open_commitments.count:null;
     body.innerHTML=
       "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>BrazilPortal — "+esc(bpCodeRu(data.source_status))+ (stale?" · данные устарели":"") +"</strong>"+
       "<p>"+(stale?"Последнее материальное движение: "+esc(data.last_movement_at?ago(data.last_movement_at):"не передано")+". ":"")+(unresolved?"Спроецированный статус пока не связан с каноном; объявленный статус сохраняется отдельно.":"Состояние прочитано из нормализованной проекции.")+"</p></div>"+
@@ -2002,11 +2005,11 @@
       "<div class='metric'><small>Объявленный статус</small><strong>"+esc(bpCodeRu(sv.declared_status))+"</strong><span>что объект объявляет о себе</span></div>"+
       "<div class='metric'><small>Спроецированный статус</small><strong>"+esc(bpCodeRu(sv.projected_status))+"</strong><span>что вывело последнее смысловое событие</span></div>"+
       "<div class='metric'><small>Связь статуса с каноном</small><strong>"+esc(bpCodeRu(sv.projected_status_canonical_relation))+"</strong><span>относится только к спроецированному статусу</span></div>"+
-      "<div class='metric'><small>Этап</small><strong>"+esc(bpCodeRu(val(data.stage)))+"</strong><span>подтверждён источником как факт</span></div></div>"+
-      "<div class='bp-identity-proof'><b>Идентичность не является этой проблемой.</b><span>Компонент "+esc(id.component_id||"—")+" и операционный объект "+esc(id.operational_object_id||"—")+" связаны источником как «"+esc(bpCodeRu(id.relation))+"». Ключ чтения Continuity: "+esc(id.canonical_read_key||"—")+".</span></div>"+
+      "<div class='metric'><small>Этап</small><strong>"+esc(bpCodeRu(val(data.stage)))+"</strong><span>"+esc(stageKnown?"значение передано источником":"stage.value не передан")+"</span></div></div>"+
+      "<div class='bp-identity-proof'><b>"+esc(identityKnown?"Идентичность связана источником.":"Связь идентичности не полностью подтверждена текущей проекцией.")+"</b><span>Компонент "+esc(id.component_id||"—")+" и операционный объект "+esc(id.operational_object_id||"—")+"; отношение: «"+esc(bpCodeRu(id.relation))+"». Ключ чтения Continuity: "+esc(id.canonical_read_key||"—")+".</span></div>"+
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Следующий ход</h3>"+chip(data.source_status)+"</div>"+
-      "<div class='live-kv-grid'>"+kv("Владелец",val(data.owner))+kv("Следующий рубеж",bpCodeRu(val(data.next_gate)))+kv("Следующий ход",projectionTextRu(val(data.next_move)))+kv("Открытые blocker-записи объекта",blockersN)+kv("Открытые обязательства",(data.open_commitments||{}).count)+kv("Последнее материальное событие",data.last_material_event&&data.last_material_event.last_event_at?ago(data.last_material_event.last_event_at):"—")+"</div>"+
-      "<small>"+esc(blockersN)+" blocker-записей связаны с объектом FND-007. Источник не доказывает test-фильтрацию и не передаёт единую оценку тяжести, поэтому Панель не называет их "+(blockersN===1?"одним препятствием":"одинаково критическими препятствиями")+".</small></div>";
+      "<div class='live-kv-grid'>"+kv("Владелец",val(data.owner))+kv("Следующий рубеж",bpCodeRu(val(data.next_gate)))+kv("Следующий ход",projectionTextRu(val(data.next_move)))+kv("Открытые blocker-записи объекта",blockersN==null?"—":blockersN)+kv("Открытые обязательства",commitmentsN==null?"—":commitmentsN)+kv("Последнее материальное событие",data.last_material_event&&data.last_material_event.last_event_at?ago(data.last_material_event.last_event_at):"—")+"</div>"+
+      "<small>"+(blockersN==null?"Счётчик open_blockers.count не передан; наличие или отсутствие blocker-записей не подтверждено.":(esc(blockersN)+" blocker-записей связаны с объектом FND-007. Источник не доказывает test-фильтрацию и не передаёт единую оценку тяжести, поэтому Панель не называет их "+(blockersN===1?"одним препятствием":"одинаково критическими препятствиями")+"."))+"</small></div>";
   }
 
   function renderFoundationAggregateClean(data) {
