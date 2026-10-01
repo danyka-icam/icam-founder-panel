@@ -1550,7 +1550,7 @@
     var marketKpiNote = page.querySelector('[data-s="market-kpi-note"]');
     if (marketKpiNote) {
       if (!msKpiOk) marketKpiNote.textContent = "внешний сигнальный источник сейчас недоступен";
-      else if (msCoverage.total_sources != null) marketKpiNote.textContent = "показано из хранилища · текущее покрытие " + Number(msCoverage.ok_count || 0) + "/" + Number(msCoverage.total_sources || 0) + " источников";
+      else if (msCoverage.total_sources != null) marketKpiNote.textContent = "показано из хранилища · текущее покрытие " + (msCoverage.ok_count == null ? "—" : Number(msCoverage.ok_count)) + "/" + Number(msCoverage.total_sources) + " источников";
       else marketKpiNote.textContent = "сохранённые внешние наблюдения; текущее покрытие не подтверждено";
     }
 
@@ -1681,10 +1681,11 @@
       if (coverage) {
         var kdCount = (coverage.failing || []).filter(function (f) { return f.known_degraded; }).length;
         var freshCount = (coverage.failing || []).length - kdCount;
-        var covOk = Number(coverage.ok_count || 0), covTotal = Number(coverage.total_sources || 0);
-        var degraded = String(coverage.status || "").indexOf("DEGRADED") === 0 || (covTotal && covOk < covTotal);
+        var covOk = coverage.ok_count == null ? null : Number(coverage.ok_count);
+        var covTotal = coverage.total_sources == null ? null : Number(coverage.total_sources);
+        var degraded = String(coverage.status || "").indexOf("DEGRADED") === 0 || (covTotal != null && covOk != null && covOk < covTotal);
         coverageNote = "<div class='signals-partial-note market-coverage-note" + (degraded ? " warn" : "") + "'>Текущее покрытие внешних источников: <b>" +
-          esc(covOk) + " / " + esc(covTotal) + "</b>" +
+          esc(covOk == null ? "—" : covOk) + " / " + esc(covTotal == null ? "—" : covTotal) + "</b>" +
           (kdCount ? " · известных деградаций " + esc(kdCount) : "") +
           (freshCount ? " · <b>необъяснённых сбоев " + esc(freshCount) + "</b>" : "") +
           (degraded ? "<br><span>Карточки ниже — уже сохранённые наблюдения. Они не доказывают, что соответствующий внешний источник доступен сейчас.</span>" : "") + "</div>";
@@ -1788,11 +1789,12 @@
     var anyInternal = objectsOk || blockersOk || inboxOk || testingOk;
     var msBadgeOk = sourceState.marketSignals.ok && marketSignals;
     var cov = msBadgeOk ? (marketSignals.source_coverage || {}) : {};
-    var covTotal = Number(cov.total_sources || 0), covOk = Number(cov.ok_count || 0);
-    var covDegraded = covTotal > 0 && covOk < covTotal;
+    var covTotal = cov.total_sources == null ? null : Number(cov.total_sources);
+    var covOk = cov.ok_count == null ? null : Number(cov.ok_count);
+    var covDegraded = covTotal != null && covOk != null && covTotal > 0 && covOk < covTotal;
     var externalText = !msBadgeOk ? "ВНЕШНИЙ СИГНАЛЬНЫЙ ИСТОЧНИК НЕДОСТУПЕН" :
       (marketSignals.activation_state === "NOT_ACTIVATED" ? "ВНЕШНИЙ ПОТОК НЕ АКТИВИРОВАН" :
-        (covTotal ? "ВНЕШНЕЕ ПОКРЫТИЕ " + covOk + "/" + covTotal : "ВНЕШНЕЕ ПОКРЫТИЕ НЕ ПОДТВЕРЖДЕНО"));
+        (covTotal != null && covOk != null ? "ВНЕШНЕЕ ПОКРЫТИЕ " + covOk + "/" + covTotal : "ВНЕШНЕЕ ПОКРЫТИЕ НЕ ПОДТВЕРЖДЕНО"));
     pageBadge("signals",
       anyInternal ? (covDegraded ? "warn" : "live") : "unavailable",
       anyInternal ? ("ВНУТРЕННИЕ ДАННЫЕ ПОДКЛЮЧЕНЫ · " + externalText) : "ВНУТРЕННИЕ ИСТОЧНИКИ НЕДОСТУПНЫ"
