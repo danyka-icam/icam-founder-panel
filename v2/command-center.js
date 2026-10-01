@@ -62,6 +62,11 @@
   function objectDataOk() { var s = M && M.sources && M.sources.objects; return !!(s && s.ok && M.objectsCollectionKnown); }
   function blockerDataOk() { var s = M && M.sources && M.sources.blockers; return !!(s && s.ok && M.blockersCollectionKnown); }
   function inboxDataOk() { var s = M && M.sources && M.sources.inbox; return !!(s && s.ok && M.inboxCollectionKnown); }
+  function routeDependencyFieldsKnown(r) {
+    return ["depends_on","dependencies","upstream_routes","upstream","blocked_by"].some(function (k) {
+      return r && Object.prototype.hasOwnProperty.call(r, k);
+    });
+  }
   function routeGapText() { var s=M&&M.sources&&M.sources.routes; return !(s&&s.ok) ? "Источник маршрутов недоступен" : (!M.routeCollectionKnown ? "Оркестратор ответил, но routes[] не передан" : ""); }
   function objectGapText() { var s=M&&M.sources&&M.sources.objects; return !(s&&s.ok) ? "Реестр объектов недоступен" : (!M.objectsCollectionKnown ? "Continuity objects ответил, но items[] не передан" : ""); }
   function blockerGapText() { var s=M&&M.sources&&M.sources.blockers; return !(s&&s.ok) ? "Источник blocker-записей недоступен" : (!M.blockersCollectionKnown ? "Continuity blockers ответил, но items[] не передан" : ""); }
@@ -1214,7 +1219,13 @@
 
   function renderRecentChanges(limit) {
     var rows = [];
-    var movementGap = !!(M.fp.ok && !M.FP.movementsKnown);
+    var fpChangesComplete = !!(M.fp.ok && M.FP.movementsKnown);
+    var tuHistoryComplete = !!(M.tu.ok && Array.isArray(M.tu.data && M.tu.data.company_history) && M.U.linesComplete && M.U.lines.every(function (ln) { return ln.historyKnown; }));
+    var objectDatesComplete = !!(objectDataOk() && M.d.objects && M.d.objects.items.every(function (o) { return Object.prototype.hasOwnProperty.call(o, "last_event_at"); }));
+    var routeDatesComplete = !!(routeDataOk() && M.d.routes.every(function (r) { return Object.prototype.hasOwnProperty.call(r, "last_movement_at"); }));
+    var movementGap = !fpChangesComplete;
+    var temporalGap = !tuHistoryComplete;
+    var changesComplete = fpChangesComplete && tuHistoryComplete && objectDatesComplete && routeDatesComplete;
     if (M.fp.ok && M.FP.movementsKnown) M.FP.movements.forEach(function (m) {
       var r = m.raw || {};
       var at = r.last_seen || r.first_seen || null;
@@ -1238,16 +1249,15 @@
           eventBody({ main: e.v.main, why: e.v.why, next: "", proof: e.v.proof, known: e.v.known, raw: e.v.raw },
             (isLine ? e.line.title + " · " + e.world.title : "Компания")) +
           "</div><span>" + E(dateLabel(e.at)) + "</span></div>";
-      }).join("") + "</div><div class='cc-foot-note'>" + (movementGap ? "Founder Projection ответил, но today.company_movements[] не передан; " : "Founder Projection · движения компании; ") + "Temporal Universe · история компании и линий.</div>";
+      }).join("") + "</div><div class='cc-foot-note'>" + (!changesComplete ? "Лента неполная: часть источников изменений недоступна или не передала исторические поля. " : "") + (movementGap ? (M.fp.ok ? "Founder Projection не передал today.company_movements[]; " : "Founder Projection недоступен; ") : "Founder Projection · движения компании; ") + (temporalGap ? (M.tu.ok ? "Temporal Universe передал историю не полностью." : "Temporal Universe недоступен.") : "Temporal Universe · история компании и линий.") + "</div>";
     }
-    if (!objectDataOk() && !routeDataOk()) return unavailable("Нет источников с датами", "Изменения не выводятся из прошлых данных.");
     var fallback = M.events.slice(0, limit || 7);
-    if (!fallback.length) return movementGap ? unavailable("Часть изменений не проверена", "Founder Projection ответил, но today.company_movements[] не передан; другие текущие источники не дали датированных событий.") : empty("Датированных событий нет", "Источники ответили, но не передали отметок времени.");
+    if (!fallback.length) return !changesComplete ? unavailable("Часть изменений не проверена", "Спокойный ноль запрещён: Founder Projection, Temporal Universe, Continuity objects или Оркестратор не передали полный набор исторических/временных полей.") : empty("Датированных событий нет", "Все четыре текущих контура изменений прочитаны полностью и не передали датированных событий.");
     return "<div class='cc-feed'>" + fallback.map(function (e) {
       return "<div class='cc-feed-item " + (e.kind === "line" ? "line" : (e.material ? "material" : "")) + "'" + sel(e.kind, e.key) + ">" +
         "<i></i><div><b>" + E(H.cut(e.title, 40)) + "</b><small>" + E(e.what) + (e.summary ? " · " + H.cut(e.summary, 70) : "") + "</small></div>" +
         "<span>" + E(H.ago(e.at)) + "</span></div>";
-    }).join("") + "</div><div class='cc-foot-note'>Реконструкция: канонические источники изменений недоступны." + (movementGap ? " Founder Projection не передал today.company_movements[]." : "") + "</div>";
+    }).join("") + "</div><div class='cc-foot-note'>Реконструкция из доступных объектных/маршрутных событий; " + (changesComplete ? "все контуры изменений прочитаны." : "часть контуров изменений не проверена полностью.") + "</div>";
   }
 
   function renderLanes(lines) {
@@ -1748,7 +1758,7 @@
       }).join("") : empty("Нет маршрутов без явного закрывающего статуса", "Оркестратор явно передал routes[].")) + "</div>";
 
     var un = M.events.filter(function (e) { return e.kind === "object" && !e.placed; });
-    unplaced.innerHTML = !routeDataOk() ? unavailable("Маршрутные данные не проверены", routeGapText()+". Нельзя сказать, у каких объектов маршрутов нет.") : un.length ? "<div class='cc-feed'>" + un.slice(0, 10).map(function (e) {
+    unplaced.innerHTML = (!routeDataOk() || !objectDataOk()) ? unavailable("Связь объектов с маршрутами не проверена полностью", (!routeDataOk() ? routeGapText() : objectGapText()) + ". Нельзя доказать, у каких объектов маршрутов нет.") : un.length ? "<div class='cc-feed'>" + un.slice(0, 10).map(function (e) {
       return "<div class='cc-feed-item unplaced'" + sel("object", e.key) + "><i></i><div><b>" + E(H.cut(e.title, 40)) + "</b><small>" +
         E(e.what + (e.summary ? " · " + H.cut(e.summary, 60) : "")) + "</small></div><span>" + E(H.ago(e.at)) + "</span></div>";
     }).join("") + "</div>" : empty("Таких событий нет", "Все датированные события относятся к объектам с маршрутом.");
@@ -1801,11 +1811,13 @@
 
     var impact = page.querySelector("[data-cc='impact']");
     var withDown = M.active.filter(function (l) { return l.downstream.length; });
+    var dependencyCoverageComplete = routeDataOk() && M.active.every(function (l) { return routeDependencyFieldsKnown(l.r); });
     impact.innerHTML = withDown.length ? "<div class='cc-impact'>" + withDown.map(function (l) {
       return "<div class='cc-impact-row st-" + l.tone + "'" + sel("line", l.key) + ">" + hexBadge(initials(routeDisplayTitle(l.title)), l.tone, "sm") +
         "<div><b>Если остановится «" + E(H.cut(routeDisplayTitle(l.title), 30)) + "»</b><small>явно задержит:</small><div class='cc-refs'>" + lineRefs(l.downstream) + "</div></div></div>";
     }).join("") + "</div>" :
-      empty("Влияние остановки не представлено", "Ни один активный маршрут не объявляет зависимых явно. Панель не выводит влияние по догадке.");
+      (!dependencyCoverageComplete ? unavailable("Влияние остановки не проверено полностью", routeDataOk() ? "Не у всех маршрутов переданы dependency-поля; отсутствие зависимых не подтверждено." : routeGapText()) :
+        empty("Влияние остановки не представлено", "Все маршруты передали dependency-поля, и ни один не объявляет зависимых явно. Панель не выводит влияние по догадке."));
 
     page.querySelector("[data-cc='strategy']").innerHTML = renderTrajectories();
     page.querySelector("[data-cc='resources']").innerHTML = renderCapital();
@@ -2378,7 +2390,7 @@
 
   function inspectLine(l) {
     var r = l.r, place = routePlace(l), tv = l.star ? temporalView(l.star.temporal) : null;
-    var dependencyFieldsKnown = ["depends_on","dependencies","upstream_routes","upstream","blocked_by"].some(function (k) { return Object.prototype.hasOwnProperty.call(r, k); });
+    var dependencyFieldsKnown = routeDependencyFieldsKnown(r);
     var routeBlockerItems = A(r.blockers).map(function (b) { return typeof b === "object" ? (b.title || b.blocker || b.id || "блокер") : String(b); });
     var objectBlockerItems = l.objBlockers.map(function (b) { return (b.title || b.blocker || "открытая blocker-запись") + " · объект " + (b.object_id || ""); });
     var hist = [];
