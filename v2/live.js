@@ -89,6 +89,12 @@
     return Array.isArray(v) ? v : [];
   }
 
+  function numberOrNull(v) {
+    if (v == null || v === "") return null;
+    var n = Number(v);
+    return isFinite(n) ? n : null;
+  }
+
   function fetchJSON(name, url, timeoutMs) {
     var ctrl = timeoutMs && window.AbortController ? new AbortController() : null;
     var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
@@ -1047,7 +1053,7 @@
     if (q) {
       var oldestKnown = reviewQueueKnown && Array.isArray(rq.oldest_5);
       var rows = oldestKnown ? rq.oldest_5 : [];
-      var manualQueueCount = rq.manual_review_required == null ? null : Number(rq.manual_review_required);
+      var manualQueueCount = numberOrNull(rq.manual_review_required);
       if (rows.length) {
         q.innerHTML = rows.map(function (r) {
           var ageMin = r.received_at ? Math.max(0, Math.round((Date.now() - new Date(r.received_at).getTime()) / 60000)) : null;
@@ -1481,9 +1487,10 @@
     put("continuity", !healthOk ? "Недоступно" : (health.ok === true ? "Источник сообщает OK" : (health.ok === false ? "Источник сообщает деградацию" : "Статус health.ok не передан")));
     put("recovery", "Не подтверждено");
 
-    var systemOpen = null;
-    if (healthOk && health.system_attention_open != null) systemOpen = health.system_attention_open;
-    else if (inboxOk && inbox.summary && inbox.summary.system_attention != null) systemOpen = inbox.summary.system_attention;
+    var systemOpenRaw = null;
+    if (healthOk && health.system_attention_open != null) systemOpenRaw = health.system_attention_open;
+    else if (inboxOk && inbox.summary && inbox.summary.system_attention != null) systemOpenRaw = inbox.summary.system_attention;
+    var systemOpen = numberOrNull(systemOpenRaw);
     put("system", systemOpen == null ? "—" : systemOpen);
 
     var readiness = page.querySelector('[data-fnd="readiness-card"]');
@@ -1500,7 +1507,7 @@
     if (attention) {
       if (systemOpen == null) {
         attention.innerHTML = unavailableHTML("SYSTEM-вопросы не подтверждены", "Continuity health / Входящие Основателя не дали текущего счётчика.");
-      } else if (Number(systemOpen) === 0) {
+      } else if (systemOpen === 0) {
         attention.innerHTML =
           "<div class='foundation-source-summary'><strong>0 открытых SYSTEM-вопросов по Continuity</strong>" +
           "<p>Это подтверждает только текущий счётчик Continuity health и не является доказательством общей готовности Foundation.</p></div>";
@@ -1662,7 +1669,7 @@
     var marketKpiNote = page.querySelector('[data-s="market-kpi-note"]');
     if (marketKpiNote) {
       if (!msKpiOk) marketKpiNote.textContent = "внешний сигнальный источник сейчас недоступен";
-      else if (msCoverage.total_sources != null) marketKpiNote.textContent = "показано из хранилища · текущее покрытие " + (msCoverage.ok_count == null ? "—" : Number(msCoverage.ok_count)) + "/" + Number(msCoverage.total_sources) + " источников";
+      else if (numberOrNull(msCoverage.total_sources) != null) marketKpiNote.textContent = "показано из хранилища · текущее покрытие " + (numberOrNull(msCoverage.ok_count) == null ? "—" : numberOrNull(msCoverage.ok_count)) + "/" + numberOrNull(msCoverage.total_sources) + " источников";
       else marketKpiNote.textContent = "сохранённые внешние наблюдения; текущее покрытие не подтверждено";
     }
 
@@ -1800,8 +1807,8 @@
         var coverageFailing = coverageFailingKnown ? coverage.failing : [];
         var kdCount = coverageFailingKnown ? coverageFailing.filter(function (f) { return f.known_degraded; }).length : null;
         var freshCount = coverageFailingKnown ? coverageFailing.length - kdCount : null;
-        var covOk = coverage.ok_count == null ? null : Number(coverage.ok_count);
-        var covTotal = coverage.total_sources == null ? null : Number(coverage.total_sources);
+        var covOk = numberOrNull(coverage.ok_count);
+        var covTotal = numberOrNull(coverage.total_sources);
         var degraded = String(coverage.status || "").indexOf("DEGRADED") === 0 || (covTotal != null && covOk != null && covOk < covTotal);
         coverageNote = "<div class='signals-partial-note market-coverage-note" + (degraded ? " warn" : "") + "'>Текущее покрытие внешних источников: <b>" +
           esc(covOk == null ? "—" : covOk) + " / " + esc(covTotal == null ? "—" : covTotal) + "</b>" +
@@ -1919,14 +1926,18 @@
     var internalComplete = objectsOk && blockersOk && inboxOk && testingComplete;
     var msBadgeOk = sourceState.marketSignals.ok && marketSignals;
     var cov = msBadgeOk ? (marketSignals.source_coverage || {}) : {};
-    var covTotal = cov.total_sources == null ? null : Number(cov.total_sources);
-    var covOk = cov.ok_count == null ? null : Number(cov.ok_count);
-    var covDegraded = covTotal != null && covOk != null && covTotal > 0 && covOk < covTotal;
+    var covTotal = numberOrNull(cov.total_sources);
+    var covOk = numberOrNull(cov.ok_count);
+    var activationState = msBadgeOk ? String(marketSignals.activation_state || "") : "";
+    var externalCoverageKnown = covTotal != null && covOk != null;
+    var externalCoverageComplete = externalCoverageKnown && covTotal > 0 && covOk === covTotal;
+    var externalActive = activationState === "ACTIVATED" || activationState === "ACTIVATED_EMPTY";
+    var externalComplete = !!(msBadgeOk && externalActive && externalCoverageComplete);
     var externalText = !msBadgeOk ? "ВНЕШНИЙ СИГНАЛЬНЫЙ ИСТОЧНИК НЕДОСТУПЕН" :
       (marketSignals.activation_state === "NOT_ACTIVATED" ? "ВНЕШНИЙ ПОТОК НЕ АКТИВИРОВАН" :
         (covTotal != null && covOk != null ? "ВНЕШНЕЕ ПОКРЫТИЕ " + covOk + "/" + covTotal : "ВНЕШНЕЕ ПОКРЫТИЕ НЕ ПОДТВЕРЖДЕНО"));
     pageBadge("signals",
-      anyInternal ? (internalComplete && !covDegraded ? "live" : "warn") : (anyInternalRead ? "warn" : "unavailable"),
+      anyInternal ? (internalComplete && externalComplete ? "live" : "warn") : (anyInternalRead ? "warn" : "unavailable"),
       anyInternal ? ((internalComplete ? "ВНУТРЕННИЕ КОЛЛЕКЦИИ ПОЛНЫ" : "ВНУТРЕННИЕ ДАННЫЕ ЧАСТИЧНЫ") + " · " + externalText) :
         (anyInternalRead ? "ВНУТРЕННИЕ ENDPOINTS ОТВЕТИЛИ, КОЛЛЕКЦИИ НЕ ПОДТВЕРЖДЕНЫ" : "ВНУТРЕННИЕ ИСТОЧНИКИ НЕДОСТУПНЫ")
     );
@@ -1956,7 +1967,7 @@
     var axesKnown = Array.isArray(fieldMovement.axes);
     var axes = axesKnown ? fieldMovement.axes : [];
     if (badge) {
-      badge.className = "state " + (fmStatus === "AVAILABLE" ? "live" : "warn");
+      badge.className = "state " + (fmStatus === "AVAILABLE" ? "lab" : "warn");
       badge.textContent = fmStatus ? ("АГРЕГАТ · " + fmStatus) : "СТАТУС АГРЕГАТА НЕ ПЕРЕДАН";
     }
 
@@ -2183,7 +2194,8 @@
       if (d.dimension === "artifact_durability_readback") {
         var det = d.detail || {};
         var explicitCleanCounts = det.hash_mismatches === 0 && det.artifacts_missing === 0;
-        var explicitOrphanFailure = String(d.state || "").toUpperCase() === "FAIL" && det.orphan_receipts != null && Number(det.orphan_receipts) > 0;
+        var orphanFailureN = numberOrNull(det.orphan_receipts);
+        var explicitOrphanFailure = String(d.state || "").toUpperCase() === "FAIL" && orphanFailureN != null && orphanFailureN > 0;
         var proofNote = d.blocking_reason ?
           "Причина состояния передана в blocking_reason выше; Панель не заменяет её собственной причинной моделью." :
           (explicitCleanCounts && explicitOrphanFailure ?
@@ -2395,14 +2407,15 @@
       var scanAvailable = !!(sourceState.scannerDiagnostics.ok && scannerDiagnostics);
       var scan = scanAvailable ? scannerDiagnostics : {};
       var cov = scan.source_coverage || {};
-      var scanTotal = cov.total_sources == null ? null : Number(cov.total_sources);
-      var scanOk = cov.ok_count == null ? null : Number(cov.ok_count);
+      function diagNumOrNull(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+      var scanTotal = diagNumOrNull(cov.total_sources);
+      var scanOk = diagNumOrNull(cov.ok_count);
       var scanFailingKnown = Array.isArray(cov.failing);
       var scanFail = scanFailingKnown ? cov.failing.length : null;
       var scanUnknown = scanFailingKnown ? cov.failing.filter(function (x) { return x && !x.known_degraded; }).length : null;
       var hub = hubHealth || {};
       var readTone = failed ? "warn" : "ok";
-      var foundationTone = String(f.source_status || "").toUpperCase() === "DEGRADED" ? "warn" : (String(f.source_status || "").toUpperCase() === "READY" ? "ok" : "neutral");
+      var foundationTone = String(f.source_status || "").toUpperCase() === "DEGRADED" ? "warn" : "neutral";
       var durabilityTone = String(dur.state || "").toUpperCase() === "PASS" ? "ok" : (String(dur.state || "").toUpperCase() === "FAIL" ? "bad" : "neutral");
       var scannerTone = !scanAvailable ? "warn" : (scanTotal != null && scanOk != null && scanTotal > 0 && scanOk === scanTotal ? "ok" : (scanFail != null && scanFail > 0 ? "bad" : "neutral"));
       trust.innerHTML =

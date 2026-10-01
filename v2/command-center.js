@@ -839,7 +839,8 @@
     events.sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); });
 
     var ms = d.marketSignals;
-    var msActivated = ms && ms.activation_state && ms.activation_state !== "NOT_ACTIVATED";
+    var msActivation = ms ? String(ms.activation_state || "") : "";
+    var msActivated = msActivation === "ACTIVATED" || msActivation === "ACTIVATED_EMPTY";
     var msSignalsKnown = !!(ms && Array.isArray(ms.signals));
 
     return {
@@ -1091,8 +1092,9 @@
     chips.push("<a class='cc-meta' href='#timeline'><i>↻</i>изменений за 7 дней: <b>" + E(recent == null ? "—" : recent) + "</b>" + sparkDays() + "</a>");
     var scan = M.d.scannerDiagnostics || null;
     var scanCov = scan && scan.source_coverage ? scan.source_coverage : null;
-    var scanTotal = scanCov && scanCov.total_sources != null ? Number(scanCov.total_sources) : null;
-    var scanOk = scanCov && scanCov.ok_count != null ? Number(scanCov.ok_count) : null;
+    function scannerCount(v) { if (v == null || v === "") return null; var n = Number(v); return isFinite(n) ? n : null; }
+    var scanTotal = scanCov ? scannerCount(scanCov.total_sources) : null;
+    var scanOk = scanCov ? scannerCount(scanCov.ok_count) : null;
     var scanDegraded = scanCov && String(scanCov.status || "").indexOf("DEGRADED") === 0;
     var marketLabel = !ok("marketSignals") ? "источник недоступен" :
       (M.marketCount != null ? M.marketCount : (M.marketState === "NOT_ACTIVATED" ? "не активирован" : (M.marketSignalsKnown ? "состояние активации не передано" : "signals[] не передан")));
@@ -2376,6 +2378,7 @@
 
   function inspectLine(l) {
     var r = l.r, place = routePlace(l), tv = l.star ? temporalView(l.star.temporal) : null;
+    var dependencyFieldsKnown = ["depends_on","dependencies","upstream_routes","upstream","blocked_by"].some(function (k) { return Object.prototype.hasOwnProperty.call(r, k); });
     var routeBlockerItems = A(r.blockers).map(function (b) { return typeof b === "object" ? (b.title || b.blocker || b.id || "блокер") : String(b); });
     var objectBlockerItems = l.objBlockers.map(function (b) { return (b.title || b.blocker || "открытая blocker-запись") + " · объект " + (b.object_id || ""); });
     var hist = [];
@@ -2394,7 +2397,7 @@
       now: "<div class='cc-insp-state st-" + l.tone + "'>" + toneDot(l.tone, routeToneLabel(l)) + "<small>" + E(routeToneHint(l)) + "</small><em>" +
         E(human(r.stage || r.status || "этап не передан")) + "</em><small>" + E(l.risk.stale == null ? "дата движения не передана" : "последнее движение " + H.ago(r.last_movement_at)) + "</small></div>" +
         (routeBlockerItems.length ? "<small>Явные блокеры маршрута</small><ul class='cc-blockers'>" + routeBlockerItems.map(function (b) { return "<li>" + E(H.cut(b, 110)) + "</li>"; }).join("") + "</ul>" :
-          (l.risk.blockers ? para("Источник сообщает " + l.risk.blockers + " блокер(а) маршрута без описания.") : "")) +
+          (l.risk.blockers ? para("Источник сообщает " + l.risk.blockers + " блокер(а) маршрута без описания.") : (!l.risk.blockersKnown ? muted("blockers[] / blocker_count не переданы; отсутствие блокеров маршрута не подтверждено.") : ""))) +
         (objectBlockerItems.length ? "<div class='cc-object-blocker-context'><small>Контекст связанного объекта · " + objectBlockerItems.length + " записей</small><p>Continuity связывает эти blocker-записи с объектом, но не доказывает, что они блокируют данный маршрут.</p><ul class='cc-blockers context'>" + objectBlockerItems.slice(0,4).map(function (b) { return "<li>" + E(H.cut(b, 110)) + "</li>"; }).join("") + "</ul></div>" : ""),
       why: para((r.priority ? "Приоритет в источнике: " + r.priority + "." : "Источник не передаёт обоснование важности.") +
         (l.downstream.length ? " Его остановка явно задержит " + l.downstream.length + " маршрута." : "") +
@@ -2417,7 +2420,7 @@
         l.obj ? ceilingRow("ok", "Канонический объект " + l.objId + " подтверждён реестром Continuity") :
           (l.objMissing ? ceilingRow("warn", "Заявленный канонический объект " + l.objId + " не найден в реестре — нужна сверка") :
             (l.sourceObjectId ? ceilingRow("warn", "Источник маршрута передал ID " + l.sourceObjectId + ", но canonical_mapping_status=" + (l.mappingState || "не передан") + "; это не считается связью с объектом Continuity") : ceilingRow("info", "Маршрут не передаёт каноническую объектную связь"))),
-        ceilingRow(l.upstream.length || l.downstream.length ? "ok" : "info", l.upstream.length || l.downstream.length ? "Зависимости — только явные поля источника" : "Явных зависимостей нет; по догадке не строятся"),
+        ceilingRow(l.upstream.length || l.downstream.length ? "ok" : (dependencyFieldsKnown ? "info" : "warn"), l.upstream.length || l.downstream.length ? "Зависимости — только явные поля источника" : (dependencyFieldsKnown ? "В переданных dependency-полях явных зависимостей нет; по догадке не строятся" : "Dependency-поля маршрута не переданы; отсутствие зависимостей не подтверждено")),
         !blockerDataOk() ? ceilingRow("warn", blockerGapText()+"; отсутствие объектного blocker-контекста не подтверждено") :
           ceilingRow("info", l.objBlockers.length ? "Blocker-записи объекта показаны только как контекст; связь с маршрутом не доказана" : "В текущем чтении Continuity blocker-записей этого объекта не найдено; к маршруту ничего не приписывается"),
         ceilingRow("no", "Причинное влияние на другие линии — не доказано"),
