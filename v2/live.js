@@ -1875,8 +1875,18 @@
     };
     var dims=asArray(data.dimensions);
     var cards=dims.map(function(d){
+      var extra = "";
+      if (d.dimension === "artifact_durability_readback") {
+        var det = d.detail || {};
+        extra = "<div class='foundation-proof-grid'>" +
+          "<span><small>На диске</small><b>" + esc(det.objects_on_disk != null ? det.objects_on_disk : "—") + "</b></span>" +
+          "<span><small>Расхождения хэшей</small><b>" + esc(det.hash_mismatches != null ? det.hash_mismatches : "—") + "</b></span>" +
+          "<span><small>Потерянные артефакты</small><b>" + esc(det.artifacts_missing != null ? det.artifacts_missing : "—") + "</b></span>" +
+          "<span><small>Осиротевшие расписки</small><b>" + esc(det.orphan_receipts != null ? det.orphan_receipts : "—") + "</b></span></div>" +
+          "<div class='foundation-proof-note'><b>Что именно доказано:</b> источник не сообщает о потерянных артефактах или несовпадении хэшей. FAIL вызван несогласованностью «расписка STORED ↔ объект на диске». Идентификатор конкретной расписки текущая проекция чтения не раскрывает, поэтому Панель его не угадывает.</div>";
+      }
       return "<div class='live-item-clean'><div class='live-item-clean-head'><h3>"+esc(names[d.dimension]||d.dimension)+"</h3>"+chip(d.state)+"</div>"+
-        (d.blocking_reason?"<div class='live-warning'>"+esc(projectionTextRu(d.blocking_reason))+"</div>":"")+
+        (d.blocking_reason?"<div class='live-warning'>"+esc(projectionTextRu(d.blocking_reason))+"</div>":"")+ extra +
         "<small>Доказано: "+esc(d.proven_by_source||"источник не указан")+"</small></div>";
     }).join("");
     var blocking=asArray(data.blocking_reasons);
@@ -1889,7 +1899,8 @@
       "<div class='metric'><small>PASS</small><strong>"+esc(dims.filter(function(d){return String(d.state).toUpperCase()==="PASS";}).length)+" / "+esc(dims.length)+"</strong><span>обязательные измерения</span></div>"+
       "<div class='metric'><small>Блокирующие причины</small><strong>"+esc(blocking.length)+"</strong><span>подтверждены источниками</span></div></div>"+
       (blocking.length?"<div class='live-warning'>"+blocking.map(function(x){return esc(projectionTextRu(x));}).join("<br>")+"</div>":"")+
-      "<div class='live-list-clean'>"+cards+"</div>";
+      "<div class='live-list-clean'>"+cards+"</div>" +
+      "<div class='foundation-ready-rule'><b>Условие возврата в READY:</b> каждое обязательное измерение должно снова иметь PASS от живого источника. Прошлый PASS или сохранённый отчёт не заменяет текущее доказательство.</div>";
   }
 
   function renderAtlasStateClean(data) {
