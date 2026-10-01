@@ -152,7 +152,7 @@
       "Operationalized mechanisms and frozen scoring/calibration rules are not complete.": "Операционализация механизмов и замороженные правила оценки/калибровки ещё не завершены.",
       "Outcome windows not yet resolved; first gate around 2026-10-13.": "Окна исходов ещё не разрешились; первый контрольный рубеж ожидается примерно 13 октября 2026 года.",
       "Outcome windows not yet mature.": "Окна исходов ещё не созрели для оценки.",
-      "External replies / opportunity creation.": "Внешние ответы или появление подтверждённой возможности.",
+      "External replies / opportunity creation.": "Внешние ответы или появление возможности.",
       "External program decision/credits.": "Внешнее решение программы или начисление кредитов."
     };
     return exact[raw] || raw;
