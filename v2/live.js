@@ -1590,9 +1590,9 @@
         risksBox.innerHTML = unavailableHTML("Источники риска недоступны", "Панель не вычисляет собственный риск без подтверждённого источника.");
       } else {
         var rows = blockers.slice(0, 6).map(function (b) {
-          return "<div class='signals-live-item risk'><b>Открытая запись блокера</b>" +
-            "<span>" + esc(b.object_id || "объект не указан") + " · " + esc(ruStatus(b.status || "OPEN")) + "</span>" +
-            "<small>Continuity · источник не передал оценку тяжести; наличие OPEN-записи не означает автоматически критический риск</small></div>";
+          return "<div class='signals-live-item risk'><b>Запись блокера</b>" +
+            "<span>" + esc(b.object_id || "объект не указан") + " · " + esc(b.status ? ruStatus(b.status) : "статус не указан") + "</span>" +
+            "<small>Continuity · источник не передал оценку тяжести; наличие записи блокера не означает автоматически критический риск</small></div>";
         });
         riskyTests.slice(0, 6).forEach(function (t) {
           rows.push("<div class='signals-live-item risk'><b>" + esc(t.test_id || "Проверка") + "</b>" +
@@ -1769,8 +1769,8 @@
           "<span>" + esc(x.object_id || "объект не указан") + "</span><small>Founder inbox · запрос на участие</small></div>");
       });
       blockers.slice(0, 2).forEach(function (b) {
-        heroRows.push("<div class='signals-live-item risk'><b>Открытая запись блокера</b>" +
-          "<span>" + esc(b.object_id || "объект не указан") + "</span><small>Continuity подтверждает OPEN · тяжесть источником не передана</small></div>");
+        heroRows.push("<div class='signals-live-item risk'><b>Запись блокера</b>" +
+          "<span>" + esc(b.object_id || "объект не указан") + "</span><small>Continuity · статус: " + esc(b.status ? ruStatus(b.status) : "не указан") + " · тяжесть источником не передана</small></div>");
       });
       changes.slice(0, 2).forEach(function (o) {
         heroRows.push("<div class='signals-live-item change'><b>" + esc(o.name || o.object_id || "Изменение") + "</b>" +
