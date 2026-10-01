@@ -911,7 +911,7 @@
     pageBadge("registry", sourceState.blockers.ok ? "live" : "warn", sourceState.blockers.ok ? "ДАННЫЕ ПОДКЛЮЧЕНЫ" : "ДАННЫЕ ЧАСТИЧНО");
   }
 
-  function renderDocuments(health) {
+  function renderDocuments(health, testingSummary) {
     var page = document.querySelector('[data-page-panel="documents"]');
     if (!page) return;
     var keys = ["durable", "review", "oldest", "unknown"];
@@ -930,6 +930,43 @@
       unknown: rq.unknown_classification == null ? "—" : rq.unknown_classification
     };
     Object.keys(vals).forEach(function (k) { var e = page.querySelector('[data-d="' + k + '"]'); if (e) e.textContent = vals[k]; });
+
+    var evidenceBox = page.querySelector('[data-d="evidence-overview"]');
+    if (evidenceBox) {
+      var manual = Number(rq.manual_review_required || 0);
+      var op = Number(rq.operational_evidence || 0);
+      var work = Number(rq.working_reference || 0);
+      var canonical = Number(rq.canonical_review || 0);
+      var canonicalActive = Number(rq.canonical_review_active || 0);
+      var historical = Number(rq.historical_testing_review || 0);
+      var unknown = Number(rq.unknown_classification || 0);
+      var tests = allTests(testingSummary);
+      var adjudication = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "NEEDS_ADJUDICATION"; });
+      var rows = asArray(health.review_rows);
+      var matched = null, matchedTest = null;
+      for (var ai = 0; ai < adjudication.length && !matched; ai++) {
+        var tid = String(adjudication[ai].test_id || "");
+        matched = rows.filter(function (r) { return tid && String(r.test_id || "") === tid; })[0] || null;
+        if (matched) matchedTest = adjudication[ai];
+      }
+      var roleTotal = op + work + canonical + unknown;
+      var authority = matched ? String(matched.review_authority_state || "") : "";
+      var authorityRu = authority === "UNASSIGNED_REVIEW_QUARANTINE" ? "владелец разбора ещё не назначен" :
+        (authority ? humanCode(authority) : "состояние полномочий не передано");
+      evidenceBox.innerHTML =
+        "<div class='doc-evidence-head'><div><small>КЛАССИФИКАЦИЯ НЕРАЗОБРАННОГО КОНТУРА</small><b>" + esc(roleTotal || rq.still_unreviewed || "—") + " артефактов распределены по роли</b></div><span>ручного разбора сейчас: <strong>" + esc(manual) + "</strong></span></div>" +
+        "<div class='doc-role-grid'>" +
+          "<div class='operational'><small>Операционные свидетельства</small><b>" + esc(op) + "</b><span>рабочий след; сам по себе не меняет канон</span></div>" +
+          "<div class='working'><small>Рабочие ссылки</small><b>" + esc(work) + "</b><span>справочный материал</span></div>" +
+          "<div class='canonical'><small>Канонический разбор</small><b>" + esc(canonical) + "</b><span>активны " + esc(canonicalActive) + " · исторические " + esc(historical) + "</span></div>" +
+          "<div class='unknown'><small>Не классифицировано</small><b>" + esc(unknown) + "</b><span>нужен ручной разбор роли</span></div>" +
+        "</div>" +
+        (matched && matchedTest ?
+          "<div class='doc-test-link'><div><small>ТОЧНАЯ СВЯЗЬ С ТЕКУЩЕЙ ПРОВЕРКОЙ</small><b>" + esc(matchedTest.test_id || "—") + "</b><span>Testing: " + esc(ruStatus(matchedTest.status)) + " · Hub: канонический разбор · ревизия " + esc(matched.revision != null ? matched.revision : "—") + "</span></div>" +
+          "<div class='doc-test-state'><strong>" + esc(authorityRu) + "</strong><span>связь установлена только по точному test_id; доказательства прогона не приравниваются к принятию научного вывода</span></div></div>" :
+          "<div class='doc-test-link calm'><div><small>СВЯЗЬ С ТЕКУЩЕЙ ПРОВЕРКОЙ</small><b>Нет точного совпадения test_id</b><span>Панель не связывает артефакты с тестом по названию или похожему тексту.</span></div></div>") +
+        "<div class='doc-evidence-rule'>Ручная очередь = активный канонический разбор + неизвестная классификация. Исторические тестовые разборы не возвращаются в активную очередь автоматически.</div>";
+    }
     var q = page.querySelector('[data-d="queue"]');
     if (q) {
       var rows = asArray(rq.oldest_5);
@@ -937,7 +974,9 @@
         var ageMin = r.received_at ? Math.max(0, Math.round((Date.now() - new Date(r.received_at).getTime()) / 60000)) : null;
         return "<div class='document-live-row'><b>" + esc(r.packet_file || "(событие без файла)") + "</b>" +
           "<span>" + esc(r.claimed_object_id || "не привязан") + "</span>" +
-          "<span>" + esc(r.artifact_class || "UNKNOWN") + "</span><small>" + esc(ageMinutesLabel(ageMin)) + "</small></div>";
+          "<span>" + esc(r.artifact_class === "CANONICAL_REVIEW" ? "канонический разбор" : (r.artifact_class === "UNKNOWN" ? "не классифицировано" : humanCode(r.artifact_class || "UNKNOWN"))) +
+          (r.classification_reason ? "<small title='" + esc(r.classification_reason) + "'>" + esc(r.classification_reason === "not yet classified" ? "роль ещё не определена" : (r.classification_reason.indexOf("no explicit canonical/operational/working signal") === 0 ? "нет явного сигнала роли" : humanCode(r.classification_reason))) + "</small>" : "") +
+          "</span><small>" + esc(ageMinutesLabel(ageMin)) + "</small></div>";
       }).join("") :
       "<div class='documents-empty compact'><strong>Ручного разбора сейчас нет</strong><span>Источник Hub ответил пустой очередью.</span></div>";
     }
@@ -2114,7 +2153,7 @@
       else renderInboxUnavailable();
 
       renderRegistry(objects, blockers);
-      renderDocuments(hubHealth);
+      renderDocuments(hubHealth, testingSummary);
       renderTesting(testingSummary, testingRunner);
       renderSignals(objects, blockers, inbox, testingSummary, marketSignals, organizationalIntelligence);
       renderFieldMovement(fieldMovement);
