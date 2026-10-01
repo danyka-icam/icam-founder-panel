@@ -892,8 +892,8 @@
           return !b.is_test && String(b.status || "").toUpperCase() !== "CLEARED";
         });
         blockerBox.innerHTML = blockers.length ? "<div class='registry-mini-list'>" + blockers.slice(0, 6).map(function (b) {
-          return "<div class='registry-mini-item'><b>" + esc(b.title || b.blocker || "Открытая blocker-запись") + "</b><span>" +
-            esc(b.object_id || "объект не определён") + " · " + esc(ruStatus(b.status || "OPEN")) + " · тяжесть не передана</span></div>";
+          return "<div class='registry-mini-item'><b>" + esc(b.title || b.blocker || "Запись блокера") + "</b><span>" +
+            esc(b.object_id || "объект не определён") + " · " + esc(b.status ? ruStatus(b.status) : "статус не указан") + " · тяжесть не передана</span></div>";
         }).join("") + "</div>" :
         "<div class='registry-empty compact'><strong>Открытых нетестовых blocker-записей нет</strong><span>По текущей проекции Continuity.</span></div>";
       }
