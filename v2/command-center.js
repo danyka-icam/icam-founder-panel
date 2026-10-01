@@ -1398,8 +1398,8 @@
 
     if (h) {
       var hm = Number(h.hash_mismatches || 0), orp = Number(h.orphan_receipts || 0);
-      var cov = h.coverage === "FULL_END_TO_END" ? "полное сквозное покрытие" : H.humanCode(h.coverage || "покрытие не передано");
-      var hn = hm + " расхождений хэшей · " + orp + " осиротевших расписок";
+      var cov = h.coverage === "FULL_END_TO_END" ? "сквозное после поступления в транспорт" : H.humanCode(h.coverage || "покрытие не передано");
+      var hn = hm + " расхождений хэшей · " + orp + " осиротевших расписок" + (h.coverage === "FULL_END_TO_END" ? " · до отправки с Mac этот контур не наблюдает" : "");
       out.push(cell(hm > 0 || orp > 0 ? "warn" : "ok", "#documents", "Долговечность документов", cov, hn));
     } else {
       out.push(cell("neutral", "#documents", "Долговечность документов", "нет данных", "источник не прочитан"));
