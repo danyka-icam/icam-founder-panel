@@ -948,13 +948,18 @@
 
     var evidenceBox = page.querySelector('[data-d="evidence-overview"]');
     if (evidenceBox) {
-      var manual = Number(rq.manual_review_required || 0);
-      var op = Number(rq.operational_evidence || 0);
-      var work = Number(rq.working_reference || 0);
-      var canonical = Number(rq.canonical_review || 0);
-      var canonicalActive = Number(rq.canonical_review_active || 0);
-      var historical = Number(rq.historical_testing_review || 0);
-      var unknown = Number(rq.unknown_classification || 0);
+      function countOrNull(v) {
+        if (v == null || v === "") return null;
+        var n = Number(v);
+        return isFinite(n) ? n : null;
+      }
+      var manual = countOrNull(rq.manual_review_required);
+      var op = countOrNull(rq.operational_evidence);
+      var work = countOrNull(rq.working_reference);
+      var canonical = countOrNull(rq.canonical_review);
+      var canonicalActive = countOrNull(rq.canonical_review_active);
+      var historical = countOrNull(rq.historical_testing_review);
+      var unknown = countOrNull(rq.unknown_classification);
       var tests = allTests(testingSummary);
       var adjudication = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "NEEDS_ADJUDICATION"; });
       var rows = asArray(health.review_rows);
@@ -964,18 +969,20 @@
         matched = rows.filter(function (r) { return tid && String(r.test_id || "") === tid; })[0] || null;
         if (matched) matchedTest = adjudication[ai];
       }
-      var roleTotal = op + work + canonical + unknown;
+      var roleParts = [op, work, canonical, unknown];
+      var roleTotal = roleParts.every(function (v) { return v != null; }) ? roleParts.reduce(function (a, b) { return a + b; }, 0) : null;
+      function shownCount(v) { return v == null ? "—" : v; }
       var authority = matched ? String(matched.review_authority_state || "") : "";
       var authorityRu = authority === "UNASSIGNED_REVIEW_QUARANTINE" ? "владелец разбора ещё не назначен" :
         (authority ? humanCode(authority) : "состояние полномочий не передано");
       evidenceBox.innerHTML =
         "<div class='doc-integrity-boundary'><b>Граница сохранности:</b><span>Hub сообщает " + esc(health.objects_on_disk == null ? "—" : health.objects_on_disk) + " объектов на диске, из них индексировано " + esc(health.indexed_ok == null ? "—" : health.indexed_ok) + ", не индексировано " + esc(health.unindexed == null ? "—" : health.unindexed) + ". Осиротевших расписок: " + esc(health.orphan_receipts == null ? "—" : health.orphan_receipts) + "; расхождений хэшей: " + esc(health.hash_mismatches == null ? "—" : health.hash_mismatches) + ". Наличие файла на диске не повышается до доказанного полного readback.</span></div>" +
-        "<div class='doc-evidence-head'><div><small>КЛАССИФИКАЦИЯ НЕРАЗОБРАННОГО КОНТУРА</small><b>" + esc(roleTotal || rq.still_unreviewed || "—") + " артефактов распределены по роли</b></div><span>ручного разбора сейчас: <strong>" + esc(manual) + "</strong></span></div>" +
+        "<div class='doc-evidence-head'><div><small>КЛАССИФИКАЦИЯ НЕРАЗОБРАННОГО КОНТУРА</small><b>" + esc(roleTotal != null ? roleTotal : (rq.still_unreviewed == null ? "—" : rq.still_unreviewed)) + " артефактов распределены по роли</b></div><span>ручного разбора сейчас: <strong>" + esc(shownCount(manual)) + "</strong></span></div>" +
         "<div class='doc-role-grid'>" +
-          "<div class='operational'><small>Операционные свидетельства</small><b>" + esc(op) + "</b><span>рабочий след; сам по себе не меняет канон</span></div>" +
-          "<div class='working'><small>Рабочие ссылки</small><b>" + esc(work) + "</b><span>справочный материал</span></div>" +
-          "<div class='canonical'><small>Канонический разбор</small><b>" + esc(canonical) + "</b><span>активны " + esc(canonicalActive) + " · исторические " + esc(historical) + "</span></div>" +
-          "<div class='unknown'><small>Не классифицировано</small><b>" + esc(unknown) + "</b><span>нужен ручной разбор роли</span></div>" +
+          "<div class='operational'><small>Операционные свидетельства</small><b>" + esc(shownCount(op)) + "</b><span>рабочий след; сам по себе не меняет канон</span></div>" +
+          "<div class='working'><small>Рабочие ссылки</small><b>" + esc(shownCount(work)) + "</b><span>справочный материал</span></div>" +
+          "<div class='canonical'><small>Канонический разбор</small><b>" + esc(shownCount(canonical)) + "</b><span>активны " + esc(shownCount(canonicalActive)) + " · исторические " + esc(shownCount(historical)) + "</span></div>" +
+          "<div class='unknown'><small>Не классифицировано</small><b>" + esc(shownCount(unknown)) + "</b><span>нужен ручной разбор роли</span></div>" +
         "</div>" +
         (matched && matchedTest ?
           "<div class='doc-test-link'><div><small>ТОЧНАЯ СВЯЗЬ С ТЕКУЩЕЙ ПРОВЕРКОЙ</small><b>" + esc(matchedTest.test_id || "—") + "</b><span>Testing: " + esc(ruStatus(matchedTest.status)) + " · Hub: канонический разбор · ревизия " + esc(matched.revision != null ? matched.revision : "—") + "</span></div>" +
