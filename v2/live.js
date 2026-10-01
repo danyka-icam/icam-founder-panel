@@ -29,6 +29,7 @@
     founderProjection: API + "/founder-projection",
     organizationalIntelligence: API + "/organizational-intelligence",
     stewardReconciliation: API + "/steward-reconciliation",
+    signalLabStatus: API + "/signal-lab-status",
     // Founder Universe read-only backend (separate service, same origin).
     temporalUniverse: "/founder-star-view/api/temporal-universe",
     portfolioAdmission: "/founder-star-view/api/portfolio-admission"
@@ -68,6 +69,7 @@
     founderProjection: { ok: false, at: null, error: null },
     organizationalIntelligence: { ok: false, at: null, error: null },
     stewardReconciliation: { ok: false, at: null, error: null },
+    signalLabStatus: { ok: false, at: null, error: null },
     temporalUniverse: { ok: false, at: null, error: null },
     portfolioAdmission: { ok: false, at: null, error: null }
   };
@@ -1827,7 +1829,7 @@
       scanner: ["marketSignals", "fieldMovement", "scannerDiagnostics"],
       "founder-universe": ["temporalUniverse", "portfolioAdmission"],
       "founder-command": ["founderProjection", "organizationalIntelligence", "stewardReconciliation"],
-      specialized: ["foundationAgg", "opsProjection", "atlasState", "twinState", "brazilPortal"]
+      specialized: ["foundationAgg", "opsProjection", "atlasState", "twinState", "brazilPortal", "signalLabStatus"]
     };
     Object.keys(map).forEach(function (group) {
       var row = page.querySelector('[data-x-source="' + group + '"]');
@@ -1889,6 +1891,7 @@
       fetchJSON("founderProjection", ENDPOINTS.founderProjection, UNIVERSE_TIMEOUT_MS),
       fetchJSON("organizationalIntelligence", ENDPOINTS.organizationalIntelligence, UNIVERSE_TIMEOUT_MS),
       fetchJSON("stewardReconciliation", ENDPOINTS.stewardReconciliation, UNIVERSE_TIMEOUT_MS),
+      fetchJSON("signalLabStatus", ENDPOINTS.signalLabStatus, UNIVERSE_TIMEOUT_MS),
       fetchJSON("temporalUniverse", ENDPOINTS.temporalUniverse, UNIVERSE_TIMEOUT_MS),
       fetchJSON("portfolioAdmission", ENDPOINTS.portfolioAdmission, UNIVERSE_TIMEOUT_MS)
     ]).then(function (res) {
@@ -1914,8 +1917,9 @@
       var founderProjection = res[19];
       var organizationalIntelligence = res[20];
       var stewardReconciliation = res[21];
-      var temporalUniverse = res[22];
-      var portfolioAdmission = res[23];
+      var signalLabStatus = res[22];
+      var temporalUniverse = res[23];
+      var portfolioAdmission = res[24];
 
       var routes = routesJSON && Array.isArray(routesJSON.routes) ? routesJSON.routes : [];
       var summary = summaryJSON && summaryJSON.summary ? summaryJSON.summary : null;
@@ -1928,7 +1932,8 @@
         opsProjection: opsProjection, brazilPortal: brazilPortal,
         foundationAgg: foundationAgg, atlasState: atlasState, twinState: twinState,
         marketSignals: marketSignals, fieldMovement: fieldMovement,
-        founderProjection: founderProjection, organizationalIntelligence: organizationalIntelligence, stewardReconciliation: stewardReconciliation, temporalUniverse: temporalUniverse,
+        founderProjection: founderProjection, organizationalIntelligence: organizationalIntelligence,
+        stewardReconciliation: stewardReconciliation, signalLabStatus: signalLabStatus, temporalUniverse: temporalUniverse,
         portfolioAdmission: portfolioAdmission, rd1: {}
       };
 

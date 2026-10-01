@@ -1266,6 +1266,51 @@
       "<details class='cc-system-details'><summary>Открыть системную очередь · " + items.length + "</summary><div class='cc-system-list'>" + items.map(row).join("") + "</div></details>";
   }
 
+  function renderSignalLab() {
+    var d = M.d.signalLabStatus || null;
+    if (!ok("signalLabStatus") || !d) {
+      return "<div class='cc-siglab-head'><span>ATLAS · SIGNAL LAB</span><em class='off'>источник недоступен</em></div>" +
+        "<div class='cc-siglab-empty'>Живое состояние лаборатории сейчас не прочитано. Панель не подставляет последнее известное значение.</div>";
+    }
+
+    var st = d.current_stage || {};
+    var live = d.live || {};
+    var control = live.control || {}, treatment = live.treatment || {};
+    var observations = Number(control.observations || 0) + Number(treatment.observations || 0);
+    var confirmed = Number(control.confirmed || 0) + Number(treatment.confirmed || 0);
+    var restarts = [d.last_restart && d.last_restart.control, d.last_restart && d.last_restart.treatment].filter(Boolean);
+    var restarted = restarts.length ? restarts.sort(function (a,b) { return new Date(b) - new Date(a); })[0] : null;
+    var running = upper(d.health) === "RUNNING";
+    var stageN = Number(st.index || 0), stageTotal = Number(st.total || 0);
+    var gateLabels = {
+      GLOBAL_UNIVERSE_FREEZE: "заморозка глобальной выборки",
+      OFFICIAL_SOURCE_DISCOVERY: "квалификация официальных источников",
+      BLIND_SEMANTIC_HOLDOUT: "слепой исторический тест",
+      PROSPECTIVE_GLOBAL_LIVE: "глобальное проспективное наблюдение"
+    };
+    var gate = gateLabels[String(d.next_gate || "")] || human(d.next_gate || "следующий рубеж не передан");
+    var objective = d.objective || "Цель не передана источником.";
+    var stageLabel = st.label || human(st.name || "этап не передан");
+    var scope = d.scope || {};
+    var regionN = A(scope.regions).length;
+    var sectorN = A(scope.sectors).length;
+
+    return "<a class='cc-siglab-link' href='#atlas' aria-label='Открыть исследовательский ATLAS'>" +
+      "<div class='cc-siglab-head'><span>ATLAS · SIGNAL LAB</span><em class='" + (running ? "on" : "off") + "'><i></i>" + E(running ? "наблюдение идёт" : human(d.health || "состояние не передано")) + "</em></div>" +
+      "<div class='cc-siglab-main'><div class='cc-siglab-stage'><small>Текущий этап</small><b>" + E(stageN && stageTotal ? stageN + " из " + stageTotal : "—") + "</b><span>" + E(stageLabel) + "</span></div>" +
+      "<div class='cc-siglab-objective'><small>Цель</small><p>" + E(objective) + "</p></div></div>" +
+      "<div class='cc-siglab-metrics'>" +
+        "<span><small>Наблюдений в двух потоках</small><b>" + E(observations || "—") + "</b></span>" +
+        "<span><small>Подтверждений в потоках</small><b>" + E(confirmed || "—") + "</b></span>" +
+        "<span><small>Охват</small><b>" + E(regionN ? regionN + " регионов" : "—") + "</b><i>" + E(sectorN ? sectorN + " классов отраслей" : "") + "</i></span>" +
+        "<span><small>Последний перезапуск</small><b>" + E(restarted ? timeLabel(restarted) : "—") + "</b></span>" +
+        "<span><small>Следующий цикл</small><b>" + E(d.next_cycle ? timeLabel(d.next_cycle) : "—") + "</b></span>" +
+        "<span><small>Следующий рубеж</small><b>" + E(gate) + "</b></span>" +
+      "</div>" +
+      "<div class='cc-siglab-foot'>Показывается состояние исследовательского контура, а не вывод о качестве ATLAS. Источник обновляется отдельно от интерфейса.</div>" +
+    "</a>";
+  }
+
   function renderSystemHealth() {
     var f = M.d.foundationAgg || null;
     var t = M.d.testingSummary || null;
@@ -1321,6 +1366,7 @@
     page.querySelector("[data-cc='meta']").innerHTML = renderMeta();
     page.querySelector("[data-cc='universe']").innerHTML = renderUniverseStrip();
     page.querySelector("[data-cc='deep-links']").innerHTML = renderDeepLinks();
+    page.querySelector("[data-cc='signal-lab']").innerHTML = renderSignalLab();
     page.querySelector("[data-cc='lines']").innerHTML = !routesOk ?
       unavailable("Источник маршрутов недоступен", "Линии не показываются по прошлым или демонстрационным данным.") :
       (lines.length ? (function () {
