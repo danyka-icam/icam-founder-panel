@@ -2290,11 +2290,11 @@
       section("Где в системе", x.where || muted("не определено")) +
       section("Сейчас", x.now || muted("источник не передаёт текущее состояние")) +
       section("Почему важно", x.why || muted("источник не передаёт обоснование")) +
-      section("История", x.history || muted("датированных событий нет")) +
+      section("История", x.history || muted("датированная история в этом представлении не передана")) +
       section("Ждём", x.waiting || muted("ожидание не передано")) +
       section("Следующий переход", (x.next || muted("не передан источником")) +
         (x.step ? "<div class='cc-insp-step'><h4>Минимальный следующий шаг</h4><p>" + E(x.step.text) + "</p><small>" + E(x.step.src) + "</small></div>" : "")) +
-      section("Связи", x.links || muted("доказанных связей нет")) +
+      section("Связи", x.links || muted("связи в этом представлении не переданы")) +
       section("Доказательный потолок", "<ul class='cc-ceiling'>" + (x.ceiling || []).join("") + "</ul>") +
       (x.nav ? "<div class='cc-insp-nav'>" + x.nav + "</div>" : "");
   }
@@ -2350,7 +2350,8 @@
           (l.objMissing ? ceilingRow("warn", "Заявленный канонический объект " + l.objId + " не найден в реестре — нужна сверка") :
             (l.sourceObjectId ? ceilingRow("warn", "Источник маршрута передал ID " + l.sourceObjectId + ", но canonical_mapping_status=" + (l.mappingState || "не передан") + "; это не считается связью с объектом Continuity") : ceilingRow("info", "Маршрут не передаёт каноническую объектную связь"))),
         ceilingRow(l.upstream.length || l.downstream.length ? "ok" : "info", l.upstream.length || l.downstream.length ? "Зависимости — только явные поля источника" : "Явных зависимостей нет; по догадке не строятся"),
-        ceilingRow(l.objBlockers.length ? "info" : "ok", l.objBlockers.length ? "Blocker-записи объекта показаны только как контекст; связь с маршрутом не доказана" : "Blocker-записи объекта к маршруту не приписываются"),
+        !ok("blockers") ? ceilingRow("warn", "Источник blocker-записей Continuity недоступен; отсутствие объектного blocker-контекста не подтверждено") :
+          ceilingRow("info", l.objBlockers.length ? "Blocker-записи объекта показаны только как контекст; связь с маршрутом не доказана" : "В текущем чтении Continuity blocker-записей этого объекта не найдено; к маршруту ничего не приписывается"),
         ceilingRow("no", "Причинное влияние на другие линии — не доказано"),
         ceilingRow("info", "Тон — подача панели, не канонический приоритет")
       ],
