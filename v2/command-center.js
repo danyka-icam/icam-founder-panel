@@ -1025,11 +1025,13 @@
     chips.push("<a class='cc-meta' href='#timeline'><i>↻</i>изменений за 7 дней: <b>" + E(recent == null ? "—" : recent) + "</b>" + sparkDays() + "</a>");
     var scan = M.d.scannerDiagnostics || null;
     var scanCov = scan && scan.source_coverage ? scan.source_coverage : null;
-    var scanTotal = scanCov ? Number(scanCov.total_sources || 0) : 0;
-    var scanOk = scanCov ? Number(scanCov.ok_count || 0) : 0;
+    var scanTotal = scanCov && scanCov.total_sources != null ? Number(scanCov.total_sources) : null;
+    var scanOk = scanCov && scanCov.ok_count != null ? Number(scanCov.ok_count) : null;
     var scanDegraded = scanCov && String(scanCov.status || "").indexOf("DEGRADED") === 0;
     var marketLabel = M.marketCount != null ? M.marketCount : (M.marketState === "NOT_ACTIVATED" ? "не активированы" : "недоступны");
-    var marketSub = scanCov ? ("накоплено в хранилище · текущий Scanner " + scanOk + "/" + scanTotal + " источников") : "свежесть Scanner не подтверждена";
+    var marketSub = scanCov && scanTotal != null && scanOk != null ?
+      ("накоплено в хранилище · текущий Scanner " + scanOk + "/" + scanTotal + " источников") :
+      "свежесть и покрытие Scanner не подтверждены";
     chips.push("<a class='cc-meta" + (scanDegraded ? " warn" : "") + "' href='#signals'><i>◉</i>рыночные сигналы: <b>" + E(marketLabel) + "</b><span class='cc-meta-sub'>" + E(marketSub) + "</span></a>");
     chips.push("<a class='cc-meta' href='#placement'><i>⌖</i>качество карты: <b>" + (q ? q.active + " в активной очереди" : "Не проверено") + "</b>" +
       (q ? "<span class='cc-meta-sub'>по источнику " + q.sourceTotal + (q.archived ? " · " + q.archived + " в архиве" : "") + "</span>" : "") + "</a>");
