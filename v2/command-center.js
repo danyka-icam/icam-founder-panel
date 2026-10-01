@@ -649,7 +649,13 @@
 
     var lines = routes.map(function (r, idx) {
       var key = H.routeKey(r);
-      var objId = r.source_object_id || r.object_id ? String(r.source_object_id || r.object_id) : null;
+      var sourceObjectId = r.source_object_id ? String(r.source_object_id) : null;
+      var mappingState = String(r.canonical_mapping_status || "").toUpperCase();
+      // source_object_id is provenance, not a canonical Continuity binding.
+      // Bind only when the route exposes an explicit canonical object ID, a
+      // direct object_id, or a positively resolved mapping state.
+      var mappedSource = sourceObjectId && /^(RESOLVED|MAPPED|EXACT|VERIFIED|BOUND)$/.test(mappingState) ? sourceObjectId : null;
+      var objId = r.canonical_object_id ? String(r.canonical_object_id) : (r.object_id ? String(r.object_id) : mappedSource);
       var obj = objId ? objById[objId] || null : null;
       var risk = H.riskInfo(r, dep);
       var closed = H.isClosed(r);
@@ -659,7 +665,8 @@
       var star = U && objId ? U.starByMemory[objId] || null : null;
       return {
         kind: "line", key: key, r: r, idx: idx,
-        title: titleOf(r), objId: objId, obj: obj, objMissing: !!(objId && !obj),
+        title: titleOf(r), objId: objId, sourceObjectId: sourceObjectId, mappingState: mappingState || null,
+        obj: obj, objMissing: !!(objId && !obj),
         risk: risk, closed: closed, state: state, rd1: rd1, area: area, star: star,
         origin: obj ? (obj.owning_branch || obj.owner || null) : null,
         waiting: !closed && !!r.ball_owner && !H.isFounderOwner(r.ball_owner),
@@ -901,44 +908,54 @@
   }
 
   function renderHero() {
-    var decisions = [], moves = [];
+    var decisions = [], assigned = [];
+    function decisionState(v) {
+      var s = String(v || "").toUpperCase();
+      if (s === "READY") return "готово к решению";
+      if (s === "PENDING") return "ожидает решения";
+      if (s === "RESOLVED") return "решение зафиксировано";
+      return v ? human(v) : "формальное решение";
+    }
     if (M.fp.ok) M.FP.decisions.forEach(function (d) {
       var r = d.raw || {};
       decisions.push({
         kind: "decision", title: d.title,
         why: r.why_now || r.deadline_or_condition || "",
-        ref: r.presentation_state || "формальное решение",
+        ref: decisionState(r.presentation_state),
         age: r.created_at || r.recorded_at || null,
         attr: sel("decision", d.key)
       });
     });
-    M.active.filter(function (l) { return l.tone === "act"; }).forEach(function (l) {
-      moves.push({
+    // ball_owner=ME proves assignment, not urgency. Keep these routes visible,
+    // but never promote all of them into "actions required now".
+    M.active.filter(function (l) { return l.r.ball_owner && H.isFounderOwner(l.r.ball_owner); }).forEach(function (l) {
+      var priority = l.r.priority ? "приоритет источника: " + l.r.priority : "приоритет источником не передан";
+      assigned.push({
         kind: "route", title: humanActionText(l.next || "Следующий ход не передан"),
-        why: routeDisplayTitle(l.title) + " · " + TONE_META.act.hint +
+        why: routeDisplayTitle(l.title) + " · маршрут назначен вам · " + priority +
           (l.risk.blockers + l.objBlockers.length ? " · блокеров " + (l.risk.blockers + l.objBlockers.length) : "") +
-          (l.risk.stale != null && l.risk.stale >= H.STALE_DAYS ? " · без движения " + l.risk.stale + " дн." : ""),
-        ref: l.objId || "", age: l.r.last_movement_at,
+          (l.risk.stale != null && l.risk.stale >= H.STALE_DAYS ? " · последнее движение " + l.risk.stale + " дн. назад" : ""),
+        ref: l.objId || (l.sourceObjectId ? l.sourceObjectId + " · связь с объектом не подтверждена" : "локальный маршрут"), age: l.r.last_movement_at,
         attr: sel("line", l.key)
       });
     });
     decisions = byDateDesc(decisions);
-    moves = byDateDesc(moves);
-    var nd = decisions.length, nm = moves.length, total = nd + nm;
+    assigned = byDateDesc(assigned);
+    var nd = decisions.length, na = assigned.length, total = nd + na;
     var anyOk = M.fp.ok || ok("routes");
-    var head = "<div class='cc-hero-head'><span class='cc-hero-mark'>!</span><div><h2>Требует вашего участия</h2>" +
-      "<small>формальные решения — только из проекции решений Основателя (Founder Decision Presentation); действия — маршруты, где следующий ход у Основателя</small></div>" +
-      "<div class='cc-hero-counts'><strong class='cc-hero-count'>" + (anyOk ? total : "—") + "</strong>" +
-      "<span><b>" + (M.fp.ok ? nd : "—") + "</b> " + (M.fp.ok ? plural(nd, "решение", "решения", "решений") : "решений") +
-      " · <b>" + (ok("routes") ? nm : "—") + "</b> " + (ok("routes") ? plural(nm, "действие", "действия", "действий") : "действий") + "</span></div></div>";
-    if (!anyOk) return head + unavailable("Источники недоступны", "Проекция Основателя (Founder Projection) и маршруты не прочитаны — нельзя подтвердить, что ничего не ждёт вас.");
-    if (!total) return head + "<div class='cc-hero-calm'>Сейчас ничего не ждёт вашего участия.</div>";
+    var head = "<div class='cc-hero-head'><span class='cc-hero-mark'>!</span><div><h2>Требует вашего решения</h2>" +
+      "<small>здесь считаются только формальные решения из проекции Основателя; назначенный вам маршрут сам по себе не означает срочность</small></div>" +
+      "<div class='cc-hero-counts'><strong class='cc-hero-count'>" + (M.fp.ok ? nd : "—") + "</strong>" +
+      "<span><b>" + (M.fp.ok ? nd : "—") + "</b> " + (M.fp.ok ? plural(nd, "формальное решение", "формальных решения", "формальных решений") : "формальных решений") +
+      " · <b>" + (ok("routes") ? na : "—") + "</b> маршрутов на вашей стороне</span></div></div>";
+    if (!anyOk) return head + unavailable("Источники недоступны", "Проекция решений Основателя и маршруты не прочитаны — состояние внимания не подтверждено.");
+    if (!total) return head + "<div class='cc-hero-calm'>Формальных решений и назначенных вам маршрутов сейчас нет.</div>";
     var shownD = ui.heroAll ? nd : Math.min(nd, HERO_LIMIT);
-    var shownM = ui.heroAll ? nm : Math.min(nm, HERO_LIMIT - shownD);
-    var hidden = total - shownD - shownM;
+    var shownA = ui.heroAll ? na : Math.min(na, HERO_LIMIT - shownD);
+    var hidden = total - shownD - shownA;
     function card(it) {
       return "<div class='cc-hero-item " + it.kind + "'" + it.attr + " tabindex='0'>" +
-        "<b>" + E(H.cut(it.title, 90)) + "</b><small>" + E(H.cut(it.why, 120)) + "</small>" +
+        "<b>" + E(H.cut(it.title, 90)) + "</b><small>" + E(H.cut(it.why, 150)) + "</small>" +
         "<em>" + E(it.ref || "") + (it.age ? (it.ref ? " · " : "") + H.ago(it.age) : "") + "</em></div>";
     }
     function group(cls, title, sub, list, shown, srcOk, srcName) {
@@ -950,12 +967,12 @@
       return "<section class='cc-hero-group " + cls + "'><header><span class='cc-hero-kind'>" + E(title) + "</span><b>" + (srcOk ? list.length : "—") + "</b><small>" + E(sub) + "</small></header>" + body + "</section>";
     }
     return head +
-      group("decide", "Нужно решить", "формальные решения Основателя", decisions, shownD, M.fp.ok, "Founder Projection") +
-      group("move", "Ваш ход", "маршруты, где следующий ход у вас", moves, shownM, ok("routes"), "Источник маршрутов") +
+      group("decide", "Нужно решить", "только формальные решения Основателя", decisions, shownD, M.fp.ok, "Проекция решений Основателя") +
+      group("move", "Маршруты на вашей стороне", "владелец следующего хода — вы; это назначение, а не оценка срочности", assigned, shownA, ok("routes"), "Источник маршрутов") +
       (hidden > 0 ? "<button class='cc-hero-more' data-cc-hero-more>Показать ещё " + hidden + "</button>" :
         (ui.heroAll && total > HERO_LIMIT ? "<button class='cc-hero-more' data-cc-hero-more>Свернуть</button>" : "")) +
-      (ok("inbox") && M.inboxItems.length ? "<div class='cc-foot-note'>Входящие Основателя: " + M.inboxItems.length + " запрос(ов) на участие. Они не называются решениями без проекции решений Основателя (Founder Decision Presentation).</div>" : "") +
-      "<div class='cc-foot-note'>Панель не повышает приоритет задачи только из-за давности.</div>";
+      (ok("inbox") && M.inboxItems.length ? "<div class='cc-foot-note'>Входящие Основателя: " + M.inboxItems.length + " запрос(ов) на участие. Они не становятся формальными решениями без проекции решений Основателя.</div>" : "") +
+      "<div class='cc-foot-note'>Панель не повышает срочность по давности, владельцу хода или локальной оценке. Приоритет показывается только таким, каким его отдал источник.</div>";
   }
 
   function renderMeta() {
@@ -1053,7 +1070,8 @@
     var blockersN = l.risk.blockers + l.objBlockers.length;
     var why = r.priority ? "приоритет в источнике: " + r.priority : (l.downstream.length ? "от него явно зависят " + l.downstream.length + " маршрута" : "обоснование важности источником не передано");
     var place = routePlace(l);
-    var where = [place.text, l.area ? "область: " + H.humanCode(l.area) : null, l.objId ? l.objId : "без объекта"].filter(Boolean).join(" · ");
+    var identityText = l.objId ? l.objId : (l.sourceObjectId ? l.sourceObjectId + " (исходный ID; каноническая связь не подтверждена)" : "канонический объект не связан");
+    var where = [place.text, l.area ? "область: " + H.humanCode(l.area) : null, identityText].filter(Boolean).join(" · ");
     return "<article class='cc-line st-" + l.tone + (isSelected("line", l.key) ? " selected" : "") + "'" + sel("line", l.key) + " tabindex='0'>" +
       hexBadge(initials(routeDisplayTitle(l.title)), l.tone) +
       "<div class='cc-line-head'>" +
@@ -1571,7 +1589,7 @@
       (M.active.length ? M.active.map(function (l) {
         var o = l.obj;
         return "<div class='cc-flow st-" + l.tone + (isSelected("line", l.key) ? " selected" : "") + "'" + sel("line", l.key) + ">" +
-          "<div class='cc-flow-name'>" + hexBadge(initials(routeDisplayTitle(l.title)), l.tone, "sm") + "<span><b>" + E(H.cut(routeDisplayTitle(l.title), 30)) + "</b><small>" + E((l.objId || "без объекта") + (l.origin ? " · происхождение: " + l.origin : "")) + "</small></span></div>" +
+          "<div class='cc-flow-name'>" + hexBadge(initials(routeDisplayTitle(l.title)), l.tone, "sm") + "<span><b>" + E(H.cut(routeDisplayTitle(l.title), 30)) + "</b><small>" + E((l.objId || (l.sourceObjectId ? l.sourceObjectId + " · связь не подтверждена" : "без канонического объекта")) + (l.origin ? " · происхождение: " + l.origin : "")) + "</small></span></div>" +
           "<div class='cc-flow-step past'><small>Прошлое</small><span>" +
           E(o && o.last_event_at ? (o.last_summary ? H.cut(humanActionText(o.last_summary), 60) : H.humanCode(o.last_meaning_kind || "событие")) + " · " + H.ago(o.last_event_at) :
             (l.r.last_movement_at ? "движение " + H.ago(l.r.last_movement_at) : "история не передана")) + "</span></div>" +
@@ -2122,7 +2140,7 @@
       what: para("Маршрут работы в Оркестраторе" + (l.star ? " по звезде «" + l.star.title + "» линии «" + l.star.line.title + "»." : ".") +
         (!r.ball_owner ? " Владелец хода не назначен." : " Ход: «" + ownerLabel(r.ball_owner) + "».")),
       where: crumbs([{ t: "ICAM" }, { t: place.world ? place.world.title : (M.tu.ok ? "вне Founder Universe" : "мир не проверен") },
-        { t: place.uline ? H.cut(place.uline.title, 22) : "линия не определена" }, { t: l.objId || "без объекта", cur: true }]) +
+        { t: place.uline ? H.cut(place.uline.title, 22) : "линия не определена" }, { t: l.objId || (l.sourceObjectId ? l.sourceObjectId + " · не связано" : "без канонического объекта"), cur: true }]) +
         (l.origin ? muted("Происхождение объекта (owning_branch): " + l.origin) : ""),
       now: "<div class='cc-insp-state st-" + l.tone + "'>" + toneDot(l.tone) + "<small>" + E(TONE_META[l.tone].hint) + "</small><em>" +
         E(human(r.stage || r.status || "этап не передан")) + "</em><small>" + E(l.risk.stale == null ? "дата движения не передана" : "последнее движение " + H.ago(r.last_movement_at)) + "</small></div>" +
@@ -2144,9 +2162,11 @@
       ceiling: [
         ceilingRow("ok", "Этап, ход и условие — из Оркестратора (observer/routes)"),
         !M.tu.ok ? ceilingRow("warn", "Мир и каноническая линия не проверены — Temporal Universe недоступен") :
-          (l.star ? ceilingRow("ok", "Мир и линия — Temporal Universe, точное совпадение " + l.objId + " = memory_id") : ceilingRow("warn", "Нет звезды с memory_id " + (l.objId || "—") + " — маршрут вне Founder Universe")),
-        l.obj ? ceilingRow("ok", "Объект " + l.objId + " есть в реестре Continuity") :
-          (l.objMissing ? ceilingRow("warn", "Объект " + l.objId + " не найден в реестре — нужна сверка") : ceilingRow("warn", "Маршрут не ссылается на объект")),
+          (l.star ? ceilingRow("ok", "Мир и линия — Temporal Universe, точное совпадение " + l.objId + " = memory_id") :
+            (l.objId ? ceilingRow("warn", "Нет звезды с memory_id " + l.objId + " — маршрут вне Founder Universe") : ceilingRow("info", "Founder Universe не связывается: у маршрута нет доказанного канонического object_id"))),
+        l.obj ? ceilingRow("ok", "Канонический объект " + l.objId + " подтверждён реестром Continuity") :
+          (l.objMissing ? ceilingRow("warn", "Заявленный канонический объект " + l.objId + " не найден в реестре — нужна сверка") :
+            (l.sourceObjectId ? ceilingRow("warn", "Источник маршрута передал ID " + l.sourceObjectId + ", но canonical_mapping_status=" + (l.mappingState || "не передан") + "; это не считается связью с объектом Continuity") : ceilingRow("info", "Маршрут не передаёт каноническую объектную связь"))),
         ceilingRow(l.upstream.length || l.downstream.length ? "ok" : "info", l.upstream.length || l.downstream.length ? "Зависимости — только явные поля источника" : "Явных зависимостей нет; по догадке не строятся"),
         ceilingRow("no", "Причинное влияние на другие линии — не доказано"),
         ceilingRow("info", "Тон — подача панели, не канонический приоритет")
