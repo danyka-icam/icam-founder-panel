@@ -370,12 +370,12 @@
   }
 
   function canonicalTone(ln) {
-    var v = ln && ln.fp ? String(ln.fp.state || "").toLowerCase() : "";
+    var v = ln && ln.fp ? String(ln.fp.state || "").trim().toLowerCase() : "";
     if (!v) return "unknown";
-    if (v.indexOf("движ") >= 0) return "flow";
-    if (v.indexOf("ожидан") >= 0) return "wait";
-    if (v.indexOf("закрыт") >= 0) return "closed";
-    if (v.indexOf("сверк") >= 0) return "unknown";
+    if (v === "движется") return "flow";
+    if (v === "здоровое ожидание") return "wait";
+    if (v === "закрыт" || v === "закрыта" || v === "закрыто") return "closed";
+    if (v === "нужна сверка") return "unknown";
     return "unknown";
   }
 
