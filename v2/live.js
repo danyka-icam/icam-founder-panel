@@ -195,7 +195,9 @@
       "failing dimensions: artifact_durability_readback": "не пройдено обязательное измерение долговечности артефактов",
       "1 orphan receipt(s): STORED with no object on disk": "1 расписка со статусом STORED не связана с объектом на диске",
       "Confirm commit 98d16f8, Aug-16 DB snapshot/hash lineage, pre-migration configs, Reels-Lab-0.14.0.0, and list the seven media-backed Reel project IDs plus existing artifact filenames/hashes. Modify nothing until inventory matches.": "Подтвердить commit 98d16f8, происхождение снимка БД и хэшей от 16 августа, конфигурации до миграции, Reels-Lab-0.14.0.0 и перечень семи Reel-проектов с медиа вместе с существующими именами файлов и хэшами. Ничего не менять, пока инвентаризация не совпадёт.",
-      "Founder decision: restore the clean pre-server Content Factory and approved historical Reels; no funnels, Router attribution, or later hardening in the restored production path.": "Решение Основателя: восстановить чистую досерверную Content Factory и одобренные исторические Reels; не переносить в восстановленный production-контур воронки, атрибуцию Router и более позднее усиление."
+      "Founder decision: restore the clean pre-server Content Factory and approved historical Reels; no funnels, Router attribution, or later hardening in the restored production path.": "Решение Основателя: восстановить чистую досерверную Content Factory и одобренные исторические Reels; не переносить в восстановленный production-контур воронки, атрибуцию Router и более позднее усиление.",
+      "Source does not populate owner for this commitment.": "Источник не заполняет владельца хода для этого обязательства.",
+      "Continuity has no factual-result field on commitments; closed_at records closure time only, not an outcome.": "В обязательствах Continuity нет поля фактического результата; closed_at фиксирует только время закрытия записи, а не результат."
     };
     if (exact[raw]) return exact[raw];
     if (raw.indexOf("no projected-field or material event movement within freshness window") === 0) return "В окне свежести не было движения по спроецированным полям или материальным событиям; каноническая связь статуса остаётся неразрешённой.";
@@ -1856,27 +1858,58 @@
     body.innerHTML="<div class='live-status-box bad'><strong>"+esc(label)+" — недоступно</strong><p>Серверная проекция не ответила. Текущее состояние не подменяется старыми данными.</p></div>";
   }
 
+  function operationSummaryRu(o) {
+    var key = String(o && o.commitment_key || "");
+    var m = {
+      "event:2ad26cc7-de1f-4960-b723-f0a3bedfd424": "Замороженная диагностика декомпозиции веса для диапазона 3–<6 передана в Testing; пять исходных артефактов приняты, активная ревизия 4 ожидает компиляции.",
+      "event:3283fda9-7608-4c25-b85c-63cc15fa65b7": "До построения исхода заморожен новый четырёхкогортный перенос reference-M для Q25: моменты M берутся только из исходных случаев CDS-I вне замороженной родительской выборки N=1795.",
+      "event:8291d876-2434-4bde-b580-39ae324d10aa": "До подгонки модели заморожен новый ограниченный эксперимент EXP-H008-Q25-FOUR-COHORT-TRANSPORT: четыре оцениваемых диапазона сохранены без изменений, возраст 12+ явно исключён из оцениваемого эффекта.",
+      "event:52763b6a-dcd8-4f02-b9cd-cfa1a0244e70": "Зафиксирована точная спецификация уже зарегистрированного кросс-когортного теста H008: порог Q25, базовые переменные, возрастные диапазоны и семейство модели не меняются; основная проверка — перенос с последовательным исключением одного возрастного диапазона без перенастройки.",
+      "event:3d737300-f68c-4cd1-9e94-746f28002dcc": "Запечатано первое реальное проспективное решение Personal Twin D0001. Цель — следующий существенный объект ICAM, направляемый Основателем; прогнозы клона и базовой модели скрыты до исхода, наружу показывается только SHA-256 обязательства.",
+      "event:cf76cb06-4faf-4e70-88e7-7d1ce2c2c80a": "Отложенный, но обязательный блок запуска BrazilPortal: после выбора сигналов Radar и начала первого цикла «контент → выручка» нужно пересобрать welcome/onboarding-письма на основе состояния пользователя, событий и логики Router, а не как отдельную универсальную рассылку.",
+      "FND-007-FIRST7D-LIVE-SNAPSHOT": "Обязательство для Клима: до любой переработки продуктового опыта получить read-only снимок живого продукта First 7 Days и компактную инвентаризацию остальных активных пакетов BrazilPortal.",
+      "event:f7f33851-362e-4b28-ab7f-c6c618a76f7b": "Personal Orchestrator должен пройти примерно 1–2 месяца полевого использования до продуктовой упаковки. В этот период оболочку не перестраивать: собирать реальное трение и делать только исправления ошибок и стабильности.",
+      "event:c0adfdd3-33c3-45ac-91a7-abc94f896475": "Анализ O1 EEG, подгонка модели, выбор окон по данным и подтверждающее извлечение признаков запрещены до второй методологической проверки Aayush и зафиксированного Analysis Lock владеющей ветки.",
+      "event:e68e399c-1754-4d3c-a3ad-c87b0f5449a8": "Оркестратор проходит 2–3 месяца закрытого тестирования до вывода в production; текущие тестировщики — Основатель и очень небольшой приглашённый круг.",
+      "event:dab5d041-2af7-40b5-a96c-9c8d07cf94ec": "Ревизия артефактов поставлена в очередь до доступности серверного моста/библиотеки: нужно сверить рабочие файлы, долговечные зеркала и исторические пакеты, не делая Google Drive обязательным условием.",
+      "event:4e272d4c-c19a-4c64-bd99-d354fa78a46b": "Следующий кросс-когортный гейт фальсификации должен оставаться замороженным; исполнение намеренно отложено до завершения проверки bootstrap и синхронизации."
+    };
+    if (m[key]) return m[key];
+    var raw = projectionTextRu(o && o.title || "");
+    if (/[A-Za-z]{4,}/.test(raw) && !/[А-Яа-яЁё]/.test(raw)) return "Источник передал описание только в техническом английском тексте; смысловая русская проекция для этого нового обязательства ещё не определена.";
+    return raw || "Без краткого описания";
+  }
+
   function renderOperationsProjection(data) {
     if (!sourceState.opsProjection.ok || !data) return cleanFailure("operations","Операции","opsProjection");
     var body=activateNormalized("operations",data.source_status,
       "ОПЕРАЦИИ · "+humanCode(data.source_status)+" · "+humanCode(data.freshness_state));
     if(!body)return;
     var c=data.counts||{}, ops=asArray(data.operations);
-    var ownedCount=ops.filter(function(o){return ownerDisplay(o)!=="Недоступно";}).length;
+    var isClosedCommitment=function(o){return ["DONE","CLOSED","ARCHIVED","CANCELLED"].indexOf(String(o.status||"").toUpperCase())>=0;};
+    var openOps=ops.filter(function(o){return !isClosedCommitment(o);});
+    var closedOps=ops.filter(isClosedCommitment);
+    var ownedOpen=openOps.filter(function(o){return ownerDisplay(o)!=="Недоступно";}).length;
+    var factualKnown=ops.filter(function(o){return o.factual_result && String(o.factual_result).toUpperCase()!=="UNAVAILABLE";}).length;
+    var ordered=openOps.concat(closedOps);
     var summary="<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Операционная проекция — "+esc(humanCode(data.source_status))+"</strong>"+
-      "<p>"+(String(data.freshness_state).toUpperCase()==="STALE"?"Данные устарели по контракту свежести: движения обязательств давно не было.":"Состояние прочитано из серверной проекции.")+"</p></div>"+
+      "<p>"+(String(data.freshness_state).toUpperCase()==="STALE"?"Проекция устарела по собственному контракту: нового движения обязательств в окне свежести не было. Это не означает, что обязательства автоматически отменены или просрочены.":"Состояние прочитано из серверной проекции.")+"</p></div>"+
       "<div class='live-summary'>"+
-      "<div class='metric'><small>Всего обязательств</small><strong>"+esc(c.total)+"</strong><span>реальные commitments</span></div>"+
-      "<div class='metric'><small>Открыто</small><strong>"+esc(c.open)+"</strong><span>текущий execution status</span></div>"+
-      "<div class='metric'><small>Свежесть</small><strong>"+esc(humanCode(data.freshness_state))+"</strong><span>не подменяется временем обновления интерфейса</span></div>"+
-      "<div class='metric'><small>С владельцем хода</small><strong>"+esc(ownedCount)+" / "+esc(ops.length)+"</strong><span>обязательств с известным ball_owner, из проекции</span></div></div>";
-    var rows=ops.slice(0,5).map(function(o){
+      "<div class='metric'><small>Открытые обязательства</small><strong>"+esc(openOps.length)+"</strong><span>из "+esc(ops.length)+" записей проекции</span></div>"+
+      "<div class='metric'><small>Владелец известен</small><strong>"+esc(ownedOpen)+" / "+esc(openOps.length)+"</strong><span>только среди открытых обязательств</span></div>"+
+      "<div class='metric'><small>Свежесть</small><strong>"+esc(humanCode(data.freshness_state))+"</strong><span>последнее движение "+esc(data.last_movement_at?ago(data.last_movement_at):"не передано")+"</span></div>"+
+      "<div class='metric'><small>Фактический результат</small><strong>"+esc(factualKnown)+" / "+esc(ops.length)+"</strong><span>закрытие само по себе не считается результатом</span></div></div>"+
+      "<div class='operations-proof-boundary'><b>Граница доказанного:</b> все "+esc(openOps.length)+" открытых обязательств сейчас не имеют владельца хода в этой проекции. Поле фактического результата также не заполнено; `closed_at` доказывает закрытие записи, но не бизнес-исход.</div>";
+    var rows=ordered.slice(0,6).map(function(o){
+      var owner=ownerDisplay(o);
+      var factual=(o.factual_result && String(o.factual_result).toUpperCase()!=="UNAVAILABLE")?projectionTextRu(o.factual_result):"не передан источником";
       return "<div class='live-item-clean'><div class='live-item-clean-head'><h3>"+esc(o.object_id||"Обязательство")+"</h3>"+chip(o.status)+"</div>"+
-        "<p>"+esc(cut(o.title||"Без краткого описания",150))+"</p>"+
-        "<div class='live-kv-grid'>"+kv("Открыто",o.opened_at)+kv("Обновлено",o.updated_at)+kv("Условие активации",o.activation_condition)+kv("Владелец хода",ownerDisplay(o))+kv("Фактический результат","Недоступно")+"</div>"+
-        (asArray(o.object_level_blockers).length?"<small>У объекта есть блокеры: это контекст объекта, не блокер конкретного обязательства.</small>":"")+"</div>";
+        "<p>"+esc(cut(operationSummaryRu(o),220))+"</p>"+
+        "<div class='live-kv-grid'>"+kv("Ключ обязательства",o.commitment_key)+kv("Открыто",o.opened_at?ago(o.opened_at):"—")+kv("Последнее изменение",o.updated_at?ago(o.updated_at):"—")+kv("Владелец хода",owner)+kv("Условие активации",projectionTextRu(o.activation_condition||"не передано"))+kv("Фактический результат",factual)+"</div>"+
+        (owner==="Недоступно"?"<small>Источник: "+esc(projectionTextRu(o.ball_owner_reason||"владелец хода не передан"))+"</small>":"")+
+        (asArray(o.object_level_blockers).length?"<small>У связанного объекта есть "+esc(asArray(o.object_level_blockers).length)+" открытых blocker-записей. Источник прямо запрещает считать их блокерами именно этого обязательства.</small>":"")+"</div>";
     }).join("");
-    body.innerHTML=summary+"<div class='live-list-clean'>"+rows+"</div>"+(ops.length>5?"<div class='live-more'>Ещё "+(ops.length-5)+" обязательств скрыты из обзора, чтобы экран оставался читаемым.</div>":"");
+    body.innerHTML=summary+"<div class='live-list-clean'>"+rows+"</div>"+(ordered.length>6?"<div class='live-more'>Сначала показаны открытые обязательства. Ещё "+(ordered.length-6)+" записей скрыты из обзора.</div>":"");
   }
 
   function renderBrazilPortalProjection(data) {
