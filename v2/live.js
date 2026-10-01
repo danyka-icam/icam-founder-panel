@@ -878,7 +878,8 @@
       return;
     }
 
-    var items = asArray(objectsResp.items);
+    var itemsKnown = Array.isArray(objectsResp.items);
+    var items = itemsKnown ? objectsResp.items : [];
     var active = items.filter(function (o) { return /^ACTIVE/.test(String(o.declared_status || "").toUpperCase()); });
     // Absence of last_event_at is an event-history gap, not identity debt.
     // /continuity/objects does not expose a separate identity/mapping verdict.
@@ -886,11 +887,14 @@
     var founder = items.filter(function (o) { return !!(o.needs_nika || o.needs_founder); });
 
     function put(k, v) { var e = page.querySelector('[data-g="' + k + '"]'); if (e) e.textContent = String(v); }
-    put("count", items.length); put("active", active.length); put("unresolved", noEventHistory.length); put("founder", founder.length);
-    var core = page.querySelector('[data-g="identity-core"]'); if (core) core.textContent = String(noEventHistory.length);
+    put("count", itemsKnown ? items.length : "—"); put("active", itemsKnown ? active.length : "—"); put("unresolved", itemsKnown ? noEventHistory.length : "—"); put("founder", itemsKnown ? founder.length : "—");
+    var core = page.querySelector('[data-g="identity-core"]'); if (core) core.textContent = String(itemsKnown ? noEventHistory.length : "—");
 
     var list = page.querySelector('[data-g="objects"]');
     if (list) {
+      if (!itemsKnown) {
+        list.innerHTML = unavailableHTML("Коллекция объектов не проверена", "Endpoint ответил, но поле items[] не передано.");
+      } else {
       var recent = items.slice().sort(function (a, b) {
         return String(b.last_event_at || "").localeCompare(String(a.last_event_at || ""));
       });
@@ -901,12 +905,14 @@
           "<span>" + esc(o.owning_branch || o.owner || "—") + "</span>" +
           "<span>" + esc(ruStatus(o.declared_status)) + "</span>" +
           "<small>" + esc(ago(o.last_event_at)) + "</small></div>";
-      }).join("") : "<div class='registry-empty'><strong>Реестр пуст</strong><span>Источник ответил без объектов.</span></div>";
+      }).join("") : "<div class='registry-empty'><strong>Реестр пуст в текущем items[]</strong><span>Источник явно передал пустой массив объектов.</span></div>";
+      }
     }
 
     var founderBox = page.querySelector('[data-g="founder-list"]');
     if (founderBox) {
-      founderBox.innerHTML = founder.length ? "<div class='registry-mini-list'>" + founder.slice(0, 6).map(function (o) {
+      if (!itemsKnown) founderBox.innerHTML = unavailableHTML("Founder-флаги объектов не проверены", "objects.items[] не передан.");
+      else founderBox.innerHTML = founder.length ? "<div class='registry-mini-list'>" + founder.slice(0, 6).map(function (o) {
         return "<div class='registry-mini-item'><b>" + esc(o.name || o.object_id) + "</b><span>" +
           esc(o.object_id || "не определён") + " · " + esc(ruStatus(o.declared_status)) + "</span></div>";
       }).join("") + "</div>" :
@@ -917,8 +923,10 @@
     if (blockerBox) {
       if (!sourceState.blockers.ok || !blockersResp) {
         blockerBox.innerHTML = unavailableHTML("Блокеры недоступны", "Список не выводится по данным объектов или по догадке.");
+      } else if (!Array.isArray(blockersResp.items)) {
+        blockerBox.innerHTML = unavailableHTML("Коллекция blocker-записей не проверена", "Endpoint ответил, но поле items[] не передано.");
       } else {
-        var blockers = asArray(blockersResp.items).filter(function (b) {
+        var blockers = blockersResp.items.filter(function (b) {
           return !b.is_test && String(b.status || "").toUpperCase() !== "CLEARED";
         });
         blockerBox.innerHTML = blockers.length ? "<div class='registry-mini-list'>" + blockers.slice(0, 6).map(function (b) {
@@ -931,6 +939,8 @@
 
     var recentBox = page.querySelector('[data-g="recent-list"]');
     if (recentBox) {
+      if (!itemsKnown) recentBox.innerHTML = unavailableHTML("История объектов не проверена", "objects.items[] не передан.");
+      else {
       var changed = items.filter(function (o) { return o.last_event_at; }).sort(function (a, b) {
         return String(b.last_event_at).localeCompare(String(a.last_event_at));
       }).slice(0, 6);
@@ -938,10 +948,12 @@
         return "<div class='registry-mini-item'><b>" + esc(o.name || o.object_id) + "</b><span>" +
           esc(ruStatus(o.declared_status)) + " · " + esc(ago(o.last_event_at)) + "</span></div>";
       }).join("") + "</div>" :
-      "<div class='registry-empty compact'><strong>Нет событий с датой</strong><span>Источник объектов ответил, но last_event_at не передан. Это не считается проблемой идентичности или доказательством отсутствия изменений.</span></div>";
+      "<div class='registry-empty compact'><strong>Нет событий с датой</strong><span>Текущий items[] не содержит last_event_at. Это не считается проблемой идентичности или доказательством отсутствия изменений.</span></div>";
+      }
     }
 
-    pageBadge("registry", sourceState.blockers.ok ? "live" : "warn", sourceState.blockers.ok ? "ДАННЫЕ ПОДКЛЮЧЕНЫ" : "ДАННЫЕ ЧАСТИЧНО");
+    var blockersKnownForBadge = !!(sourceState.blockers.ok && blockersResp && Array.isArray(blockersResp.items));
+    pageBadge("registry", itemsKnown && blockersKnownForBadge ? "live" : "warn", itemsKnown && blockersKnownForBadge ? "ДАННЫЕ ПОДКЛЮЧЕНЫ" : "ДАННЫЕ ЧАСТИЧНО");
   }
 
   function renderDocuments(health, testingSummary) {
