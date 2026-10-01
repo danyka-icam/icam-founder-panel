@@ -168,7 +168,17 @@
       "REGULATED_PROVIDER_AUDIENCE_ELIGIBILITY":"проверка доступности провайдера для аудитории",
       "FOUNDATION_FINAL_SOAK":"финальная стабилизация Foundation",
       "RD1_ACCEPTED_READ_ONLY_OPERATION":"RD1 принят в режиме read-only",
-      "PORTFOLIO_LIVE / ATLAS_ADVISORY_LOCAL_RC1":"портфель активен · ATLAS advisory RC1"
+      "PORTFOLIO_LIVE / ATLAS_ADVISORY_LOCAL_RC1":"портфель активен · ATLAS advisory RC1",
+      "DOMAIN_ADJUDICATION_REQUIRED":"нужен содержательный разбор владеющей ветки",
+      "IMPLEMENTATION_PARTIALLY_VERIFIED":"реализация подтверждена частично",
+      "INSUFFICIENT_EVIDENCE":"доказательств недостаточно",
+      "INCONCLUSIVE_DUE_TO_INTER_RATER_DISAGREEMENT":"нет окончательного вывода из-за расхождения кодировщиков",
+      "FOUNDER_APPROVAL_GVF002A_2019_RUN":"решение Основателя о запуске GVF-002A 2019",
+      "OWNING_BRANCH_CONSTRUCT_REPAIR_BEFORE_HUMAN_CODING":"уточнить владеющую ветку до ручного кодирования",
+      "ACTIVE_DESIGN":"активное проектирование",
+      "PUBLISHED / PUBLIC":"опубликовано · публично",
+      "BLOCKED_SINGLE_SOURCE_PAIR_A_J364486":"заблокировано: единственная пара источников A/J364486",
+      "ACTIVE_PRIORITY / FOUNDATION_FREEZE / G0_AMBER":"приоритетное направление · основание заморожено · G0 amber"
     };
     if (map[raw]) return map[raw];
     if (/^[A-Z0-9_\-\/ ]+$/.test(raw) && raw.indexOf("_") >= 0) {
@@ -1027,7 +1037,40 @@
   }
 
 
-  function renderResearch(objectsResp, blockersResp) {
+  function researchObjectTitle(o) {
+    var raw = String(o && (o.name || o.object_id) || "");
+    var map = {
+      "Twin / Synthetic Worlds Program": "Двойники / программа синтетических миров",
+      "ICAM Research Program": "Исследовательская программа ICAM",
+      "Scientific Reputation Engine / External Scientific Contour": "Научная репутация / внешний научный контур",
+      "HSA — Corridors of the Possible: Economic Mobility": "HSA — «Коридоры возможного»: экономическая мобильность"
+    };
+    return map[raw] || raw;
+  }
+
+  function researchTextRu(value) {
+    var raw = String(value == null ? "" : value).trim();
+    var exact = {
+      "founder adjudication completed — restricted signal accepted; weighting mechanism unresolved": "разбор Основателя завершён — ограниченный сигнал принят; механизм взвешивания не разрешён",
+      "Founder chooses APPROVE, REJECT, or DEFER for GVF002A-2019-RUN-001.": "Требуется явное решение Основателя: одобрить, отклонить или отложить GVF002A-2019-RUN-001.",
+      "Close four owning-branch identity slots, then run RD1-P2 safe portfolio sweep": "Закрыть четыре незавершённых слота идентичности владеющих веток, затем запустить безопасный портфельный проход RD1-P2.",
+      "await acknowledgement or public-comment follow-up; continue publication-window sprint": "Ждать подтверждение или продолжение по публичному комментарию; продолжать работу в публикационном окне.",
+      "Supply the complete authorized packet containing the execution lock, execution script, parent artifacts, and frozen source data before re-initiating the diagnostic test.": "Перед повторным диагностическим тестом передать полный разрешённый пакет: фиксацию запуска, сценарий выполнения, родительские артефакты и замороженные исходные данные.",
+      "Flow Manager selects/implements convenient Continuity/Steward extraction + Founder outcome signal + Twin read-model synchronization with rebuilt Founder Panel; then return integration report and run server PTC-R0": "Flow Manager должен подключить извлечение Continuity/Steward, сигнал исхода решения Основателя и синхронизацию read-model Двойника с обновлённой Панелью; затем вернуть отчёт об интеграции и запустить серверный PTC-R0.",
+      "Owning branch adjudication": "разбор владеющей ветки",
+      "SYSTEM / Testing Governance": "система / управление тестированием",
+      "Digital Institute / Research Registry": "Digital Institute / исследовательский реестр",
+      "active priority / foundation freeze / g0 amber": "приоритетное направление · основание заморожено · G0 amber",
+      "published / public": "опубликовано · публично",
+      "blocked single source pair a j364486": "заблокировано: единственная пара источников A/J364486",
+      "Accepted a bounded methodological transfer from ATLAS-SS001 into Personal Twin runtime v0.3: Sensor Semantic Gate, Semantic Validity Clock, UNKNOWN/abstain on unidentified channels, prediction-exposure contamination guard/Observer Causal Footprint, minimum sufficient observability, and explicit experimental lineage. No SS001 synthetic accuracy or world-model claim is imported as human evidence.": "Принят ограниченный методологический перенос из ATLAS-SS001 в runtime Personal Twin v0.3: смысловой шлюз сенсоров, часы смысловой валидности, UNKNOWN/воздержание для неопознанных каналов, защита от загрязнения раскрытием прогноза и Observer Causal Footprint, минимально достаточная наблюдаемость и явное происхождение эксперимента. Синтетическая точность SS001 и утверждения о модели мира не переносятся как доказательства о людях.",
+      "Founder approved bounded action: Orchestrator (CMP-000008) observed local route reach status=DONE: \"HSA — дочистить два тома и обновить публикацию\". Recommends recording this as a real observation on H008. Route remains Orchestrator's own local product memory either way -- this proposal does not promote it to canonical truth by itself, only Founder approval does.": "Основатель одобрил ограниченное действие: Оркестратор (CMP-000008) зафиксировал локальный статус маршрута DONE по задаче «HSA — дочистить два тома и обновить публикацию». Рекомендуется записать это как реальное наблюдение по H008. Сам маршрут остаётся локальной памятью продукта Оркестратора и не становится канонической истиной без отдельного подтверждения Основателя."
+    };
+    if (exact[raw]) return exact[raw];
+    return projectionTextRu(raw);
+  }
+
+  function renderResearch(objectsResp, blockersResp, testingSummary, hubHealth) {
     var page = document.querySelector('[data-page-panel="research"]');
     if (!page) return Promise.resolve();
     if (!sourceState.objects.ok || !objectsResp) {
@@ -1070,9 +1113,10 @@
       // or the canonical object explicitly declares a research status.
       var lines = items.filter(function (o) {
         var p = byId[String(o.object_id)] || {};
-        var explicitResearch = /RESEARCH/.test(String(o.declared_status || "").toUpperCase());
+        var type = String(o.object_type || "").toLowerCase();
+        var explicitResearch = /research|scientific/.test(type) || /RESEARCH/.test(String(o.declared_status || "").toUpperCase());
         var projected = p.available !== false && !!(p.stage || p.status || p.next_move || p.next_gate || p.semantic_freshness);
-        return explicitResearch || projected;
+        return explicitResearch && projected;
       }).map(function (o) {
         return { object: o, projection: byId[String(o.object_id)] || {} };
       });
@@ -1100,12 +1144,12 @@
           var o = x.object, p = x.projection;
           var stageRaw = p.stage || "этап не указан";
           var nextRaw = p.next_gate || p.next_move || "не определён";
-          return "<div class='research-live-row'><b>" + esc(o.name || o.object_id || "линия") +
+          return "<div class='research-live-row'><b>" + esc(researchObjectTitle(o)) +
             "<small>" + esc(o.object_id || "ID не определён") + "</small></b>" +
-            "<span title='" + esc(stageRaw) + "'>" + esc(humanCode(stageRaw)) + "</span>" +
-            "<span>" + esc(p.owner || "не назначен") + "</span>" +
-            "<span title='" + esc(nextRaw) + "'>" + esc(humanCode(nextRaw)) + "</span>" +
-            "<small>" + esc(ruStatus(p.status || o.declared_status || "—")) + "</small></div>";
+            "<span title='" + esc(stageRaw) + "'>" + esc(researchTextRu(humanCode(stageRaw))) + "</span>" +
+            "<span>" + esc(researchTextRu(p.owner || "не назначен")) + "</span>" +
+            "<span title='" + esc(nextRaw) + "'>" + esc(researchTextRu(humanCode(nextRaw))) + "</span>" +
+            "<small>" + esc(researchTextRu(humanCode(ruStatus(p.status || o.declared_status || "—")))) + "</small></div>";
         }).join("") :
         "<div class='research-empty'><strong>Исследовательских линий в текущей RD1-проекции нет</strong><span>Continuity ответил, но ни один объект не удовлетворил явному research/RD1-контракту.</span></div>";
       }
@@ -1118,14 +1162,14 @@
 
       mini(page.querySelector('[data-r="attention"]'), founder.slice(0, 6).map(function (x) {
         var o = x.object, p = x.projection;
-        return "<div class='research-mini-item'><b>" + esc(o.name || o.object_id) + "</b><span>" +
-          esc(p.next_move || o.last_summary || "требуется решение") + " · " + esc(o.object_id || "ID не определён") + "</span></div>";
+        return "<div class='research-mini-item'><b>" + esc(researchObjectTitle(o)) + "</b><span>" +
+          esc(researchTextRu(p.next_move || o.last_summary || "требуется решение")) + " · " + esc(o.object_id || "ID не определён") + "</span></div>";
       }), "Решений Основателя по исследовательским линиям нет", "По текущей объектной и RD1-проекции.");
 
       mini(page.querySelector('[data-r="waiting"]'), waiting.slice(0, 6).map(function (x) {
         var o = x.object, p = x.projection;
-        return "<div class='research-mini-item'><b>" + esc(o.name || o.object_id) + "</b><span>" +
-          "ждём: " + esc(p.next_gate || p.next_move || "условие не описано") + " · ход: " + esc(p.owner || "не назначен") + "</span></div>";
+        return "<div class='research-mini-item'><b>" + esc(researchObjectTitle(o)) + "</b><span>" +
+          "ждём: " + esc(researchTextRu(p.next_gate || p.next_move || "условие не описано")) + " · ход: " + esc(researchTextRu(p.owner || "не назначен")) + "</span></div>";
       }), "Линий в ожидании не найдено", "Нет PARKED/PREPARING или явного EXTERNAL/CONDITION owner.");
 
       var MATERIAL = ["GATE_RESULT", "DECISION", "STATUS_CHANGE", "STAGE_CHANGE", "TEST_RESULT", "EXTERNAL_EVENT"];
@@ -1135,22 +1179,46 @@
         return String(b.object.last_event_at || "").localeCompare(String(a.object.last_event_at || ""));
       });
 
+      var bridge = page.querySelector('[data-r="system-bridge"]');
+      if (bridge) {
+        var tests = sourceState.testingSummary.ok ? allTests(testingSummary) : [];
+        var adjudication = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "NEEDS_ADJUDICATION"; });
+        var blockedTests = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "BLOCKED"; });
+        var runningTests = asArray(testingSummary && testingSummary.active);
+        var rq = sourceState.hubHealth.ok && hubHealth ? (hubHealth.review_queue || {}) : {};
+        var reviewN = rq.manual_review_required;
+        var leadTest = adjudication[0] || blockedTests[0] || runningTests[0] || null;
+        var latest = material[0] || null;
+        var testTitle = leadTest ? (leadTest.test_id || "проверка без ID") : "нет проверки, требующей реакции";
+        var testNote = leadTest ? researchTextRu(humanCode(leadTest.scientific_outcome || leadTest.next_action || leadTest.status || "состояние не передано")) : "по текущему Testing summary";
+        var latestTitle = latest ? researchObjectTitle(latest.object) : "материальных изменений нет";
+        var latestNote = latest ? researchTextRu(latest.object.last_summary || latest.object.last_meaning_kind || "") : "по текущей RD1-проекции";
+        bridge.innerHTML =
+          "<div class='research-bridge-head'><div><small>ИССЛЕДОВАТЕЛЬСКИЙ ПУЛЬС</small><b>Вопрос → доказательство → независимая проверка → следующий переход</b></div><span>источники не смешиваются</span></div>" +
+          "<div class='research-bridge-grid'>" +
+          "<a href='#research' class='research-bridge-cell'><small>Портфель</small><strong>" + esc(active.length) + " активных линий</strong><span>" + esc(waiting.length) + " ждут условия · " + esc(founder.length) + " требуют Основателя</span></a>" +
+          "<a href='#testing' class='research-bridge-cell " + (adjudication.length || blockedTests.length ? "attention" : "") + "'><small>Независимая проверка</small><strong>" + esc(runningTests.length) + " в работе · " + esc(adjudication.length) + " на разборе</strong><span>" + esc(testTitle) + " · " + esc(testNote) + "</span></a>" +
+          "<a href='#research' class='research-bridge-cell'><small>Последнее материальное изменение</small><strong>" + esc(latestTitle) + "</strong><span>" + esc(cut(latestNote, 120)) + (latest ? " · " + esc(ago(latest.object.last_event_at)) : "") + "</span></a>" +
+          "<a href='#documents' class='research-bridge-cell'><small>Доказательный контур компании</small><strong>" + esc(reviewN == null ? "нет счётчика" : reviewN + " на ручном разборе") + "</strong><span>общесистемная очередь Hub; не приписывается исследованию без связи с объектом</span></a>" +
+          "</div><div class='research-bridge-rule'>Панель не превращает завершённый прогон в научный вывод и не считает общую очередь документов доказательствами конкретной исследовательской линии без явной связи.</div>";
+      }
+
       mini(page.querySelector('[data-r="result"]'), material.slice(0, 5).map(function (x) {
         var o = x.object;
-        return "<div class='research-mini-item'><b>" + esc(o.name || o.object_id) + "</b><span>" +
-          esc(o.last_summary) + " · " + esc(o.last_meaning_kind || "изменение") + " · " + esc(ago(o.last_event_at)) + "</span></div>";
+        return "<div class='research-mini-item'><b>" + esc(researchObjectTitle(o)) + "</b><span>" +
+          esc(researchTextRu(o.last_summary)) + " · " + esc(o.last_meaning_kind || "изменение") + " · " + esc(ago(o.last_event_at)) + "</span></div>";
       }), "Существенного результата не найдено", "Нет материального GATE_RESULT / DECISION / STATUS_CHANGE / STAGE_CHANGE / TEST_RESULT / EXTERNAL_EVENT.");
 
       var nextGates = lines.filter(function (x) { return !!x.projection.next_gate; });
       mini(page.querySelector('[data-r="next-gates"]'), nextGates.slice(0, 6).map(function (x) {
-        return "<div class='research-mini-item'><b>" + esc(x.object.name || x.object.object_id) + "</b><span>" +
-          esc(x.projection.next_gate) + " · следующий ход: " + esc(x.projection.next_move || "не указан") + "</span></div>";
+        return "<div class='research-mini-item'><b>" + esc(researchObjectTitle(x.object)) + "</b><span>" +
+          esc(researchTextRu(x.projection.next_gate)) + " · следующий ход: " + esc(researchTextRu(x.projection.next_move || "не указан")) + "</span></div>";
       }), "Следующая проверка не определена", "Ни одна текущая RD1-проекция не отдала next_gate.");
 
       mini(page.querySelector('[data-r="changes"]'), material.slice(0, 6).map(function (x) {
         var o = x.object;
-        return "<div class='research-mini-item'><b>" + esc(o.object_id || "ID не определён") + " · " + esc(o.name || "") + "</b><span>" +
-          esc(o.last_summary) + " · " + esc(ago(o.last_event_at)) + "</span></div>";
+        return "<div class='research-mini-item'><b>" + esc(o.object_id || "ID не определён") + " · " + esc(researchObjectTitle(o)) + "</b><span>" +
+          esc(researchTextRu(o.last_summary)) + " · " + esc(ago(o.last_event_at)) + "</span></div>";
       }), "Материальных изменений нет", "Текущая проекция не содержит материальных событий по исследовательским линиям.");
 
       var blockersOk = sourceState.blockers.ok;
@@ -2004,7 +2072,7 @@
       renderTwinStateClean(twinState);
       renderDiagnostics();
 
-      renderResearch(objects, blockers).then(function () {
+      renderResearch(objects, blockers, testingSummary, hubHealth).then(function () {
         renderDiagnostics();
         updateTrust();
         if (lastSnapshot) lastSnapshot.sources = JSON.parse(JSON.stringify(sourceState));
