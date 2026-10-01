@@ -2012,13 +2012,13 @@
       "АТЛАС · BLOCKED_UPSTREAM");
     if(!body)return;
     body.innerHTML=
-      "<div class='live-status-box bad'><strong>Атлас — источник состояния ещё не существует</strong>"+
-      "<p>Endpoint подключён и работает. UNAVAILABLE здесь — корректный ответ: безопасного upstream state source пока нет.</p></div>"+
+      "<div class='live-status-box bad'><strong>Атлас — канонический источник состояния ещё не существует</strong>"+
+      "<p>Проекция Панели подключена и отвечает, но ей неоткуда получить каноническое состояние ATLAS. Поэтому текущее состояние намеренно не строится из документов или косвенных признаков.</p></div>"+
       "<div class='live-summary'>"+
-      "<div class='metric'><small>Источник API</small><strong>Подключён</strong><span>сервер отвечает</span></div>"+
-      "<div class='metric'><small>Источник состояния</small><strong>Недоступен</strong><span>"+esc(data.error_class||"NO_ATLAS_STATE_SOURCE")+"</span></div>"+
+      "<div class='metric'><small>Проекция чтения Панели</small><strong>Подключена</strong><span>серверный endpoint отвечает</span></div>"+
+      "<div class='metric'><small>Канонический источник состояния</small><strong>Отсутствует</strong><span title='формальный код: "+esc(data.error_class||"NO_ATLAS_STATE_SOURCE")+"'>состояние ATLAS неоткуда читать</span></div>"+
       "<div class='metric'><small>Текущее состояние</small><strong>Не строится</strong><span>документы Hub не превращаются в каноничность</span></div>"+
-      "<div class='metric'><small>Следующий шаг</small><strong>Создать источник состояния</strong><span>объект Continuity или постоянный сервис состояния</span></div></div>";
+      "<div class='metric'><small>Следующий системный шаг</small><strong>Создать источник состояния</strong><span>канонический объект Continuity или постоянный сервис состояния</span></div></div>";
   }
 
   function renderAtlasSignalLab(data) {
@@ -2047,13 +2047,13 @@
       "<div class='live-summary atlas-siglab-summary'>"+
       "<div class='metric'><small>Этап</small><strong>"+esc(stage.index&&stage.total?stage.index+" / "+stage.total:"—")+"</strong><span>"+esc(stage.label||label(stage.name))+"</span></div>"+
       "<div class='metric'><small>Наблюдений</small><strong>"+esc(observations||"—")+"</strong><span>контрольный + смысловой потоки</span></div>"+
-      "<div class='metric'><small>Подтверждений</small><strong>"+esc(confirmed||"—")+"</strong><span>сумма состояний двух потоков</span></div>"+
+      "<div class='metric'><small>Счётчик confirmed</small><strong>"+esc(confirmed||"—")+"</strong><span>1 поле control + treatment; не приравнивается к подтверждённым выводам ATLAS</span></div>"+
       "<div class='metric'><small>Следующий цикл</small><strong>"+esc(dt(data.next_cycle))+"</strong><span>"+esc(label(data.next_gate))+"</span></div></div>"+
-      "<div class='live-item-clean atlas-siglab-objective'><div class='live-item-clean-head'><h3>Цель текущего расширения</h3>"+chip(stage.status||data.health||"—")+"</div><p>"+esc(data.objective||"Цель не передана источником.")+"</p>"+
+      "<div class='live-item-clean atlas-siglab-objective'><div class='live-item-clean-head'><h3>Цель текущего расширения</h3><span class='live-chip "+liveMode(stage.status||data.health||"—")+"'>"+esc(label(stage.status||data.health||"—"))+"</span></div><p>"+esc(data.objective||"Цель не передана источником.")+"</p>"+
       "<div class='live-kv-grid'>"+kv("Охват",regions.length?regions.length+" регионов":"—")+kv("Целевая выборка",data.scope&&data.scope.target_systems||"—")+kv("Классы отраслей",sectors.length||"—")+kv("Последний перезапуск",dt(restart))+"</div></div>"+
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Два живых потока</h3><small>показываются раздельно, чтобы не скрывать различия</small></div><div class='atlas-siglab-streams'>"+
-      "<div><small>Контрольный поток</small><b>"+esc(control.observations!=null?control.observations+" наблюдений":"—")+"</b><span>"+esc(control.confirmed!=null?control.confirmed+" подтверждений":"")+(control.degraded!=null?" · "+esc(control.degraded)+" деградированных":"")+"</span></div>"+
-      "<div><small>Смысловой поток</small><b>"+esc(treatment.observations!=null?treatment.observations+" наблюдений":"—")+"</b><span>"+esc(treatment.confirmed!=null?treatment.confirmed+" подтверждений":"")+(treatment.degraded!=null?" · "+esc(treatment.degraded)+" деградированных":"")+"</span></div></div></div>"+
+      "<div><small>Контрольный поток</small><b>"+esc(control.observations!=null?control.observations+" наблюдений":"—")+"</b><span>confirmed: "+esc(control.confirmed!=null?control.confirmed:"—")+(control.degraded!=null?" · degraded: "+esc(control.degraded):"")+"</span></div>"+
+      "<div><small>Смысловой поток</small><b>"+esc(treatment.observations!=null?treatment.observations+" наблюдений":"—")+"</b><span>confirmed: "+esc(treatment.confirmed!=null?treatment.confirmed:"—")+(treatment.degraded!=null?" · degraded: "+esc(treatment.degraded):"")+"</span></div></div><small>Поля confirmed/degraded показаны как счётчики источника без собственной научной интерпретации Панели.</small></div>"+
       (Object.keys(review).length?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Последний обзор</h3><small>"+esc(label(review.gate_status))+"</small></div><div class='live-kv-grid'>"+kv("Длительность",review.duration_hours!=null?Number(review.duration_hours).toFixed(1)+" ч":"—")+kv("Кандидатов",review.candidate_count_union!=null?review.candidate_count_union:"—")+kv("Строгих расхождений пары",review.strict_pair_divergences!=null?review.strict_pair_divergences:"—")+kv("Файл обзора",review.file||"—")+"</div></div>":"");
   }
 
