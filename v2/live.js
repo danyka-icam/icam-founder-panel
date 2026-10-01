@@ -950,6 +950,34 @@
     pageBadge("documents", "live", "ДАННЫЕ ПОДКЛЮЧЕНЫ");
   }
 
+  function testTypesRu(value) {
+    var map = {
+      REPLICATION: "повторяемость", REGRESSION: "регрессия", BLIND_SCORING: "слепая оценка", BLIND_CODING: "слепое кодирование",
+      ADVERSARIAL_STRESS: "стресс-тест", METHODOLOGY: "методология", SOURCE_INTEGRITY: "целостность источников",
+      IMPLEMENTATION: "реализация", DATA_SOURCE_INTEGRITY: "целостность данных", RETROSPECTIVE_TEMPORAL_BLIND: "ретроспективный тест без временного порядка",
+      FORECAST_CALIBRATION: "калибровка прогнозов", ADVERSARIAL_LEAKAGE_AUDIT: "проверка на утечку информации", BASELINE_COMPARISON: "сравнение с базовой моделью",
+      MULTI_CLIENT_EVM: "проверка EVM на нескольких клиентах", CROSS_CASE: "межкейсовая проверка", GENEALOGY: "генеалогия",
+      POSTHOC_MECHANISM_DIAGNOSTIC: "постфактум-диагностика механизма", WEIGHTING_DECOMPOSITION: "декомпозиция взвешивания"
+    };
+    return String(value || "").split(",").filter(Boolean).map(function (x) { return map[x] || humanCode(x); }).join(" · ") || "—";
+  }
+
+  function testOutcomeRu(value) {
+    var raw = String(value == null ? "" : value).trim();
+    var exact = {
+      PROCEDURE_PASS: "процедура пройдена",
+      DOMAIN_ADJUDICATION_REQUIRED: "нужен содержательный разбор владеющей ветки",
+      IMPLEMENTATION_PARTIALLY_VERIFIED: "реализация подтверждена частично",
+      INSUFFICIENT_EVIDENCE: "доказательств недостаточно",
+      INCONCLUSIVE_DUE_TO_INTER_RATER_DISAGREEMENT: "нет окончательного вывода из-за расхождения кодировщиков",
+      BLOCKED_SOURCE_CUSTODY_NOT_SCIENTIFIC_FAIL: "заблокировано из-за неполного пакета исходных материалов; это не научный провал",
+      "v0.2 ROUTE-ATTRIBUTION REPAIR = SYNTHETIC MECHANICAL PASS": "v0.2: исправление атрибуции маршрута — синтетическая механическая проверка пройдена"
+    };
+    if (exact[raw]) return exact[raw];
+    if (raw.indexOf("BLOCKED_SOURCE_CUSTODY:") === 0) return "заблокировано: не хватает исходных материалов для независимой проверки";
+    return researchTextRu(humanCode(raw));
+  }
+
   function renderTesting(summary, runner) {
     var page = document.querySelector('[data-page-panel="testing"]');
     if (!page) return;
@@ -976,10 +1004,35 @@
         tests.sort(function (a, b) { return String(b.updated_at || "").localeCompare(String(a.updated_at || "")); });
         q.innerHTML = tests.length ? tests.slice(0, 10).map(function (t) {
           return "<div class='testing-live-row'><b>" + esc(t.test_id || "—") + "<small>" + esc(t.object_id || "не определён") + "</small></b>" +
-            "<span>" + esc(t.owning_branch || "—") + "</span><span>" + esc(t.test_type || "—") + "</span>" +
-            "<em>" + esc(ruStatus(t.status)) + "</em><span>" + esc(t.next_action || t.scientific_outcome || "—") + "</span></div>";
+            "<span>" + esc(t.owning_branch || "—") + "</span><span>" + esc(testTypesRu(t.test_type)) + "</span>" +
+            "<em>" + esc(ruStatus(t.status)) + "</em><span>" + esc(testOutcomeRu(t.next_action || t.scientific_outcome || "—")) + "</span></div>";
         }).join("") :
         "<div class='testing-empty compact'><strong>Очередь пуста</strong><span>Testing summary ответил без тестов.</span></div>";
+      }
+
+      var focus = page.querySelector('[data-t="focus"]');
+      if (focus) {
+        var primary = adj[0] || null;
+        if (primary) {
+          var types = testTypesRu(primary.test_type).split(" · ");
+          var evidenceN = asArray(primary.evidence_refs).length;
+          var proc = testOutcomeRu(primary.procedure_status || "процедурный статус не передан");
+          var outcome = testOutcomeRu(primary.scientific_outcome || "научный исход не передан");
+          var next = researchTextRu(primary.delivery_next_action || primary.next_action || "следующий ход не передан");
+          focus.innerHTML =
+            "<div class='testing-focus-head'><div><small>РЕЗУЛЬТАТ ЖДЁТ СОДЕРЖАТЕЛЬНОГО РАЗБОРА</small><b>" + esc(primary.test_id || "проверка без ID") + "</b><span>" + esc(primary.owning_branch || "владеющая ветка не указана") + "</span></div><a href='#research'>Открыть исследования →</a></div>" +
+            "<div class='testing-focus-chain'>" +
+              "<div class='pass'><small>01 · Процедура</small><strong>" + esc(proc) + "</strong><span>техническое качество прогона</span></div>" +
+              "<i>≠</i>" +
+              "<div class='review'><small>02 · Научный исход</small><strong>" + esc(outcome) + "</strong><span>не повышается до PASS автоматически</span></div>" +
+              "<i>→</i>" +
+              "<div><small>03 · Следующий ход</small><strong>" + esc(next) + "</strong><span>решение остаётся у владеющей ветки</span></div>" +
+            "</div>" +
+            "<div class='testing-focus-meta'><span><small>Что проверялось</small><b>" + esc(types.join(" · ") || "—") + "</b></span><span><small>Доказательств прогона</small><b>" + esc(evidenceN) + " ссылок</b></span><span><small>Публикация результата</small><b>" + esc(primary.delivery_state ? researchTextRu(humanCode(primary.delivery_state)) : "—") + (primary.delivery_revision != null ? " · ревизия " + esc(primary.delivery_revision) : "") + "</b></span><span><small>Обновлено</small><b>" + esc(primary.updated_at ? ago(primary.updated_at) : "—") + "</b></span></div>" +
+            "<div class='testing-focus-rule'>Процедурный PASS подтверждает исполнение протокола, а не исследовательскую гипотезу. До разбора владеющей веткой Панель сохраняет научный исход как незавершённый.</div>";
+        } else {
+          focus.innerHTML = "<div class='testing-focus-calm'><strong>Нет результатов, ожидающих содержательного разбора</strong><span>По текущему Testing summary состояние NEEDS_ADJUDICATION отсутствует.</span></div>";
+        }
       }
 
       var att = page.querySelector('[data-t="attention"]');
@@ -998,17 +1051,17 @@
         var recent = asArray(summary.recent).slice(0, 6);
         recentBox.innerHTML = recent.length ? "<div class='testing-mini-list'>" + recent.map(function (t) {
           return "<div class='testing-mini-item'><b>" + esc(t.test_id || "—") + "</b><span>" +
-            esc(t.procedure_status || "процедура не указана") + " · " + esc(t.scientific_outcome || "научный исход не указан") +
+            esc(testOutcomeRu(t.procedure_status || "процедура не указана")) + " · " + esc(testOutcomeRu(t.scientific_outcome || "научный исход не указан")) +
             " · " + esc(ago(t.updated_at)) + "</span></div>";
         }).join("") + "</div>" :
         "<div class='testing-empty compact'><strong>Завершённых результатов нет</strong><span>По текущему Testing summary.</span></div>";
       }
 
-      var adjBox = page.querySelector('[data-t="adjudication"]');
+      var adjBox = page.querySelector('[data-t="adjudication-list"]');
       if (adjBox) {
         adjBox.innerHTML = adj.length ? "<div class='testing-mini-list'>" + adj.slice(0, 6).map(function (t) {
           return "<div class='testing-mini-item'><b>" + esc(t.test_id || "—") + "</b><span>" +
-            esc(t.owning_branch || "владеющая ветка не указана") + " · " + esc(t.scientific_outcome || "нужен разбор") + "</span></div>";
+            esc(t.owning_branch || "владеющая ветка не указана") + " · " + esc(testOutcomeRu(t.scientific_outcome || "нужен разбор")) + "</span></div>";
         }).join("") + "</div>" :
         "<div class='testing-empty compact'><strong>Разбор сейчас не требуется</strong><span>Нет тестов в состоянии NEEDS_ADJUDICATION.</span></div>";
       }
@@ -1060,6 +1113,8 @@
       "Owning branch adjudication": "разбор владеющей ветки",
       "SYSTEM / Testing Governance": "система / управление тестированием",
       "Digital Institute / Research Registry": "Digital Institute / исследовательский реестр",
+      "Owning branch reviews frozen outputs.": "Владеющая ветка разбирает замороженные результаты.",
+      "PUBLISHED": "опубликовано",
       "active priority / foundation freeze / g0 amber": "приоритетное направление · основание заморожено · G0 amber",
       "published / public": "опубликовано · публично",
       "blocked single source pair a j364486": "заблокировано: единственная пара источников A/J364486",
