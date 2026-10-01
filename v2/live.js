@@ -1116,7 +1116,7 @@
             esc(testOutcomeRu(t.procedure_status || "процедура не указана")) + " · " + esc(testOutcomeRu(t.scientific_outcome || "научный исход не указан")) +
             " · " + esc(ago(t.updated_at)) + "</span></div>";
         }).join("") + "</div>" :
-        "<div class='testing-empty compact'><strong>Завершённых результатов нет</strong><span>По текущему Testing summary.</span></div>";
+        "<div class='testing-empty compact'><strong>Недавние результаты не переданы</strong><span>Поле recent в текущем Testing summary пусто; это не доказывает отсутствие завершённых проверок.</span></div>";
       }
 
       var adjBox = page.querySelector('[data-t="adjudication-list"]');
