@@ -1812,27 +1812,38 @@
   function renderFieldMovement(fieldMovement) {
     var badge = document.querySelector('[data-fm="badge"]');
     var fmOk = sourceState.fieldMovement.ok && fieldMovement;
-
-    if (!fmOk || fieldMovement.status !== "AVAILABLE") {
-      if (badge) {
-        badge.className = "state unavailable";
-        badge.textContent = !fmOk ? "АГРЕГАТ НЕДОСТУПЕН" : "АГРЕГАТ ЕЩЁ НЕ СФОРМИРОВАН";
-      }
-      (fieldMovement && fieldMovement.axes || []).forEach(function (a) {
-        var el = document.querySelector('[data-fm="' + a.axis + '"]');
-        var note = document.querySelector('[data-fm-note="' + a.axis + '"]');
-        if (el) el.textContent = "—";
-        if (note) note.textContent = "к предыдущим 7 дням";
+    function clearAxes(noteText) {
+      document.querySelectorAll('[data-fm]').forEach(function (el) {
+        if (el.getAttribute('data-fm') !== 'badge') el.textContent = '—';
       });
+      document.querySelectorAll('[data-fm-note]').forEach(function (el) { el.textContent = noteText; });
+    }
+
+    if (!fmOk) {
+      if (badge) { badge.className = "state unavailable"; badge.textContent = "ИСТОЧНИК АГРЕГАТА НЕДОСТУПЕН"; }
+      clearAxes("текущее чтение недоступно");
       return;
     }
 
-    if (badge) { badge.className = "state live"; badge.textContent = "АГРЕГАТ ДОСТУПЕН"; }
-    fieldMovement.axes.forEach(function (a) {
+    var fmStatus = fieldMovement.status == null ? null : String(fieldMovement.status).toUpperCase();
+    var axesKnown = Array.isArray(fieldMovement.axes);
+    var axes = axesKnown ? fieldMovement.axes : [];
+    if (badge) {
+      badge.className = "state " + (fmStatus === "AVAILABLE" ? "live" : "warn");
+      badge.textContent = fmStatus ? ("АГРЕГАТ · " + fmStatus) : "СТАТУС АГРЕГАТА НЕ ПЕРЕДАН";
+    }
+
+    if (!axesKnown) {
+      clearAxes("axes[] источником не передан");
+      return;
+    }
+    axes.forEach(function (a) {
       var el = document.querySelector('[data-fm="' + a.axis + '"]');
       var note = document.querySelector('[data-fm-note="' + a.axis + '"]');
       if (el) el.textContent = a.trend ? (FIELD_MOVEMENT_TREND_ICON[a.trend] || a.trend) : "—";
-      if (note) note.textContent = a.trend ? ("вес " + a.current_weight + " / было " + a.prior_weight) : "нет данных за 14 дней";
+      if (note) note.textContent = a.trend ?
+        ("вес " + (a.current_weight == null ? "—" : a.current_weight) + " / было " + (a.prior_weight == null ? "—" : a.prior_weight)) :
+        "trend источником не передан";
     });
   }
 
