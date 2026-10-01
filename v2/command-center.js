@@ -1681,11 +1681,55 @@
   // strategic_trajectories[].path is a sequence of human-readable stages, not
   // line IDs. A stage becomes a link only when it equals a canonical line title
   // exactly; everything else stays a plain stage of the strategy.
+  function trajectoryTextRu(value) {
+    var raw = String(value == null ? "" : value).trim();
+    var exact = {
+      "STATE": "Состояние",
+      "FORECAST": "Прогноз",
+      "OUTCOME": "Исход",
+      "ERROR": "Ошибка",
+      "MODEL CHANGE": "Изменение модели",
+      "BETTER FORECAST": "Улучшенный прогноз",
+      "Dynamic World Twin": "Динамическая модель мира",
+      "Founder/CEO readiness": "Готовность Основателя / CEO",
+      "US move-ready": "Готовность к возможному переезду в США",
+      "CURRENT_TO_6M": "от текущего момента до 6 месяцев",
+      "LONG": "долгосрочный",
+      "canonical commercial architecture": "каноническая коммерческая архитектура",
+      "publication strategy previously established": "ранее утверждённая публикационная стратегия",
+      "North Star decision D-003": "решение North Star D-003",
+      "ATLAS research roadmap": "исследовательская дорожная карта ATLAS",
+      "Forecast Core architecture": "архитектура Forecast Core",
+      "Founder-confirmed strategy event": "стратегическое событие, подтверждённое Основателем",
+      "ESTABLISHED_DIRECTION": "утверждённое направление",
+      "NORTH_STAR_ESTABLISHED": "North Star зафиксирована",
+      "FOUNDER_CONFIRMED_PENDING_CANON_RECONCILIATION": "подтверждено Основателем; ожидает канонической сверки"
+    };
+    return exact[raw] || raw;
+  }
+
+  function trajectoryStatusRu(value) {
+    return trajectoryTextRu(value || "статус не передан");
+  }
+
+  function trajectoryValueText(v) {
+    if (v == null || v === "") return "";
+    if (Array.isArray(v)) return v.map(function (x) { return trajectoryTextRu(scalar(x)); }).join(" · ");
+    if (typeof v === "object") {
+      // Structured objects stay structured; never collapse them into JSON in Founder UI.
+      return Object.keys(v).map(function (k) {
+        var labels = { horizon: "горизонт", role: "роль", known_anchor: "известный якорь" };
+        return (labels[k] || human(k)) + ": " + trajectoryTextRu(scalar(v[k]));
+      }).join(" · ");
+    }
+    return trajectoryTextRu(String(v));
+  }
+
   function trajectoryPath(t) {
     var raw = t && typeof t === "object" ? (t.path || t.steps || t.lines || []) : [];
     return A(raw).map(function (x) {
       var text = x && typeof x === "object" ? (x.title || pickText(x) || x.id || "") : String(x);
-      return { text: text, ul: lineByExactTitle(text) };
+      return { text: text, display: trajectoryTextRu(text), ul: lineByExactTitle(text) };
     });
   }
 
@@ -1706,22 +1750,22 @@
       steps.map(function (st) {
         var here = pos && pos.value === st.text;
         return "<span class='cc-road-seg'></span>" + (st.ul ?
-          "<button class='cc-road-node stage linked" + (here ? " here" : "") + "' title='точное совпадение с линией Founder Universe'" + sel("uline", st.ul.key) + "><i></i><b>" + E(H.cut(st.text, 30)) + "</b>" + (here ? "<em>мы здесь</em>" : "<em>линия</em>") + "</button>" :
-          "<span class='cc-road-node stage" + (here ? " here" : "") + "'><i></i><b>" + E(H.cut(st.text, 30)) + "</b>" + (here ? "<em>мы здесь</em>" : "") + "</span>");
+          "<button class='cc-road-node stage linked" + (here ? " here" : "") + "' title='точное совпадение с линией Founder Universe'" + sel("uline", st.ul.key) + "><i></i><b>" + E(H.cut(st.display, 30)) + "</b>" + (here ? "<em>мы здесь</em>" : "<em>линия</em>") + "</button>" :
+          "<span class='cc-road-node stage" + (here ? " here" : "") + "'><i></i><b>" + E(H.cut(st.display, 30)) + "</b>" + (here ? "<em>мы здесь</em>" : "") + "</span>");
       }).join("") +
-      "<span class='cc-road-seg last'></span><span class='cc-road-node star'><i>✦</i><b>North Star</b></span></div>";
+      "<span class='cc-road-seg last'></span><span class='cc-road-node star'><i>✦</i><b>Целевая звезда</b></span></div>";
   }
 
   function trajectoryFacts(t) {
     var pos = trajectoryPosition(t);
     function fact(label, v, cls) {
       var has = v != null && v !== "" && !(Array.isArray(v) && !v.length);
-      return "<div class='cc-tfact" + (has ? "" : " none") + (cls ? " " + cls : "") + "'><small>" + E(label) + "</small><span>" + E(has ? H.cut(scalar(v), 160) : "источник не передаёт") + "</span></div>";
+      return "<div class='cc-tfact" + (has ? "" : " none") + (cls ? " " + cls : "") + "'><small>" + E(label) + "</small><span>" + E(has ? H.cut(trajectoryValueText(v), 220) : "источник не передаёт") + "</span></div>";
     }
     return "<div class='cc-tfacts'>" +
       fact("Зачем", t.north_star, "why") +
       fact("Горизонт", t.horizon) +
-      "<div class='cc-tfact" + (pos ? "" : " none") + "'><small>Где мы сейчас</small><span>" + E(pos ? pos.value : "положение на пути источником не сообщается") + "</span></div>" +
+      "<div class='cc-tfact" + (pos ? "" : " none") + "'><small>Где мы сейчас</small><span>" + E(pos ? trajectoryTextRu(pos.value) : "положение на пути источником не сообщается") + "</span></div>" +
       fact("Возвращается в систему", t.feeds_back_to) +
       fact("Доказательная основа", t.evidence_basis) +
       (t.rule ? fact("Правило", t.rule) : "") +
@@ -1738,7 +1782,8 @@
       var key = trajectoryKey(t, i);
       return "<div class='cc-track" + (isSelected("strategy", key) ? " selected" : "") + "'" + sel("strategy", key) + " tabindex='0'>" +
         "<div class='cc-track-head'><b>" + E(t.title || t.id || "Траектория") + "</b>" +
-        (t.status ? codeTag(t.status, "tag") : "") + (t.horizon ? "<i class='cc-tag hz'>горизонт " + E(scalar(t.horizon)) + "</i>" : "") + "</div>" +
+        (t.status ? "<i class='cc-tag tag' title='формальный код: " + E(String(t.status)) + "'>" + E(trajectoryStatusRu(t.status)) + "</i>" : "") +
+        (t.horizon ? "<i class='cc-tag hz'>горизонт: " + E(trajectoryTextRu(scalar(t.horizon))) + "</i>" : "") + "</div>" +
         trajectoryLane(t) + trajectoryFacts(t) + "</div>";
     }).join("") + "</div><div class='cc-foot-note'>Этапы — поле path. Этап-ссылка точно совпадает с названием канонической линии; остальные — этапы стратегии без привязки. Положение на пути отмечается, только если источник его сообщает.</div>";
   }
