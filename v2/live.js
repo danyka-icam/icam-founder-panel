@@ -375,7 +375,7 @@
     document.head.appendChild(style);
   }
 
-  function setOrchestratorHeader(routesOk, summaryOk, metricsOk) {
+  function setOrchestratorHeader(routesOk, routesKnown, summaryOk, metricsOk) {
     var page = document.querySelector('[data-page-panel="orchestrator"]');
     if (!page) return;
     var badge = page.querySelector(".top-actions .state");
@@ -384,7 +384,7 @@
     if (!routesOk) {
       badge.classList.add("unavailable");
       badge.textContent = "ИСТОЧНИК НЕДОСТУПЕН";
-    } else if (!summaryOk || !metricsOk) {
+    } else if (!routesKnown || !summaryOk || !metricsOk) {
       badge.classList.add("warn");
       badge.textContent = "ДАННЫЕ ЧАСТИЧНО";
     } else {
@@ -409,10 +409,12 @@
     });
   }
 
-  function renderHomeKPIs(routes, inbox) {
-    if (sourceState.routes.ok) {
+  function renderHomeKPIs(routes, inbox, routesKnown) {
+    if (sourceState.routes.ok && routesKnown) {
       var active = routes.filter(function (r) { return !isClosed(r); });
       setHomeKPI("Маршруты", String(active.length), "маршруты без явного закрывающего статуса в текущем чтении Оркестратора");
+    } else if (sourceState.routes.ok) {
+      setHomeKPI("Маршруты", "—", "Оркестратор ответил, но поле routes[] не передано");
     } else {
       setHomeKPI("Маршруты", "Недоступно", "текущее чтение Оркестратора завершилось ошибкой");
     }
@@ -428,14 +430,16 @@
     }
   }
 
-  function renderRoutesUnavailable() {
+  function renderRoutesUnavailable(collectionMissing) {
     [
       '[data-page-panel="orchestrator"] .mine .panel-body',
       '[data-page-panel="orchestrator"] .waiting .panel-body',
       '[data-page-panel="orchestrator"] .orch-risk .panel-body'
     ].forEach(function (selector) {
       var el = document.querySelector(selector);
-      if (el) el.innerHTML = unavailableHTML("Источник маршрутов недоступен", "Панель не сохраняет демонстрационные или прошлые маршруты как current state.");
+      if (el) el.innerHTML = collectionMissing ?
+        unavailableHTML("Маршруты не проверены", "Оркестратор ответил, но поле routes[] не передано; пустой список из этого не следует.") :
+        unavailableHTML("Источник маршрутов недоступен", "Панель не сохраняет демонстрационные или прошлые маршруты как current state.");
     });
 
     var page = document.querySelector('[data-page-panel="orchestrator"]');
@@ -443,22 +447,22 @@
       page.querySelectorAll(".strip .card").forEach(function (card) {
         var strong = card.querySelector("strong");
         var span = card.querySelector("span");
-        if (strong) strong.textContent = "Недоступно";
-        if (span) span.textContent = "текущее чтение маршрутов завершилось ошибкой";
+        if (strong) strong.textContent = collectionMissing ? "—" : "Недоступно";
+        if (span) span.textContent = collectionMissing ? "routes[] не передан" : "текущее чтение маршрутов завершилось ошибкой";
       });
     }
 
     var board = document.querySelector('[data-page-panel="orchestrator"] .progress-board');
     var scale = document.querySelector('[data-page-panel="orchestrator"] .attention-scale');
     var graph = document.querySelector('[data-page-panel="orchestrator"] .dependency-graph');
-    if (board) board.innerHTML = unavailableHTML("Маршрутные данные недоступны", "Визуальная шкала очищена до нового успешного чтения.");
-    if (scale) scale.innerHTML = "<h3>ШКАЛА ВНИМАНИЯ</h3>" + unavailableHTML("Нет current state", "Диагностическая шкала не строится по прошлым или демонстрационным данным.");
-    if (graph) graph.innerHTML = "<div class='dep-live-message'>Источник маршрутов недоступен.<br>Граф очищен до нового успешного чтения.</div>";
+    if (board) board.innerHTML = collectionMissing ? unavailableHTML("Маршрутные данные не проверены", "Поле routes[] не передано.") : unavailableHTML("Маршрутные данные недоступны", "Визуальная шкала очищена до нового успешного чтения.");
+    if (scale) scale.innerHTML = "<h3>ШКАЛА ВНИМАНИЯ</h3>" + (collectionMissing ? unavailableHTML("Маршрутное состояние не проверено", "Поле routes[] не передано.") : unavailableHTML("Нет current state", "Диагностическая шкала не строится по прошлым или демонстрационным данным."));
+    if (graph) graph.innerHTML = collectionMissing ? "<div class='dep-live-message'>Оркестратор ответил, но routes[] не передан.<br>Граф зависимостей не проверен.</div>" : "<div class='dep-live-message'>Источник маршрутов недоступен.<br>Граф очищен до нового успешного чтения.</div>";
 
     var homeNow = document.querySelector('[data-page-panel="home"] .home-panel.now .body');
     var homeRisk = document.querySelector('[data-page-panel="home"] .home-panel.risk .body');
-    if (homeNow) homeNow.innerHTML = unavailableHTML("Оркестратор недоступен", "Главная не показывает старый порядок маршрутов как текущий.");
-    if (homeRisk) homeRisk.innerHTML = unavailableHTML("Риск-модель недоступна", "Без current routes Панель не вычисляет диагностический застой.");
+    if (homeNow) homeNow.innerHTML = collectionMissing ? unavailableHTML("Маршруты не проверены", "Оркестратор ответил, но routes[] не передан.") : unavailableHTML("Оркестратор недоступен", "Главная не показывает старый порядок маршрутов как текущий.");
+    if (homeRisk) homeRisk.innerHTML = collectionMissing ? unavailableHTML("Риск-модель не проверена", "Без явного routes[] Панель не вычисляет диагностический застой.") : unavailableHTML("Риск-модель недоступна", "Без current routes Панель не вычисляет диагностический застой.");
   }
 
   function renderInboxUnavailable() {
@@ -2505,7 +2509,9 @@
       var temporalUniverse = res[23];
       var portfolioAdmission = res[24];
 
-      var routes = routesJSON && Array.isArray(routesJSON.routes) ? routesJSON.routes : [];
+      var routesKnown = !!(routesJSON && Array.isArray(routesJSON.routes));
+      var routes = routesKnown ? routesJSON.routes : [];
+      sourceState.routes.collectionKnown = routesKnown;
       var summary = summaryJSON && summaryJSON.summary ? summaryJSON.summary : null;
       var metrics = metricsJSON && metricsJSON.metrics ? metricsJSON.metrics : null;
       setObjectNameMap(objects);
@@ -2518,21 +2524,22 @@
         marketSignals: marketSignals, fieldMovement: fieldMovement, scannerDiagnostics: scannerDiagnostics,
         founderProjection: founderProjection, organizationalIntelligence: organizationalIntelligence,
         stewardReconciliation: stewardReconciliation, signalLabStatus: signalLabStatus, temporalUniverse: temporalUniverse,
-        portfolioAdmission: portfolioAdmission, rd1: {}
+        portfolioAdmission: portfolioAdmission, rd1: {},
+        collections: { routes: routesKnown }
       };
 
-      setOrchestratorHeader(sourceState.routes.ok, sourceState.summary.ok, sourceState.metrics.ok);
-      renderHomeKPIs(routes, inbox);
+      setOrchestratorHeader(sourceState.routes.ok, routesKnown, sourceState.summary.ok, sourceState.metrics.ok);
+      renderHomeKPIs(routes, inbox, routesKnown);
       renderHomeTesting(testingSummary);
 
-      if (sourceState.routes.ok) {
+      if (sourceState.routes.ok && routesKnown) {
         renderOrchestratorKPIs(routes, summary, metrics, depModel);
         renderOrchestratorRoutes(routes, depModel);
         renderVisualBoard(routes, depModel);
         renderHomeRoutes(routes, depModel);
         renderHomeRisk(routes, depModel);
       } else {
-        renderRoutesUnavailable();
+        renderRoutesUnavailable(sourceState.routes.ok && !routesKnown);
       }
 
       if (sourceState.inbox.ok) renderHomeNeeds(inbox);

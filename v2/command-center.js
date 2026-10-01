@@ -58,6 +58,13 @@
   function E(v) { return H.esc(v); }
   function A(v) { return H.asArray(v); }
   function ok(name) { var s = M && M.sources && M.sources[name]; return !!(s && s.ok); }
+  function routeDataOk() { var s = M && M.sources && M.sources.routes; return !!(s && s.ok && M.routeCollectionKnown); }
+  function objectDataOk() { var s = M && M.sources && M.sources.objects; return !!(s && s.ok && M.objectsCollectionKnown); }
+  function blockerDataOk() { var s = M && M.sources && M.sources.blockers; return !!(s && s.ok && M.blockersCollectionKnown); }
+  function inboxDataOk() { var s = M && M.sources && M.sources.inbox; return !!(s && s.ok && M.inboxCollectionKnown); }
+  function routeGapText() { var s=M&&M.sources&&M.sources.routes; return !(s&&s.ok) ? "Источник маршрутов недоступен" : (!M.routeCollectionKnown ? "Оркестратор ответил, но routes[] не передан" : ""); }
+  function objectGapText() { var s=M&&M.sources&&M.sources.objects; return !(s&&s.ok) ? "Реестр объектов недоступен" : (!M.objectsCollectionKnown ? "Continuity objects ответил, но items[] не передан" : ""); }
+  function blockerGapText() { var s=M&&M.sources&&M.sources.blockers; return !(s&&s.ok) ? "Источник blocker-записей недоступен" : (!M.blockersCollectionKnown ? "Continuity blockers ответил, но items[] не передан" : ""); }
   function upper(v) { return String(v == null ? "" : v).toUpperCase(); }
 
   function initials(name) {
@@ -294,7 +301,7 @@
   };
 
   function ownerLabel(value) {
-    if (value == null || value === "") return "не назначен";
+    if (value == null || value === "") return "не передан";
     var k = String(value).trim();
     if (H.isFounderOwner(k)) return "вы";
     if (/^SYSTEM$/i.test(k)) return "система";
@@ -679,9 +686,13 @@
 
   function buildModel(d) {
     var sources = d.sources || {};
-    var routes = A(d.routes);
-    var objects = A(d.objects && d.objects.items);
-    var openBlockers = A(d.blockers && d.blockers.items).filter(function (b) {
+    var routeCollectionKnown = !!(d.collections && d.collections.routes === true);
+    var objectsCollectionKnown = !!(d.objects && Array.isArray(d.objects.items));
+    var blockersCollectionKnown = !!(d.blockers && Array.isArray(d.blockers.items));
+    var inboxCollectionKnown = !!(d.inbox && Array.isArray(d.inbox.needs_founder));
+    var routes = routeCollectionKnown ? A(d.routes) : [];
+    var objects = objectsCollectionKnown ? d.objects.items : [];
+    var openBlockers = (blockersCollectionKnown ? d.blockers.items : []).filter(function (b) {
       return !b.is_test && upper(b.status) !== "CLEARED";
     });
     var dep = H.dependencyModel(routes);
@@ -696,8 +707,8 @@
     var OI = oi.ok ? buildOrgIntelligence(oi.data, U) : null;
     var SR = sr.ok ? buildStewardReconciliation(sr.data, U) : null;
 
-    var objectsOk = !!(sources.objects && sources.objects.ok);
-    var routesOk = !!(sources.routes && sources.routes.ok);
+    var objectsOk = !!(sources.objects && sources.objects.ok && objectsCollectionKnown);
+    var routesOk = !!(sources.routes && sources.routes.ok && routeCollectionKnown);
     var objById = {};
     objects.forEach(function (o) { if (o && o.object_id) objById[String(o.object_id)] = o; });
 
@@ -762,7 +773,7 @@
       }
     });
 
-    var inboxItems = A(d.inbox && d.inbox.needs_founder);
+    var inboxItems = inboxCollectionKnown ? d.inbox.needs_founder : [];
 
     var objs = objects.map(function (o) {
       var id = String(o.object_id || "");
@@ -810,6 +821,8 @@
 
     return {
       d: d, sources: sources, tu: tu, adm: adm, fp: fp, oi: oi, sr: sr, U: U, AD: AD, FP: FP, OI: OI, SR: SR,
+      routeCollectionKnown: routeCollectionKnown, objectsCollectionKnown: objectsCollectionKnown,
+      blockersCollectionKnown: blockersCollectionKnown, inboxCollectionKnown: inboxCollectionKnown,
       lines: lines, active: lines.filter(function (l) { return !l.closed; }), lineByKey: lineByKey,
       objs: objs, objByKey: objByKey, bridges: bridges, edges: dep.edges.filter(function (e) {
         return lineByKey[e.from] && lineByKey[e.to];
@@ -899,7 +912,7 @@
   // ------------------------------------------------------------------ Командный центр
 
   function renderKPIs() {
-    var routesOk = ok("routes");
+    var routesOk = routeDataOk();
     var act = M.active;
     var n = { act: 0, blocked: 0, wait: 0, stale: 0, unknown: 0, flow: 0 };
     act.forEach(function (l) { n[l.tone] = (n[l.tone] || 0) + 1; });
@@ -1002,14 +1015,14 @@
     decisions = byDateDesc(decisions);
     assigned = byDateDesc(assigned);
     var nd = decisions.length, na = assigned.length, total = nd + na;
-    var anyOk = M.fp.ok || ok("routes");
+    var anyOk = M.fp.ok || routeDataOk();
     var head = "<div class='cc-hero-head'><span class='cc-hero-mark'>!</span><div><h2>Требует вашего решения</h2>" +
       "<small>здесь считаются только формальные решения из проекции Основателя; назначенный вам маршрут сам по себе не означает срочность</small></div>" +
       "<div class='cc-hero-counts'><strong class='cc-hero-count'>" + (M.fp.ok ? nd : "—") + "</strong>" +
       "<span><b>" + (M.fp.ok ? nd : "—") + "</b> " + (M.fp.ok ? plural(nd, "формальное решение", "формальных решения", "формальных решений") : "формальных решений") +
-      " · <b>" + (ok("routes") ? na : "—") + "</b> маршрутов на вашей стороне</span></div></div>";
-    if (!anyOk) return head + unavailable("Источники недоступны", "Проекция решений Основателя и маршруты не прочитаны — состояние внимания не подтверждено.");
-    if (!total && M.fp.ok && ok("routes")) return head + "<div class='cc-hero-calm'>Формальных решений и назначенных вам маршрутов сейчас нет.</div>";
+      " · <b>" + (routeDataOk() ? na : "—") + "</b> маршрутов на вашей стороне</span></div></div>";
+    if (!anyOk) return head + unavailable("Контур внимания не проверен", "Проекция решений Основателя недоступна; "+routeGapText()+". Состояние внимания не подтверждено.");
+    if (!total && M.fp.ok && routeDataOk()) return head + "<div class='cc-hero-calm'>Формальных решений и назначенных вам маршрутов сейчас нет.</div>";
     var shownD = ui.heroAll ? nd : Math.min(nd, HERO_LIMIT);
     var shownA = ui.heroAll ? na : Math.min(na, HERO_LIMIT - shownD);
     var hidden = total - shownD - shownA;
@@ -1018,20 +1031,20 @@
         "<b>" + E(H.cut(it.title, 90)) + "</b><small>" + E(H.cut(it.why, 150)) + "</small>" +
         "<em>" + E(it.ref || "") + (it.age ? (it.ref ? " · " : "") + H.ago(it.age) : "") + "</em></div>";
     }
-    function group(cls, title, sub, list, shown, srcOk, srcName) {
+    function group(cls, title, sub, list, shown, srcOk, srcGap) {
       var body;
-      if (!srcOk) body = "<div class='cc-hero-empty'>" + E(srcName) + " недоступен — эта группа не проверена.</div>";
+      if (!srcOk) body = "<div class='cc-hero-empty'>" + E(srcGap) + " — эта группа не проверена.</div>";
       else if (!list.length) body = "<div class='cc-hero-empty'>Нет.</div>";
       else if (!shown) body = "<div class='cc-hero-empty'>" + list.length + " — под «Показать ещё».</div>";
       else body = "<div class='cc-hero-list'>" + list.slice(0, shown).map(card).join("") + "</div>";
       return "<section class='cc-hero-group " + cls + "'><header><span class='cc-hero-kind'>" + E(title) + "</span><b>" + (srcOk ? list.length : "—") + "</b><small>" + E(sub) + "</small></header>" + body + "</section>";
     }
     return head +
-      group("decide", "Нужно решить", "только формальные решения Основателя", decisions, shownD, M.fp.ok, "Проекция решений Основателя") +
-      group("move", "Маршруты на вашей стороне", "владелец следующего хода — вы; это назначение, а не оценка срочности", assigned, shownA, ok("routes"), "Источник маршрутов") +
+      group("decide", "Нужно решить", "только формальные решения Основателя", decisions, shownD, M.fp.ok, "Проекция решений Основателя недоступна") +
+      group("move", "Маршруты на вашей стороне", "владелец следующего хода — вы; это назначение, а не оценка срочности", assigned, shownA, routeDataOk(), routeGapText()) +
       (hidden > 0 ? "<button class='cc-hero-more' data-cc-hero-more>Показать ещё " + hidden + "</button>" :
         (ui.heroAll && total > HERO_LIMIT ? "<button class='cc-hero-more' data-cc-hero-more>Свернуть</button>" : "")) +
-      (ok("inbox") && M.inboxItems.length ? "<div class='cc-foot-note'>Входящие Основателя: " + M.inboxItems.length + " запрос(ов) на участие. Они не становятся формальными решениями без проекции решений Основателя.</div>" : "") +
+      (inboxDataOk() && M.inboxItems.length ? "<div class='cc-foot-note'>Входящие Основателя: " + M.inboxItems.length + " запрос(ов) на участие. Они не становятся формальными решениями без проекции решений Основателя.</div>" : "") +
       "<div class='cc-foot-note'>Панель не повышает срочность по давности, владельцу хода или локальной оценке. Приоритет показывается только таким, каким его отдал источник.</div>";
   }
 
@@ -1057,7 +1070,7 @@
     chips.push("<a class='cc-meta" + (scanDegraded ? " warn" : "") + "' href='#signals'><i>◉</i>рыночные сигналы: <b>" + E(marketLabel) + "</b><span class='cc-meta-sub'>" + E(marketSub) + "</span></a>");
     chips.push("<a class='cc-meta' href='#placement'><i>⌖</i>качество карты: <b>" + (q ? q.active + " в активной очереди" : "Не проверено") + "</b>" +
       (q ? "<span class='cc-meta-sub'>по источнику " + q.sourceTotal + (q.archived ? " · " + q.archived + " в архиве" : "") + "</span>" : "") + "</a>");
-    if (ok("inbox") && M.inboxItems.length) {
+    if (inboxDataOk() && M.inboxItems.length) {
       chips.push("<span class='cc-meta'><i>!</i>Входящие Основателя: <b>" + M.inboxItems.length + "</b><span class='cc-meta-sub'>запросы на участие, не автоматически решения</span></span>");
     }
     return chips.join("");
@@ -1065,7 +1078,7 @@
 
   function datedEvents() {
     if (M.tu.ok) return M.U.company.concat(M.U.events).filter(function (e) { return e.at; });
-    if (!ok("objects") && !ok("routes")) return null;
+    if (!objectDataOk() && !routeDataOk()) return null;
     return M.events;
   }
 
@@ -1114,7 +1127,7 @@
         (M.fp.ok ? "<span class='cc-world-health' title='Каноническое состояние линий: " + E(healthText) + "'>" +
           ["flow","wait","closed","unknown"].map(function (t) { return health[t] ? "<i class='" + t + "' style='--w:" + health[t] + "'></i>" : ""; }).join("") + "</span>" +
           "<small class='cc-world-health-text'>" + E(healthText) + "</small>" : "") +
-        "<em>" + (!ok("routes") ? "маршруты не проверены" : (routes.length ? routes.length + " маршрут(а) с точным ID" : "маршрутов с точным ID в текущем чтении нет")) + (ev ? " · событий линий " + ev : "") + (cap ? " · капитал в " + cap + " лин." : "") + "</em></span></button>";
+        "<em>" + (!routeDataOk() ? "маршруты не проверены" : (routes.length ? routes.length + " маршрут(а) с точным ID" : "маршрутов с точным ID в текущем чтении нет")) + (ev ? " · событий линий " + ev : "") + (cap ? " · капитал в " + cap + " лин." : "") + "</em></span></button>";
     }).join("") + "</div>";
   }
 
@@ -1158,7 +1171,7 @@
       (l.downstream.length ? "<i title='от него зависят'>↓ " + l.downstream.length + "</i>" : "") +
       (l.bridges.length ? "<i title='общий объект'>⇄ " + l.bridges.length + "</i>" : "") +
       (!l.upstream.length && !l.downstream.length && !l.bridges.length && !l.star ?
-        "<i class='muted'>" + E((ok("objects") && M.tu.ok) ? "явных связей в текущих источниках не найдено" : "часть контуров связей не проверена") + "</i>" : "") +
+        "<i class='muted'>" + E((objectDataOk() && M.tu.ok) ? "явных связей в текущих источниках не найдено" : "часть контуров связей не проверена") + "</i>" : "") +
       "</span><span class='cc-move'>" + E(l.risk.stale == null ? "движение без даты" : "движение " + H.ago(r.last_movement_at)) + "</span></div>" +
       "</article>";
   }
@@ -1190,7 +1203,7 @@
           "</div><span>" + E(dateLabel(e.at)) + "</span></div>";
       }).join("") + "</div><div class='cc-foot-note'>Founder Projection · движения компании; Temporal Universe · история компании и линий.</div>";
     }
-    if (!ok("objects") && !ok("routes")) return unavailable("Нет источников с датами", "Изменения не выводятся из прошлых данных.");
+    if (!objectDataOk() && !routeDataOk()) return unavailable("Нет источников с датами", "Изменения не выводятся из прошлых данных.");
     var fallback = M.events.slice(0, limit || 7);
     if (!fallback.length) return empty("Датированных событий нет", "Источники ответили, но не передали отметок времени.");
     return "<div class='cc-feed'>" + fallback.map(function (e) {
@@ -1262,7 +1275,7 @@
     });
     svg += "</svg>";
     var note = (!M.edges.length && !M.bridges.length) ?
-      "<div class='cc-graph-note'>" + E(!ok("objects") ?
+      "<div class='cc-graph-note'>" + E(!objectDataOk() ?
         "В текущем чтении маршрутов явных route-dependencies не найдено; связи через общий объект не проверены, потому что Registry недоступен." :
         "В текущем чтении маршрутов и Registry явных route-dependencies или общих подтверждённых объектов не найдено. Стрелки по догадке не рисуются.") + "</div>" :
       "<div class='cc-graph-note'>Стрелка — явная зависимость из источника · пунктир — общий объект (структурная связь, не причинная).</div>";
@@ -1300,8 +1313,9 @@
   }
 
   function renderCommandGraph(lines) {
-    var routePart = lines.length ? "<div class='cc-graph-sub'><div class='cc-graph-subhead'><b>Операционные зависимости</b><span>маршруты Оркестратора</span></div>" + renderGraph(lines) + "</div>" :
-      unavailable("Маршруты недоступны", "Операционные зависимости не проверены.");
+    var routePart = !routeDataOk() ? unavailable("Маршрутные данные не проверены", routeGapText()+". Операционные зависимости не проверены.") :
+      (lines.length ? "<div class='cc-graph-sub'><div class='cc-graph-subhead'><b>Операционные зависимости</b><span>маршруты Оркестратора</span></div>" + renderGraph(lines) + "</div>" :
+        empty("Операционных маршрутов в текущем срезе нет", "Оркестратор явно передал routes[], но в выбранном срезе нет маршрутов без закрывающего статуса."));
     return routePart + renderCapitalIntersectionGraph();
   }
 
@@ -1468,7 +1482,7 @@
   }
 
   function renderCommand(page) {
-    var routesOk = ok("routes");
+    var routesOk = routeDataOk();
     var lines = M.active;
     page.querySelector("[data-cc='stamp']").innerHTML = readStamp();
     page.querySelector("[data-cc='hero']").innerHTML = renderHero();
@@ -1478,7 +1492,7 @@
     page.querySelector("[data-cc='deep-links']").innerHTML = renderDeepLinks();
     page.querySelector("[data-cc='signal-lab']").innerHTML = renderSignalLab();
     page.querySelector("[data-cc='lines']").innerHTML = !routesOk ?
-      unavailable("Источник маршрутов недоступен", "Линии не показываются по прошлым или демонстрационным данным.") :
+      unavailable("Маршрутные данные не проверены", routeGapText()+". Линии не показываются по прошлым или демонстрационным данным.") :
       (lines.length ? (function () {
         var shown = ui.routesAll ? lines : lines.slice(0, 10);
         var hidden = lines.length - shown.length;
@@ -1641,7 +1655,7 @@
       "<li>Проекции отдают только <b>последнее</b> событие объекта и последнее движение маршрута — полного журнала нет.</li>" +
       "<li>Группы — происхождение объекта (owning_branch), а не канонический мир.</li>" +
       "<li>Неразрешённая история компании в реконструкции недоступна.</li></ul>";
-    if (!ok("objects") && !ok("routes")) {
+    if (!objectDataOk() && !routeDataOk()) {
       box.innerHTML = tree.innerHTML = unplaced.innerHTML = unavailable("Источники недоступны", "Временная картина не собирается из прошлых данных.");
       return;
     }
@@ -1674,8 +1688,8 @@
       "<span><i class='mk line'></i>движение маршрута</span><span><i class='mk unplaced'></i>объект без маршрута</span><span><i class='mk next'></i>маршрут в ожидании перехода</span></div>";
 
     tree.innerHTML = "<div class='cc-company'><div class='cc-company-head'>" + hexBadge("IC", "unknown") +
-      "<span><b>ICAM · реконструкция</b><small>" + M.active.length + " маршрутов без явного закрывающего статуса · " + M.objs.length + " объектов · миры не определены</small></span></div>" +
-      (M.active.length ? M.active.map(function (l) {
+      "<span><b>ICAM · реконструкция</b><small>" + (routeDataOk() ? M.active.length : "—") + " маршрутов без явного закрывающего статуса · " + (objectDataOk() ? M.objs.length : "—") + " объектов · миры не определены</small></span></div>" +
+      (!routeDataOk() ? unavailable("Маршрутные данные не проверены", routeGapText()+". Пустой список маршрутов не выводится.") : M.active.length ? M.active.map(function (l) {
         var o = l.obj;
         return "<div class='cc-flow st-" + l.tone + (isSelected("line", l.key) ? " selected" : "") + "'" + sel("line", l.key) + ">" +
           "<div class='cc-flow-name'>" + hexBadge(initials(routeDisplayTitle(l.title)), l.tone, "sm") + "<span><b>" + E(H.cut(routeDisplayTitle(l.title), 30)) + "</b><small>" + E((l.objId || (l.sourceObjectId ? l.sourceObjectId + " · связь не подтверждена" : "без канонического объекта")) + (l.origin ? " · происхождение: " + l.origin : "")) + "</small></span></div>" +
@@ -1685,10 +1699,10 @@
           "<div class='cc-flow-step now'><small>Настоящее</small><span>" + E(human(l.r.stage || l.r.status || "этап не передан")) + "</span>" + toneDot(l.tone, routeToneLabel(l)) + "</div>" +
           "<div class='cc-flow-step wait'><small>Ожидание</small><span>" + E(l.r.review_condition ? H.cut(l.r.review_condition, 60) : (l.waiting ? "ждём: " + ownerLabel(l.r.ball_owner) : "условие не передано")) + "</span></div>" +
           "<div class='cc-flow-step next'><small>Следующий переход</small><span title='" + E(l.next || "") + "'>" + E(l.next ? H.cut(humanActionText(l.next), 60) : "не передан") + "</span></div></div>";
-      }).join("") : empty("Нет маршрутов без явного закрывающего статуса", "")) + "</div>";
+      }).join("") : empty("Нет маршрутов без явного закрывающего статуса", "Оркестратор явно передал routes[].")) + "</div>";
 
     var un = M.events.filter(function (e) { return e.kind === "object" && !e.placed; });
-    unplaced.innerHTML = !ok("routes") ? unavailable("Маршруты недоступны", "Без текущих маршрутов нельзя сказать, у каких объектов их нет.") : un.length ? "<div class='cc-feed'>" + un.slice(0, 10).map(function (e) {
+    unplaced.innerHTML = !routeDataOk() ? unavailable("Маршрутные данные не проверены", routeGapText()+". Нельзя сказать, у каких объектов маршрутов нет.") : un.length ? "<div class='cc-feed'>" + un.slice(0, 10).map(function (e) {
       return "<div class='cc-feed-item unplaced'" + sel("object", e.key) + "><i></i><div><b>" + E(H.cut(e.title, 40)) + "</b><small>" +
         E(e.what + (e.summary ? " · " + H.cut(e.summary, 60) : "")) + "</small></div><span>" + E(H.ago(e.at)) + "</span></div>";
     }).join("") + "</div>" : empty("Таких событий нет", "Все датированные события относятся к объектам с маршрутом.");
@@ -1707,7 +1721,7 @@
       banner("fallback", "Реконструкция связей", "Временная модель компании (Temporal Universe) недоступна: миры, канонические линии, траектории и капитал не показываются. Ниже — только маршруты Оркестратора и их объекты по точному ID."));
     var mapBox = page.querySelector("[data-cc='linkmap']");
     if (M.tu.ok) mapBox.innerHTML = universeMap();
-    else if (!ok("routes") && !ok("objects")) mapBox.innerHTML = unavailable("Источники недоступны", "Карта связей не строится.");
+    else if (!routeDataOk() && !objectDataOk()) mapBox.innerHTML = unavailable("Источники недоступны", "Карта связей не строится.");
     else mapBox.innerHTML = routeObjectMap();
 
     var rows = [];
@@ -1722,17 +1736,17 @@
       rows.push(!unresolvedProvided ? proofRow("warn", "Неразрешённая история", "—", "поле unresolved_history не передано — нулевое состояние не подтверждено") :
         proofRow(M.U.unresolved.length ? "warn" : "ok", "Неразрешённая история", M.U.unresolved.length, M.U.unresolved.length ? "не привязана ни к чему; по сходству не привязывается" : "источник передал пустой unresolved_history[]"));
       var routed = M.lines.filter(function (l) { return l.star; }).length;
-      rows.push(!ok("routes") ? proofRow("warn", "Маршрут → звезда", "—", "Источник маршрутов недоступен — связи маршрутов со звёздами не проверены") :
+      rows.push(!routeDataOk() ? proofRow("warn", "Маршрут → звезда", "—", routeGapText()+" — связи маршрутов со звёздами не проверены") :
         proofRow(routed ? "ok" : "none", "Маршрут → звезда", routed, "точное совпадение ID объекта маршрута и memory_id звезды"));
     } else {
       rows.push(proofRow("no", "Мир → линия → звезда", "—", "Временная модель компании (Temporal Universe) недоступна: " + M.tu.reason));
     }
-    rows.push(!ok("routes") ? proofRow("warn", "Маршрут → маршрут", "—", "Источник маршрутов недоступен — зависимости не проверены") :
+    rows.push(!routeDataOk() ? proofRow("warn", "Маршрут → маршрут", "—", routeGapText()+" — зависимости не проверены") :
       proofRow(M.edges.length ? "ok" : "none", "Маршрут → маршрут", M.edges.length, M.edges.length ? "явные dependency-поля маршрутов" : "текущий источник маршрутов не передаёт явных зависимостей"));
     rows.push(proofRow(M.fp.ok && M.FP.intersections.length ? "ok" : (M.fp.ok ? "none" : "warn"), "Линия ⇄ линия через общий капитал", M.fp.ok ? M.FP.intersections.length : "—", M.fp.ok ? "Проекция Основателя (Founder Projection): совместное подтверждённое использование допущенного капитала; не причинность" : "Проекция Основателя (Founder Projection) недоступна"));
-    rows.push(!ok("routes") || !ok("objects") ? proofRow("warn", "Общий объект", "—", "Маршруты или реестр Continuity недоступны — общие объекты не проверены") :
+    rows.push(!routeDataOk() || !objectDataOk() ? proofRow("warn", "Общий объект", "—", "Маршрутные данные или реестр Continuity не проверены — общие объекты не подтверждены") :
       proofRow(M.bridges.length ? "ok" : "none", "Общий объект", M.bridges.length, M.bridges.length ? "два маршрута ссылаются на один объект, подтверждённый реестром Continuity — структурная связь" : "в текущих маршрутах и реестре общих подтверждённых объектов не найдено"));
-    rows.push(!ok("routes") || !ok("objects") ? proofRow("warn", "Висячие ссылки маршрутов", "—", "Маршруты или реестр Continuity недоступны — отсутствие висячих ссылок не подтверждено") :
+    rows.push(!routeDataOk() || !objectDataOk() ? proofRow("warn", "Висячие ссылки маршрутов", "—", "Маршрутные данные или реестр Continuity не проверены — отсутствие висячих ссылок не подтверждено") :
       proofRow(M.dangling.length ? "warn" : "ok", "Висячие ссылки маршрутов", M.dangling.length, M.dangling.length ? "маршрут ссылается на object_id, которого нет в текущем реестре Continuity" : "в текущем чтении маршрутов и реестра таких ссылок не найдено"));
     rows.push(proofRow("no", "Причинные связи", "—", "ни один источник не передаёт causal-отношений; не рисуются"));
     page.querySelector("[data-cc='proven']").innerHTML = "<div class='cc-proof'>" + rows.join("") + "</div>";
@@ -2060,12 +2074,12 @@
     page.querySelector("[data-cc='stamp']").innerHTML = readStamp();
     var f = LINE_FILTERS.filter(function (x) { return x.id === ui.lineFilter; })[0] || LINE_FILTERS[0];
     page.querySelector("[data-cc='line-filters']").innerHTML = LINE_FILTERS.map(function (x) {
-      var n = M.lines.filter(x.test).length;
+      var n = routeDataOk() ? M.lines.filter(x.test).length : "—";
       return "<button class='cc-chip" + (x.id === f.id ? " active" : "") + "' data-cc-line-filter='" + x.id + "'>" + E(x.label) + " <em>" + n + "</em></button>";
     }).join("");
     var ls = M.lines.filter(f.test);
-    page.querySelector("[data-cc='line-grid']").innerHTML = !ok("routes") ?
-      unavailable("Источник маршрутов недоступен", "Линии не показываются по прошлым данным.") :
+    page.querySelector("[data-cc='line-grid']").innerHTML = !routeDataOk() ?
+      unavailable("Маршрутные данные не проверены", routeGapText()+". Линии не показываются по прошлым данным.") :
       (ls.length ? "<div class='cc-line-list'>" + ls.map(lineCard).join("") + "</div>" : empty("Нет линий в этом срезе", ""));
 
     page.querySelector("[data-cc='ulines']").innerHTML = !M.tu.ok ?
@@ -2089,7 +2103,7 @@
       }).join("");
 
     var objBox = page.querySelector("[data-cc='objects']");
-    if (!ok("objects")) { objBox.innerHTML = unavailable("Реестр объектов недоступен", "Объекты не показываются по прошлым данным."); return; }
+    if (!objectDataOk()) { objBox.innerHTML = unavailable("Реестр объектов не проверен", objectGapText()+". Объекты не показываются по прошлым данным."); return; }
     var groups = {}, order = [];
     M.objs.forEach(function (x) {
       var g = !M.tu.ok ? "Мир не проверен" : (x.star ? x.star.world.title : "Связь с Founder Universe не подтверждена");
@@ -2355,7 +2369,7 @@
           (l.objMissing ? ceilingRow("warn", "Заявленный канонический объект " + l.objId + " не найден в реестре — нужна сверка") :
             (l.sourceObjectId ? ceilingRow("warn", "Источник маршрута передал ID " + l.sourceObjectId + ", но canonical_mapping_status=" + (l.mappingState || "не передан") + "; это не считается связью с объектом Continuity") : ceilingRow("info", "Маршрут не передаёт каноническую объектную связь"))),
         ceilingRow(l.upstream.length || l.downstream.length ? "ok" : "info", l.upstream.length || l.downstream.length ? "Зависимости — только явные поля источника" : "Явных зависимостей нет; по догадке не строятся"),
-        !ok("blockers") ? ceilingRow("warn", "Источник blocker-записей Continuity недоступен; отсутствие объектного blocker-контекста не подтверждено") :
+        !blockerDataOk() ? ceilingRow("warn", blockerGapText()+"; отсутствие объектного blocker-контекста не подтверждено") :
           ceilingRow("info", l.objBlockers.length ? "Blocker-записи объекта показаны только как контекст; связь с маршрутом не доказана" : "В текущем чтении Continuity blocker-записей этого объекта не найдено; к маршруту ничего не приписывается"),
         ceilingRow("no", "Причинное влияние на другие линии — не доказано"),
         ceilingRow("info", "Тон — подача панели, не канонический приоритет")
@@ -2396,7 +2410,7 @@
         ceilingRow("ok", "Идентичность и статус — реестр Continuity"),
         M.tu.ok ? ceilingRow(x.star ? "ok" : "warn", x.star ? "Мир и линия — Temporal Universe по точному memory_id" : "Звезды с этим ID нет — мир не определён") : ceilingRow("warn", "Мир не проверен — Temporal Universe недоступен"),
         M.adm.ok ? ceilingRow("ok", "Статус допуска — Portfolio Admission") : ceilingRow("warn", "Допуск не проверен — Portfolio Admission недоступен"),
-        !ok("blockers") ? ceilingRow("warn", "Blocker-контекст объекта не проверен — источник continuity/blockers недоступен") :
+        !blockerDataOk() ? ceilingRow("warn", "Blocker-контекст объекта не проверен — "+blockerGapText()) :
           ceilingRow("info", x.blockers.length ? "Blocker-записи объекта показаны из текущего continuity/blockers" : "В текущем continuity/blockers записей для объекта не найдено"),
         ceilingRow("info", "owning_branch — происхождение, не мир"),
         ceilingRow("no", "Кандидаты по сходству названий не вычисляются")
@@ -2439,7 +2453,7 @@
       ceiling: [
         ceilingRow("ok", "Мир, линия и размещение — Temporal Universe"),
         ceilingRow(s.verified ? "ok" : "warn", s.verified ? "Принадлежность проверена (verified=true)" : (s.verifiedKnown ? "Источник передал verified=false; принадлежность не подтверждена" : "Поле verified не передано; состояние проверки неизвестно")),
-        !ok("routes") ? ceilingRow("warn", "Источник маршрутов недоступен; наличие маршрута с этим ID не проверено") :
+        !routeDataOk() ? ceilingRow("warn", routeGapText()+"; наличие маршрута с этим ID не проверено") :
           ceilingRow(s.routes.length ? "ok" : "info", s.routes.length ? "Маршрут связан по точному ID" : "В текущем чтении маршрутов совпадения по этому ID нет"),
         ceilingRow("no", "Связи с другими звёздами, кроме общей линии, не передаются")
       ],
@@ -2521,7 +2535,7 @@
       badge: "<span class='cc-obj-badge world'>◎</span>", title: w.title, sub: "Мир Founder Universe",
       what: para("Мир компании: " + w.lines.length + " линий, " + stars + " звёзд; verified=true " + ver.yes + (ver.no ? ", verified=false " + ver.no : "") + (ver.unknown ? ", verified не передан " + ver.unknown : "") + "."),
       where: crumbs([{ t: "ICAM" }, { t: w.title, cur: true }]),
-      now: para(!ok("routes") ? "Источник маршрутов недоступен; маршруты по звёздам мира не проверены." : (routes.length ? routes.length + " маршрут(а) Оркестратора связаны со звёздами мира по точному ID." : "В текущем чтении Оркестратора маршрутов по звёздам мира не найдено.")),
+      now: para(!routeDataOk() ? routeGapText()+"; маршруты по звёздам мира не проверены." : (routes.length ? routes.length + " маршрут(а) Оркестратора связаны со звёздами мира по точному ID." : "В текущем чтении Оркестратора маршрутов по звёздам мира не найдено.")),
       why: cap.length ? para("Доказанный капитал есть у линий: " + cap.map(function (l) { return "«" + l.title + "»"; }).join(", ") + ".") : "",
       history: events.length ? "<ul class='cc-hist'>" + events.slice(0, 5).map(function (e) {
         return "<li class='pick'" + sel("event", e.key) + "><b>" + E(e.at ? dateLabel(e.at) : "без даты") + "</b>" + E(H.cut(e.v.main, 100)) + " <em>· " + E(e.line.title) + "</em></li>";
