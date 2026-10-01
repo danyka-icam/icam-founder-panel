@@ -174,22 +174,22 @@
   }
 
   function temporalView(t) {
-    var out = { history: [], now: null, waiting: [], next: [], extra: {}, any: false };
+    var out = { history: [], now: null, waiting: [], next: [], extra: {}, any: false, historyKnown: false, nowKnown: false, waitingKnown: false, nextKnown: false };
     if (!t || typeof t !== "object") return out;
     Object.keys(t).forEach(function (k) {
       var v = t[k];
-      if (k === "history") out.history = out.history.concat(A(v).map(eventView));
-      else if (k === "now") out.now = v && typeof v === "object" ? (v.state != null ? String(v.state) : null) : (v != null ? String(v) : null);
-      else if (k === "waiting") out.waiting = out.waiting.concat(listItems(v));
-      else if (k === "next_transition") out.next = out.next.concat(listItems(v));
+      if (k === "history") { out.historyKnown = true; out.history = out.history.concat(A(v).map(eventView)); }
+      else if (k === "now") { out.nowKnown = true; out.now = v && typeof v === "object" ? (v.state != null ? String(v.state) : null) : (v != null ? String(v) : null); }
+      else if (k === "waiting") { out.waitingKnown = true; out.waiting = out.waiting.concat(listItems(v)); }
+      else if (k === "next_transition") { out.nextKnown = true; out.next = out.next.concat(listItems(v)); }
       // legacy aliases, kept only for compatibility with older payloads
-      else if (k === "present" || k === "current") { if (out.now == null && v != null) out.now = scalar(v); }
-      else if (k === "past") { if (v != null) out.history.push(eventView(typeof v === "object" ? v : { change: String(v) })); }
-      else if (k === "waiting_for" || k === "pending") out.waiting = out.waiting.concat(listItems(v));
-      else if (k === "next" || k === "expected") out.next = out.next.concat(listItems(v));
+      else if (k === "present" || k === "current") { out.nowKnown = true; if (out.now == null && v != null) out.now = scalar(v); }
+      else if (k === "past") { out.historyKnown = true; if (v != null) out.history.push(eventView(typeof v === "object" ? v : { change: String(v) })); }
+      else if (k === "waiting_for" || k === "pending") { out.waitingKnown = true; out.waiting = out.waiting.concat(listItems(v)); }
+      else if (k === "next" || k === "expected") { out.nextKnown = true; out.next = out.next.concat(listItems(v)); }
       else out.extra[k] = v;
     });
-    out.any = !!(out.history.length || out.now || out.waiting.length || out.next.length);
+    out.any = !!(out.history.length || out.now || out.waiting.length || out.next.length || out.historyKnown || out.nowKnown || out.waitingKnown || out.nextKnown);
     return out;
   }
 
@@ -1664,10 +1664,10 @@
       "<div class='cc-axis'>" +
       "<div class='cc-ax past" + (last ? "" : " none") + "'><i></i><small>История" + (tv.history.length > 1 ? " · " + tv.history.length : "") + "</small>" +
         (last ? "<b>" + E(H.cut(last.main, 60)) + "</b>" + (last.why ? "<span>" + E(H.cut(last.why, 80)) + "</span>" : "") +
-          "<em>" + E(last.at ? dateLabel(last.at) : "без даты") + "</em>" : "<span>истории нет</span>") + "</div>" +
+          "<em>" + E(last.at ? dateLabel(last.at) : "без даты") + "</em>" : "<span>" + E(tv.historyKnown ? "истории нет" : "history не передан") + "</span>") + "</div>" +
       "<div class='cc-ax now" + (tv.now ? "" : " none") + "'><i></i><small>Сейчас</small>" + (tv.now ? "<b>" + E(H.cut(tv.now, 60)) + "</b>" : "<span>состояние не передано</span>") + "</div>" +
-      "<div class='cc-ax wait" + (tv.waiting.length ? "" : " none") + "'><i></i><small>Ждём</small>" + (tv.waiting.length ? items(tv.waiting) : "<span>—</span>") + "</div>" +
-      "<div class='cc-ax next" + (tv.next.length ? "" : " none") + "'><i></i><small>Следующий переход</small>" + (tv.next.length ? items(tv.next) : "<span>—</span>") + "</div>" +
+      "<div class='cc-ax wait" + (tv.waiting.length ? "" : " none") + "'><i></i><small>Ждём</small>" + (tv.waiting.length ? items(tv.waiting) : "<span>" + E(tv.waitingKnown ? "нет" : "waiting не передан") + "</span>") + "</div>" +
+      "<div class='cc-ax next" + (tv.next.length ? "" : " none") + "'><i></i><small>Следующий переход</small>" + (tv.next.length ? items(tv.next) : "<span>" + E(tv.nextKnown ? "нет" : "next_transition не передан") + "</span>") + "</div>" +
       "</div>";
     return "<div class='cc-star-row" + (s.verified ? " verified" : "") + (isSelected("star", s.key) ? " selected" : "") + "'" + sel("star", s.key) + ">" + name + body + "</div>";
   }
