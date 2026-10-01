@@ -1490,7 +1490,10 @@
     var founderItems = inboxOk && Array.isArray(inbox.needs_founder) ? inbox.needs_founder : [];
     var MATERIAL = ["GATE_RESULT", "DECISION", "STATUS_CHANGE", "STAGE_CHANGE", "TEST_RESULT", "EXTERNAL_EVENT", "NEW_FILE"];
     var changes = objectsOk ? asArray(objectsResp.items).filter(function (o) {
-      return MATERIAL.indexOf(String(o.last_meaning_kind || "").toUpperCase()) >= 0 &&
+      var objectType = String(o.object_type || "").toUpperCase();
+      var declared = String(o.declared_status || "").toUpperCase();
+      var isTestFixture = objectType === "TEST" || declared === "TEST";
+      return !isTestFixture && MATERIAL.indexOf(String(o.last_meaning_kind || "").toUpperCase()) >= 0 &&
              !!(o.last_summary || o.name || o.object_id);
     }).sort(function (a, b) {
       return String(b.last_event_at || "").localeCompare(String(a.last_event_at || ""));
@@ -1507,8 +1510,17 @@
     put("founder", inboxOk ? founderItems.length : "Недоступно");
     put("changes", objectsOk ? changes.length : "Недоступно");
     put("risks", (blockersOk || testingOk) ? blockers.length + riskyTests.length : "Недоступно");
-    put("risks-detail", (blockersOk || testingOk) ? (blockers.length + " блокер(а) Continuity · " + riskyTests.length + " заблокированн. тест(а)") : "источники недоступны");
-    put("opportunities", "—");
+    put("risks-detail", (blockersOk || testingOk) ? (blockers.length + " открытых записей Continuity без оценки тяжести · " + riskyTests.length + " тест(а) BLOCKED/RERUN") : "источники недоступны");
+    var msKpiOk = sourceState.marketSignals.ok && marketSignals;
+    var msSignals = msKpiOk ? asArray(marketSignals.signals) : [];
+    var msCoverage = msKpiOk ? (marketSignals.source_coverage || {}) : {};
+    put("opportunities", msKpiOk ? msSignals.length : "Недоступно");
+    var marketKpiNote = page.querySelector('[data-s="market-kpi-note"]');
+    if (marketKpiNote) {
+      if (!msKpiOk) marketKpiNote.textContent = "внешний сигнальный источник сейчас недоступен";
+      else if (msCoverage.total_sources != null) marketKpiNote.textContent = "показано из хранилища · текущее покрытие " + Number(msCoverage.ok_count || 0) + "/" + Number(msCoverage.total_sources || 0) + " источников";
+      else marketKpiNote.textContent = "сохранённые внешние наблюдения; текущее покрытие не подтверждено";
+    }
 
     var founderBox = page.querySelector('[data-s="founder-list"]');
     if (founderBox) {
@@ -1546,9 +1558,9 @@
         risksBox.innerHTML = unavailableHTML("Источники риска недоступны", "Панель не вычисляет собственный риск без подтверждённого источника.");
       } else {
         var rows = blockers.slice(0, 6).map(function (b) {
-          return "<div class='signals-live-item risk'><b>Открытый блокер</b>" +
+          return "<div class='signals-live-item risk'><b>Открытая запись блокера</b>" +
             "<span>" + esc(b.object_id || "объект не указан") + " · " + esc(ruStatus(b.status || "OPEN")) + "</span>" +
-            "<small>Continuity · тяжесть не придумывается Панелью</small></div>";
+            "<small>Continuity · источник не передал оценку тяжести; наличие OPEN-записи не означает автоматически критический риск</small></div>";
         });
         riskyTests.slice(0, 6).forEach(function (t) {
           rows.push("<div class='signals-live-item risk'><b>" + esc(t.test_id || "Проверка") + "</b>" +
@@ -1556,8 +1568,14 @@
             "<small>Testing · " + esc(t.blocker || t.next_action || "нужна реакция владеющей ветки") + "</small></div>");
         });
         risksBox.innerHTML = rows.length ? "<div class='signals-live-list'>" + rows.join("") + "</div>" :
-          "<div class='signals-empty compact'><strong>Подтверждённых рисков сейчас нет</strong><span>Текущие Continuity blockers и Testing summary не содержат открытых нетестовых блокеров, BLOCKED или RERUN_REQUIRED.</span></div>";
+          "<div class='signals-empty compact'><strong>Открытых записей блокеров сейчас нет</strong><span>Текущие Continuity blockers и Testing summary не содержат открытых нетестовых блокеров, BLOCKED или RERUN_REQUIRED.</span></div>";
       }
+    }
+
+    function marketSignalStateRu(value) {
+      var raw = String(value || "").trim().toLowerCase();
+      var m = { watch: "наблюдать", opportunity: "возможность", act: "требует действия", monitor: "наблюдать", blocked: "заблокировано" };
+      return m[raw] || (raw ? humanCode(raw) : "статус не указан");
     }
 
     function marketCardHTML(sig) {
@@ -1573,30 +1591,30 @@
       // carries, nothing computed or invented. Collapsed by default; toggled
       // inline, no drawer/panel framework needed for one small block.
       var drawerBody = "<div class='market-card-drawer-body'>" +
-        "<div class='market-card-drawer-row'><span>source name</span><b>" + esc((sig.source && sig.source.name) || "—") + "</b></div>" +
-        "<div class='market-card-drawer-row'><span>source url</span><b>" + (sourceUrl ? esc(sourceUrl) : "—") + "</b></div>" +
-        "<div class='market-card-drawer-row'><span>evidence (" + esc(evidence.length) + ")</span></div>" +
+        "<div class='market-card-drawer-row'><span>Источник</span><b>" + esc((sig.source && sig.source.name) || "—") + "</b></div>" +
+        "<div class='market-card-drawer-row'><span>Адрес источника</span><b>" + (sourceUrl ? esc(sourceUrl) : "—") + "</b></div>" +
+        "<div class='market-card-drawer-row'><span>Свидетельства (" + esc(evidence.length) + ")</span></div>" +
         (evidence.length ?
           "<ul class='market-card-evidence-list'>" + evidence.map(function (e) {
             return "<li>" + esc(typeof e === "string" ? e : JSON.stringify(e)) + "</li>";
           }).join("") + "</ul>" :
-          "<div class='market-card-drawer-row'><span>evidence отсутствует в сигнале</span></div>") +
+          "<div class='market-card-drawer-row'><span>Свидетельства в сигнале не переданы</span></div>") +
         "</div>";
       return "<div class='signals-live-item change market-card' data-market-card='" + sigIdAttr + "'>" +
         "<div class='market-card-head'><b>" + esc(sig.entity || "Источник не указан") + "</b>" +
         "<span class='market-card-type'>" + esc(sig.signal_type || "тип не указан") + "</span>" +
-        "<span class='market-card-relevance'>relevance " + esc(sig.relevance_score != null ? sig.relevance_score : "—") + "</span></div>" +
+        "<span class='market-card-relevance'>релевантность " + esc(sig.relevance_score != null ? sig.relevance_score : "—") + "</span></div>" +
         "<p class='market-card-title'>" + esc(cut(sig.title || "", 140)) + "</p>" +
         (summaryRu ? "<p class='market-card-summary'>" + esc(summaryRu) + "</p>" : "") +
         (whyRu ? "<p class='market-card-why'>" + esc(whyRu) + "</p>" : "") +
         "<div class='market-card-meta'>" +
         (axes.length ? "<span>" + esc(axes.join(", ")) + "</span>" : "") +
-        "<span>evidence: " + esc(evidence.length) + "</span>" +
+        "<span>свидетельств: " + esc(evidence.length) + "</span>" +
         "<span>" + esc(sourceName) + "</span>" +
         "<span>" + esc(ago(sig.observed_at)) + "</span>" +
-        "<span>" + esc(sig.status || "статус не указан") + "</span>" +
+        "<span>" + esc(marketSignalStateRu((enr && enr.recommended_action) || sig.status)) + "</span>" +
         "</div>" +
-        "<button type='button' class='market-card-drawer-toggle' data-drawer-toggle>source / evidence ▾</button>" +
+        "<button type='button' class='market-card-drawer-toggle' data-drawer-toggle>источник / свидетельства ▾</button>" +
         "<div class='market-card-drawer' data-drawer-body hidden>" + drawerBody + "</div>" +
         "</div>";
     }
@@ -1610,7 +1628,7 @@
           if (!body) return;
           var willOpen = body.hidden;
           body.hidden = !willOpen;
-          btn.textContent = willOpen ? "source / evidence ▴" : "source / evidence ▾";
+          btn.textContent = willOpen ? "источник / свидетельства ▴" : "источник / свидетельства ▾";
         });
       });
     }
@@ -1621,13 +1639,16 @@
       var activation = msOk ? marketSignals.activation_state : null;
       var coverage = msOk ? marketSignals.source_coverage : null;
       var coverageNote = "";
-      if (coverage && coverage.status !== "OK" && coverage.status !== "UNAVAILABLE") {
+      if (coverage) {
         var kdCount = (coverage.failing || []).filter(function (f) { return f.known_degraded; }).length;
         var freshCount = (coverage.failing || []).length - kdCount;
-        coverageNote = "<div class='signals-partial-note market-coverage-note'>Покрытие источников: " +
-          esc(coverage.ok_count) + " / " + esc(coverage.total_sources) + " ok" +
-          (kdCount ? " · " + esc(kdCount) + " known degraded" : "") +
-          (freshCount ? " · <b>" + esc(freshCount) + " необъяснённых сбоев</b>" : "") + "</div>";
+        var covOk = Number(coverage.ok_count || 0), covTotal = Number(coverage.total_sources || 0);
+        var degraded = String(coverage.status || "").indexOf("DEGRADED") === 0 || (covTotal && covOk < covTotal);
+        coverageNote = "<div class='signals-partial-note market-coverage-note" + (degraded ? " warn" : "") + "'>Текущее покрытие внешних источников: <b>" +
+          esc(covOk) + " / " + esc(covTotal) + "</b>" +
+          (kdCount ? " · известных деградаций " + esc(kdCount) : "") +
+          (freshCount ? " · <b>необъяснённых сбоев " + esc(freshCount) + "</b>" : "") +
+          (degraded ? "<br><span>Карточки ниже — уже сохранённые наблюдения. Они не доказывают, что соответствующий внешний источник доступен сейчас.</span>" : "") + "</div>";
       }
 
       if (!msOk) {
@@ -1640,13 +1661,13 @@
           "<span>" + esc(marketSignals.degraded_reason || "Flow не активирован.") + "</span></div>" + coverageNote;
       } else if (activation === "ACTIVATED_EMPTY") {
         opportunitiesBox.innerHTML =
-          "<div class='signals-empty compact'><strong>Поток активен, новых сигналов нет</strong>" +
-          "<span>Market Scanner работает, новых семантически значимых изменений не найдено.</span></div>" + coverageNote;
+          "<div class='signals-empty compact'><strong>В хранилище нет новых сигналов</strong>" +
+          "<span>Поток активирован, но текущее состояние внешнего покрытия оценивается отдельно ниже.</span></div>" + coverageNote;
       } else {
         var msRows = (marketSignals.signals || []).slice(0, 6).map(marketCardHTML).join("");
         opportunitiesBox.innerHTML = (msRows ?
           "<div class='signals-live-list'>" + msRows + "</div>" :
-          "<div class='signals-empty compact'><strong>Поток активирован, сигналов пока нет</strong><span>Market Scanner работает, новых семантически значимых изменений не найдено.</span></div>")
+          "<div class='signals-empty compact'><strong>Поток активирован, сохранённых сигналов пока нет</strong><span>Текущее состояние внешних источников показано отдельно и не выводится из факта активации потока.</span></div>")
           + coverageNote;
         if (msRows) wireMarketCardDrawers(opportunitiesBox);
       }
@@ -1662,6 +1683,7 @@
         FOUNDER_AUTHORITY_GATE: "Шлюз полномочий Основателя"
       };
       var oiSubjects = {
+        "Founder approval required: authorize the already-frozen GVF-002A 2019 run of 120 isolated forecasts. Preflight PASS; 0/120 forecast calls executed.": "Нужно решение Основателя: разрешить уже замороженный прогон GVF-002A 2019 из 120 изолированных прогнозов. Предварительная проверка пройдена; выполнено 0 из 120 прогнозных вызовов.",
         "Commercial audit case experience": "Опыт коммерческих аудитов",
         "Historical market learning": "Накопленное рыночное обучение",
         "Public proof assets": "Материалы публичного доказательства",
@@ -1707,8 +1729,8 @@
           "<span>" + esc(x.object_id || "объект не указан") + "</span><small>Founder inbox · запрос на участие</small></div>");
       });
       blockers.slice(0, 2).forEach(function (b) {
-        heroRows.push("<div class='signals-live-item risk'><b>Открытый блокер</b>" +
-          "<span>" + esc(b.object_id || "объект не указан") + "</span><small>Подтверждён Continuity · без локальной оценки тяжести</small></div>");
+        heroRows.push("<div class='signals-live-item risk'><b>Открытая запись блокера</b>" +
+          "<span>" + esc(b.object_id || "объект не указан") + "</span><small>Continuity подтверждает OPEN · тяжесть источником не передана</small></div>");
       });
       changes.slice(0, 2).forEach(function (o) {
         heroRows.push("<div class='signals-live-item change'><b>" + esc(o.name || o.object_id || "Изменение") + "</b>" +
@@ -1720,16 +1742,21 @@
         hero.innerHTML = "<div class='signals-empty hero'><strong>Сейчас нет подтверждённых внутренних сигналов</strong><p>Это не означает, что внешний рынок спокоен: Market Scanner ещё не подключён.</p></div>";
       } else {
         hero.innerHTML = "<div class='signals-live-list'>" + heroRows.join("") + "</div>" +
-          "<div class='signals-partial-note'>Между типами сигналов Панель не строит собственный рейтинг. Рыночный контур и внешние возможности показываются отдельно ниже из Market Scanner.</div>";
+          "<div class='signals-partial-note'>Между типами сигналов Панель не строит собственный рейтинг. OPEN-запись блокера не повышается до критического риска без оценки источника. Внешнее наблюдение показано отдельно ниже.</div>";
       }
     }
 
     var anyInternal = objectsOk || blockersOk || inboxOk || testingOk;
     var msBadgeOk = sourceState.marketSignals.ok && marketSignals;
-    var msActivated = msBadgeOk && marketSignals.activation_state !== "NOT_ACTIVATED";
+    var cov = msBadgeOk ? (marketSignals.source_coverage || {}) : {};
+    var covTotal = Number(cov.total_sources || 0), covOk = Number(cov.ok_count || 0);
+    var covDegraded = covTotal > 0 && covOk < covTotal;
+    var externalText = !msBadgeOk ? "ВНЕШНИЙ СИГНАЛЬНЫЙ ИСТОЧНИК НЕДОСТУПЕН" :
+      (marketSignals.activation_state === "NOT_ACTIVATED" ? "ВНЕШНИЙ ПОТОК НЕ АКТИВИРОВАН" :
+        (covTotal ? "ВНЕШНЕЕ ПОКРЫТИЕ " + covOk + "/" + covTotal : "ВНЕШНЕЕ ПОКРЫТИЕ НЕ ПОДТВЕРЖДЕНО"));
     pageBadge("signals",
-      anyInternal ? "warn" : "unavailable",
-      anyInternal ? ("ВНУТРЕННИЕ ДАННЫЕ ПОДКЛЮЧЕНЫ · MARKET SCANNER " + (msActivated ? "АКТИВЕН" : "ОЖИДАЕТ АКТИВАЦИИ")) : "ВНУТРЕННИЕ ИСТОЧНИКИ НЕДОСТУПНЫ"
+      anyInternal ? (covDegraded ? "warn" : "live") : "unavailable",
+      anyInternal ? ("ВНУТРЕННИЕ ДАННЫЕ ПОДКЛЮЧЕНЫ · " + externalText) : "ВНУТРЕННИЕ ИСТОЧНИКИ НЕДОСТУПНЫ"
     );
   }
 

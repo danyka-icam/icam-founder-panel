@@ -3007,7 +3007,7 @@
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Требует меня</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Изменения</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Риски</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Возможности</button>
+<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Внешнее наблюдение</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">История</button>
 </div>
 <section class="strip signals-kpis-v2">
@@ -3022,14 +3022,14 @@
 <span>события, которые реально меняют состояние линии</span>
 </article>
 <article class="card">
-<small>Подтверждённые препятствия</small>
+<small>Открытые записи блокеров</small>
 <strong data-s="risks">—</strong>
-<span data-s="risks-detail">Continuity blockers + Testing BLOCKED/RERUN_REQUIRED</span>
+<span data-s="risks-detail">Continuity OPEN + тесты с подтверждённой остановкой; тяжесть отдельно</span>
 </article>
 <article class="card">
-<small>Возможности</small>
+<small>Рыночные сигналы</small>
 <strong data-s="opportunities">—</strong>
-<span>только подтверждённые внешние или портфельные возможности</span>
+<span data-s="market-kpi-note">сохранённые внешние наблюдения; не автоматически возможности или действия</span>
 </article>
 </section>
 <section class="signals-hero-grid">
@@ -3168,7 +3168,7 @@
 </article>
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>РИСКИ И ОТКЛОНЕНИЯ</h2><small>только подтверждённые проблемы</small></div>
+<div class="head-title"><h2>БЛОКЕРЫ И ОТКЛОНЕНИЯ</h2><small>открытые записи источников; наличие записи не равно автоматически высокой тяжести</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
 <div class="panel-body" data-s="risks-list">
@@ -3180,13 +3180,13 @@
 </article>
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>ВНЕШНИЕ ВОЗМОЖНОСТИ</h2><small>факт возможности, а не декоративный бизнес-радар</small></div>
+<div class="head-title"><h2>ВНЕШНЕЕ НАБЛЮДЕНИЕ</h2><small>рыночные и исследовательские сигналы из внешних источников; сигнал не равен возможности или действию</small></div>
 <button class="top-corner-arrow" data-drawer="">→</button>
 </div>
 <div class="panel-body" data-s="opportunities-list">
 <div class="signals-empty compact">
 <strong>Внешний поток ещё не подключён</strong>
-<span>Позже сюда могут приходить подтверждённые сигналы от внешних исследовательских, рыночных и продуктовых источников. До подключения блок остаётся пустым.</span>
+<span>Здесь показываются внешние наблюдения вместе с их происхождением и текущим покрытием источников. Панель не повышает их до «возможности» без явной классификации источника.</span>
 </div>
 </div>
 </article>
