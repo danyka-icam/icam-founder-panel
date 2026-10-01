@@ -1342,8 +1342,17 @@
     var st = d.current_stage || {};
     var live = d.live || {};
     var control = live.control || {}, treatment = live.treatment || {};
-    var observations = Number(control.observations || 0) + Number(treatment.observations || 0);
-    var confirmed = Number(control.confirmed || 0) + Number(treatment.confirmed || 0);
+    function countOrNull(v) {
+      if (v == null || v === "") return null;
+      var n = Number(v);
+      return isFinite(n) ? n : null;
+    }
+    function pairTotal(a, b) {
+      a = countOrNull(a); b = countOrNull(b);
+      return a != null && b != null ? a + b : null;
+    }
+    var observations = pairTotal(control.observations, treatment.observations);
+    var confirmed = pairTotal(control.confirmed, treatment.confirmed);
     var restarts = [d.last_restart && d.last_restart.control, d.last_restart && d.last_restart.treatment].filter(Boolean);
     var restarted = restarts.length ? restarts.sort(function (a,b) { return new Date(b) - new Date(a); })[0] : null;
     var running = upper(d.health) === "RUNNING";
@@ -1366,8 +1375,8 @@
       "<div class='cc-siglab-main'><div class='cc-siglab-stage'><small>Текущий этап</small><b>" + E(stageN && stageTotal ? stageN + " из " + stageTotal : "—") + "</b><span>" + E(stageLabel) + "</span></div>" +
       "<div class='cc-siglab-objective'><small>Цель</small><p>" + E(objective) + "</p></div></div>" +
       "<div class='cc-siglab-metrics'>" +
-        "<span><small>Наблюдений в двух потоках</small><b>" + E(observations || "—") + "</b></span>" +
-        "<span><small>Счётчик поля confirmed</small><b>" + E(confirmed || "—") + "</b><i>служебное состояние двух потоков</i></span>" +
+        "<span><small>Наблюдений в двух потоках</small><b>" + E(observations == null ? "—" : observations) + "</b></span>" +
+        "<span><small>Счётчик поля confirmed</small><b>" + E(confirmed == null ? "—" : confirmed) + "</b><i>служебное состояние двух потоков</i></span>" +
         "<span><small>Охват</small><b>" + E(regionN ? regionN + " регионов" : "—") + "</b><i>" + E(sectorN ? sectorN + " классов отраслей" : "") + "</i></span>" +
         "<span><small>Последний перезапуск</small><b>" + E(restarted ? timeLabel(restarted) : "—") + "</b></span>" +
         "<span><small>Следующий цикл</small><b>" + E(d.next_cycle ? timeLabel(d.next_cycle) : "—") + "</b></span>" +
@@ -1412,10 +1421,12 @@
     }
 
     if (h) {
-      var hm = Number(h.hash_mismatches || 0), orp = Number(h.orphan_receipts || 0);
+      var hm = h.hash_mismatches == null ? null : Number(h.hash_mismatches);
+      var orp = h.orphan_receipts == null ? null : Number(h.orphan_receipts);
       var cov = h.coverage === "FULL_END_TO_END" ? "сквозное после поступления в транспорт" : H.humanCode(h.coverage || "покрытие не передано");
-      var hn = hm + " расхождений хэшей · " + orp + " осиротевших расписок" + (h.coverage === "FULL_END_TO_END" ? " · до отправки с Mac этот контур не наблюдает" : "");
-      out.push(cell(hm > 0 || orp > 0 ? "warn" : "ok", "#documents", "Долговечность документов", cov, hn));
+      var hn = (hm == null ? "—" : hm) + " расхождений хэшей · " + (orp == null ? "—" : orp) + " осиротевших расписок" + (h.coverage === "FULL_END_TO_END" ? " · до отправки с Mac этот контур не наблюдает" : "");
+      var hCls = (hm > 0 || orp > 0) ? "warn" : (hm != null && orp != null ? "ok" : "neutral");
+      out.push(cell(hCls, "#documents", "Долговечность документов", cov, hn));
     } else {
       out.push(cell("neutral", "#documents", "Долговечность документов", "нет данных", "источник не прочитан"));
     }
