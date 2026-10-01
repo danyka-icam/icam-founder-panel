@@ -261,20 +261,18 @@
     return "<span class='cc-code" + (cls ? " " + cls : "") + "' title='" + E(k) + "'>" + E(lab) + (isCode && lab !== k ? "<i>" + E(k) + "</i>" : "") + "</span>";
   }
 
-  // Evidence tags. Compact mode (feeds, rows) spells out uncertainty and
-  // folds proven status into one calm mark; the inspector shows everything.
+  // Evidence tags are rendered literally from source fields. The panel may
+  // highlight explicit uncertainty, but absence of an uncertainty keyword is
+  // never promoted into a synthetic "confirmed" verdict.
   function proofTags(v, compact) {
     var raw = v && v.raw && typeof v.raw === "object" ? v.raw : {};
     var tags = [raw.truth_status, raw.binding_class].filter(Boolean);
     if (!tags.length && v && v.proof) tags = v.proof.split(" · ");
     if (!tags.length) return "";
-    var weak = function (t) { return /PENDING|UNVERIFIED|INSUFFICIENT|UNRESOLVED|UNBOUND|DISPUTED/.test(t); };
-    if (compact) {
-      var unc = tags.filter(weak);
-      return "<span class='cc-proof-tags'>" + (unc.length ? unc.map(function (t) { return codeTag(t, "uncertain"); }).join("") :
-        "<span class='cc-code okmark' title='" + E(tags.join(" · ")) + "'>✓ подтверждено</span>") + "</span>";
-    }
-    return "<span class='cc-proof-tags'>" + tags.map(function (t) { return codeTag(t, weak(t) ? "uncertain" : "proven"); }).join("") + "</span>";
+    var weak = function (t) { return /PENDING|UNVERIFIED|INSUFFICIENT|UNRESOLVED|UNBOUND|DISPUTED/.test(String(t)); };
+    return "<span class='cc-proof-tags'>" + tags.map(function (t) {
+      return codeTag(t, weak(t) ? "uncertain" : "tag");
+    }).join("") + "</span>";
   }
 
   // Visual tone of a route for Founder attention. It is presentation only and
