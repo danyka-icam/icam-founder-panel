@@ -2024,6 +2024,12 @@
     if (["UNAVAILABLE","FAIL","ERROR","BLOCKED","UNKNOWN"].indexOf(s)>=0) return "bad";
     return "warn";
   }
+  function sourceStatusWarn(status) {
+    var s=String(status||"").toUpperCase();
+    return ["DEGRADED","STALE","UNAVAILABLE","FAIL","ERROR","BLOCKED"].indexOf(s)>=0;
+  }
+  function sourceStatusBoxClass(status) { return sourceStatusWarn(status) ? "warn" : ""; }
+  function sourceStatusBadgeMode(status) { return sourceStatusWarn(status) ? "warn" : "lab"; }
   function chip(status) {
     var s=String(status||"—");
     return "<span class='live-chip " + liveMode(s) + "'>" + esc(s) + "</span>";
@@ -2041,7 +2047,7 @@
     page.classList.add("normalized-live-active");
     // Reaching this renderer already proves the projection was read. A semantic
     // BLOCKED/FAIL/UNKNOWN state must not be relabeled as source unavailability.
-    pageBadge(pageKey, liveMode(sourceStatus)==="live"?"live":"warn", badgeText);
+    pageBadge(pageKey, sourceStatusBadgeMode(sourceStatus), badgeText);
     return page.querySelector('[data-normalized-live="'+pageKey+'"] .panel-body');
   }
   function sourceStatusLabel(value) {
@@ -2093,7 +2099,7 @@
     var ownedOpen=openOps.filter(function(o){return ownerDisplay(o)!=="Недоступно";}).length;
     var factualKnown=ops.filter(function(o){return o.factual_result && String(o.factual_result).toUpperCase()!=="UNAVAILABLE";}).length;
     var ordered=openOps.concat(closedOps);
-    var summary="<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Операционная проекция — "+esc(sourceStatusLabel(data.source_status))+"</strong>"+
+    var summary="<div class='live-status-box "+sourceStatusBoxClass(data.source_status)+"'><strong>Операционная проекция — "+esc(sourceStatusLabel(data.source_status))+"</strong>"+
       "<p>"+(String(data.freshness_state).toUpperCase()==="STALE"?"Проекция устарела по собственному контракту: нового движения обязательств в окне свежести не было. Это не означает, что обязательства автоматически отменены или просрочены.":"Состояние прочитано из серверной проекции.")+"</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Без явного закрывающего статуса</small><strong>"+esc(operationsProvided?openOps.length:"—")+"</strong><span>"+esc(operationsProvided?"из "+ops.length+" записей проекции":"operations[] не передан")+"</span></div>"+
@@ -2143,7 +2149,7 @@
     var blockersN=(data.open_blockers&&data.open_blockers.count!=null)?data.open_blockers.count:null;
     var commitmentsN=(data.open_commitments&&data.open_commitments.count!=null)?data.open_commitments.count:null;
     body.innerHTML=
-      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>BrazilPortal — "+esc(sourceStatusLabel(data.source_status))+ (stale?" · данные устарели":"") +"</strong>"+
+      "<div class='live-status-box "+sourceStatusBoxClass(data.source_status)+"'><strong>BrazilPortal — "+esc(sourceStatusLabel(data.source_status))+ (stale?" · данные устарели":"") +"</strong>"+
       "<p>"+(stale?"Последнее материальное движение: "+esc(data.last_movement_at?ago(data.last_movement_at):"не передано")+". ":"")+(unresolved?"Спроецированный статус пока не связан с каноном; объявленный статус сохраняется отдельно.":"Состояние прочитано из нормализованной проекции.")+"</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Объявленный статус</small><strong>"+esc(bpCodeRu(sv.declared_status))+"</strong><span>что объект объявляет о себе</span></div>"+
@@ -2197,7 +2203,7 @@
     var blockingProvided=Array.isArray(data.blocking_reasons);
     var blocking=blockingProvided?data.blocking_reasons:[];
     body.innerHTML=
-      "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Состояние основания — "+esc(sourceStatusLabel(data.source_status))+"</strong>"+
+      "<div class='live-status-box "+sourceStatusBoxClass(data.source_status)+"'><strong>Состояние основания — "+esc(sourceStatusLabel(data.source_status))+"</strong>"+
       "<p>"+(blockingProvided?(blocking.length?"Есть подтверждённый блокирующий дефект. Зелёный READY не показывается.":"Источник явно передал пустой blocking_reasons[]. Готовность определяется агрегированным source_status, а не этим нулём отдельно."):"Поле blocking_reasons не передано; отсутствие блокирующих причин не подтверждено.")+"</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Общий статус</small><strong>"+esc(sourceStatusLabel(data.source_status))+"</strong><span>серверная агрегированная проекция — единственный источник этого статуса</span></div>"+
@@ -2221,7 +2227,7 @@
     var nextStep = data.next_action || data.next_step || null;
     var noStateSource = String(errorClass || "").toUpperCase() === "NO_ATLAS_STATE_SOURCE";
     body.innerHTML=
-      "<div class='live-status-box "+liveMode(status)+"'><strong>Атлас — "+esc(sourceStatusLabel(status))+"</strong>"+
+      "<div class='live-status-box "+sourceStatusBoxClass(status)+"'><strong>Атлас — "+esc(sourceStatusLabel(status))+"</strong>"+
       "<p>"+esc(reason || (errorClass ? "Класс состояния: "+errorClass+"." : "Панель показывает только серверную проекцию и не достраивает каноническое состояние ATLAS по документам или косвенным признакам."))+"</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Проекция чтения Панели</small><strong>Прочитана</strong><span>endpoint ответил в текущем цикле</span></div>"+
@@ -2288,7 +2294,7 @@
       var failBody = activateNormalized("digital-twin", status, "DT · " + esc(status));
       if (!failBody) return;
       failBody.innerHTML =
-        "<div class='live-status-box bad'><strong>Personal Twin — источник сообщает " + esc(status) + "</strong>" +
+        "<div class='live-status-box warn'><strong>Personal Twin — источник сообщает " + esc(status) + "</strong>" +
         "<p>" + esc(data.degraded_reason || "Причина этого статуса источником не передана; успешное чтение проекции не доказывает доступность вычислительного процесса.") + "</p></div>";
       return;
     }
@@ -2299,8 +2305,9 @@
     var po = data.program_object || {};
     var inv = data.safety_invariants_status || {};
     var predLabel = data.current_prediction == null ? "статус прогноза не передан" : (TWIN_PREDICTION_LABELS[data.current_prediction] || "безопасная метка для этого кода не определена");
-    var needsConf = data.needs_confirmation == null ? null : Number(data.needs_confirmation);
-    var scoredN = data.prospective_scored_n == null ? null : Number(data.prospective_scored_n);
+    function numOrNull(v) { if (v == null || v === "") return null; var n = Number(v); return isFinite(n) ? n : null; }
+    var needsConf = numOrNull(data.needs_confirmation);
+    var scoredN = numOrNull(data.prospective_scored_n);
     var invNames = {
       C0_C3_exact_controls: "Точные контрольные варианты C0–C3",
       experimental_lineage: "Экспериментальное происхождение",
@@ -2326,13 +2333,13 @@
       "перенесена только инженерная методология; эмпирические результаты SS001 не переносятся" : humanCode(data.ss001_transfer_boundary || "—");
 
     body.innerHTML =
-      "<div class='live-status-box " + liveMode(status) + "'><strong>Personal Twin — проекция состояния прочитана</strong>" +
+      "<div class='live-status-box " + sourceStatusBoxClass(status) + "'><strong>Personal Twin — проекция состояния прочитана</strong>" +
       "<p>Панель получает только безопасную проекцию чтения: вероятности клонов и ранжированные варианты до исхода сюда не поступают.</p></div>" +
       "<div class='live-summary'>" +
       "<div class='metric'><small>Объект программы</small><strong>" + esc((po && po.object_id) || "—") + "</strong><span>" + esc((po && po.declared_status) ? humanCode(po.declared_status) : "статус не передан") + "</span></div>" +
       "<div class='metric'><small>Режим</small><strong>" + esc(modeLabel) + "</strong><span>режим выполнения, не оценка качества прогноза</span></div>" +
       "<div class='metric'><small>Активных клонов</small><strong>" + esc(data.clones_active != null ? data.clones_active : "—") + "</strong><span>вычислительные варианты C0–C7</span></div>" +
-      "<div class='metric'><small>Оценено проспективных прогнозов</small><strong>" + esc(data.prospective_scored_n != null ? data.prospective_scored_n : "—") + "</strong><span>исходы, по которым уже можно измерять качество</span></div></div>" +
+      "<div class='metric'><small>Оценено проспективных прогнозов</small><strong>" + esc(scoredN == null ? "—" : scoredN) + "</strong><span>исходы, по которым уже можно измерять качество</span></div></div>" +
       "<div class='twin-proof-boundary'><b>Граница доказанного:</b> текущий source_status — " + esc(status || "не передан") + ". " +
         ((String(status || "").toUpperCase() === "LIVE" || String(status || "").toUpperCase() === "OK") ? "Источник этим статусом сообщает доступность вычислительного контура; это не доказывает точность прогноза. " : "Панель не повышает этот статус до утверждения о доступности или точности вычислительного контура. ") +
         (scoredN == null ? "Число оценённых проспективных исходов источником не передано — вывод о предсказательной способности не делается." :
