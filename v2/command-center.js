@@ -715,7 +715,7 @@
     var inboxCollectionKnown = !!(d.inbox && Array.isArray(d.inbox.needs_founder));
     var routes = routeCollectionKnown ? A(d.routes) : [];
     var objects = objectsCollectionKnown ? d.objects.items : [];
-    var openBlockers = (blockersCollectionKnown ? d.blockers.items : []).filter(function (b) {
+    var blockerRecords = (blockersCollectionKnown ? d.blockers.items : []).filter(function (b) {
       return !b.is_test && upper(b.status) !== "CLEARED";
     });
     var dep = H.dependencyModel(routes);
@@ -761,7 +761,7 @@
         next: r.next_move || (rd1 && (rd1.next_gate || rd1.next_move)) || null,
         nextSource: r.next_move ? "Оркестратор · next_move" : (rd1 && rd1.next_gate ? "RD1 · next_gate" : (rd1 && rd1.next_move ? "RD1 · next_move" : null)),
         upstream: [], downstream: [], bridges: [],
-        objBlockers: obj ? openBlockers.filter(function (b) { return String(b.object_id || "") === objId; }) : []
+        objBlockers: obj ? blockerRecords.filter(function (b) { return String(b.object_id || "") === objId; }) : []
       };
     });
 
@@ -809,7 +809,7 @@
         lines: ls, activeLines: ls.filter(function (l) { return !l.closed; }), founder: founder,
         star: star, origin: o.owning_branch || o.owner || null,
         adm: AD ? AD.byMemory[id] || null : null,
-        blockers: openBlockers.filter(function (b) { return String(b.object_id || "") === id; }),
+        blockers: blockerRecords.filter(function (b) { return String(b.object_id || "") === id; }),
         rd1: d.rd1 ? d.rd1[id] || null : null
       };
     });
@@ -851,7 +851,7 @@
       objs: objs, objByKey: objByKey, bridges: bridges, edges: dep.edges.filter(function (e) {
         return lineByKey[e.from] && lineByKey[e.to];
       }),
-      openBlockers: openBlockers, inboxItems: inboxItems, events: events,
+      blockerRecords: blockerRecords, inboxItems: inboxItems, events: events,
       dangling: lines.filter(function (l) { return l.objMissing && !l.closed; }),
       marketCount: msActivated && msSignalsKnown ? ms.signals.length : null,
       marketState: ms ? ms.activation_state : null,

@@ -946,14 +946,14 @@
       } else if (!Array.isArray(blockersResp.items)) {
         blockerBox.innerHTML = unavailableHTML("Коллекция blocker-записей не проверена", "Endpoint ответил, но поле items[] не передано.");
       } else {
-        var blockers = blockersResp.items.filter(function (b) {
+        var blockerRecords = blockersResp.items.filter(function (b) {
           return !b.is_test && String(b.status || "").toUpperCase() !== "CLEARED";
         });
-        blockerBox.innerHTML = blockers.length ? "<div class='registry-mini-list'>" + blockers.slice(0, 6).map(function (b) {
+        blockerBox.innerHTML = blockerRecords.length ? "<div class='registry-mini-list'>" + blockerRecords.slice(0, 6).map(function (b) {
           return "<div class='registry-mini-item'><b>" + esc(b.title || b.blocker || "Запись блокера") + "</b><span>" +
             esc(b.object_id || "объект не определён") + " · " + esc(b.status ? ruStatus(b.status) : "статус не указан") + " · тяжесть не передана</span></div>";
         }).join("") + "</div>" :
-        "<div class='registry-empty compact'><strong>Открытых нетестовых blocker-записей нет</strong><span>По текущей проекции Continuity.</span></div>";
+        "<div class='registry-empty compact'><strong>Нет нетестовых blocker-записей без явного CLEARED</strong><span>Текущая проекция Continuity не содержит OPEN или записей с неизвестным lifecycle.</span></div>";
       }
     }
 
@@ -1655,9 +1655,12 @@
       return String(b.last_event_at || "").localeCompare(String(a.last_event_at || ""));
     }) : [];
 
-    var blockers = blockersOk ? blockersResp.items.filter(function (b) {
-      return !b.is_test && String(b.status || "").toUpperCase() !== "CLEARED";
-    }) : [];
+    var nonTestBlockers = blockersOk ? blockersResp.items.filter(function (b) { return !b.is_test; }) : [];
+    var blockers = nonTestBlockers.filter(function (b) { return String(b.status || "").toUpperCase() === "OPEN"; });
+    var blockerStatusUnknown = nonTestBlockers.filter(function (b) {
+      var st = String(b.status || "").toUpperCase();
+      return st !== "OPEN" && st !== "CLEARED";
+    });
 
     var riskyTests = testingAny ? allTests(testingSummary).filter(function (t) {
       return ["BLOCKED", "RERUN_REQUIRED"].indexOf(String(t.status || "").toUpperCase()) >= 0;
@@ -1667,12 +1670,13 @@
     put("changes", objectsOk ? changes.length : (objectsRead ? "—" : "Недоступно"));
     var riskKnown = blockers.length + riskyTests.length;
     var riskAny = blockersOk || testingAny;
-    var riskComplete = blockersOk && testingComplete;
+    var blockerLifecycleComplete = blockersOk && blockerStatusUnknown.length === 0;
+    var riskComplete = blockerLifecycleComplete && testingComplete;
     put("risks", riskComplete ? riskKnown : (riskAny ? "≥ " + riskKnown : "Недоступно"));
     put("risks-detail", riskComplete ?
-      (blockers.length + " записей Continuity без оценки тяжести · " + riskyTests.length + " тест(а) BLOCKED/RERUN") :
+      (blockers.length + " явных OPEN-записей Continuity без оценки тяжести · " + riskyTests.length + " тест(а) BLOCKED/RERUN") :
       (riskAny ?
-        ((blockersOk ? blockers.length + " Continuity" : (blockersRead ? "Continuity items[] не передан" : "Continuity недоступен")) + " · " +
+        ((blockersOk ? (blockers.length + " OPEN Continuity" + (blockerStatusUnknown.length ? " · статус не определён у " + blockerStatusUnknown.length : "")) : (blockersRead ? "Continuity items[] не передан" : "Continuity недоступен")) + " · " +
          (testingComplete ? riskyTests.length + " Testing" : (testingAny ? "Testing ≥ " + riskyTests.length + " · набор неполный" : (testingRead ? "Testing active[]/recent[] не переданы" : "Testing недоступен"))) + " · итог неполный") :
         "доказательные коллекции риска недоступны"));
     var msKpiOk = sourceState.marketSignals.ok && marketSignals;
@@ -1738,12 +1742,12 @@
         });
         if (rows.length) {
           risksBox.innerHTML = "<div class='signals-live-list'>" + rows.join("") + "</div>" +
-            (!riskComplete ? "<div class='signals-partial-note warn'>Показаны только доступные источники; полный контур риска сейчас не подтверждён.</div>" : "");
+            (!riskComplete ? "<div class='signals-partial-note warn'>Полный контур риска не подтверждён." + (blockerStatusUnknown.length ? " У " + esc(blockerStatusUnknown.length) + " blocker-записей status не OPEN/CLEARED и они не включены в число риска." : "") + "</div>" : "");
         } else if (!riskComplete) {
           risksBox.innerHTML = unavailableHTML("Контур риска прочитан частично",
-            "Доступная часть не содержит BLOCKED/RERUN или blocker-записей, но одна или несколько коллекций отсутствуют либо неполны — нулевой общий риск не подтверждён.");
+            "Доступная часть не содержит явных OPEN blocker-записей или BLOCKED/RERUN; одна или несколько коллекций либо lifecycle-статусов неполны — нулевой общий риск не подтверждён.");
         } else {
-          risksBox.innerHTML = "<div class='signals-empty compact'><strong>Открытых записей блокеров сейчас нет</strong><span>Текущие Continuity blockers и Testing summary не содержат открытых нетестовых блокеров, BLOCKED или RERUN_REQUIRED.</span></div>";
+          risksBox.innerHTML = "<div class='signals-empty compact'><strong>Явных OPEN blocker-записей сейчас нет</strong><span>Continuity lifecycle полностью прочитан как OPEN/CLEARED, а Testing summary не содержит BLOCKED или RERUN_REQUIRED.</span></div>";
         }
       }
     }
