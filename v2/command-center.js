@@ -1682,8 +1682,12 @@
       var ver = M.U.stars.filter(function (s) { return s.verified; }).length;
       rows.push(proofRow("ok", "Мир → линия", M.U.lines.length, "каноническая структура временной модели компании (Temporal Universe)"));
       rows.push(proofRow("ok", "Линия → звезда", M.U.stars.length, "branches[] линии; проверено (verified) " + ver + " из " + M.U.stars.length));
-      rows.push(proofRow(M.U.trajectories.length ? "ok" : "none", "Стратегические траектории", M.U.trajectories.length, "strategic_trajectories"));
-      rows.push(proofRow(M.U.unresolved.length ? "warn" : "ok", "Неразрешённая история", M.U.unresolved.length, "не привязана ни к чему; по сходству не привязывается"));
+      var trajProvided = Array.isArray(M.tu.data && M.tu.data.strategic_trajectories);
+      var unresolvedProvided = Array.isArray(M.tu.data && M.tu.data.unresolved_history);
+      rows.push(!trajProvided ? proofRow("warn", "Стратегические траектории", "—", "поле strategic_trajectories не передано — отсутствие траекторий не подтверждено") :
+        proofRow(M.U.trajectories.length ? "ok" : "none", "Стратегические траектории", M.U.trajectories.length, M.U.trajectories.length ? "strategic_trajectories" : "источник передал пустой strategic_trajectories[]"));
+      rows.push(!unresolvedProvided ? proofRow("warn", "Неразрешённая история", "—", "поле unresolved_history не передано — нулевое состояние не подтверждено") :
+        proofRow(M.U.unresolved.length ? "warn" : "ok", "Неразрешённая история", M.U.unresolved.length, M.U.unresolved.length ? "не привязана ни к чему; по сходству не привязывается" : "источник передал пустой unresolved_history[]"));
       var routed = M.lines.filter(function (l) { return l.star; }).length;
       rows.push(!ok("routes") ? proofRow("warn", "Маршрут → звезда", "—", "Источник маршрутов недоступен — связи маршрутов со звёздами не проверены") :
         proofRow(routed ? "ok" : "none", "Маршрут → звезда", routed, "точное совпадение ID объекта маршрута и memory_id звезды"));
@@ -1810,7 +1814,8 @@
 
   function renderTrajectories() {
     if (!M.tu.ok) return unavailable("Траектории недоступны", "strategic_trajectories приходят только из Temporal Universe.");
-    if (!M.U.trajectories.length) return empty("Стратегических траекторий нет", "Temporal Universe передал пустой strategic_trajectories.");
+    if (!Array.isArray(M.tu.data && M.tu.data.strategic_trajectories)) return unavailable("Траектории не проверены", "Temporal Universe прочитан, но поле strategic_trajectories не передано.");
+    if (!M.U.trajectories.length) return empty("Стратегических траекторий нет в текущей проекции", "Temporal Universe явно передал пустой strategic_trajectories[].");
     return "<div class='cc-tracks'>" + M.U.trajectories.map(function (t, i) {
       if (!t || typeof t !== "object") return "<div class='cc-track'><div class='cc-track-head'><b>" + E(scalar(t)) + "</b></div></div>";
       var key = trajectoryKey(t, i);
