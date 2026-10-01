@@ -2314,8 +2314,7 @@
     if (l.obj && l.obj.last_event_at) hist.push("<li><b>" + E(dateLabel(l.obj.last_event_at)) + "</b>" + E((l.obj.last_meaning_kind ? H.signalKindRu(l.obj.last_meaning_kind) : "событие объекта") + (l.obj.last_summary ? " — " + H.cut(humanActionText(l.obj.last_summary), 110) : "")) + " <em>· Continuity</em></li>");
     if (r.last_movement_at) hist.push("<li><b>" + E(dateLabel(r.last_movement_at)) + "</b>движение по маршруту <em>· Оркестратор</em></li>");
     var step = r.next_move ? { text: humanActionText(r.next_move), src: "Оркестратор · next_move" } :
-      (l.rd1 && l.rd1.next_move ? { text: humanActionText(l.rd1.next_move), src: "RD1 · next_move" } :
-        { text: "Источник не передал следующий ход. Минимальный шаг — сверить маршрут с владельцем хода и зафиксировать next_move в Оркестраторе.", src: "рекомендация панели: нужна сверка" });
+      (l.rd1 && l.rd1.next_move ? { text: humanActionText(l.rd1.next_move), src: "RD1 · next_move" } : null);
     return inspector({
       badge: hexBadge(initials(routeDisplayTitle(l.title)), l.tone, "lg"), title: routeDisplayTitle(l.title), sub: "Маршрут Оркестратора" + (routeDisplayTitle(l.title) !== l.title ? " · исходное название: " + l.title : "") + (l.area ? " · " + H.humanCode(l.area) : ""),
       what: para("Маршрут работы в Оркестраторе" + (l.star ? " по звезде «" + l.star.title + "» линии «" + l.star.line.title + "»." : ".") +
