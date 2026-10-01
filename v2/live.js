@@ -2157,8 +2157,9 @@
       authority_action_path:"Путь полномочий",
       testing_execution_integrity:"Исполнение Testing"
     };
-    var dims=asArray(data.dimensions);
-    var mandatoryKnown=dims.length>0 && dims.every(function(d){return d && typeof d.mandatory==="boolean";});
+    var dimensionsKnown=Array.isArray(data.dimensions);
+    var dims=dimensionsKnown?data.dimensions:[];
+    var mandatoryKnown=dimensionsKnown && dims.length>0 && dims.every(function(d){return d && typeof d.mandatory==="boolean";});
     var passBase=mandatoryKnown?dims.filter(function(d){return d.mandatory===true;}):dims;
     var passCount=passBase.filter(function(d){return String(d&&d.state||"").toUpperCase()==="PASS";}).length;
     var cards=dims.map(function(d){
@@ -2194,7 +2195,7 @@
       "<div class='metric'><small>PASS</small><strong>"+esc(passBase.length?passCount+" / "+passBase.length:"—")+"</strong><span>"+esc(mandatoryKnown?"обязательные измерения":"переданные dimensions; mandatory не полностью указан")+"</span></div>"+
       "<div class='metric'><small>Блокирующие причины</small><strong>"+esc(blockingProvided?blocking.length:"—")+"</strong><span>"+esc(blockingProvided?"по явному blocking_reasons[]":"поле не передано")+"</span></div></div>"+
       (blocking.length?"<div class='live-warning'>"+blocking.map(function(x){return esc(projectionTextRu(x));}).join("<br>")+"</div>":"")+
-      "<div class='live-list-clean'>"+cards+"</div>" +
+      "<div class='live-list-clean'>"+(dimensionsKnown?(cards||"<div class='live-item-clean'><small>Источник явно передал пустой dimensions[].</small></div>"):"<div class='live-item-clean'><small>Поле dimensions[] не передано; состав измерений основания не подтверждён.</small></div>")+"</div>" +
       "<div class='foundation-ready-rule'><b>Условие возврата в READY:</b> каждое обязательное измерение должно снова иметь PASS от живого источника. Прошлый PASS или сохранённый отчёт не заменяет текущее доказательство.</div>";
   }
 
@@ -2366,8 +2367,9 @@
     var trust = page.querySelector('[data-x="trust-chain"]');
     if (trust) {
       var f = foundationAgg || {};
-      var dims = asArray(f.dimensions);
-      var mandatoryKnownDiag = dims.length > 0 && dims.every(function (d) { return d && typeof d.mandatory === "boolean"; });
+      var dimensionsKnownDiag = Array.isArray(f.dimensions);
+      var dims = dimensionsKnownDiag ? f.dimensions : [];
+      var mandatoryKnownDiag = dimensionsKnownDiag && dims.length > 0 && dims.every(function (d) { return d && typeof d.mandatory === "boolean"; });
       var passDimsDiag = mandatoryKnownDiag ? dims.filter(function (d) { return d.mandatory === true; }) : dims;
       var passN = passDimsDiag.filter(function (d) { return String(d && d.state || "").toUpperCase() === "PASS"; }).length;
       var dur = dims.filter(function (d) { return d && d.dimension === "artifact_durability_readback"; })[0] || {};
@@ -2389,7 +2391,7 @@
         "<div class='diag-boundary-intro'><div><small>НЕ ЕДИНЫЙ РЕЙТИНГ, А ГРАНИЦЫ ДОКАЗАННОГО</small><b>Доступность интерфейса ≠ здоровье всех источников мира</b><span>Каждое измерение сохраняет собственный источник и область действия.</span></div></div>" +
         "<div class='diag-boundary-grid'>" +
           "<div class='" + readTone + "'><small>Чтение панели</small><b>" + esc(ok + " / " + keys.length) + "</b><span>проекций ответили · ошибок чтения " + esc(failed) + "</span><em>влияет на доступность экранов</em></div>" +
-          "<div class='" + foundationTone + "'><small>Системное основание</small><b>" + esc(passDimsDiag.length ? passN + " / " + passDimsDiag.length : "—") + "</b><span>" + esc(mandatoryKnownDiag ? "обязательных измерений пройдено" : "PASS среди переданных dimensions; mandatory не полностью указан") + " · состояние: " + esc(HumanFoundationStatus(f.source_status)) + "</span><em>влияет на утверждение «основание готово»</em></div>" +
+          "<div class='" + foundationTone + "'><small>Системное основание</small><b>" + esc(passDimsDiag.length ? passN + " / " + passDimsDiag.length : "—") + "</b><span>" + esc(!dimensionsKnownDiag ? "dimensions[] не передан" : (mandatoryKnownDiag ? "обязательных измерений пройдено" : "PASS среди переданных dimensions; mandatory не полностью указан")) + " · состояние: " + esc(HumanFoundationStatus(f.source_status)) + "</span><em>влияет на утверждение «основание готово»</em></div>" +
           "<div class='" + durabilityTone + "'><small>Долговечность артефактов</small><b>" + esc(dd.objects_on_disk != null ? dd.objects_on_disk + " объектов на диске" : "—") + "</b><span>хэши: " + esc(dd.hash_mismatches == null ? "—" : dd.hash_mismatches) + " расхождений · потеряно: " + esc(dd.artifacts_missing == null ? "—" : dd.artifacts_missing) + " · осиротевших расписок: " + esc(dd.orphan_receipts == null ? "—" : dd.orphan_receipts) + "</span><em>наличие на диске не равно доказанному полному readback</em></div>" +
           "<div class='" + scannerTone + "'><small>Внешнее рыночное покрытие</small><b>" + esc(scanAvailable && scanTotal != null && scanOk != null ? scanOk + " / " + scanTotal : "—") + "</b><span>" + esc(!scanAvailable ? "диагностика Scanner недоступна" : ("источников отвечают · отказов " + (scanFail == null ? "—" : scanFail) + " · ещё не объяснено " + (scanUnknown == null ? "—" : scanUnknown))) + "</span><em>ограничивает внешние рыночные сигналы, а не внутреннее состояние компании</em></div>" +
         "</div>" +
