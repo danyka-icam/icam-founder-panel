@@ -989,7 +989,7 @@
       "<span><b>" + (M.fp.ok ? nd : "—") + "</b> " + (M.fp.ok ? plural(nd, "формальное решение", "формальных решения", "формальных решений") : "формальных решений") +
       " · <b>" + (ok("routes") ? na : "—") + "</b> маршрутов на вашей стороне</span></div></div>";
     if (!anyOk) return head + unavailable("Источники недоступны", "Проекция решений Основателя и маршруты не прочитаны — состояние внимания не подтверждено.");
-    if (!total) return head + "<div class='cc-hero-calm'>Формальных решений и назначенных вам маршрутов сейчас нет.</div>";
+    if (!total && M.fp.ok && ok("routes")) return head + "<div class='cc-hero-calm'>Формальных решений и назначенных вам маршрутов сейчас нет.</div>";
     var shownD = ui.heroAll ? nd : Math.min(nd, HERO_LIMIT);
     var shownA = ui.heroAll ? na : Math.min(na, HERO_LIMIT - shownD);
     var hidden = total - shownD - shownA;
