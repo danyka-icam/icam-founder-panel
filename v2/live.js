@@ -1776,13 +1776,17 @@
         heroRows.push("<div class='signals-live-item change'><b>" + esc(o.name || o.object_id || "Изменение") + "</b>" +
           "<span>" + esc(signalKindRu(o.last_meaning_kind)) + "</span><small>" + esc(ago(o.last_event_at)) + "</small></div>");
       });
+      var heroComplete = objectsOk && blockersOk && inboxOk;
       if (!objectsOk && !blockersOk && !inboxOk) {
         hero.innerHTML = unavailableHTML("Внутренние источники сигналов недоступны", "Панель не сохраняет старую ленту как текущую.");
+      } else if (!heroRows.length && !heroComplete) {
+        hero.innerHTML = unavailableHTML("Внутренний контур сигналов прочитан частично", "Доступные источники не вернули элементов для этого блока, но общий ноль не подтверждён: часть внутренних источников недоступна.");
       } else if (!heroRows.length) {
         hero.innerHTML = "<div class='signals-empty hero'><strong>По текущим внутренним источникам сигналов для этого блока нет</strong><p>Это ничего не говорит о состоянии внешнего рынка. Внешнее наблюдение и текущее покрытие Scanner показываются отдельно ниже.</p></div>";
       } else {
         hero.innerHTML = "<div class='signals-live-list'>" + heroRows.join("") + "</div>" +
-          "<div class='signals-partial-note'>Между типами сигналов Панель не строит собственный рейтинг. OPEN-запись блокера не повышается до критического риска без оценки источника. Внешнее наблюдение показано отдельно ниже.</div>";
+          "<div class='signals-partial-note" + (!heroComplete ? " warn" : "") + "'>Между типами сигналов Панель не строит собственный рейтинг. Запись блокера не повышается до критического риска без оценки источника." +
+          (!heroComplete ? " Часть внутренних источников сейчас недоступна; лента неполная." : "") + " Внешнее наблюдение показано отдельно ниже.</div>";
       }
     }
 
