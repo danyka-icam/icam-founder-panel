@@ -2004,6 +2004,9 @@
       testing_execution_integrity:"Исполнение Testing"
     };
     var dims=asArray(data.dimensions);
+    var mandatoryKnown=dims.length>0 && dims.every(function(d){return d && typeof d.mandatory==="boolean";});
+    var passBase=mandatoryKnown?dims.filter(function(d){return d.mandatory===true;}):dims;
+    var passCount=passBase.filter(function(d){return String(d&&d.state||"").toUpperCase()==="PASS";}).length;
     var cards=dims.map(function(d){
       var extra = "";
       if (d.dimension === "artifact_durability_readback") {
@@ -2019,15 +2022,16 @@
         (d.blocking_reason?"<div class='live-warning'>"+esc(projectionTextRu(d.blocking_reason))+"</div>":"")+ extra +
         "<small>Доказано: "+esc(d.proven_by_source||"источник не указан")+"</small></div>";
     }).join("");
-    var blocking=asArray(data.blocking_reasons);
+    var blockingProvided=Array.isArray(data.blocking_reasons);
+    var blocking=blockingProvided?data.blocking_reasons:[];
     body.innerHTML=
       "<div class='live-status-box "+liveMode(data.source_status)+"'><strong>Готовность основания — "+esc(humanCode(data.source_status))+"</strong>"+
-      "<p>"+(blocking.length?"Есть подтверждённый блокирующий дефект. Зелёный READY не показывается.":"Все обязательные измерения должны быть доказаны текущими источниками.")+"</p></div>"+
+      "<p>"+(blockingProvided?(blocking.length?"Есть подтверждённый блокирующий дефект. Зелёный READY не показывается.":"Источник явно передал пустой blocking_reasons[]. Готовность определяется агрегированным source_status, а не этим нулём отдельно."):"Поле blocking_reasons не передано; отсутствие блокирующих причин не подтверждено.")+"</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Общий статус</small><strong>"+esc(humanCode(data.source_status))+"</strong><span>серверная агрегированная проекция — единственный источник готовности</span></div>"+
       "<div class='metric'><small>Свежесть</small><strong>"+esc(humanCode(data.freshness_state))+"</strong><span>последний успешный срез</span></div>"+
-      "<div class='metric'><small>PASS</small><strong>"+esc(dims.filter(function(d){return String(d.state).toUpperCase()==="PASS";}).length)+" / "+esc(dims.length)+"</strong><span>обязательные измерения</span></div>"+
-      "<div class='metric'><small>Блокирующие причины</small><strong>"+esc(blocking.length)+"</strong><span>подтверждены источниками</span></div></div>"+
+      "<div class='metric'><small>PASS</small><strong>"+esc(passBase.length?passCount+" / "+passBase.length:"—")+"</strong><span>"+esc(mandatoryKnown?"обязательные измерения":"переданные dimensions; mandatory не полностью указан")+"</span></div>"+
+      "<div class='metric'><small>Блокирующие причины</small><strong>"+esc(blockingProvided?blocking.length:"—")+"</strong><span>"+esc(blockingProvided?"по явному blocking_reasons[]":"поле не передано")+"</span></div></div>"+
       (blocking.length?"<div class='live-warning'>"+blocking.map(function(x){return esc(projectionTextRu(x));}).join("<br>")+"</div>":"")+
       "<div class='live-list-clean'>"+cards+"</div>" +
       "<div class='foundation-ready-rule'><b>Условие возврата в READY:</b> каждое обязательное измерение должно снова иметь PASS от живого источника. Прошлый PASS или сохранённый отчёт не заменяет текущее доказательство.</div>";
@@ -2194,8 +2198,9 @@
     if (trust) {
       var f = foundationAgg || {};
       var dims = asArray(f.dimensions);
-      var passN = dims.filter(function (d) { return String(d && d.state || "").toUpperCase() === "PASS"; }).length;
-      var mandatoryN = dims.filter(function (d) { return d && d.mandatory; }).length;
+      var mandatoryKnownDiag = dims.length > 0 && dims.every(function (d) { return d && typeof d.mandatory === "boolean"; });
+      var passDimsDiag = mandatoryKnownDiag ? dims.filter(function (d) { return d.mandatory === true; }) : dims;
+      var passN = passDimsDiag.filter(function (d) { return String(d && d.state || "").toUpperCase() === "PASS"; }).length;
       var dur = dims.filter(function (d) { return d && d.dimension === "artifact_durability_readback"; })[0] || {};
       var dd = dur.detail || {};
       var scan = scannerDiagnostics || {};
@@ -2213,7 +2218,7 @@
         "<div class='diag-boundary-intro'><div><small>НЕ ЕДИНЫЙ РЕЙТИНГ, А ГРАНИЦЫ ДОКАЗАННОГО</small><b>Доступность интерфейса ≠ здоровье всех источников мира</b><span>Каждое измерение сохраняет собственный источник и область действия.</span></div></div>" +
         "<div class='diag-boundary-grid'>" +
           "<div class='" + readTone + "'><small>Чтение панели</small><b>" + esc(ok + " / " + keys.length) + "</b><span>проекций ответили · ошибок чтения " + esc(failed) + "</span><em>влияет на доступность экранов</em></div>" +
-          "<div class='" + foundationTone + "'><small>Системное основание</small><b>" + esc(passN + " / " + (mandatoryN || dims.length || "—")) + "</b><span>обязательных измерений пройдено · состояние: " + esc(HumanFoundationStatus(f.source_status)) + "</span><em>влияет на утверждение «основание готово»</em></div>" +
+          "<div class='" + foundationTone + "'><small>Системное основание</small><b>" + esc(passDimsDiag.length ? passN + " / " + passDimsDiag.length : "—") + "</b><span>" + esc(mandatoryKnownDiag ? "обязательных измерений пройдено" : "PASS среди переданных dimensions; mandatory не полностью указан") + " · состояние: " + esc(HumanFoundationStatus(f.source_status)) + "</span><em>влияет на утверждение «основание готово»</em></div>" +
           "<div class='" + durabilityTone + "'><small>Долговечность артефактов</small><b>" + esc(dd.objects_on_disk != null ? dd.objects_on_disk + " объектов на диске" : "—") + "</b><span>хэши: " + esc(dd.hash_mismatches == null ? "—" : dd.hash_mismatches) + " расхождений · потеряно: " + esc(dd.artifacts_missing == null ? "—" : dd.artifacts_missing) + " · осиротевших расписок: " + esc(dd.orphan_receipts == null ? "—" : dd.orphan_receipts) + "</span><em>наличие на диске не равно доказанному полному readback</em></div>" +
           "<div class='" + scannerTone + "'><small>Внешнее рыночное покрытие</small><b>" + esc(scanTotal != null && scanOk != null ? scanOk + " / " + scanTotal : "—") + "</b><span>источников отвечают · отказов " + esc(scanFail) + " · ещё не объяснено " + esc(scanUnknown) + "</span><em>ограничивает внешние рыночные сигналы, а не внутреннее состояние компании</em></div>" +
         "</div>" +
