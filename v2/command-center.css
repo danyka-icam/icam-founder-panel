@@ -927,3 +927,5 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .bp-identity-proof{margin:10px 0 12px;padding:10px 12px;border:1px solid rgba(92,216,204,.18);border-radius:10px;background:rgba(7,33,37,.30);display:grid;gap:4px;font-size:10.5px;line-height:1.5;color:var(--cc-muted)}
 .bp-identity-proof b{color:var(--cc-cyan);font-weight:600}.bp-identity-proof span{color:var(--cc-muted)}
 .cc-adm-human{display:inline;font:inherit;color:inherit}
+.doc-integrity-boundary{margin:0 0 12px;padding:10px 12px;border:1px solid rgba(226,179,92,.22);border-radius:10px;background:rgba(60,43,14,.14);display:grid;gap:4px;font-size:10.5px;line-height:1.5;color:var(--cc-muted)}
+.doc-integrity-boundary b{color:#e8c47e;font-weight:600}

@@ -934,6 +934,18 @@
       unknown: rq.unknown_classification == null ? "—" : rq.unknown_classification
     };
     Object.keys(vals).forEach(function (k) { var e = page.querySelector('[data-d="' + k + '"]'); if (e) e.textContent = vals[k]; });
+    var durableNote = page.querySelector('[data-d="durable-note"]');
+    if (durableNote) {
+      var indexed = health.indexed_ok;
+      var unindexed = health.unindexed;
+      var orphan = health.orphan_receipts;
+      var hashMismatch = health.hash_mismatches;
+      durableNote.textContent = "на диске: " + (health.objects_on_disk == null ? "—" : health.objects_on_disk) +
+        " · индексировано: " + (indexed == null ? "—" : indexed) +
+        " · не индексировано: " + (unindexed == null ? "—" : unindexed) +
+        " · осиротевших расписок: " + (orphan == null ? "—" : orphan) +
+        " · расхождений хэшей: " + (hashMismatch == null ? "—" : hashMismatch);
+    }
 
     var evidenceBox = page.querySelector('[data-d="evidence-overview"]');
     if (evidenceBox) {
@@ -958,6 +970,7 @@
       var authorityRu = authority === "UNASSIGNED_REVIEW_QUARANTINE" ? "владелец разбора ещё не назначен" :
         (authority ? humanCode(authority) : "состояние полномочий не передано");
       evidenceBox.innerHTML =
+        "<div class='doc-integrity-boundary'><b>Граница сохранности:</b><span>Hub сообщает " + esc(health.objects_on_disk == null ? "—" : health.objects_on_disk) + " объектов на диске, из них индексировано " + esc(health.indexed_ok == null ? "—" : health.indexed_ok) + ", не индексировано " + esc(health.unindexed == null ? "—" : health.unindexed) + ". Осиротевших расписок: " + esc(health.orphan_receipts == null ? "—" : health.orphan_receipts) + "; расхождений хэшей: " + esc(health.hash_mismatches == null ? "—" : health.hash_mismatches) + ". Наличие файла на диске не повышается до доказанного полного readback.</span></div>" +
         "<div class='doc-evidence-head'><div><small>КЛАССИФИКАЦИЯ НЕРАЗОБРАННОГО КОНТУРА</small><b>" + esc(roleTotal || rq.still_unreviewed || "—") + " артефактов распределены по роли</b></div><span>ручного разбора сейчас: <strong>" + esc(manual) + "</strong></span></div>" +
         "<div class='doc-role-grid'>" +
           "<div class='operational'><small>Операционные свидетельства</small><b>" + esc(op) + "</b><span>рабочий след; сам по себе не меняет канон</span></div>" +
