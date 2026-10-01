@@ -802,7 +802,7 @@
     var good = keys.filter(function (k) { return M.sources[k] && M.sources[k].ok; }).length;
     return "<div class='cc-stamp'><span class='cc-pulse " + (good === keys.length ? "ok" : good ? "warn" : "bad") + "'></span>" +
       "<span>Прочитано " + E(s && s.at ? timeLabel(s.at) : "—") + "</span>" +
-      "<span class='cc-stamp-sep'>·</span><span>источников " + good + " / " + keys.length + "</span>" +
+      "<span class='cc-stamp-sep'>·</span><span>проекций чтения " + good + " / " + keys.length + "</span>" +
       "<a href='#diagnostics'>диагностика →</a></div>";
   }
 
@@ -1405,7 +1405,7 @@
       out.push(cell("neutral", "#documents", "Долговечность документов", "нет данных", "источник не прочитан"));
     }
 
-    return "<div class='cc-health-head'><span>Техническая целостность</span><small>состояния источников, не оценка компании</small></div><div class='cc-health-row'>" + out.join("") + "</div>";
+    return "<div class='cc-health-head'><span>Состояние системных контуров</span><small>готовность основания, исполнение Testing и долговечность документов — независимые измерения</small></div><div class='cc-health-row'>" + out.join("") + "</div>";
   }
 
   function renderCommand(page) {
