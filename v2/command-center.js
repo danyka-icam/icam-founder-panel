@@ -1050,6 +1050,7 @@
   }
 
   function recentEventCount(days) {
+    if (M.tu.ok && !Array.isArray(M.tu.data && M.tu.data.company_history)) return null;
     var ev = datedEvents();
     if (!ev) return null;
     return ev.filter(function (e) { var n = H.daysSince(e.at); return n != null && n <= days; }).length;
@@ -1057,6 +1058,7 @@
 
   // Real per-day event counts over the last 14 days (not a trend line).
   function sparkDays() {
+    if (M.tu.ok && !Array.isArray(M.tu.data && M.tu.data.company_history)) return "";
     var days = 14, counts = [];
     for (var i = 0; i < days; i++) counts.push(0);
     (datedEvents() || []).forEach(function (e) { var n = H.daysSince(e.at); if (n != null && n < days) counts[days - 1 - n] += 1; });
@@ -1507,7 +1509,9 @@
         " title='" + E(e.text + (e.v && e.v.why ? " — " + e.v.why : "") + " · " + dateLabel(e.at)) + "'></span>";
     }
     var lanes = [];
-    lanes.push("<div class='cc-swim-lane company'><div class='cc-swim-name'><b>Компания</b><small>" + U.company.length + " событ. · company_history</small></div>" +
+    var companyHistoryProvided = Array.isArray(M.tu.data && M.tu.data.company_history);
+    var unresolvedHistoryProvided = Array.isArray(M.tu.data && M.tu.data.unresolved_history);
+    lanes.push("<div class='cc-swim-lane company'><div class='cc-swim-name'><b>Компания</b><small>" + (companyHistoryProvided ? U.company.length + " событ. · company_history" : "company_history не передан") + "</small></div>" +
       "<div class='cc-swim-track'><span class='cc-swim-now' style='left:80%'></span>" +
       U.company.filter(function (e) { return e.at; }).map(function (e, i) { return dot(e, i, "company", sel("event", e.key)); }).join("") + "</div></div>");
     U.worlds.forEach(function (w) {
@@ -1526,7 +1530,7 @@
         }).join("") +
         "</div></div>");
     });
-    lanes.push("<div class='cc-swim-lane unresolved'><div class='cc-swim-name'><b>Не размещено</b><small>" + U.unresolved.length + " · unresolved_history</small></div>" +
+    lanes.push("<div class='cc-swim-lane unresolved'><div class='cc-swim-name'><b>Не размещено</b><small>" + (unresolvedHistoryProvided ? U.unresolved.length + " · unresolved_history" : "unresolved_history не передан") + "</small></div>" +
       "<div class='cc-swim-track'><span class='cc-swim-now' style='left:80%'></span>" +
       U.unresolved.filter(function (e) { return e.at; }).map(function (e, i) { return dot(e, i, "unplaced", sel("event", e.key)); }).join("") + "</div></div>");
 
@@ -1543,7 +1547,7 @@
           var last = ln.history.map(eventView).filter(function (v) { return v.at; }).sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); })[0];
           return "<div class='cc-uline" + (isSelected("uline", ln.key) ? " selected" : "") + "'" + sel("uline", ln.key) + ">" +
             "<div class='cc-uline-head'>" + hexBadge(initials(ln.title), "flow", "sm") + "<span><b>" + E(ln.title) + "</b><small>" +
-            ln.stars.length + " звёзд" + (last ? " · " + E(H.cut(last.main, 60)) + " · " + E(dateLabel(last.at)) : " · событий в окне нет") + "</small>" +
+            ln.stars.length + " звёзд" + (last ? " · " + E(H.cut(last.main, 60)) + " · " + E(dateLabel(last.at)) : (Array.isArray(ln.raw && ln.raw.recent_history) ? " · событий в текущей истории нет" : " · recent_history не передан")) + "</small>" +
             (last && last.why ? "<small class='why'>" + E(H.cut(last.why, 110)) + "</small>" : "") +
             (last ? proofTags(last, true) : "") + "</span>" +
             (hasCapital(ln) ? "<i class='cc-capchip'>капитал</i>" : "") + "</div>" +
@@ -1553,14 +1557,16 @@
     }).join("");
     page.querySelector("[data-cc='tree']").innerHTML = "<div class='cc-company'><div class='cc-company-head'>" + hexBadge("IC", "flow") +
       "<span><b>ICAM · компания</b><small>" + U.worlds.length + " мир(а) · " + U.lines.length + " линий · " + U.stars.length + " звёзд · " +
-      U.company.length + " событий компании</small></span></div>" + (tree || empty("Миров нет", "Temporal Universe ответил без миров.")) + "</div>";
+      (companyHistoryProvided ? U.company.length + " событий компании" : "company_history не передан") + "</small></span></div>" + (tree || empty("Миров нет", "Temporal Universe ответил без миров.")) + "</div>";
 
     page.querySelector("[data-cc='unplaced-title']").textContent = "Неразрешённая история";
-    page.querySelector("[data-cc='unplaced-sub']").textContent = "unresolved_history — не привязана ни к одному объекту";
-    page.querySelector("[data-cc='unplaced']").innerHTML = U.unresolved.length ? "<div class='cc-feed'>" + U.unresolved.map(function (e) {
-      return "<div class='cc-feed-item unplaced" + (isSelected("event", e.key) ? " selected" : "") + "'" + sel("event", e.key) + "><i></i><div>" + eventBody(e.v) + "</div><span>" + E(e.at ? dateLabel(e.at) : "без даты") + "</span></div>";
-    }).join("") + "</div><div class='cc-foot-note'>Панель не привязывает эти события к объектам по тематическому сходству. Они остаются неразмещёнными, пока источник не разместит их явно.</div>" :
-      empty("Неразрешённой истории нет", "unresolved_history пуст.");
+    page.querySelector("[data-cc='unplaced-sub']").textContent = unresolvedHistoryProvided ? "unresolved_history — не привязана ни к одному объекту" : "unresolved_history не передан источником";
+    page.querySelector("[data-cc='unplaced']").innerHTML = !unresolvedHistoryProvided ?
+      unavailable("Неразрешённая история не проверена", "Temporal Universe прочитан, но поле unresolved_history не передано.") :
+      (U.unresolved.length ? "<div class='cc-feed'>" + U.unresolved.map(function (e) {
+        return "<div class='cc-feed-item unplaced" + (isSelected("event", e.key) ? " selected" : "") + "'" + sel("event", e.key) + "><i></i><div>" + eventBody(e.v) + "</div><span>" + E(e.at ? dateLabel(e.at) : "без даты") + "</span></div>";
+      }).join("") + "</div><div class='cc-foot-note'>Панель не привязывает эти события к объектам по тематическому сходству. Они остаются неразмещёнными, пока источник не разместит их явно.</div>" :
+      empty("Неразрешённой истории нет в текущей проекции", "Temporal Universe явно передал пустой unresolved_history[]."));
 
     page.querySelector("[data-cc='bounds']").innerHTML = "<ul class='cc-bounds'>" +
       U.rules.map(function (r) { return "<li><b>Правило источника:</b> " + E(scalar(r)) + "</li>"; }).join("") +
