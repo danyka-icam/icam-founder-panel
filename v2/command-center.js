@@ -271,9 +271,9 @@
   //   unknown — movement date not provided (evidence uncertainty)
   //   flow    — moving normally
   var TONE_META = {
-    act: { label: "Нужно ваше действие", hint: "ход у Основателя" },
+    act: { label: "Ход на вашей стороне", hint: "владелец следующего хода — вы; срочность этим не определяется" },
     blocked: { label: "Есть блокер", hint: "источник сообщает открытые блокеры" },
-    wait: { label: "Ждём внешнего", hint: "ход у внешнего владельца — это ожидание, не риск" },
+    wait: { label: "Ход не у вас", hint: "следующий ход у другого контура; это ожидание, не оценка риска" },
     stale: { label: "Давно без движения", hint: "движения не было 7+ дней; других сигналов нет" },
     unknown: { label: "Нужна сверка", hint: "дата движения не передана — неопределённость, не авария" },
     flow: { label: "В движении", hint: "движение за последние 7 дней" },
@@ -358,8 +358,19 @@
     return "unknown";
   }
 
-  function toneDot(tone) {
-    return "<span class='cc-tone t-" + tone + "'><i></i>" + E(TONE_META[tone].label) + "</span>";
+  function routeToneLabel(l) {
+    if (!l) return "—";
+    if (l.tone !== "wait") return TONE_META[l.tone].label;
+    var owner = String(l.r && l.r.ball_owner || "").trim();
+    if (/^EXTERNAL$/i.test(owner)) return "Ждём внешнего";
+    if (/^SYSTEM$/i.test(owner)) return "Ход у системы";
+    if (/^AGENT$/i.test(owner)) return "Ход у агента";
+    if (!owner || /^NONE$|^UNAVAILABLE$/i.test(owner)) return "Ход не назначен";
+    return "Ход у: " + ownerLabel(owner);
+  }
+
+  function toneDot(tone, label) {
+    return "<span class='cc-tone t-" + tone + "'><i></i>" + E(label || TONE_META[tone].label) + "</span>";
   }
 
   function hexPoints(cx, cy, r) {
@@ -669,7 +680,7 @@
         obj: obj, objMissing: !!(objId && !obj),
         risk: risk, closed: closed, state: state, rd1: rd1, area: area, star: star,
         origin: obj ? (obj.owning_branch || obj.owner || null) : null,
-        waiting: !closed && !!r.ball_owner && !H.isFounderOwner(r.ball_owner),
+        waiting: !closed && !!r.ball_owner && !/^(NONE|UNAVAILABLE)$/i.test(String(r.ball_owner)) && !H.isFounderOwner(r.ball_owner),
         next: r.next_move || (rd1 && (rd1.next_gate || rd1.next_move)) || null,
         nextSource: r.next_move ? "Оркестратор · next_move" : (rd1 && rd1.next_gate ? "RD1 · next_gate" : (rd1 && rd1.next_move ? "RD1 · next_move" : null)),
         upstream: [], downstream: [], bridges: [],
@@ -1076,7 +1087,7 @@
       hexBadge(initials(routeDisplayTitle(l.title)), l.tone) +
       "<div class='cc-line-head'>" +
       "<div class='cc-line-id'><b>" + E(H.cut(routeDisplayTitle(l.title), 40)) + "</b><small>" + E(where) + "</small></div>" +
-      "<div class='cc-line-state'>" + toneDot(l.tone) + "<em>" + E(H.cut(human(r.stage || r.status || "этап не передан"), 42)) + "</em></div>" +
+      "<div class='cc-line-state'>" + toneDot(l.tone, routeToneLabel(l)) + "<em>" + E(H.cut(human(r.stage || r.status || "этап не передан"), 42)) + "</em></div>" +
       "<div class='cc-line-block' title='открытые блокеры: маршрут + объект'><small>Блокеры</small>" +
       (blockersN ? "<span class='cc-count risk'>" + blockersN + "</span>" : "<span class='cc-count ok'>0</span>") + "</div></div>" +
       "<div class='cc-line-cells'>" +
@@ -1593,7 +1604,7 @@
           "<div class='cc-flow-step past'><small>Прошлое</small><span>" +
           E(o && o.last_event_at ? (o.last_summary ? H.cut(humanActionText(o.last_summary), 60) : H.humanCode(o.last_meaning_kind || "событие")) + " · " + H.ago(o.last_event_at) :
             (l.r.last_movement_at ? "движение " + H.ago(l.r.last_movement_at) : "история не передана")) + "</span></div>" +
-          "<div class='cc-flow-step now'><small>Настоящее</small><span>" + E(human(l.r.stage || l.r.status || "этап не передан")) + "</span>" + toneDot(l.tone) + "</div>" +
+          "<div class='cc-flow-step now'><small>Настоящее</small><span>" + E(human(l.r.stage || l.r.status || "этап не передан")) + "</span>" + toneDot(l.tone, routeToneLabel(l)) + "</div>" +
           "<div class='cc-flow-step wait'><small>Ожидание</small><span>" + E(l.r.review_condition ? H.cut(l.r.review_condition, 60) : (l.waiting ? "ждём: " + ownerLabel(l.r.ball_owner) : "условие не передано")) + "</span></div>" +
           "<div class='cc-flow-step next'><small>Следующий переход</small><span title='" + E(l.next || "") + "'>" + E(l.next ? H.cut(humanActionText(l.next), 60) : "не передан") + "</span></div></div>";
       }).join("") : empty("Нет активных маршрутов", "")) + "</div>";
@@ -1905,9 +1916,9 @@
 
   var LINE_FILTERS = [
     { id: "all", label: "Все активные", test: function (l) { return !l.closed; } },
-    { id: "act", label: "Ваш ход", test: function (l) { return l.tone === "act"; } },
+    { id: "act", label: "Ход у вас", test: function (l) { return l.tone === "act"; } },
     { id: "blocked", label: "Блокеры", test: function (l) { return l.tone === "blocked"; } },
-    { id: "waiting", label: "Ждём внешнего", test: function (l) { return l.tone === "wait"; } },
+    { id: "waiting", label: "Ход не у вас", test: function (l) { return l.tone === "wait"; } },
     { id: "stale", label: "Давно без движения", test: function (l) { return l.tone === "stale"; } },
     { id: "unknown", label: "Нужна сверка", test: function (l) { return l.tone === "unknown"; } },
     { id: "closed", label: "Закрытые", test: function (l) { return l.closed; } }
@@ -2142,7 +2153,7 @@
       where: crumbs([{ t: "ICAM" }, { t: place.world ? place.world.title : (M.tu.ok ? "вне Founder Universe" : "мир не проверен") },
         { t: place.uline ? H.cut(place.uline.title, 22) : "линия не определена" }, { t: l.objId || (l.sourceObjectId ? l.sourceObjectId + " · не связано" : "без канонического объекта"), cur: true }]) +
         (l.origin ? muted("Происхождение объекта (owning_branch): " + l.origin) : ""),
-      now: "<div class='cc-insp-state st-" + l.tone + "'>" + toneDot(l.tone) + "<small>" + E(TONE_META[l.tone].hint) + "</small><em>" +
+      now: "<div class='cc-insp-state st-" + l.tone + "'>" + toneDot(l.tone, routeToneLabel(l)) + "<small>" + E(TONE_META[l.tone].hint) + "</small><em>" +
         E(human(r.stage || r.status || "этап не передан")) + "</em><small>" + E(l.risk.stale == null ? "дата движения не передана" : "последнее движение " + H.ago(r.last_movement_at)) + "</small></div>" +
         (blockers.length ? "<ul class='cc-blockers'>" + blockers.map(function (b) { return "<li>" + E(H.cut(b, 110)) + "</li>"; }).join("") + "</ul>" :
           (l.risk.blockers ? para("Источник сообщает " + l.risk.blockers + " блокер(а) без описания.") : "")),
