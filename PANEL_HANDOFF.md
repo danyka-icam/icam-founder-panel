@@ -358,3 +358,40 @@ Production flow:
 `panel-v2 → integration verification → Founder review → PR → merge to main → existing deploy workflow → production smoke`
 
 A green browser smoke check proves technical loading only; it is not a semantic truth gate.
+
+## Timeline v2 — layered temporal field
+
+The `Во времени` view is now a layered temporal field, not a flat event list.
+
+Implemented:
+- independent multi-select layers: publications / Twin / signals / applications / stages / system;
+- one horizontal lane per active layer on a common time axis;
+- exact-identity trajectories only (`star:key` / `line:key`), never text-similarity links;
+- semantic event types: fact / transition / waiting / closed wait / future milestone / neutral event;
+- collision-aware deterministic point layout;
+- selected-trajectory focus and source-backed current-state node;
+- focused summary: past → now → waiting → next transition;
+- exact duplicate suppression;
+- explicit terminal facts may close a later stale waiting state only on the same exact trajectory;
+- Founder-confirmed terminal facts may supersede matching stale waits while preserving the original source record;
+- nearby-to-now event list instead of the first eight chronologically.
+
+Truth boundary:
+- the UI never fabricates dates for undated `now`, `waiting[]` or `next_transition[]`;
+- a historical source record is preserved even when its active meaning is superseded;
+- no relationship is inferred from text similarity.
+
+## Steward Navigator
+
+Steward Navigator is a separate role from Steward Reconciliation.
+
+- Steward Reconciliation remains the system-integrity / reconciliation projection.
+- Steward Navigator is a read-only working-memory navigator for Founder questions such as:
+  what is this object, where was this tested, what package was related, what else is connected.
+- Panel route: `POST /founder-ui-preview/api/steward-navigator/query`.
+- POST is query-only and non-mutating; the static browser contract allows this exact endpoint only.
+- Inspectors expose `Спросить Стюарда` and pass the selected object/page context explicitly.
+- Responses show retrieved evidence separately from the prose answer.
+- Missing memory must be reported as missing; old chat history is not assumed to exist unless a receipt/summary has been indexed.
+- The closed ICAM Library is not exposed by widening permissions. Navigator currently indexes only already-readable project sources / receipts / explicitly seeded working artifacts.
+
