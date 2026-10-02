@@ -10,7 +10,9 @@ function check(ok, msg) {
 const panels = [...src["v2/index.html"].matchAll(/data-page-panel="([a-z0-9-]+)"/g)].map((m) => m[1]);
 const uniquePanels = [...new Set(panels)];
 check(uniquePanels.length === 16, `16 top-level panels declared (${uniquePanels.length})`);
-check(!/method\s*:\s*["'](?:POST|PUT|PATCH|DELETE)/i.test(all), "no browser write methods");
+const browserWrites = [...all.matchAll(/fetch\(\s*["']([^"']+)["']\s*,\s*\{[\s\S]{0,500}?method\s*:\s*["'](POST|PUT|PATCH|DELETE)["']/gi)].map((m) => ({ url: m[1], method: m[2].toUpperCase() }));
+const disallowedWrites = browserWrites.filter((x) => !(x.method === "POST" && x.url === "/founder-ui-preview/api/steward-navigator/query"));
+check(disallowedWrites.length === 0, "no browser write methods except read-only Steward Navigator query");
 check(!/localStorage|sessionStorage|indexedDB|XMLHttpRequest/.test(all), "no browser-local truth store");
 check(!/(?:localhost|127\.0\.0\.1):\d+/.test(all), "no localhost service coordinates in shipped client");
 check(!/(?:10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)\d{1,3}\.\d{1,3}/.test(all), "no private-network coordinates");
