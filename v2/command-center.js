@@ -1700,11 +1700,15 @@
     function inRange(at) { var t=new Date(at).getTime(); return isFinite(t) && t>=R.from && t<=R.to; }
     function future(at) { return new Date(at).getTime() > Date.now(); }
     function matches(layer) { return ui.timeLayer === "all" || layer === ui.timeLayer; }
+    function trajectoryGroup(e) { return e && e.kind && e.key && /^(star|line)$/.test(e.kind) ? e.kind+":"+e.key : ""; }
     function dot(e) {
       if (!e.at || !inRange(e.at) || !matches(e.layer)) return "";
-      var cls = "cc-time-dot " + E(e.layer) + " semantic-" + E(e.semantic) + (future(e.at) ? " future" : " past") + (e.superseded ? " superseded" : "");
+      var g=trajectoryGroup(e);
+      var focusedGroup=ui.selected&&ui.selected.kind==="timeevent"&&timelineInspectorEvents[ui.selected.key]?trajectoryGroup(timelineInspectorEvents[ui.selected.key]):"";
+      var focusCls=focusedGroup ? (g&&g===focusedGroup ? " trajectory-focus" : " trajectory-dim") : "";
+      var cls = "cc-time-dot " + E(e.layer) + " semantic-" + E(e.semantic) + (future(e.at) ? " future" : " past") + (e.superseded ? " superseded" : "") + focusCls;
       var title = (e.text || "событие") + " · " + dateLabel(e.at) + " · " + timelineSemanticTitle(e.semantic) + " · " + timelineLayerTitle(e.layer);
-      return "<button type='button' class='" + cls + "' style='left:" + pos(e.at).toFixed(2) + "%;top:" + (12 + (e.lane||0)*20) + "px'" +
+      return "<button type='button' class='" + cls + "' data-cc-time-group='"+E(g)+"' style='left:" + pos(e.at).toFixed(2) + "%;top:" + (12 + (e.lane||0)*20) + "px'" +
         sel("timeevent",e.timelineKey) + " title='" + E(title) + "' aria-label='" + E(title) + "'></button>";
     }
 
@@ -1792,6 +1796,8 @@
     var rowH=Math.max(86, 34 + laneCount*20);
 
     // Exact-identity trajectories only: same source entity key, never text similarity.
+    var selectedTimeEvent=ui.selected&&ui.selected.kind==="timeevent"?timelineInspectorEvents[ui.selected.key]:null;
+    var focusGroup=trajectoryGroup(selectedTimeEvent);
     var groups={};
     visible.forEach(function(e){
       if (!e.kind || !e.key || !/^(star|line)$/.test(e.kind)) return;
@@ -1801,13 +1807,14 @@
     var links=[];
     Object.keys(groups).forEach(function(g){
       var xs=groups[g].slice().sort(function(a,b){return new Date(a.at)-new Date(b.at);});
-      for(var j=1;j<xs.length;j++) links.push({a:xs[j-1],b:xs[j]});
+      for(var j=1;j<xs.length;j++) links.push({a:xs[j-1],b:xs[j],group:g});
     });
     var trajectorySvg=links.length ? "<svg class='cc-time-links' viewBox='0 0 1000 "+rowH+"' preserveAspectRatio='none' aria-hidden='true'>"+
       links.map(function(x){
         var x1=pos(x.a.at)*10, x2=pos(x.b.at)*10;
         var y1=18+(x.a.lane||0)*20, y2=18+(x.b.lane||0)*20;
-        return "<path d='M "+x1.toFixed(2)+" "+y1+" L "+x2.toFixed(2)+" "+y2+"' />";
+        var cls=focusGroup ? (x.group===focusGroup ? "trajectory-focus" : "trajectory-dim") : "";
+        return "<path class='"+cls+"' data-cc-time-group='"+E(x.group)+"' d='M "+x1.toFixed(2)+" "+y1+" L "+x2.toFixed(2)+" "+y2+"' />";
       }).join("")+"</svg>" : "";
 
     var ticks="";
@@ -1832,7 +1839,8 @@
       "<div class='cc-legend cc-time-legend'><span><i class='mk material'></i>факт</span><span><i class='mk transition'></i>переход</span><span><i class='mk waiting'></i>ожидание</span><span><i class='mk next'></i>контрольная точка</span><span><i class='mk closed'></i>закрытое ожидание</span><span>Серые будущие точки — известные даты, а не уже случившиеся факты.</span></div>" +
       (visible.length ? "<div class='cc-time-event-list'>" + visible.slice(0,8).map(function(e){
         var why=e.raw&&e.raw.why_it_matters?String(e.raw.why_it_matters):"";
-        return "<button type='button' class='cc-time-event-row "+E(e.layer)+" semantic-"+E(e.semantic)+(future(e.at)?" future":"")+(e.superseded?" superseded":"")+"'"+sel("timeevent",e.timelineKey)+"><time>"+E(dateLabel(e.at))+"</time><div><b>"+E(H.cut(e.text,86))+"</b>"+(why?"<small>"+E(H.cut(why,120))+"</small>":"")+(e.superseded?"<small class='cc-time-superseded-note'>Перекрыто подтверждённым фактом от "+E(dateLabel(e.superseded.at))+"</small>":"")+"</div><span>"+E(timelineSemanticTitle(e.semantic))+" · "+E(timelineLayerTitle(e.layer))+"</span></button>";
+        var g=trajectoryGroup(e), fc=focusGroup ? (g&&g===focusGroup?" trajectory-focus":" trajectory-dim") : "";
+        return "<button type='button' class='cc-time-event-row "+E(e.layer)+" semantic-"+E(e.semantic)+(future(e.at)?" future":"")+(e.superseded?" superseded":"")+fc+"' data-cc-time-group='"+E(g)+"'"+sel("timeevent",e.timelineKey)+"><time>"+E(dateLabel(e.at))+"</time><div><b>"+E(H.cut(e.text,86))+"</b>"+(why?"<small>"+E(H.cut(why,120))+"</small>":"")+(e.superseded?"<small class='cc-time-superseded-note'>Перекрыто подтверждённым фактом от "+E(dateLabel(e.superseded.at))+"</small>":"")+"</div><span>"+E(timelineSemanticTitle(e.semantic))+" · "+E(timelineLayerTitle(e.layer))+"</span></button>";
       }).join("") + "</div>" : "<div class='cc-time-empty'>В выбранном слое и диапазоне датированных событий нет.</div>");
 
     // compact chronological structure; keep the source-backed star axes below the main field.

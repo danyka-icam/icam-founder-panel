@@ -57,6 +57,16 @@ for (const w of WIDTHS) {
         await page.waitForTimeout(120);
         const timeInspector = await page.evaluate(() => document.querySelector('[data-page-panel="timeline"] .cc-insp-title').innerText);
         check(/точки времени/i.test(timeInspector), `timeline point opens its inspector (${timeInspector})`);
+        const focusState = await page.evaluate(() => {
+          const p=document.querySelector('[data-page-panel="timeline"]');
+          return {
+            focused:p.querySelectorAll('.cc-time-dot.trajectory-focus').length,
+            dimmed:p.querySelectorAll('.cc-time-dot.trajectory-dim').length,
+            focusedLinks:p.querySelectorAll('.cc-time-links path.trajectory-focus').length
+          };
+        });
+        check(focusState.focused >= 1, `timeline selection focuses its exact trajectory (${focusState.focused} points)`);
+        check(focusState.dimmed >= 0 && focusState.focusedLinks >= 0, "timeline trajectory focus preserves non-selected context without hiding it");
       }
       check(!/event_id|"change"|\{"/.test(tl + pl + cc + ln), "no raw JSON of known event fields");
       check(/Финальная стабилизация/.test(tl) && /Закрытие orphan receipt/.test(tl) && /Readiness aggregate PASS/.test(tl), "temporal: now.state / waiting / next_transition shown");
