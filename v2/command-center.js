@@ -1689,11 +1689,11 @@
     function inRange(at) { var t=new Date(at).getTime(); return isFinite(t) && t>=R.from && t<=R.to; }
     function future(at) { return new Date(at).getTime() > Date.now(); }
     function matches(layer) { return ui.timeLayer === "all" || layer === ui.timeLayer; }
-    function dot(e, i) {
+    function dot(e) {
       if (!e.at || !inRange(e.at) || !matches(e.layer)) return "";
       var cls = "cc-time-dot " + E(e.layer) + (future(e.at) ? " future" : " past") + (e.superseded ? " superseded" : "");
       var title = (e.text || "событие") + " · " + dateLabel(e.at) + " · " + timelineLayerTitle(e.layer);
-      return "<button type='button' class='" + cls + "' style='left:" + pos(e.at).toFixed(2) + "%;top:" + (17 + (i%3)*20) + "%'" +
+      return "<button type='button' class='" + cls + "' style='left:" + pos(e.at).toFixed(2) + "%;top:" + (12 + (e.lane||0)*20) + "px'" +
         sel("timeevent",e.timelineKey) + " title='" + E(title) + "' aria-label='" + E(title) + "'></button>";
     }
 
@@ -1764,13 +1764,24 @@
     events.sort(function(a,b){return String(a.at).localeCompare(String(b.at));});
     var visible=events.filter(function(e){return inRange(e.at)&&matches(e.layer);});
 
+    // Collision-aware layout: nearby dates occupy different vertical lanes.
+    // This is presentation-only and never changes chronology or source semantics.
+    var laneLast=[], minGapPct=1.7;
+    visible.forEach(function(e){
+      var p=pos(e.at), lane=0;
+      while (laneLast[lane] != null && p-laneLast[lane] < minGapPct) lane++;
+      e.lane=lane;
+      laneLast[lane]=p;
+    });
+    var laneCount=Math.max(1,laneLast.length);
+
     var ticks="";
     for(var i=0;i<=8;i++){
       var t=R.from+span*i/8;
       ticks+="<span style='left:"+(i*12.5)+"%'>"+E(dateLabel(new Date(t).toISOString()))+"</span>";
     }
     var nowP=Math.max(0,Math.min(100,(Date.now()-R.from)/span*100));
-    var rowH=Math.max(86, 28 + Math.ceil(Math.max(1,visible.length)/3)*16);
+    var rowH=Math.max(86, 34 + laneCount*20);
     var marks=visible.map(dot).join("");
     var futureN=visible.filter(function(e){return future(e.at);}).length;
 
