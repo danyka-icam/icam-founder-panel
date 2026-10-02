@@ -70,6 +70,8 @@ for (const w of WIDTHS) {
         await page.waitForTimeout(120);
         const timeInspector = await page.evaluate(() => document.querySelector('[data-page-panel="timeline"] .cc-insp-title').innerText);
         check(/точки времени/i.test(timeInspector), `timeline point opens its inspector (${timeInspector})`);
+        const stewardAsk = await page.locator('[data-page-panel="timeline"] .cc-steward-ask').count();
+        check(stewardAsk >= 1, `inspector exposes Steward Navigator action (${stewardAsk})`);
         const groupedDots = page.locator('[data-page-panel="timeline"] .cc-time-dot[data-cc-time-group]:not([data-cc-time-group=""])');
         const groupedCount = await groupedDots.count();
         if (groupedCount > 0) {

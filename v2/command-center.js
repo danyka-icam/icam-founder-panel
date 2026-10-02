@@ -2630,7 +2630,9 @@
   function para(t) { return "<p>" + E(t) + "</p>"; }
 
   function inspector(x) {
+    var stewardContext=E(JSON.stringify({title:x.title||"",sub:x.sub||"",page:(location.hash||"#command").slice(1)}));
     return "<div class='cc-insp-head'>" + x.badge + "<div><h3>" + E(x.title) + "</h3><small>" + E(x.sub) + "</small></div></div>" +
+      "<button type='button' class='cc-steward-ask' data-cc-steward-context='"+stewardContext+"'><span>Спросить Стюарда</span><small>объяснить, найти контекст или связанные материалы</small></button>" +
       section("Что это", x.what || muted("не передано источником")) +
       section("Где в системе", x.where || muted("не определено")) +
       section("Сейчас", x.now || muted("источник не передаёт текущее состояние")) +
@@ -3189,7 +3191,71 @@
     renderAll();
   }
 
+  function stewardDialog() {
+    var d=document.querySelector("[data-cc-steward-dialog]");
+    if (d) return d;
+    d=document.createElement("div");
+    d.className="cc-steward-dialog";
+    d.setAttribute("data-cc-steward-dialog","");
+    d.innerHTML="<div class='cc-steward-shell'><header><div><small>Steward Navigator</small><h3>Рабочая память</h3></div><button type='button' data-cc-steward-close aria-label='Закрыть'>×</button></header>"+
+      "<div class='cc-steward-context' data-cc-steward-context-view></div>"+
+      "<div class='cc-steward-thread' data-cc-steward-thread><div class='cc-steward-intro'>Можно спросить обычным языком: «что это за сигнал?», «где мы это тестировали?», «какой пакет был связан с этой темой?». Стюард отвечает только по найденной рабочей памяти и не придумывает отсутствующие связи.</div></div>"+
+      "<form data-cc-steward-form><textarea rows='3' data-cc-steward-input placeholder='Спроси Стюарда…'></textarea><button type='submit'>Спросить</button></form>"+
+      "<footer data-cc-steward-status>Поиск по рабочей памяти · только рабочий контекст ICAM / ATLAS / AICLAVIS</footer></div>";
+    document.body.appendChild(d);
+    return d;
+  }
+
+  function openSteward(raw) {
+    var d=stewardDialog(), ctx={};
+    try { ctx=JSON.parse(raw||"{}"); } catch (_) {}
+    d._stewardContext=ctx;
+    var c=d.querySelector("[data-cc-steward-context-view]");
+    c.innerHTML="<b>"+E(ctx.title||"Текущий объект")+"</b>"+(ctx.sub?"<span>"+E(ctx.sub)+"</span>":"");
+    d.classList.add("open");
+    setTimeout(function(){var i=d.querySelector("[data-cc-steward-input]");if(i)i.focus();},30);
+  }
+
+  function stewardBubble(role,text,evidence) {
+    var refs="";
+    if (Array.isArray(evidence) && evidence.length) {
+      refs="<details><summary>На чём основан ответ · "+evidence.length+"</summary><div class='cc-steward-evidence'>"+
+        evidence.slice(0,6).map(function(x){return "<div><b>"+E(H.cut(x.title||x.path||"источник",70))+"</b><small>"+E(H.cut(x.path||x.kind||"",110))+"</small></div>";}).join("")+
+      "</div></details>";
+    }
+    return "<div class='cc-steward-msg "+role+"'><p>"+E(text||"")+"</p>"+refs+"</div>";
+  }
+
+  function askSteward(d,question) {
+    var thread=d.querySelector("[data-cc-steward-thread]"), status=d.querySelector("[data-cc-steward-status]");
+    thread.insertAdjacentHTML("beforeend",stewardBubble("user",question));
+    thread.insertAdjacentHTML("beforeend","<div class='cc-steward-msg assistant pending'>Ищу в рабочей памяти…</div>");
+    thread.scrollTop=thread.scrollHeight;
+    status.textContent="Steward Navigator ищет подтверждённый контекст…";
+    fetch("/founder-ui-preview/api/steward-navigator/query",{
+      method:"POST",credentials:"same-origin",cache:"no-store",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({question:question,context:d._stewardContext||{}})
+    }).then(function(r){
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      return r.json();
+    }).then(function(data){
+      var p=thread.querySelector(".pending"); if(p)p.remove();
+      thread.insertAdjacentHTML("beforeend",stewardBubble("assistant",data.answer||"Ответ не передан.",data.evidence));
+      status.textContent=data.memory_complete===false ? "Ответ по доступной памяти · старые чат-ветки могут быть ещё не индексированы" : "Ответ по рабочей памяти";
+      thread.scrollTop=thread.scrollHeight;
+    }).catch(function(){
+      var p=thread.querySelector(".pending"); if(p)p.remove();
+      thread.insertAdjacentHTML("beforeend",stewardBubble("assistant","Навигатор пока не подключён к серверу этой панели. Контекст сохранён только в текущем окне; я не буду изображать ответ без доступа к рабочей памяти."));
+      status.textContent="Steward Navigator недоступен · серверный контур ещё не подключён";
+      thread.scrollTop=thread.scrollHeight;
+    });
+  }
+
   document.addEventListener("click", function (e) {
+    var sa=e.target.closest("[data-cc-steward-context]");
+    if(sa){openSteward(sa.getAttribute("data-cc-steward-context"));return;}
+    if(e.target.closest("[data-cc-steward-close]")){var sd=e.target.closest("[data-cc-steward-dialog]");if(sd)sd.classList.remove("open");return;}
     var f = e.target.closest("[data-cc-line-filter]");
     if (f) { ui.lineFilter = f.getAttribute("data-cc-line-filter"); renderAll(); return; }
     if (e.target.closest("[data-cc-clear]")) { ui.selected = null; renderAll(); return; }
@@ -3232,6 +3298,17 @@
     var insp = page && page.querySelector("[data-cc-inspector]");
     if (insp && window.matchMedia("(max-width:1280px)").matches) insp.scrollIntoView({ behavior: "smooth", block: "start" });
   });
+  document.addEventListener("submit", function(e){
+    var form=e.target.closest && e.target.closest("[data-cc-steward-form]");
+    if(!form)return;
+    e.preventDefault();
+    var d=form.closest("[data-cc-steward-dialog]"), input=form.querySelector("[data-cc-steward-input]");
+    var q=input&&input.value?input.value.trim():"";
+    if(!q)return;
+    input.value="";
+    askSteward(d,q);
+  });
+
   document.addEventListener("change", function(e) {
     var f=e.target.closest && e.target.closest("[data-cc-time-from]");
     var t=e.target.closest && e.target.closest("[data-cc-time-to]");
