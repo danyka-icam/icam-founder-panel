@@ -994,13 +994,13 @@
     };
   }
 
-  // What needs the Founder: explicit needs_founder items and routes whose move
-  // is the Founder's. The strongest accent on the screen.
-  // «Требует вашего участия»: two different classes kept apart.
-  //   Нужно решить — explicit needs_founder items from the Founder inbox
-  //   Ваш ход      — routes whose next move is the Founder's
-  // Order: decisions first, then moves; inside a group by the date the source
-  // gives (most recent first, undated last, otherwise source order). No
+  // Founder attention keeps two different classes apart:
+  //   «Нужно решить» — formal decisions from Founder Projection only.
+  //   «Маршруты на вашей стороне» — routes whose next move is assigned to the Founder.
+  // Founder Inbox remains a separate request queue and is never promoted into
+  // formal decisions. Assignment proves ownership of the next move, not urgency.
+  // Order: decisions first, then assigned routes; inside a group by the date the
+  // source gives (most recent first, undated last, otherwise source order). No
   // priority engine: an older item is never promoted for being old.
   var HERO_LIMIT = 6;
 
