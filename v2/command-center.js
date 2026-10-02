@@ -25,6 +25,7 @@
     timeCustomFrom: null, timeCustomTo: null
   };
   var M = null; // current model
+  var timelineInspectorEvents = {}; // view-only derived timeline points; never canonical truth
 
   // Explicit Founder-confirmed time facts. These are never inferred from source
   // silence and are rendered with their own provenance on the time field.
@@ -1603,6 +1604,7 @@
   }
 
   function renderTimeline(page) {
+    timelineInspectorEvents = {};
     page.querySelector("[data-cc='stamp']").innerHTML = readStamp();
     page.querySelector("[data-cc='source']").innerHTML = M.tu.ok ?
       sourceBadge("tu") :
@@ -1685,19 +1687,22 @@
     function inRange(at) { var t=new Date(at).getTime(); return isFinite(t) && t>=R.from && t<=R.to; }
     function future(at) { return new Date(at).getTime() > Date.now(); }
     function matches(layer) { return ui.timeLayer === "all" || layer === ui.timeLayer; }
-    function attrsFor(kind,key) { return key ? sel(kind,key) : ""; }
     function dot(e, i) {
       if (!e.at || !inRange(e.at) || !matches(e.layer)) return "";
       var cls = "cc-time-dot " + E(e.layer) + (future(e.at) ? " future" : " past");
       var title = (e.text || "событие") + " · " + dateLabel(e.at) + " · " + timelineLayerTitle(e.layer);
-      return "<span class='" + cls + "' style='left:" + pos(e.at).toFixed(2) + "%;top:" + (17 + (i%3)*20) + "%'" +
-        attrsFor(e.kind,e.key) + " title='" + E(title) + "'></span>";
+      return "<button type='button' class='" + cls + "' style='left:" + pos(e.at).toFixed(2) + "%;top:" + (17 + (i%3)*20) + "%'" +
+        sel("timeevent",e.timelineKey) + " title='" + E(title) + "' aria-label='" + E(title) + "'></button>";
     }
 
     var events=[];
+    timelineInspectorEvents = {};
     function push(at,text,layer,kind,key,raw) {
       if (!at || !isFinite(new Date(at).getTime())) return;
-      events.push({at:at,text:text||"событие",layer:layer||timelineLayerOf(text,raw),kind:kind,key:key,raw:raw});
+      var e={at:at,text:text||"событие",layer:layer||timelineLayerOf(text,raw),kind:kind,key:key,raw:raw};
+      e.timelineKey = "t" + events.length + ":" + String(new Date(at).getTime());
+      events.push(e);
+      timelineInspectorEvents[e.timelineKey]=e;
     }
     U.company.forEach(function(e){push(e.at,e.text,timelineLayerOf(e.text,e.item),"event",e.key,e.item);});
     U.events.forEach(function(e){push(e.at,e.text,timelineLayerOf(e.text,e.item),"event",e.key,e.item);});
@@ -1760,7 +1765,7 @@
       "<div class='cc-legend cc-time-legend'><span><i class='mk material'></i>произошло</span><span><i class='mk next'></i>известная будущая дата</span><span>Серые точки — запланированное/ожидаемое, а не уже случившийся факт.</span></div>" +
       (visible.length ? "<div class='cc-time-event-list'>" + visible.slice(0,8).map(function(e){
         var why=e.raw&&e.raw.why_it_matters?String(e.raw.why_it_matters):"";
-        return "<div class='cc-time-event-row "+E(e.layer)+(future(e.at)?" future":"")+"'><time>"+E(dateLabel(e.at))+"</time><div><b>"+E(H.cut(e.text,86))+"</b>"+(why?"<small>"+E(H.cut(why,120))+"</small>":"")+"</div><span>"+E(timelineLayerTitle(e.layer))+"</span></div>";
+        return "<button type='button' class='cc-time-event-row "+E(e.layer)+(future(e.at)?" future":"")+"'"+sel("timeevent",e.timelineKey)+"><time>"+E(dateLabel(e.at))+"</time><div><b>"+E(H.cut(e.text,86))+"</b>"+(why?"<small>"+E(H.cut(why,120))+"</small>":"")+"</div><span>"+E(timelineLayerTitle(e.layer))+"</span></button>";
       }).join("") + "</div>" : "<div class='cc-time-empty'>В выбранном слое и диапазоне датированных событий нет.</div>");
 
     // compact chronological structure; keep the source-backed star axes below the main field.
@@ -2739,6 +2744,36 @@
     });
   }
 
+  function inspectTimeEvent(e) {
+    var raw=e.raw && typeof e.raw === "object" ? e.raw : {};
+    var isFuture=new Date(e.at).getTime()>Date.now();
+    var link="";
+    if (e.kind && e.key) {
+      if (e.kind === "star" && M.U && M.U.starByKey[e.key]) link=refsBlock("Связанный объект", starRef(M.U.starByKey[e.key]));
+      else if (e.kind === "line" && M.lineByKey[e.key]) link=refsBlock("Связанный маршрут", lineRefs([M.lineByKey[e.key]]));
+      else if (e.kind === "event" && M.U && M.U.eventByKey[e.key]) link="<button class='cc-ref'"+sel("event",e.key)+">Открыть исходное событие Temporal Universe →</button>";
+    }
+    var why=raw.why_it_matters || raw.reason || raw.note || raw.description || "";
+    var source=raw.source || raw.source_branch || raw.kind || raw.type || raw.category || "";
+    return inspector({
+      badge:"<span class='cc-obj-badge event'>◆</span>",
+      title:e.text || "Событие",
+      sub:dateLabel(e.at)+" · "+timelineLayerTitle(e.layer)+(isFuture?" · будущая известная дата":""),
+      what:para(e.text || "Датированное событие."),
+      where:crumbs([{t:"ICAM"},{t:"Во времени"},{t:timelineLayerTitle(e.layer),cur:true}]),
+      now:para(isFuture ? "Эта точка находится в будущем и отображает известную дату ожидания, раскрытия, результата или перехода — не уже произошедший факт." : "Эта точка находится в прошлом или настоящем и отображается как датированный факт источника."),
+      why:why ? para(String(why)) : "",
+      history:"<ul class='cc-hist'><li><b>"+E(dateLabel(e.at))+"</b>"+E(e.text || "событие")+"</li>"+(source?"<li><b>источник / тип</b>"+E(String(source))+"</li>":"")+"</ul>",
+      links:link || muted("Точная связь с каноническим объектом для этой точки не заявлена; панель её не достраивает."),
+      ceiling:[
+        ceilingRow("ok","Дата и содержание точки взяты из доступного источника или из явно подтверждённого Основателем события"),
+        ceilingRow(isFuture?"warn":"info",isFuture?"Будущая точка не считается наступившим фактом":"Статус события не усиливается интерфейсом"),
+        ceilingRow(e.kind&&e.key?"ok":"info",e.kind&&e.key?"Есть точная ссылка на исходный объект":"Связь с объектом не выводится по сходству текста")
+      ],
+      nav:NAV_TIME
+    });
+  }
+
   function inspectEvent(e) {
     var v = e.v, raw = v.raw && typeof v.raw === "object" ? v.raw : {};
     var scopeText = e.scope === "company" ? "Событие уровня компании" : e.scope === "line" ? "Событие линии «" + e.line.title + "»" :
@@ -2930,6 +2965,7 @@
     uline: { label: "Инспектор линии", get: function (k) { return M.U && M.U.lineById[k]; }, render: inspectULine },
     world: { label: "Инспектор мира", get: function (k) { return M.U && M.U.worldById[k]; }, render: inspectWorld },
     event: { label: "Инспектор события", get: function (k) { return M.U && M.U.eventByKey[k]; }, render: inspectEvent },
+    timeevent: { label: "Инспектор точки времени", get: function (k) { return timelineInspectorEvents[k]; }, render: inspectTimeEvent },
     strategy: { label: "Инспектор стратегии", get: function (k) { return M.U && M.U.trajByKey[k]; }, render: inspectStrategy },
     decision: { label: "Инспектор решения", get: function (k) { return M.FP && M.FP.decisionByKey[k]; }, render: inspectDecision },
     movement: { label: "Инспектор движения", get: function (k) { return M.FP && M.FP.movementByKey[k]; }, render: inspectMovement },

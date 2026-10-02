@@ -48,6 +48,16 @@ for (const w of WIDTHS) {
       check(/Публикации/.test(tl) && /Twin/.test(tl) && /Сигналы/.test(tl) && /Заявки и тендеры/.test(tl) && /Этапы/.test(tl), "timeline exposes layered filters");
       check(/type=.?date/i.test(await page.locator('[data-page-panel="timeline"]').innerHTML()), "timeline exposes exact date-range controls");
       check(/PENDING_RECONCILIATION/.test(tl), "history event: truth_status / binding_class shown as proof tag");
+      await page.evaluate(() => { location.hash = "timeline"; });
+      await page.waitForTimeout(150);
+      const timeDots = await page.locator('[data-page-panel="timeline"] .cc-time-dot').count();
+      check(timeDots > 0, `timeline renders selectable dated points (${timeDots})`);
+      if (timeDots > 0) {
+        await page.locator('[data-page-panel="timeline"] .cc-time-dot').first().click();
+        await page.waitForTimeout(120);
+        const timeInspector = await page.evaluate(() => document.querySelector('[data-page-panel="timeline"] .cc-insp-title').innerText);
+        check(/точки времени/i.test(timeInspector), `timeline point opens its inspector (${timeInspector})`);
+      }
       check(!/event_id|"change"|\{"/.test(tl + pl + cc + ln), "no raw JSON of known event fields");
       check(/Финальная стабилизация/.test(tl) && /Закрытие orphan receipt/.test(tl) && /Readiness aggregate PASS/.test(tl), "temporal: now.state / waiting / next_transition shown");
       check(/ATLAS Structural & Epistemic Core/.test(pl) && /Проверка самого ATLAS/.test(pl), "owner_conflicts map normalised into a card");
