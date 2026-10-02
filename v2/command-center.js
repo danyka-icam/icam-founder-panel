@@ -19,8 +19,23 @@
   "use strict";
 
   var H = null;
-  var ui = { selected: null, lineFilter: "all", routesAll: false };
+  var ui = {
+    selected: null, lineFilter: "all", routesAll: false,
+    timeLayer: "all", timePastDays: 14, timeFutureDays: 14, timeShiftDays: 0,
+    timeCustomFrom: null, timeCustomTo: null
+  };
   var M = null; // current model
+
+  // Explicit Founder-confirmed time facts. These are never inferred from source
+  // silence and are rendered with their own provenance on the time field.
+  var FOUNDER_TIME_EVENTS = [
+    {
+      at: "2026-09-08T05:06:00-03:00",
+      text: "GovAI Research Scholar / Research Fellow — отказ получен",
+      layer: "applications",
+      provenance: "Подтверждено Основателем по письму GovAI; ожидание закрыто."
+    }
+  ];
 
   var TU_SCHEMA = "atlas-temporal-universe.v0.";
   var ADM_SCHEMA = "atlas-portfolio-admission.v0.";
@@ -173,8 +188,17 @@
   function listItems(v) {
     if (v == null) return [];
     return (Array.isArray(v) ? v : [v]).map(function (x) {
-      if (x && typeof x === "object") return { title: temporalTextRu(x.title || pickText(x) || x.id || "—"), timeClass: x.time_class || null };
-      return { title: temporalTextRu(String(x)), timeClass: null };
+      if (x && typeof x === "object") {
+        var at = x.date || x.at || x.expected_at || x.due_at || x.scheduled_at || x.resolve_at || x.resolution_at || x.reveal_at || x.opens_at || x.deadline || null;
+        if (at && !isFinite(new Date(at).getTime())) at = null;
+        return {
+          title: temporalTextRu(x.title || pickText(x) || x.id || "—"),
+          timeClass: x.time_class || null,
+          at: at,
+          raw: x
+        };
+      }
+      return { title: temporalTextRu(String(x)), timeClass: null, at: null, raw: x };
     });
   }
 
@@ -1203,7 +1227,7 @@
       "<div class='cc-line-block' title='явные blocker-факты самого маршрута; записи объекта считаются отдельно'><small>Блокеры маршрута</small>" +
       (blockersN == null ? "<span class='cc-count'>—</span>" : (blockersN ? "<span class='cc-count risk'>" + blockersN + "</span>" : "<span class='cc-count ok'>0</span>")) + "</div></div>" +
       "<div class='cc-line-cells'>" +
-      "<div class='cc-line-col next'><small>Следующий переход</small><span title='" + E(l.next || "") + "'>" + E(H.cut(humanActionText(l.next || "не передан источником"), 90)) + "</span></div>" +
+      "<div class='cc-line-col next'><small>След. шаг</small><span title='" + E(l.next || "") + "'>" + E(H.cut(humanActionText(l.next || "не передан источником"), 90)) + "</span></div>" +
       "<div class='cc-line-col'><small>Ход у</small><span>" + E(ownerLabel(r.ball_owner)) + (l.waiting ? " <em class='wait'>· ждём</em>" : "") + "</span></div>" +
       "<div class='cc-line-col'><small>Условие движения</small><span>" + E(H.cut(r.review_condition || "не передано", 70)) + "</span></div>" +
       "</div>" +
@@ -1587,94 +1611,193 @@
     if (M.tu.ok) renderTimelineUniverse(page); else renderTimelineFallback(page);
   }
 
-  function renderTimelineUniverse(page) {
-    var U = M.U, R = universeRange();
-    var span = R.to - R.from;
-    function x(at) {
-      var t = new Date(at).getTime();
-      return Math.max(0, Math.min(80, (t - R.from) / span * 80));
+  function timelineLayerOf(text, raw, source) {
+    var q = String(text || "").toLowerCase();
+    var blob = q + " " + String(raw && (raw.kind || raw.type || raw.category || raw.event_kind || raw.source) || "").toLowerCase();
+    if (source === "twin" || /twin|двойн|clone|seal|prediction|прогноз|outcome|исход/.test(blob)) return "twin";
+    if (source === "signals" || /signal|scanner|сигнал|radar|field movement/.test(blob)) return "signals";
+    if (/publication|publish|paper|journal|article|публикац|стать[яи]|springer|nature/.test(blob)) return "publications";
+    if (/tender|тендер|application|заявк|submission|подан|grant|fellow|scholar|govai|governance\.ai/.test(blob)) return "applications";
+    if (/stage|этап|gate|рубеж|transition|переход|milestone|вех/.test(blob)) return "stages";
+    return "system";
+  }
+
+  function timelineLayerTitle(layer) {
+    return {
+      all: "Все",
+      publications: "Публикации",
+      twin: "Twin",
+      signals: "Сигналы",
+      applications: "Заявки и тендеры",
+      stages: "Этапы"
+    }[layer] || layer;
+  }
+
+  function timelineRange() {
+    var day = 86400000;
+    if (ui.timeCustomFrom && ui.timeCustomTo) {
+      var cf = new Date(ui.timeCustomFrom + "T00:00:00").getTime();
+      var ct = new Date(ui.timeCustomTo + "T23:59:59").getTime();
+      if (isFinite(cf) && isFinite(ct) && cf < ct) return { from: cf, to: ct, now: Date.now(), realNow: Date.now(), custom: true };
     }
-    var ticks = "";
-    for (var i = 0; i <= 4; i++) {
-      var t = R.from + span * i / 4;
-      ticks += "<span" + (i === 4 ? " class='now'" : "") + " style='left:" + (i * 20) + "%'>" + E(i === 4 ? "конец окна" : dateLabel(new Date(t).toISOString())) + "</span>";
-    }
-    function dot(e, i, cls, attrs) {
-      var t = new Date(e.at).getTime(), out = t < R.from ? " older" : "";
-      return "<span class='cc-dot " + cls + out + "' style='left:" + x(e.at) + "%;top:" + (18 + (i % 3) * 22) + "%'" + (attrs || "") +
-        " title='" + E(e.text + (e.v && e.v.why ? " — " + e.v.why : "") + " · " + dateLabel(e.at)) + "'></span>";
-    }
-    var lanes = [];
-    var companyHistoryProvided = Array.isArray(M.tu.data && M.tu.data.company_history);
-    var unresolvedHistoryProvided = Array.isArray(M.tu.data && M.tu.data.unresolved_history);
-    lanes.push("<div class='cc-swim-lane company'><div class='cc-swim-name'><b>Компания</b><small>" + (companyHistoryProvided ? U.company.length + " событ. · company_history" : "company_history не передан") + "</small></div>" +
-      "<div class='cc-swim-track'><span class='cc-swim-now' style='left:80%'></span>" +
-      U.company.filter(function (e) { return e.at; }).map(function (e, i) { return dot(e, i, "company", sel("event", e.key)); }).join("") + "</div></div>");
-    U.worlds.forEach(function (w) {
-      var evs = U.events.filter(function (e) { return e.world === w && e.at; });
-      var waiting = [];
-      w.lines.forEach(function (ln) {
-        var hasNext = ln.stars.some(function (s) { var tv = temporalView(s.temporal); return tv.waiting.length || tv.next.length; });
-        if (hasNext) waiting.push(ln);
-      });
-      var ws = worldStructure(w);
-      lanes.push("<div class='cc-swim-lane'><div class='cc-swim-name'><b>" + E(w.title) + "</b><small>" + lowerBoundCount(w.lines.length, ws.linesKnown) + " лин. · " + lowerBoundCount(evs.length, ws.historyKnown) + " событ.</small></div>" +
-        "<div class='cc-swim-track'><span class='cc-swim-now' style='left:80%'></span>" +
-        evs.map(function (e, i) { return dot(e, i, "material", sel("event", e.key)); }).join("") +
-        waiting.map(function (ln, i) {
-          return "<span class='cc-wait-chip st-flow' style='left:" + (82 + (i % 2) * 8) + "%;top:" + (14 + Math.floor(i / 2) % 3 * 26) + "%'" + sel("uline", ln.key) +
-            " title='" + E(ln.title + " — ожидает перехода") + "'>" + E(initials(ln.title)) + "</span>";
+    var now = Date.now() + (ui.timeShiftDays || 0) * day;
+    return {
+      from: now - (ui.timePastDays || 14) * day,
+      to: now + (ui.timeFutureDays || 14) * day,
+      now: now,
+      realNow: Date.now(),
+      custom: false
+    };
+  }
+
+  function inputDate(ms) {
+    var d = new Date(ms), y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
+    return y+"-"+m+"-"+day;
+  }
+
+  function timelineControls() {
+    var layers = ["all","publications","twin","signals","applications","stages"];
+    var presets = [
+      { k:"7", label:"±7 дн.", p:7, f:7 },
+      { k:"14", label:"±14 дн.", p:14, f:14 },
+      { k:"30", label:"±30 дн.", p:30, f:30 }
+    ];
+    return "<div class='cc-time-controls'>" +
+      "<div class='cc-time-layers'>" + layers.map(function (k) {
+        return "<button class='" + (ui.timeLayer === k ? "active" : "") + "' data-cc-time-layer='" + k + "'>" + E(timelineLayerTitle(k)) + "</button>";
+      }).join("") + "</div>" +
+      "<div class='cc-time-range'>" +
+        "<button data-cc-time-shift='-7' title='На неделю назад'>← 7 дн.</button>" +
+        presets.map(function (p) {
+          var active = !ui.timeCustomFrom && ui.timePastDays === p.p && ui.timeFutureDays === p.f;
+          return "<button class='" + (active ? "active" : "") + "' data-cc-time-preset='" + p.k + "'>" + p.label + "</button>";
         }).join("") +
-        "</div></div>");
+        "<label class='cc-time-date'><span>с</span><input type='date' data-cc-time-from value='" + E(inputDate(timelineRange().from)) + "'></label>" +
+        "<label class='cc-time-date'><span>по</span><input type='date' data-cc-time-to value='" + E(inputDate(timelineRange().to)) + "'></label>" +
+        "<button data-cc-time-today class='" + (!ui.timeShiftDays && !ui.timeCustomFrom ? "active" : "") + "'>Сегодня</button>" +
+        "<button data-cc-time-shift='7' title='На неделю вперёд'>7 дн. →</button>" +
+      "</div></div>";
+  }
+
+  function renderTimelineUniverse(page) {
+    var U = M.U, R = timelineRange(), span = R.to - R.from, day = 86400000;
+    function pos(at) { return (new Date(at).getTime() - R.from) / span * 100; }
+    function inRange(at) { var t=new Date(at).getTime(); return isFinite(t) && t>=R.from && t<=R.to; }
+    function future(at) { return new Date(at).getTime() > Date.now(); }
+    function matches(layer) { return ui.timeLayer === "all" || layer === ui.timeLayer; }
+    function attrsFor(kind,key) { return key ? sel(kind,key) : ""; }
+    function dot(e, i) {
+      if (!e.at || !inRange(e.at) || !matches(e.layer)) return "";
+      var cls = "cc-time-dot " + E(e.layer) + (future(e.at) ? " future" : " past");
+      var title = (e.text || "событие") + " · " + dateLabel(e.at) + " · " + timelineLayerTitle(e.layer);
+      return "<span class='" + cls + "' style='left:" + pos(e.at).toFixed(2) + "%;top:" + (17 + (i%3)*20) + "%'" +
+        attrsFor(e.kind,e.key) + " title='" + E(title) + "'></span>";
+    }
+
+    var events=[];
+    function push(at,text,layer,kind,key,raw) {
+      if (!at || !isFinite(new Date(at).getTime())) return;
+      events.push({at:at,text:text||"событие",layer:layer||timelineLayerOf(text,raw),kind:kind,key:key,raw:raw});
+    }
+    U.company.forEach(function(e){push(e.at,e.text,timelineLayerOf(e.text,e.item),"event",e.key,e.item);});
+    U.events.forEach(function(e){push(e.at,e.text,timelineLayerOf(e.text,e.item),"event",e.key,e.item);});
+    U.unresolved.forEach(function(e){push(e.at,e.text,timelineLayerOf(e.text,e.item),"event",e.key,e.item);});
+
+    U.stars.forEach(function(star){
+      var tv=temporalView(star.temporal);
+      tv.history.forEach(function(v,i){push(v.at,v.main,timelineLayerOf(v.main,v.raw),"star",star.key,v.raw);});
+      tv.waiting.concat(tv.next).forEach(function(v){
+        if (v.at) push(v.at,v.title,timelineLayerOf(v.title,v.raw),"star",star.key,v.raw);
+      });
     });
-    lanes.push("<div class='cc-swim-lane unresolved'><div class='cc-swim-name'><b>Не размещено</b><small>" + (unresolvedHistoryProvided ? U.unresolved.length + " · unresolved_history" : "unresolved_history не передан") + "</small></div>" +
-      "<div class='cc-swim-track'><span class='cc-swim-now' style='left:80%'></span>" +
-      U.unresolved.filter(function (e) { return e.at; }).map(function (e, i) { return dot(e, i, "unplaced", sel("event", e.key)); }).join("") + "</div></div>");
 
-    page.querySelector("[data-cc='swim']").innerHTML = "<div class='cc-swim'><div class='cc-swim-axis'>" + ticks +
-      "<span class='future' style='left:81%'>ожидание →</span></div>" + lanes.join("") + "</div>" +
-      "<div class='cc-legend'><span><i class='mk company'></i>событие компании</span><span><i class='mk material'></i>событие линии</span>" +
-      "<span><i class='mk unplaced'></i>неразмещённая история</span><span><i class='mk next'></i>линия со звездой в ожидании перехода (без даты)</span></div>";
+    var twin=M.d.twinState||{};
+    ["seal_created_at","outcome_at","outcome_due_at","resolution_at","expected_outcome_at","reveal_at"].forEach(function(k){
+      if (twin[k]) push(twin[k], k==="seal_created_at" ? "Twin: прогноз запечатан" : "Twin: ожидаемое раскрытие / исход", "twin", null, null, twin);
+    });
+    var ms=M.d.marketSignals||{};
+    A(ms.signals).forEach(function(sig){
+      var at=sig.observed_at||sig.detected_at||sig.created_at||sig.published_at||sig.at;
+      push(at, sig.title||sig.entity||"Сигнал", "signals", null, null, sig);
+    });
+    var fm=M.d.fieldMovement||{};
+    push(fm.observed_at||fm.updated_at||fm.compiled_at, "Обновление поля сигналов", "signals", null, null, fm);
+    var sd=M.d.scannerDiagnostics||{};
+    push(sd.observed_at||sd.updated_at||sd.checked_at, "Диагностика Market Scanner", "signals", null, null, sd);
+    M.lines.forEach(function(l){
+      var r=l.r||{}, text=l.title+" "+String(r.next_move||"");
+      var at=r.deadline||r.due_at||r.expected_at||r.scheduled_at||r.next_gate_at||r.decision_at||r.result_at||null;
+      if (!at) {
+        var m=String(r.next_move||"").match(/20\d\d-\d\d-\d\d/);
+        if (m) at=m[0];
+      }
+      if (at) push(at,l.title+" — "+(r.next_move||"следующий рубеж"),timelineLayerOf(text,r),"line",l.key,r);
+    });
+    FOUNDER_TIME_EVENTS.forEach(function(e){
+      push(e.at,e.text,e.layer,null,null,{ why_it_matters:e.provenance, founder_confirmed:true });
+    });
 
-    // company → world → line → star
+    events.sort(function(a,b){return String(a.at).localeCompare(String(b.at));});
+    var visible=events.filter(function(e){return inRange(e.at)&&matches(e.layer);});
+
+    var ticks="";
+    for(var i=0;i<=8;i++){
+      var t=R.from+span*i/8;
+      ticks+="<span style='left:"+(i*12.5)+"%'>"+E(dateLabel(new Date(t).toISOString()))+"</span>";
+    }
+    var nowP=Math.max(0,Math.min(100,(Date.now()-R.from)/span*100));
+    var rowH=Math.max(86, 28 + Math.ceil(Math.max(1,visible.length)/3)*16);
+    var marks=visible.map(dot).join("");
+    var futureN=visible.filter(function(e){return future(e.at);}).length;
+
+    page.querySelector("[data-cc='swim']").innerHTML =
+      timelineControls() +
+      "<div class='cc-time-scroll'><div class='cc-time-canvas' style='--cc-time-row:"+rowH+"px'>" +
+        "<div class='cc-time-axis'>"+ticks+"<span class='cc-time-today' style='left:"+nowP.toFixed(2)+"%'>сегодня</span></div>" +
+        "<div class='cc-time-lane'><div class='cc-time-lane-name'><b>"+E(timelineLayerTitle(ui.timeLayer))+"</b><small>"+visible.length+" событий · "+futureN+" будущих</small></div>" +
+          "<div class='cc-time-track'><span class='cc-time-now-line' style='left:"+nowP.toFixed(2)+"%'></span>"+marks+"</div></div>" +
+      "</div></div>" +
+      "<div class='cc-legend cc-time-legend'><span><i class='mk material'></i>произошло</span><span><i class='mk next'></i>известная будущая дата</span><span>Серые точки — запланированное/ожидаемое, а не уже случившийся факт.</span></div>" +
+      (visible.length ? "<div class='cc-time-event-list'>" + visible.slice(0,8).map(function(e){
+        var why=e.raw&&e.raw.why_it_matters?String(e.raw.why_it_matters):"";
+        return "<div class='cc-time-event-row "+E(e.layer)+(future(e.at)?" future":"")+"'><time>"+E(dateLabel(e.at))+"</time><div><b>"+E(H.cut(e.text,86))+"</b>"+(why?"<small>"+E(H.cut(why,120))+"</small>":"")+"</div><span>"+E(timelineLayerTitle(e.layer))+"</span></div>";
+      }).join("") + "</div>" : "<div class='cc-time-empty'>В выбранном слое и диапазоне датированных событий нет.</div>");
+
+    // compact chronological structure; keep the source-backed star axes below the main field.
     var tree = U.worlds.map(function (w) {
       var ws = worldStructure(w);
-      var worldStarsN = w.lines.reduce(function (n, l) { return n + l.stars.length; }, 0);
-      return "<div class='cc-world'><div class='cc-world-head'><span class='cc-world-dot'></span><b>" + E(w.title) + "</b>" +
-        "<small>" + lowerBoundCount(w.lines.length, ws.linesKnown) + " лин. · " + lowerBoundCount(worldStarsN, ws.starsKnown) + " звёзд</small></div>" +
-        w.lines.map(function (ln) {
-          var last = ln.history.map(eventView).filter(function (v) { return v.at; }).sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); })[0];
-          return "<div class='cc-uline" + (isSelected("uline", ln.key) ? " selected" : "") + "'" + sel("uline", ln.key) + ">" +
-            "<div class='cc-uline-head'>" + hexBadge(initials(ln.title), "flow", "sm") + "<span><b>" + E(ln.title) + "</b><small>" +
-            lowerBoundCount(ln.stars.length, ln.branchesKnown) + " звёзд" + (last ? " · " + E(H.cut(last.main, 60)) + " · " + E(dateLabel(last.at)) : (Array.isArray(ln.raw && ln.raw.recent_history) ? " · событий в текущей истории нет" : " · recent_history не передан")) + "</small>" +
-            (last && last.why ? "<small class='why'>" + E(H.cut(last.why, 110)) + "</small>" : "") +
-            (last ? proofTags(last, true) : "") + "</span>" +
-            (hasCapital(ln) ? "<i class='cc-capchip'>капитал</i>" : "") + "</div>" +
-            (ln.stars.length ? ln.stars.map(starAxisRow).join("") : (ln.branchesKnown ? "<div class='cc-uline-empty'>У линии нет размещённых звёзд.</div>" : "<div class='cc-uline-empty'>branches[] не передан — наличие звёзд не проверено.</div>")) +
-            "</div>";
-        }).join("") + "</div>";
+      var worldStarsN = w.lines.reduce(function (n,l){return n+l.stars.length;},0);
+      return "<div class='cc-world'><div class='cc-world-head'><span class='cc-world-dot'></span><b>"+E(w.title)+"</b><small>"+
+        lowerBoundCount(w.lines.length,ws.linesKnown)+" лин. · "+lowerBoundCount(worldStarsN,ws.starsKnown)+" звёзд</small></div>"+
+        w.lines.map(function(ln){
+          var last=ln.history.map(eventView).filter(function(v){return v.at;}).sort(function(a,b){return String(b.at).localeCompare(String(a.at));})[0];
+          return "<div class='cc-uline"+(isSelected("uline",ln.key)?" selected":"")+"'"+sel("uline",ln.key)+">"+
+            "<div class='cc-uline-head'>"+hexBadge(initials(ln.title),"flow","sm")+"<span><b>"+E(ln.title)+"</b><small>"+
+            lowerBoundCount(ln.stars.length,ln.branchesKnown)+" звёзд"+(last?" · "+E(H.cut(last.main,52))+" · "+E(dateLabel(last.at)):"")+"</small></span>"+
+            (hasCapital(ln)?"<i class='cc-capchip'>капитал</i>":"")+"</div>"+
+            (ln.stars.length?ln.stars.map(starAxisRow).join(""):(ln.branchesKnown?"<div class='cc-uline-empty'>У линии нет размещённых звёзд.</div>":"<div class='cc-uline-empty'>branches[] не передан.</div>"))+
+          "</div>";
+        }).join("")+"</div>";
     }).join("");
-    page.querySelector("[data-cc='tree']").innerHTML = "<div class='cc-company'><div class='cc-company-head'>" + hexBadge("IC", "flow") +
-      "<span><b>ICAM · компания</b><small>" + U.worlds.length + " мир(а) · " + lowerBoundCount(U.lines.length, U.linesComplete) + " линий · " + lowerBoundCount(U.stars.length, U.starsComplete) + " звёзд · " +
-      (companyHistoryProvided ? U.company.length + " событий компании" : "company_history не передан") + "</small></span></div>" + (tree || empty("Миров нет", "Temporal Universe ответил без миров.")) + "</div>";
+    page.querySelector("[data-cc='tree']").innerHTML="<div class='cc-company'><div class='cc-company-head'>"+hexBadge("IC","flow")+
+      "<span><b>ICAM · компания</b><small>"+U.worlds.length+" мир(а) · "+lowerBoundCount(U.lines.length,U.linesComplete)+" линий · "+lowerBoundCount(U.stars.length,U.starsComplete)+" звёзд</small></span></div>"+
+      (tree||empty("Миров нет","Temporal Universe ответил без миров."))+"</div>";
 
-    page.querySelector("[data-cc='unplaced-title']").textContent = "Неразрешённая история";
-    page.querySelector("[data-cc='unplaced-sub']").textContent = unresolvedHistoryProvided ? "unresolved_history — не привязана ни к одному объекту" : "unresolved_history не передан источником";
-    page.querySelector("[data-cc='unplaced']").innerHTML = !unresolvedHistoryProvided ?
-      unavailable("Неразрешённая история не проверена", "Temporal Universe прочитан, но поле unresolved_history не передано.") :
-      (U.unresolved.length ? "<div class='cc-feed'>" + U.unresolved.map(function (e) {
-        return "<div class='cc-feed-item unplaced" + (isSelected("event", e.key) ? " selected" : "") + "'" + sel("event", e.key) + "><i></i><div>" + eventBody(e.v) + "</div><span>" + E(e.at ? dateLabel(e.at) : "без даты") + "</span></div>";
-      }).join("") + "</div><div class='cc-foot-note'>Панель не привязывает эти события к объектам по тематическому сходству. Они остаются неразмещёнными, пока источник не разместит их явно.</div>" :
-      empty("Неразрешённой истории нет в текущей проекции", "Temporal Universe явно передал пустой unresolved_history[]."));
+    var unresolvedHistoryProvided=Array.isArray(M.tu.data&&M.tu.data.unresolved_history);
+    page.querySelector("[data-cc='unplaced-title']").textContent="Непривязанные события";
+    page.querySelector("[data-cc='unplaced-sub']").textContent=unresolvedHistoryProvided?"unresolved_history · источник ещё не связал их с объектами":"unresolved_history не передан источником";
+    page.querySelector("[data-cc='unplaced']").innerHTML=!unresolvedHistoryProvided?
+      unavailable("Не проверено","Temporal Universe не передал unresolved_history.") :
+      (U.unresolved.length?"<div class='cc-feed'>"+U.unresolved.map(function(e){
+        return "<div class='cc-feed-item unplaced"+(isSelected("event",e.key)?" selected":"")+"'"+sel("event",e.key)+"><i></i><div>"+eventBody(e.v)+"</div><span>"+E(e.at?dateLabel(e.at):"без даты")+"</span></div>";
+      }).join("")+"</div>":empty("Непривязанных событий нет","Источник явно передал пустой список."));
 
-    page.querySelector("[data-cc='bounds']").innerHTML = "<ul class='cc-bounds'>" +
-      (!U.rulesKnown ? "<li><b>rules не передан:</b> правила источника в текущем Temporal Universe не проверены.</li>" :
-        (U.rules.length ? U.rules.map(function (r) { return "<li><b>Правило источника:</b> " + E(scalar(r)) + "</li>"; }).join("") : "<li><b>rules:</b> источник явно передал пустой набор правил.</li>")) +
-      "<li>История / Сейчас / Ждём / Следующий переход звезды — <b>temporal.history</b>, <b>now.state</b>, <b>waiting</b>, <b>next_transition</b> из Temporal Universe; явное пустое значение и отсутствующее поле различаются Панелью и не схлопываются в одно состояние.</li>" +
-      "<li>События показываются как изменение → почему важно → следующая веха; пометка — truth_status и binding_class источника.</li>" +
-      "<li>У ожидания и следующего перехода нет даты — они стоят в зоне ожидания без срока.</li>" +
-      "<li>Маршруты Оркестратора связаны со звёздами только по точному совпадению ID объекта и memory_id.</li>" +
-      "</ul>";
+    page.querySelector("[data-cc='bounds']").innerHTML =
+      "<details class='cc-time-rules'><summary>Правила и доказательные границы</summary><ul class='cc-bounds'>"+
+      "<li>Цветная точка — датированный факт из источника; серая — известная будущая дата.</li>"+
+      "<li>Слой меняет только видимость событий и не меняет их статус.</li>"+
+      "<li>Событие без даты остаётся в карточке объекта, но не ставится на шкалу.</li>"+
+      "<li>Связи с объектами строятся только по точным идентификаторам.</li></ul></details>";
   }
 
   // One star moving through time: История → Сейчас → Ждём → Следующий переход.
@@ -1693,7 +1816,7 @@
           "<em>" + E(last.at ? dateLabel(last.at) : "без даты") + "</em>" : "<span>" + E(tv.historyKnown ? "истории нет" : "history не передан") + "</span>") + "</div>" +
       "<div class='cc-ax now" + (tv.now ? "" : " none") + "'><i></i><small>Сейчас</small>" + (tv.now ? "<b>" + E(H.cut(tv.now, 60)) + "</b>" : "<span>состояние не передано</span>") + "</div>" +
       "<div class='cc-ax wait" + (tv.waiting.length ? "" : " none") + "'><i></i><small>Ждём</small>" + (tv.waiting.length ? items(tv.waiting) : "<span>" + E(tv.waitingKnown ? "нет" : "waiting не передан") + "</span>") + "</div>" +
-      "<div class='cc-ax next" + (tv.next.length ? "" : " none") + "'><i></i><small>Следующий переход</small>" + (tv.next.length ? items(tv.next) : "<span>" + E(tv.nextKnown ? "нет" : "next_transition не передан") + "</span>") + "</div>" +
+      "<div class='cc-ax next" + (tv.next.length ? "" : " none") + "'><i></i><small>След. шаг</small>" + (tv.next.length ? items(tv.next) : "<span>" + E(tv.nextKnown ? "нет" : "next_transition не передан") + "</span>") + "</div>" +
       "</div>";
     return "<div class='cc-star-row" + (s.verified ? " verified" : "") + (isSelected("star", s.key) ? " selected" : "") + "'" + sel("star", s.key) + ">" + name + body + "</div>";
   }
@@ -1757,7 +1880,7 @@
             (l.r.last_movement_at ? "движение " + H.ago(l.r.last_movement_at) : "история не передана")) + "</span></div>" +
           "<div class='cc-flow-step now'><small>Настоящее</small><span>" + E(human(l.r.stage || l.r.status || "этап не передан")) + "</span>" + toneDot(l.tone, routeToneLabel(l)) + "</div>" +
           "<div class='cc-flow-step wait'><small>Ожидание</small><span>" + E(l.r.review_condition ? H.cut(l.r.review_condition, 60) : (l.waiting ? "ждём: " + ownerLabel(l.r.ball_owner) : "условие не передано")) + "</span></div>" +
-          "<div class='cc-flow-step next'><small>Следующий переход</small><span title='" + E(l.next || "") + "'>" + E(l.next ? H.cut(humanActionText(l.next), 60) : "не передан") + "</span></div></div>";
+          "<div class='cc-flow-step next'><small>След. шаг</small><span title='" + E(l.next || "") + "'>" + E(l.next ? H.cut(humanActionText(l.next), 60) : "не передан") + "</span></div></div>";
       }).join("") : empty("Нет маршрутов без явного закрывающего статуса", "Оркестратор явно передал routes[].")) + "</div>";
 
     var un = M.events.filter(function (e) { return e.kind === "object" && !e.placed; });
@@ -2881,6 +3004,21 @@
     if (e.target.closest("[data-cc-clear]")) { ui.selected = null; renderAll(); return; }
     if (e.target.closest("[data-cc-hero-more]")) { ui.heroAll = !ui.heroAll; renderAll(); return; }
     if (e.target.closest("[data-cc-routes-more]")) { ui.routesAll = !ui.routesAll; renderAll(); return; }
+    var tl = e.target.closest("[data-cc-time-layer]");
+    if (tl) { ui.timeLayer = tl.getAttribute("data-cc-time-layer") || "all"; renderAll(); return; }
+    var tp = e.target.closest("[data-cc-time-preset]");
+    if (tp) { var n = Number(tp.getAttribute("data-cc-time-preset")); if (isFinite(n)) { ui.timePastDays=n; ui.timeFutureDays=n; ui.timeCustomFrom=null; ui.timeCustomTo=null; ui.timeShiftDays=0; } renderAll(); return; }
+    var ts = e.target.closest("[data-cc-time-shift]");
+    if (ts) {
+      var sh = Number(ts.getAttribute("data-cc-time-shift") || 0);
+      if (ui.timeCustomFrom && ui.timeCustomTo) {
+        var df=new Date(ui.timeCustomFrom+"T00:00:00"), dt=new Date(ui.timeCustomTo+"T00:00:00");
+        df.setDate(df.getDate()+sh); dt.setDate(dt.getDate()+sh);
+        ui.timeCustomFrom=inputDate(df.getTime()); ui.timeCustomTo=inputDate(dt.getTime());
+      } else ui.timeShiftDays += sh;
+      renderAll(); return;
+    }
+    if (e.target.closest("[data-cc-time-today]")) { ui.timeShiftDays = 0; ui.timeCustomFrom=null; ui.timeCustomTo=null; renderAll(); return; }
     var t = e.target.closest("[data-cc-select]");
     if (!t || !M) return;
     var v = t.getAttribute("data-cc-select"), i = v.indexOf(":");
@@ -2889,6 +3027,17 @@
     var page = t.closest(".page");
     var insp = page && page.querySelector("[data-cc-inspector]");
     if (insp && window.matchMedia("(max-width:1280px)").matches) insp.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  document.addEventListener("change", function(e) {
+    var f=e.target.closest && e.target.closest("[data-cc-time-from]");
+    var t=e.target.closest && e.target.closest("[data-cc-time-to]");
+    if (!f && !t) return;
+    var page=e.target.closest("[data-page-panel='timeline']");
+    if (!page) return;
+    var from=page.querySelector("[data-cc-time-from]"), to=page.querySelector("[data-cc-time-to]");
+    if (from && to && from.value && to.value && from.value <= to.value) {
+      ui.timeCustomFrom=from.value; ui.timeCustomTo=to.value; ui.timeShiftDays=0; renderAll();
+    }
   });
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Enter" && e.key !== " ") return;

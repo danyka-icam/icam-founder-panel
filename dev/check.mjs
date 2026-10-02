@@ -34,7 +34,7 @@ for (const w of WIDTHS) {
     const tl = await txt("timeline"), pl = await txt("placement"), cc = await txt("command"), ln = await txt("links"), bp = await txt("brazilportal");
     if (EXPECT === "ok") {
       check(/Temporal Universe/.test(tl) && !/Реконструкция/.test(tl), "timeline uses Temporal Universe, no reconstruction banner");
-      check(/Неразрешённая история/.test(tl), "timeline shows unresolved_history");
+      check(/Непривязанные события/.test(tl) && /unresolved_history/.test(tl), "timeline shows unresolved_history as a shorter human label");
       check(/113/.test(pl) && /Кандидаты на точную связь/.test(pl) && /на Founder Map (он|они) не появ/.test(pl), "placement driven by Portfolio Admission; exact-owner candidates are not stars");
       check(/Активная очередь сверки/.test(pl) && /из 78 по источнику/.test(pl), "placement reconciles source total with active queue");
       check(/Требует вашего решения/.test(cc) && /Нужно решить/.test(cc) && /Маршруты на вашей стороне/.test(cc), "hero separates formal decisions from Founder-assigned routes");
@@ -45,6 +45,8 @@ for (const w of WIDTHS) {
       check(/Фундамент и инфраструктура/.test(cc), "command center shows canonical worlds");
       // real contract shapes (schema_id, temporal, history events, maps, capital, path)
       check(/Без закрытия receipt readiness/.test(tl) && /Soak выявил orphan receipt/.test(tl), "history event: change + why_it_matters shown");
+      check(/Публикации/.test(tl) && /Twin/.test(tl) && /Сигналы/.test(tl) && /Заявки и тендеры/.test(tl) && /Этапы/.test(tl), "timeline exposes layered filters");
+      check(/type=.?date/i.test(await page.locator('[data-page-panel="timeline"]').innerHTML()), "timeline exposes exact date-range controls");
       check(/PENDING_RECONCILIATION/.test(tl), "history event: truth_status / binding_class shown as proof tag");
       check(!/event_id|"change"|\{"/.test(tl + pl + cc + ln), "no raw JSON of known event fields");
       check(/Финальная стабилизация/.test(tl) && /Закрытие orphan receipt/.test(tl) && /Readiness aggregate PASS/.test(tl), "temporal: now.state / waiting / next_transition shown");
