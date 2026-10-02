@@ -34,7 +34,9 @@
       at: "2026-09-08T05:06:00-03:00",
       text: "GovAI Research Scholar / Research Fellow — отказ получен",
       layer: "applications",
-      provenance: "Подтверждено Основателем по письму GovAI; ожидание закрыто."
+      provenance: "Подтверждено Основателем по письму GovAI; ожидание закрыто.",
+      terminal: true,
+      subject_match: "govai|governance[ ._-]*ai|research scholar|research fellow"
     }
   ];
 
@@ -1689,7 +1691,7 @@
     function matches(layer) { return ui.timeLayer === "all" || layer === ui.timeLayer; }
     function dot(e, i) {
       if (!e.at || !inRange(e.at) || !matches(e.layer)) return "";
-      var cls = "cc-time-dot " + E(e.layer) + (future(e.at) ? " future" : " past");
+      var cls = "cc-time-dot " + E(e.layer) + (future(e.at) ? " future" : " past") + (e.superseded ? " superseded" : "");
       var title = (e.text || "событие") + " · " + dateLabel(e.at) + " · " + timelineLayerTitle(e.layer);
       return "<button type='button' class='" + cls + "' style='left:" + pos(e.at).toFixed(2) + "%;top:" + (17 + (i%3)*20) + "%'" +
         sel("timeevent",e.timelineKey) + " title='" + E(title) + "' aria-label='" + E(title) + "'></button>";
@@ -1739,7 +1741,24 @@
       if (at) push(at,l.title+" — "+(r.next_move||"следующий рубеж"),timelineLayerOf(text,r),"line",l.key,r);
     });
     FOUNDER_TIME_EVENTS.forEach(function(e){
-      push(e.at,e.text,e.layer,null,null,{ why_it_matters:e.provenance, founder_confirmed:true });
+      push(e.at,e.text,e.layer,null,null,{ why_it_matters:e.provenance, founder_confirmed:true, terminal:!!e.terminal, subject_match:e.subject_match||"" });
+    });
+
+    // Founder-confirmed terminal facts may close an older/stale "waiting" state.
+    // Preserve the source event for provenance, but mark later contradictory waits as superseded.
+    FOUNDER_TIME_EVENTS.filter(function(f){return f.terminal && f.subject_match;}).forEach(function(f){
+      var re;
+      try { re=new RegExp(f.subject_match,"i"); } catch (_) { return; }
+      var ft=new Date(f.at).getTime();
+      events.forEach(function(e){
+        if (e.raw && e.raw.founder_confirmed) return;
+        var t=new Date(e.at).getTime();
+        var blob=[e.text,e.raw&&e.raw.title,e.raw&&e.raw.name,e.raw&&e.raw.subject,e.raw&&e.raw.next_move,e.raw&&e.raw.state,e.raw&&e.raw.status].filter(Boolean).join(" ");
+        var waiting=/wait|waiting|pending|await|ожида|жд[её]м|ответ|response/i.test(blob);
+        if (isFinite(t) && t>=ft && waiting && re.test(blob)) {
+          e.superseded={at:f.at,text:f.text,provenance:f.provenance};
+        }
+      });
     });
 
     events.sort(function(a,b){return String(a.at).localeCompare(String(b.at));});
@@ -1765,7 +1784,7 @@
       "<div class='cc-legend cc-time-legend'><span><i class='mk material'></i>произошло</span><span><i class='mk next'></i>известная будущая дата</span><span>Серые точки — запланированное/ожидаемое, а не уже случившийся факт.</span></div>" +
       (visible.length ? "<div class='cc-time-event-list'>" + visible.slice(0,8).map(function(e){
         var why=e.raw&&e.raw.why_it_matters?String(e.raw.why_it_matters):"";
-        return "<button type='button' class='cc-time-event-row "+E(e.layer)+(future(e.at)?" future":"")+"'"+sel("timeevent",e.timelineKey)+"><time>"+E(dateLabel(e.at))+"</time><div><b>"+E(H.cut(e.text,86))+"</b>"+(why?"<small>"+E(H.cut(why,120))+"</small>":"")+"</div><span>"+E(timelineLayerTitle(e.layer))+"</span></button>";
+        return "<button type='button' class='cc-time-event-row "+E(e.layer)+(future(e.at)?" future":"")+(e.superseded?" superseded":"")+"'"+sel("timeevent",e.timelineKey)+"><time>"+E(dateLabel(e.at))+"</time><div><b>"+E(H.cut(e.text,86))+"</b>"+(why?"<small>"+E(H.cut(why,120))+"</small>":"")+(e.superseded?"<small class='cc-time-superseded-note'>Перекрыто подтверждённым фактом от "+E(dateLabel(e.superseded.at))+"</small>":"")+"</div><span>"+E(e.superseded?"закрыто":timelineLayerTitle(e.layer))+"</span></button>";
       }).join("") + "</div>" : "<div class='cc-time-empty'>В выбранном слое и диапазоне датированных событий нет.</div>");
 
     // compact chronological structure; keep the source-backed star axes below the main field.
@@ -2747,6 +2766,7 @@
   function inspectTimeEvent(e) {
     var raw=e.raw && typeof e.raw === "object" ? e.raw : {};
     var isFuture=new Date(e.at).getTime()>Date.now();
+    var superseded=e.superseded||null;
     var link="";
     if (e.kind && e.key) {
       if (e.kind === "star" && M.U && M.U.starByKey[e.key]) link=refsBlock("Связанный объект", starRef(M.U.starByKey[e.key]));
@@ -2761,13 +2781,13 @@
       sub:dateLabel(e.at)+" · "+timelineLayerTitle(e.layer)+(isFuture?" · будущая известная дата":""),
       what:para(e.text || "Датированное событие."),
       where:crumbs([{t:"ICAM"},{t:"Во времени"},{t:timelineLayerTitle(e.layer),cur:true}]),
-      now:para(isFuture ? "Эта точка находится в будущем и отображает известную дату ожидания, раскрытия, результата или перехода — не уже произошедший факт." : "Эта точка находится в прошлом или настоящем и отображается как датированный факт источника."),
+      now:superseded ? para("Это состояние сохранено как историческая запись источника, но больше не считается действующим: его перекрыл подтверждённый факт от "+dateLabel(superseded.at)+".") : para(isFuture ? "Эта точка находится в будущем и отображает известную дату ожидания, раскрытия, результата или перехода — не уже произошедший факт." : "Эта точка находится в прошлом или настоящем и отображается как датированный факт источника."),
       why:why ? para(String(why)) : "",
       history:"<ul class='cc-hist'><li><b>"+E(dateLabel(e.at))+"</b>"+E(e.text || "событие")+"</li>"+(source?"<li><b>источник / тип</b>"+E(String(source))+"</li>":"")+"</ul>",
       links:link || muted("Точная связь с каноническим объектом для этой точки не заявлена; панель её не достраивает."),
       ceiling:[
         ceilingRow("ok","Дата и содержание точки взяты из доступного источника или из явно подтверждённого Основателем события"),
-        ceilingRow(isFuture?"warn":"info",isFuture?"Будущая точка не считается наступившим фактом":"Статус события не усиливается интерфейсом"),
+        ceilingRow(superseded?"warn":(isFuture?"warn":"info"),superseded?"Запись сохранена для происхождения данных, но её активный смысл закрыт более поздним подтверждённым фактом":(isFuture?"Будущая точка не считается наступившим фактом":"Статус события не усиливается интерфейсом")),
         ceilingRow(e.kind&&e.key?"ok":"info",e.kind&&e.key?"Есть точная ссылка на исходный объект":"Связь с объектом не выводится по сходству текста")
       ],
       nav:NAV_TIME

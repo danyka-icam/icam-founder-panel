@@ -1004,3 +1004,8 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .cc-time-date span{font-size:9px;color:var(--muted-2);text-transform:uppercase}
 .cc-time-date input{border:0;outline:0;background:transparent;color:#dce8e5;font:500 10.5px Inter,sans-serif;color-scheme:dark;min-width:112px}
 .cc-time-date:focus-within{border-color:rgba(63,207,166,.55)}
+
+.cc-time-dot.superseded{background:transparent!important;border-style:dashed!important;opacity:.42;box-shadow:none!important}
+.cc-time-event-row.superseded{opacity:.58}
+.cc-time-event-row.superseded b{text-decoration:line-through;text-decoration-thickness:1px;text-decoration-color:rgba(200,210,210,.45)}
+.cc-time-superseded-note{color:var(--cc-return)!important}
