@@ -1683,6 +1683,17 @@
       "</div></div>";
   }
 
+  function timelineSemanticTitle(kind) {
+    return {
+      fact:"факт",
+      transition:"переход",
+      waiting:"ожидание",
+      closed_wait:"закрытое ожидание",
+      milestone:"контрольная точка",
+      event:"событие"
+    }[kind] || "событие";
+  }
+
   function renderTimelineUniverse(page) {
     var U = M.U, R = timelineRange(), span = R.to - R.from, day = 86400000;
     function pos(at) { return (new Date(at).getTime() - R.from) / span * 100; }
@@ -1691,17 +1702,17 @@
     function matches(layer) { return ui.timeLayer === "all" || layer === ui.timeLayer; }
     function dot(e) {
       if (!e.at || !inRange(e.at) || !matches(e.layer)) return "";
-      var cls = "cc-time-dot " + E(e.layer) + (future(e.at) ? " future" : " past") + (e.superseded ? " superseded" : "");
-      var title = (e.text || "событие") + " · " + dateLabel(e.at) + " · " + timelineLayerTitle(e.layer);
+      var cls = "cc-time-dot " + E(e.layer) + " semantic-" + E(e.semantic) + (future(e.at) ? " future" : " past") + (e.superseded ? " superseded" : "");
+      var title = (e.text || "событие") + " · " + dateLabel(e.at) + " · " + timelineSemanticTitle(e.semantic) + " · " + timelineLayerTitle(e.layer);
       return "<button type='button' class='" + cls + "' style='left:" + pos(e.at).toFixed(2) + "%;top:" + (12 + (e.lane||0)*20) + "px'" +
         sel("timeevent",e.timelineKey) + " title='" + E(title) + "' aria-label='" + E(title) + "'></button>";
     }
 
     var events=[];
     timelineInspectorEvents = {};
-    function push(at,text,layer,kind,key,raw) {
+    function push(at,text,layer,kind,key,raw,semantic) {
       if (!at || !isFinite(new Date(at).getTime())) return;
-      var e={at:at,text:text||"событие",layer:layer||timelineLayerOf(text,raw),kind:kind,key:key,raw:raw};
+      var e={at:at,text:text||"событие",layer:layer||timelineLayerOf(text,raw),kind:kind,key:key,raw:raw,semantic:semantic||"event"};
       e.timelineKey = "t" + events.length + ":" + String(new Date(at).getTime());
       events.push(e);
       timelineInspectorEvents[e.timelineKey]=e;
@@ -1712,25 +1723,28 @@
 
     U.stars.forEach(function(star){
       var tv=temporalView(star.temporal);
-      tv.history.forEach(function(v,i){push(v.at,v.main,timelineLayerOf(v.main,v.raw),"star",star.key,v.raw);});
-      tv.waiting.concat(tv.next).forEach(function(v){
-        if (v.at) push(v.at,v.title,timelineLayerOf(v.title,v.raw),"star",star.key,v.raw);
+      tv.history.forEach(function(v,i){push(v.at,v.main,timelineLayerOf(v.main,v.raw),"star",star.key,v.raw,v.transition?"transition":"fact");});
+      tv.waiting.forEach(function(v){
+        if (v.at) push(v.at,v.title,timelineLayerOf(v.title,v.raw),"star",star.key,v.raw,"waiting");
+      });
+      tv.next.forEach(function(v){
+        if (v.at) push(v.at,v.title,timelineLayerOf(v.title,v.raw),"star",star.key,v.raw,"milestone");
       });
     });
 
     var twin=M.d.twinState||{};
     ["seal_created_at","outcome_at","outcome_due_at","resolution_at","expected_outcome_at","reveal_at"].forEach(function(k){
-      if (twin[k]) push(twin[k], k==="seal_created_at" ? "Twin: прогноз запечатан" : "Twin: ожидаемое раскрытие / исход", "twin", null, null, twin);
+      if (twin[k]) push(twin[k], k==="seal_created_at" ? "Twin: прогноз запечатан" : "Twin: ожидаемое раскрытие / исход", "twin", null, null, twin, k==="seal_created_at"?"fact":"milestone");
     });
     var ms=M.d.marketSignals||{};
     A(ms.signals).forEach(function(sig){
       var at=sig.observed_at||sig.detected_at||sig.created_at||sig.published_at||sig.at;
-      push(at, sig.title||sig.entity||"Сигнал", "signals", null, null, sig);
+      push(at, sig.title||sig.entity||"Сигнал", "signals", null, null, sig, "fact");
     });
     var fm=M.d.fieldMovement||{};
-    push(fm.observed_at||fm.updated_at||fm.compiled_at, "Обновление поля сигналов", "signals", null, null, fm);
+    push(fm.observed_at||fm.updated_at||fm.compiled_at, "Обновление поля сигналов", "signals", null, null, fm, "fact");
     var sd=M.d.scannerDiagnostics||{};
-    push(sd.observed_at||sd.updated_at||sd.checked_at, "Диагностика Market Scanner", "signals", null, null, sd);
+    push(sd.observed_at||sd.updated_at||sd.checked_at, "Диагностика Market Scanner", "signals", null, null, sd, "fact");
     M.lines.forEach(function(l){
       var r=l.r||{}, text=l.title+" "+String(r.next_move||"");
       var at=r.deadline||r.due_at||r.expected_at||r.scheduled_at||r.next_gate_at||r.decision_at||r.result_at||null;
@@ -1738,10 +1752,10 @@
         var m=String(r.next_move||"").match(/20\d\d-\d\d-\d\d/);
         if (m) at=m[0];
       }
-      if (at) push(at,l.title+" — "+(r.next_move||"следующий рубеж"),timelineLayerOf(text,r),"line",l.key,r);
+      if (at) push(at,l.title+" — "+(r.next_move||"следующий рубеж"),timelineLayerOf(text,r),"line",l.key,r,"milestone");
     });
     FOUNDER_TIME_EVENTS.forEach(function(e){
-      push(e.at,e.text,e.layer,null,null,{ why_it_matters:e.provenance, founder_confirmed:true, terminal:!!e.terminal, subject_match:e.subject_match||"" });
+      push(e.at,e.text,e.layer,null,null,{ why_it_matters:e.provenance, founder_confirmed:true, terminal:!!e.terminal, subject_match:e.subject_match||"" },"fact");
     });
 
     // Founder-confirmed terminal facts may close an older/stale "waiting" state.
@@ -1757,6 +1771,7 @@
         var waiting=/wait|waiting|pending|await|ожида|жд[её]м|ответ|response/i.test(blob);
         if (isFinite(t) && t>=ft && waiting && re.test(blob)) {
           e.superseded={at:f.at,text:f.text,provenance:f.provenance};
+          e.semantic="closed_wait";
         }
       });
     });
@@ -1784,18 +1799,21 @@
     var rowH=Math.max(86, 34 + laneCount*20);
     var marks=visible.map(dot).join("");
     var futureN=visible.filter(function(e){return future(e.at);}).length;
+    var semCounts={fact:0,transition:0,waiting:0,closed_wait:0,milestone:0,event:0};
+    visible.forEach(function(e){semCounts[e.semantic]=(semCounts[e.semantic]||0)+1;});
+    var semSummary=Object.keys(semCounts).filter(function(k){return semCounts[k]>0;}).map(function(k){return timelineSemanticTitle(k)+" "+semCounts[k];}).join(" · ");
 
     page.querySelector("[data-cc='swim']").innerHTML =
       timelineControls() +
       "<div class='cc-time-scroll'><div class='cc-time-canvas' style='--cc-time-row:"+rowH+"px'>" +
         "<div class='cc-time-axis'>"+ticks+"<span class='cc-time-today' style='left:"+nowP.toFixed(2)+"%'>сегодня</span></div>" +
-        "<div class='cc-time-lane'><div class='cc-time-lane-name'><b>"+E(timelineLayerTitle(ui.timeLayer))+"</b><small>"+visible.length+" событий · "+futureN+" будущих</small></div>" +
+        "<div class='cc-time-lane'><div class='cc-time-lane-name'><b>"+E(timelineLayerTitle(ui.timeLayer))+"</b><small>"+E(semSummary || (visible.length+" событий"))+(futureN?" · "+futureN+" будущих":"")+"</small></div>" +
           "<div class='cc-time-track'><span class='cc-time-now-line' style='left:"+nowP.toFixed(2)+"%'></span>"+marks+"</div></div>" +
       "</div></div>" +
-      "<div class='cc-legend cc-time-legend'><span><i class='mk material'></i>произошло</span><span><i class='mk next'></i>известная будущая дата</span><span>Серые точки — запланированное/ожидаемое, а не уже случившийся факт.</span></div>" +
+      "<div class='cc-legend cc-time-legend'><span><i class='mk material'></i>факт</span><span><i class='mk transition'></i>переход</span><span><i class='mk waiting'></i>ожидание</span><span><i class='mk next'></i>контрольная точка</span><span><i class='mk closed'></i>закрытое ожидание</span><span>Серые будущие точки — известные даты, а не уже случившиеся факты.</span></div>" +
       (visible.length ? "<div class='cc-time-event-list'>" + visible.slice(0,8).map(function(e){
         var why=e.raw&&e.raw.why_it_matters?String(e.raw.why_it_matters):"";
-        return "<button type='button' class='cc-time-event-row "+E(e.layer)+(future(e.at)?" future":"")+(e.superseded?" superseded":"")+"'"+sel("timeevent",e.timelineKey)+"><time>"+E(dateLabel(e.at))+"</time><div><b>"+E(H.cut(e.text,86))+"</b>"+(why?"<small>"+E(H.cut(why,120))+"</small>":"")+(e.superseded?"<small class='cc-time-superseded-note'>Перекрыто подтверждённым фактом от "+E(dateLabel(e.superseded.at))+"</small>":"")+"</div><span>"+E(e.superseded?"закрыто":timelineLayerTitle(e.layer))+"</span></button>";
+        return "<button type='button' class='cc-time-event-row "+E(e.layer)+" semantic-"+E(e.semantic)+(future(e.at)?" future":"")+(e.superseded?" superseded":"")+"'"+sel("timeevent",e.timelineKey)+"><time>"+E(dateLabel(e.at))+"</time><div><b>"+E(H.cut(e.text,86))+"</b>"+(why?"<small>"+E(H.cut(why,120))+"</small>":"")+(e.superseded?"<small class='cc-time-superseded-note'>Перекрыто подтверждённым фактом от "+E(dateLabel(e.superseded.at))+"</small>":"")+"</div><span>"+E(timelineSemanticTitle(e.semantic))+" · "+E(timelineLayerTitle(e.layer))+"</span></button>";
       }).join("") + "</div>" : "<div class='cc-time-empty'>В выбранном слое и диапазоне датированных событий нет.</div>");
 
     // compact chronological structure; keep the source-backed star axes below the main field.
@@ -2789,7 +2807,7 @@
     return inspector({
       badge:"<span class='cc-obj-badge event'>◆</span>",
       title:e.text || "Событие",
-      sub:dateLabel(e.at)+" · "+timelineLayerTitle(e.layer)+(isFuture?" · будущая известная дата":""),
+      sub:dateLabel(e.at)+" · "+timelineSemanticTitle(e.semantic)+" · "+timelineLayerTitle(e.layer)+(isFuture?" · будущая известная дата":""),
       what:para(e.text || "Датированное событие."),
       where:crumbs([{t:"ICAM"},{t:"Во времени"},{t:timelineLayerTitle(e.layer),cur:true}]),
       now:superseded ? para("Это состояние сохранено как историческая запись источника, но больше не считается действующим: его перекрыл подтверждённый факт от "+dateLabel(superseded.at)+".") : para(isFuture ? "Эта точка находится в будущем и отображает известную дату ожидания, раскрытия, результата или перехода — не уже произошедший факт." : "Эта точка находится в прошлом или настоящем и отображается как датированный факт источника."),
