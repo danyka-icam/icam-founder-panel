@@ -1,14 +1,14 @@
-// Drives the v2 panel on a running dev stand in Chromium: every Command Center
-// mode at several widths, fails on JS errors or horizontal overflow, and
-// checks the honesty text expected for the stand's TU/ADM mode.
-// Usage: BASE=http://127.0.0.1:8765/founder-ui-preview/v2/ EXPECT=ok|tu-down|adm-down node dev/check.mjs
+// Drives the v2 panel on a running dev stand in Chromium: all current
+// top-level panels at several widths, fails on JS errors or horizontal overflow,
+// and checks the honesty text expected for the stand's degraded/source modes.
+// Usage: BASE=http://127.0.0.1:8765/founder-ui-preview/v2/ EXPECT=ok|tu-down|adm-down|hero-many node dev/check.mjs
 // Optional: SHOTS=<dir> writes a full-page screenshot per mode at 1680px.
 import { chromium } from "playwright";
 
 const BASE = process.env.BASE || "http://127.0.0.1:8765/founder-ui-preview/v2/";
 const EXPECT = process.env.EXPECT || "ok";
 const WAIT = Number(process.env.WAIT || 1200);
-const MODES = ["command", "timeline", "links", "lines", "placement"];
+const MODES = ["command", "timeline", "links", "lines", "placement", "signals", "foundation", "research", "atlas", "digital-twin", "brazilportal", "operations", "registry", "documents", "testing", "diagnostics"];
 const WIDTHS = (process.env.WIDTHS || "1680,1280,820,390").split(",").map(Number);
 let fails = 0;
 const check = (ok, msg) => { console.log(`  [${ok ? "OK  " : "FAIL"}] ${msg}`); if (!ok) fails++; };
@@ -31,7 +31,7 @@ for (const w of WIDTHS) {
   }
   if (w === WIDTHS[0]) {
     const txt = (k) => page.evaluate((k) => document.querySelector(`[data-page-panel="${k}"]`).innerText, k);
-    const tl = await txt("timeline"), pl = await txt("placement"), cc = await txt("command"), ln = await txt("links");
+    const tl = await txt("timeline"), pl = await txt("placement"), cc = await txt("command"), ln = await txt("links"), bp = await txt("brazilportal");
     if (EXPECT === "ok") {
       check(/Temporal Universe/.test(tl) && !/Реконструкция/.test(tl), "timeline uses Temporal Universe, no reconstruction banner");
       check(/Неразрешённая история/.test(tl), "timeline shows unresolved_history");
@@ -53,6 +53,7 @@ for (const w of WIDTHS) {
       check(/H008/.test(pl) && /Человек, представление и действие/.test(pl), "trusted_owner_map shown as owning_branch → line title");
       check(/Company semantic state stack/.test(ln), "capital [{id,title}] shown as proven line capital");
       check(/Founder Projection/.test(ln) && /Подтверждённые пересечения линий/.test(ln), "links use Founder Projection for shared-capital intersections");
+      check(/BP-OP-SMOKE-42/.test(bp) && /связаны серверной проекцией с операционным объектом BP-OP-SMOKE-42/.test(bp) && !/FND-007/.test(bp), "BrazilPortal blocker context uses source-provided operational identity, never a client hard-code");
       check(/Входящие Основателя: 2/.test(cc) && /не становятся формальными решениями/.test(cc), "Founder inbox is shown as requests, not formal decisions");
       check(/Организационные наблюдения/.test(cc) && /Все наблюдения · 4/.test(cc), "organizational intelligence panel renders all stand signals");
       check(/повторное использование/.test(cc) && /концентрация использования/.test(cc) && /разрыв маршрута/.test(cc) && /шлюз Основателя/.test(cc), "organizational intelligence classes have human labels");

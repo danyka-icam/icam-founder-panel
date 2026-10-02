@@ -215,7 +215,7 @@ Boundary:
 - no local cross-type ranking
 - no local severity score
 - opportunities are not inferred
-- Market Scanner remains a separate pending source
+- Market Scanner remains a separate external source family; after its QA PASS the browser reads only the approved read projections (`signals`, `signals/field-movement`, `signals/diagnostics`) and never performs ingest
 
 ### Документы
 Reads:
@@ -347,9 +347,10 @@ Before PR to `main`:
 4. Atlas / DT / BrazilPortal / Operations do not use guessed identities or invented source mappings.
 5. Market Scanner is not enabled before QA PASS.
 6. No canonical write path is added implicitly.
-7. 13 top-level routes load.
+7. All 16 current top-level routes load (6 Founder modes + 10 contour pages).
 8. desktop/tablet/mobile layout has no horizontal overflow.
 9. browser console has no uncaught runtime errors.
+   - local regression: `node dev/static-contract-check.mjs` + `node dev/check.mjs` on the dev stand
 10. Founder reviews the integrated `panel-v2`.
 
 Production flow:

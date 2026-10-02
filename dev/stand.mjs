@@ -123,7 +123,21 @@ const panelApi = {
   "testing-health": () => ({}), "testing-runner-health": () => ({}),
   "hub/sync-health": () => ({}), "continuity-health": () => ({}),
   "panel/operations": () => ({ source_status: "AVAILABLE", freshness_state: "FRESH", counts: {}, operations: [] }),
-  "panel/brazilportal": () => ({ source_status: "AVAILABLE", status_views: {}, identity: {} }),
+  "panel/brazilportal": () => ({
+    source_status: "AVAILABLE",
+    status_views: {
+      declared_status: "ACTIVE_BUILD",
+      projected_status: "RESTORE_TARGET_SET",
+      projected_status_canonical_relation: "UNRESOLVED"
+    },
+    identity: {
+      component_id: "CMP-SMOKE-BP",
+      operational_object_id: "BP-OP-SMOKE-42",
+      relation: "DIFFERENT_NAMESPACES_SAME_SYSTEM",
+      canonical_read_key: "BP-OP-SMOKE-42"
+    },
+    open_blockers: { count: 2 }
+  }),
   "panel/foundation": () => ({ source_status: "DEGRADED", dimensions: [], blocking_reasons: ["orphan receipt"] }),
   "panel/atlas": () => ({ source_status: "UNAVAILABLE" }),
   "panel/twin": () => ({ source_status: "AVAILABLE" }),
