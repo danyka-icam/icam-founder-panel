@@ -2873,6 +2873,30 @@
     });
   }
 
+  function timelineSourceSummary(raw) {
+    if (!raw || typeof raw !== "object") return "";
+    var src=raw.source || raw.source_branch || raw.provider || raw.origin || raw.kind || raw.type || raw.category || "";
+    if (src && typeof src === "object") {
+      var bits=[src.name,src.title,src.type,src.kind,src.provider,src.url,src.id].filter(Boolean);
+      src=bits.join(" · ");
+    }
+    return src ? String(src) : "";
+  }
+
+  function timelineContextExplanation(e, raw) {
+    if (e.layer === "signals") {
+      var bits=[];
+      var entity=raw.entity || raw.company || raw.subject || raw.target || "";
+      var kind=raw.kind || raw.type || raw.category || "";
+      if (entity) bits.push("Объект наблюдения: "+scalar(entity)+".");
+      if (kind && typeof kind !== "object") bits.push("Тип записи: "+human(kind)+".");
+      bits.push("Это событие пришло из слоя сигналов. Если точная связь со звездой, линией или маршрутом не передана источником, панель намеренно не дорисовывает её.");
+      return bits.join(" ");
+    }
+    if (!e.kind || !e.key) return "Источник передал датированную запись, но не передал доказанную привязку к каноническому объекту.";
+    return "";
+  }
+
   function inspectTimeEvent(e) {
     var raw=e.raw && typeof e.raw === "object" ? e.raw : {};
     var isFuture=new Date(e.at).getTime()>Date.now();
@@ -2884,12 +2908,13 @@
       else if (e.kind === "event" && M.U && M.U.eventByKey[e.key]) link="<button class='cc-ref'"+sel("event",e.key)+">Открыть исходное событие Temporal Universe →</button>";
     }
     var why=raw.why_it_matters || raw.reason || raw.note || raw.description || "";
-    var source=raw.source || raw.source_branch || raw.kind || raw.type || raw.category || "";
+    var source=timelineSourceSummary(raw);
+    var contextExplanation=timelineContextExplanation(e,raw);
     return inspector({
       badge:"<span class='cc-obj-badge event'>◆</span>",
       title:e.text || "Событие",
       sub:dateLabel(e.at)+" · "+timelineSemanticTitle(e.semantic)+" · "+timelineLayerTitle(e.layer)+(isFuture?" · будущая известная дата":""),
-      what:para(e.text || "Датированное событие."),
+      what:para(e.text || "Датированное событие.")+(contextExplanation?"<div class='cc-context-explain'><b>Что это и откуда</b>"+para(contextExplanation)+"</div>":""),
       where:crumbs([{t:"ICAM"},{t:"Во времени"},{t:timelineLayerTitle(e.layer),cur:true}]),
       now:superseded ? para("Это состояние сохранено как историческая запись источника, но больше не считается действующим: его перекрыл подтверждённый факт от "+dateLabel(superseded.at)+".") : para(isFuture ? "Эта точка находится в будущем и отображает известную дату ожидания, раскрытия, результата или перехода — не уже произошедший факт." : "Эта точка находится в прошлом или настоящем и отображается как датированный факт источника."),
       why:why ? para(String(why)) : "",
