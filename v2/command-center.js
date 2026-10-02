@@ -1690,6 +1690,47 @@
       "</div></div>";
   }
 
+  function explicitTerminalTimelineFact(e) {
+    if (!e || e.semantic!=="fact") return false;
+    var raw=e.raw&&typeof e.raw==="object"?e.raw:{};
+    var blob=[e.text,raw.status,raw.state,raw.outcome,raw.result,raw.decision,raw.presentation_state]
+      .filter(function(x){return x!=null && typeof x!=="object";}).join(" ");
+    return /(?:closed|completed|complete|rejected|declined|denied|failed|cancelled|canceled)|отказ|отклон|закрыт|заверш[её]н|не принят|отмен[её]н/i.test(blob);
+  }
+
+  function reconcileExactTrajectoryWaits(events) {
+    var groups={};
+    events.forEach(function(e){
+      var g=e&&e.kind&&e.key&&/^(star|line)$/.test(e.kind)?e.kind+":"+e.key:"";
+      if(!g)return;
+      (groups[g]||(groups[g]=[])).push(e);
+    });
+    Object.keys(groups).forEach(function(g){
+      var xs=groups[g].slice().sort(function(a,b){return new Date(a.at)-new Date(b.at);});
+      var terminalFacts=xs.filter(explicitTerminalTimelineFact);
+      if(!terminalFacts.length)return;
+      xs.forEach(function(e){
+        if(e.semantic!=="waiting" || e.superseded)return;
+        var et=new Date(e.at).getTime();
+        var closer=terminalFacts.filter(function(f){return new Date(f.at).getTime()<=et;}).slice(-1)[0];
+        if(closer){
+          e.superseded={at:closer.at,text:closer.text,provenance:"Точное совпадение объекта; более ранний явный конечный факт закрывает последующее ожидание."};
+          e.semantic="closed_wait";
+        }
+      });
+    });
+  }
+
+  function dedupeTimelineEvents(events) {
+    var seen={}, out=[];
+    events.forEach(function(e){
+      var key=[e.at,e.layer,e.kind||"",e.key||"",String(e.text||"").trim()].join("|");
+      if(seen[key])return;
+      seen[key]=true; out.push(e);
+    });
+    return out;
+  }
+
   function timelineSemanticTitle(kind) {
     return {
       fact:"факт",
@@ -1787,6 +1828,8 @@
       });
     });
 
+    reconcileExactTrajectoryWaits(events);
+    events=dedupeTimelineEvents(events);
     events.sort(function(a,b){return String(a.at).localeCompare(String(b.at));});
     var visible=events.filter(function(e){return inRange(e.at)&&matches(e.layer);});
 
