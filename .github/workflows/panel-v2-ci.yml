@@ -1,0 +1,61 @@
+name: Panel v2 Integration CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [panel-v2]
+
+permissions:
+  contents: read
+
+jobs:
+  verify-panel-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save playwright@1
+          npx playwright install --with-deps chromium
+
+      - name: Static contract and syntax
+        run: |
+          node --check v2/live.js
+          node --check v2/command-center.js
+          node --check dev/stand.mjs
+          node --check dev/check.mjs
+          node dev/static-contract-check.mjs
+
+      - name: Browser regression matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_case() {
+            local port="$1" expect="$2" tu="$3" adm="$4" inbox="$5"
+            PORT="$port" TU="$tu" ADM="$adm" INBOX="$inbox" node dev/stand.mjs >"/tmp/panel-$port.log" 2>&1 &
+            local pid=$!
+            for _ in {1..40}; do
+              if curl -fsS "http://127.0.0.1:$port/founder-ui-preview/v2/" >/dev/null; then break; fi
+              sleep 0.25
+            done
+            set +e
+            BASE="http://127.0.0.1:$port/founder-ui-preview/v2/" EXPECT="$expect" node dev/check.mjs
+            local status=$?
+            set -e
+            kill "$pid" 2>/dev/null || true
+            wait "$pid" 2>/dev/null || true
+            return "$status"
+          }
+          run_case 8765 ok ok ok ok
+          run_case 8766 tu-down 404 ok ok
+          run_case 8767 adm-down ok 404 ok
+          run_case 8768 hero-many ok ok many
