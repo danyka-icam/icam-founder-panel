@@ -1019,3 +1019,6 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .cc-time-legend .mk.waiting{width:9px;height:9px;border-radius:50%;background:transparent;border:1px dashed var(--cc-wait)}
 .cc-time-legend .mk.closed{width:9px;height:9px;border-radius:50%;background:transparent;border:1px dashed #7d888b;opacity:.55}
 .cc-time-event-row>span{max-width:180px;text-align:right}
+
+.cc-time-links{position:absolute;inset:0;width:100%;height:100%;z-index:0;overflow:visible;pointer-events:none}
+.cc-time-links path{fill:none;stroke:rgba(145,171,168,.24);stroke-width:1.2;vector-effect:non-scaling-stroke;stroke-dasharray:3 3}

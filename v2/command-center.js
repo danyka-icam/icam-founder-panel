@@ -1789,6 +1789,26 @@
       laneLast[lane]=p;
     });
     var laneCount=Math.max(1,laneLast.length);
+    var rowH=Math.max(86, 34 + laneCount*20);
+
+    // Exact-identity trajectories only: same source entity key, never text similarity.
+    var groups={};
+    visible.forEach(function(e){
+      if (!e.kind || !e.key || !/^(star|line)$/.test(e.kind)) return;
+      var g=e.kind+":"+e.key;
+      (groups[g]||(groups[g]=[])).push(e);
+    });
+    var links=[];
+    Object.keys(groups).forEach(function(g){
+      var xs=groups[g].slice().sort(function(a,b){return new Date(a.at)-new Date(b.at);});
+      for(var j=1;j<xs.length;j++) links.push({a:xs[j-1],b:xs[j]});
+    });
+    var trajectorySvg=links.length ? "<svg class='cc-time-links' viewBox='0 0 1000 "+rowH+"' preserveAspectRatio='none' aria-hidden='true'>"+
+      links.map(function(x){
+        var x1=pos(x.a.at)*10, x2=pos(x.b.at)*10;
+        var y1=18+(x.a.lane||0)*20, y2=18+(x.b.lane||0)*20;
+        return "<path d='M "+x1.toFixed(2)+" "+y1+" L "+x2.toFixed(2)+" "+y2+"' />";
+      }).join("")+"</svg>" : "";
 
     var ticks="";
     for(var i=0;i<=8;i++){
@@ -1796,7 +1816,6 @@
       ticks+="<span style='left:"+(i*12.5)+"%'>"+E(dateLabel(new Date(t).toISOString()))+"</span>";
     }
     var nowP=Math.max(0,Math.min(100,(Date.now()-R.from)/span*100));
-    var rowH=Math.max(86, 34 + laneCount*20);
     var marks=visible.map(dot).join("");
     var futureN=visible.filter(function(e){return future(e.at);}).length;
     var semCounts={fact:0,transition:0,waiting:0,closed_wait:0,milestone:0,event:0};
@@ -1808,7 +1827,7 @@
       "<div class='cc-time-scroll'><div class='cc-time-canvas' style='--cc-time-row:"+rowH+"px'>" +
         "<div class='cc-time-axis'>"+ticks+"<span class='cc-time-today' style='left:"+nowP.toFixed(2)+"%'>сегодня</span></div>" +
         "<div class='cc-time-lane'><div class='cc-time-lane-name'><b>"+E(timelineLayerTitle(ui.timeLayer))+"</b><small>"+E(semSummary || (visible.length+" событий"))+(futureN?" · "+futureN+" будущих":"")+"</small></div>" +
-          "<div class='cc-time-track'><span class='cc-time-now-line' style='left:"+nowP.toFixed(2)+"%'></span>"+marks+"</div></div>" +
+          "<div class='cc-time-track'>"+trajectorySvg+"<span class='cc-time-now-line' style='left:"+nowP.toFixed(2)+"%'></span>"+marks+"</div></div>" +
       "</div></div>" +
       "<div class='cc-legend cc-time-legend'><span><i class='mk material'></i>факт</span><span><i class='mk transition'></i>переход</span><span><i class='mk waiting'></i>ожидание</span><span><i class='mk next'></i>контрольная точка</span><span><i class='mk closed'></i>закрытое ожидание</span><span>Серые будущие точки — известные даты, а не уже случившиеся факты.</span></div>" +
       (visible.length ? "<div class='cc-time-event-list'>" + visible.slice(0,8).map(function(e){
