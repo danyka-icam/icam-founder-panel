@@ -1086,3 +1086,6 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .cc-steward-shell textarea{resize:none;min-height:58px;border:1px solid var(--line);border-radius:9px;background:#0a1315;color:inherit;padding:9px 10px;font:inherit}
 .cc-steward-shell form button{align-self:stretch;border:1px solid rgba(89,213,187,.28);border-radius:9px;background:rgba(57,203,170,.1);color:var(--cc-flow);padding:0 14px;cursor:pointer}
 .cc-steward-shell footer{padding:8px 18px 12px;color:var(--muted);font-size:8px}
+
+.cc-time-dot.selected{z-index:7;box-shadow:0 0 0 3px rgba(10,19,21,.9),0 0 0 5px rgba(151,226,211,.62),0 0 16px rgba(151,226,211,.35)}
+.cc-time-more{padding:7px 9px;text-align:center;font-size:9px;color:var(--muted);border-top:1px dashed rgba(145,170,167,.14)}

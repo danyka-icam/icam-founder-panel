@@ -1633,7 +1633,8 @@
       twin: "Twin",
       signals: "Сигналы",
       applications: "Заявки и тендеры",
-      stages: "Этапы"
+      stages: "Этапы",
+      system: "Система"
     }[layer] || layer;
   }
 
@@ -1754,7 +1755,7 @@
       var g=trajectoryGroup(e);
       var focusedGroup=ui.selected&&ui.selected.kind==="timeevent"&&timelineInspectorEvents[ui.selected.key]?trajectoryGroup(timelineInspectorEvents[ui.selected.key]):"";
       var focusCls=focusedGroup ? (g&&g===focusedGroup ? " trajectory-focus" : " trajectory-dim") : "";
-      var cls = "cc-time-dot " + E(e.layer) + " semantic-" + E(e.semantic) + (future(e.at) ? " future" : " past") + (e.superseded ? " superseded" : "") + focusCls;
+      var cls = "cc-time-dot " + E(e.layer) + " semantic-" + E(e.semantic) + (future(e.at) ? " future" : " past") + (e.superseded ? " superseded" : "") + (isSelected("timeevent",e.timelineKey) ? " selected" : "") + focusCls;
       var title = (e.text || "событие") + " · " + dateLabel(e.at) + " · " + timelineSemanticTitle(e.semantic) + " · " + timelineLayerTitle(e.layer);
       return "<button type='button' class='" + cls + "' data-cc-time-group='"+E(g)+"' style='left:" + pos(e.at).toFixed(2) + "%;top:" + (12 + (e.lane||0)*20) + "px'" +
         sel("timeevent",e.timelineKey) + " title='" + E(title) + "' aria-label='" + E(title) + "'></button>";
@@ -1925,6 +1926,13 @@
       "</div>";
     }
 
+    var listEvents=visible.slice().sort(function(a,b){
+      var da=Math.abs(new Date(a.at).getTime()-Date.now());
+      var db=Math.abs(new Date(b.at).getTime()-Date.now());
+      return da-db || String(a.at).localeCompare(String(b.at));
+    }).slice(0,8).sort(function(a,b){return String(a.at).localeCompare(String(b.at));});
+    var hiddenEventCount=Math.max(0,visible.length-listEvents.length);
+
     page.querySelector("[data-cc='swim']").innerHTML =
       timelineControls() +
       "<div class='cc-time-scroll'><div class='cc-time-canvas cc-time-canvas-layered'>" +
@@ -1934,11 +1942,11 @@
       "<div class='cc-time-field-summary'>"+E(semSummary || (visible.length+" событий"))+(futureN?" · "+futureN+" будущих":"")+"</div>"+
       focusFlow +
       "<div class='cc-legend cc-time-legend'><span><i class='mk material'></i>факт</span><span><i class='mk transition'></i>переход</span><span><i class='mk waiting'></i>ожидание</span><span><i class='mk next'></i>контрольная точка</span><span><i class='mk closed'></i>закрытое ожидание</span><span>Серые будущие точки — известные даты, а не уже случившиеся факты.</span></div>" +
-      (visible.length ? "<div class='cc-time-event-list'>" + visible.slice(0,8).map(function(e){
+      (visible.length ? "<div class='cc-time-event-list'>" + listEvents.map(function(e){
         var why=e.raw&&e.raw.why_it_matters?String(e.raw.why_it_matters):"";
         var g=trajectoryGroup(e), fc=focusGroup ? (g&&g===focusGroup?" trajectory-focus":" trajectory-dim") : "";
         return "<button type='button' class='cc-time-event-row "+E(e.layer)+" semantic-"+E(e.semantic)+(future(e.at)?" future":"")+(e.superseded?" superseded":"")+fc+"' data-cc-time-group='"+E(g)+"'"+sel("timeevent",e.timelineKey)+"><time>"+E(dateLabel(e.at))+"</time><div><b>"+E(H.cut(e.text,86))+"</b>"+(why?"<small>"+E(H.cut(why,120))+"</small>":"")+(e.superseded?"<small class='cc-time-superseded-note'>Перекрыто подтверждённым фактом от "+E(dateLabel(e.superseded.at))+"</small>":"")+"</div><span>"+E(timelineSemanticTitle(e.semantic))+" · "+E(timelineLayerTitle(e.layer))+"</span></button>";
-      }).join("") + "</div>" : "<div class='cc-time-empty'>В выбранных слоях и диапазоне датированных событий нет.</div>");
+      }).join("") + (hiddenEventCount?"<div class='cc-time-more'>Ещё "+hiddenEventCount+" событий в выбранном диапазоне · сузьте даты или слои, чтобы увидеть их в списке</div>":"") + "</div>" : "<div class='cc-time-empty'>В выбранных слоях и диапазоне датированных событий нет.</div>");
 
     // compact chronological structure; keep the source-backed star axes below the main field.
     var tree = U.worlds.map(function (w) {
