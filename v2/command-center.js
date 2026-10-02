@@ -1837,6 +1837,25 @@
     var semCounts={fact:0,transition:0,waiting:0,closed_wait:0,milestone:0,event:0};
     visible.forEach(function(e){semCounts[e.semantic]=(semCounts[e.semantic]||0)+1;});
     var semSummary=Object.keys(semCounts).filter(function(k){return semCounts[k]>0;}).map(function(k){return timelineSemanticTitle(k)+" "+semCounts[k];}).join(" · ");
+    var focusFlow="";
+    if (focusGroup) {
+      var focusEvents=visible.filter(function(e){return trajectoryGroup(e)===focusGroup;});
+      var pastItems=focusEvents.filter(function(e){return !future(e.at) && e.semantic!=="waiting" && e.semantic!=="milestone";});
+      var waitItems=focusEvents.filter(function(e){return e.semantic==="waiting" || e.semantic==="closed_wait";});
+      var nextItems=focusEvents.filter(function(e){return e.semantic==="milestone" || (future(e.at) && e.semantic==="transition");});
+      function flowCell(cls,label,main,sub){
+        return "<div class='cc-time-flow-cell "+cls+"'><small>"+E(label)+"</small><b>"+E(main||"—")+"</b>"+(sub?"<span>"+E(sub)+"</span>":"")+"</div>";
+      }
+      var lastPast=pastItems.slice().sort(function(a,b){return new Date(b.at)-new Date(a.at);})[0];
+      var nextWait=waitItems.slice().sort(function(a,b){return new Date(a.at)-new Date(b.at);})[0];
+      var nextStep=nextItems.slice().sort(function(a,b){return new Date(a.at)-new Date(b.at);})[0];
+      focusFlow="<div class='cc-time-focus-flow'>"+
+        flowCell("past","Прошлое",lastPast?H.cut(lastPast.text,62):"нет датированного события",lastPast?dateLabel(lastPast.at):"")+
+        flowCell("now","Сейчас",currentStateLabel?human(currentStateLabel):"состояние не передано","")+
+        flowCell("wait","Ждём",nextWait?H.cut(nextWait.text,62):"нет активного ожидания",nextWait?dateLabel(nextWait.at):"")+
+        flowCell("next","Следующий переход",nextStep?H.cut(nextStep.text,62):"не передан",nextStep?dateLabel(nextStep.at):"")+
+      "</div>";
+    }
 
     page.querySelector("[data-cc='swim']").innerHTML =
       timelineControls() +
@@ -1845,6 +1864,7 @@
         "<div class='cc-time-lane'><div class='cc-time-lane-name'><b>"+E(timelineLayerTitle(ui.timeLayer))+"</b><small>"+E(semSummary || (visible.length+" событий"))+(futureN?" · "+futureN+" будущих":"")+"</small></div>" +
           "<div class='cc-time-track'>"+trajectorySvg+"<span class='cc-time-now-line' style='left:"+nowP.toFixed(2)+"%'></span>"+currentNode+marks+"</div></div>" +
       "</div></div>" +
+      focusFlow +
       "<div class='cc-legend cc-time-legend'><span><i class='mk material'></i>факт</span><span><i class='mk transition'></i>переход</span><span><i class='mk waiting'></i>ожидание</span><span><i class='mk next'></i>контрольная точка</span><span><i class='mk closed'></i>закрытое ожидание</span><span>Серые будущие точки — известные даты, а не уже случившиеся факты.</span></div>" +
       (visible.length ? "<div class='cc-time-event-list'>" + visible.slice(0,8).map(function(e){
         var why=e.raw&&e.raw.why_it_matters?String(e.raw.why_it_matters):"";
