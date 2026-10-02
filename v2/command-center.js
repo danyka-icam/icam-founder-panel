@@ -1823,6 +1823,15 @@
       ticks+="<span style='left:"+(i*12.5)+"%'>"+E(dateLabel(new Date(t).toISOString()))+"</span>";
     }
     var nowP=Math.max(0,Math.min(100,(Date.now()-R.from)/span*100));
+    var currentStateLabel="";
+    if (selectedTimeEvent && selectedTimeEvent.kind==="star") {
+      var currentStar=U.stars.find(function(x){return x.key===selectedTimeEvent.key;});
+      if (currentStar) currentStateLabel=temporalView(currentStar.temporal).now||"";
+    } else if (selectedTimeEvent && selectedTimeEvent.kind==="line") {
+      var currentLine=M.lines.find(function(x){return x.key===selectedTimeEvent.key;});
+      if (currentLine && currentLine.r) currentStateLabel=currentLine.r.stage||currentLine.r.status||"";
+    }
+    var currentNode=currentStateLabel ? "<div class='cc-time-current-node' style='left:"+nowP.toFixed(2)+"%' title='Текущее состояние источника'><i></i><span><small>Сейчас</small>"+E(human(currentStateLabel))+"</span></div>" : "";
     var marks=visible.map(dot).join("");
     var futureN=visible.filter(function(e){return future(e.at);}).length;
     var semCounts={fact:0,transition:0,waiting:0,closed_wait:0,milestone:0,event:0};
@@ -1834,7 +1843,7 @@
       "<div class='cc-time-scroll'><div class='cc-time-canvas' style='--cc-time-row:"+rowH+"px'>" +
         "<div class='cc-time-axis'>"+ticks+"<span class='cc-time-today' style='left:"+nowP.toFixed(2)+"%'>сегодня</span></div>" +
         "<div class='cc-time-lane'><div class='cc-time-lane-name'><b>"+E(timelineLayerTitle(ui.timeLayer))+"</b><small>"+E(semSummary || (visible.length+" событий"))+(futureN?" · "+futureN+" будущих":"")+"</small></div>" +
-          "<div class='cc-time-track'>"+trajectorySvg+"<span class='cc-time-now-line' style='left:"+nowP.toFixed(2)+"%'></span>"+marks+"</div></div>" +
+          "<div class='cc-time-track'>"+trajectorySvg+"<span class='cc-time-now-line' style='left:"+nowP.toFixed(2)+"%'></span>"+currentNode+marks+"</div></div>" +
       "</div></div>" +
       "<div class='cc-legend cc-time-legend'><span><i class='mk material'></i>факт</span><span><i class='mk transition'></i>переход</span><span><i class='mk waiting'></i>ожидание</span><span><i class='mk next'></i>контрольная точка</span><span><i class='mk closed'></i>закрытое ожидание</span><span>Серые будущие точки — известные даты, а не уже случившиеся факты.</span></div>" +
       (visible.length ? "<div class='cc-time-event-list'>" + visible.slice(0,8).map(function(e){
