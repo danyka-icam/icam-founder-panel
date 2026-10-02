@@ -1790,46 +1790,12 @@
     events.sort(function(a,b){return String(a.at).localeCompare(String(b.at));});
     var visible=events.filter(function(e){return inRange(e.at)&&matches(e.layer);});
 
-    // Collision-aware layout: nearby dates occupy different vertical lanes.
-    // This is presentation-only and never changes chronology or source semantics.
-    var laneLast=[], minGapPct=1.7;
-    visible.forEach(function(e){
-      var p=pos(e.at), lane=0;
-      while (laneLast[lane] != null && p-laneLast[lane] < minGapPct) lane++;
-      e.lane=lane;
-      laneLast[lane]=p;
-    });
-    var laneCount=Math.max(1,laneLast.length);
-    var rowH=Math.max(86, 34 + laneCount*20);
-
-    // Exact-identity trajectories only: same source entity key, never text similarity.
+    // Collision-aware layout is computed independently inside each visible source layer.
+    var minGapPct=1.7;
     var selectedTimeEvent=ui.selected&&ui.selected.kind==="timeevent"?timelineInspectorEvents[ui.selected.key]:null;
     var focusGroup=trajectoryGroup(selectedTimeEvent);
-    var groups={};
-    visible.forEach(function(e){
-      if (!e.kind || !e.key || !/^(star|line)$/.test(e.kind)) return;
-      var g=e.kind+":"+e.key;
-      (groups[g]||(groups[g]=[])).push(e);
-    });
-    var links=[];
-    Object.keys(groups).forEach(function(g){
-      var xs=groups[g].slice().sort(function(a,b){return new Date(a.at)-new Date(b.at);});
-      for(var j=1;j<xs.length;j++) links.push({a:xs[j-1],b:xs[j],group:g});
-    });
-    var trajectorySvg=links.length ? "<svg class='cc-time-links' viewBox='0 0 1000 "+rowH+"' preserveAspectRatio='none' aria-hidden='true'>"+
-      links.map(function(x){
-        var x1=pos(x.a.at)*10, x2=pos(x.b.at)*10;
-        var y1=18+(x.a.lane||0)*20, y2=18+(x.b.lane||0)*20;
-        var cls=focusGroup ? (x.group===focusGroup ? "trajectory-focus" : "trajectory-dim") : "";
-        return "<path class='"+cls+"' data-cc-time-group='"+E(x.group)+"' d='M "+x1.toFixed(2)+" "+y1+" L "+x2.toFixed(2)+" "+y2+"' />";
-      }).join("")+"</svg>" : "";
-
-    var ticks="";
-    for(var i=0;i<=8;i++){
-      var t=R.from+span*i/8;
-      ticks+="<span style='left:"+(i*12.5)+"%'>"+E(dateLabel(new Date(t).toISOString()))+"</span>";
-    }
     var nowP=Math.max(0,Math.min(100,(Date.now()-R.from)/span*100));
+
     var currentStateLabel="";
     if (selectedTimeEvent && selectedTimeEvent.kind==="star") {
       var currentStar=U.stars.find(function(x){return x.key===selectedTimeEvent.key;});
@@ -1838,8 +1804,60 @@
       var currentLine=M.lines.find(function(x){return x.key===selectedTimeEvent.key;});
       if (currentLine && currentLine.r) currentStateLabel=currentLine.r.stage||currentLine.r.status||"";
     }
-    var currentNode=currentStateLabel ? "<div class='cc-time-current-node' style='left:"+nowP.toFixed(2)+"%' title='Текущее состояние источника'><i></i><span><small>Сейчас</small>"+E(human(currentStateLabel))+"</span></div>" : "";
-    var marks=visible.map(dot).join("");
+
+    var ticks="";
+    for(var i=0;i<=8;i++){
+      var t=R.from+span*i/8;
+      ticks+="<span style='left:"+(i*12.5)+"%'>"+E(dateLabel(new Date(t).toISOString()))+"</span>";
+    }
+
+    function renderLayerLane(layer) {
+      var xs=visible.filter(function(e){return e.layer===layer;});
+      var laneLast=[];
+      xs.forEach(function(e){
+        var p=pos(e.at), lane=0;
+        while (laneLast[lane] != null && p-laneLast[lane] < minGapPct) lane++;
+        e.lane=lane;
+        laneLast[lane]=p;
+      });
+      var laneCount=Math.max(1,laneLast.length);
+      var rowH=Math.max(68,34+laneCount*20);
+
+      var groups={};
+      xs.forEach(function(e){
+        if (!e.kind || !e.key || !/^(star|line)$/.test(e.kind)) return;
+        var g=e.kind+":"+e.key;
+        (groups[g]||(groups[g]=[])).push(e);
+      });
+      var links=[];
+      Object.keys(groups).forEach(function(g){
+        var ys=groups[g].slice().sort(function(a,b){return new Date(a.at)-new Date(b.at);});
+        for(var j=1;j<ys.length;j++) links.push({a:ys[j-1],b:ys[j],group:g});
+      });
+      var trajectorySvg=links.length ? "<svg class='cc-time-links' viewBox='0 0 1000 "+rowH+"' preserveAspectRatio='none' aria-hidden='true'>"+
+        links.map(function(x){
+          var x1=pos(x.a.at)*10, x2=pos(x.b.at)*10;
+          var y1=18+(x.a.lane||0)*20, y2=18+(x.b.lane||0)*20;
+          var cls=focusGroup ? (x.group===focusGroup ? "trajectory-focus" : "trajectory-dim") : "";
+          return "<path class='"+cls+"' data-cc-time-group='"+E(x.group)+"' d='M "+x1.toFixed(2)+" "+y1+" L "+x2.toFixed(2)+" "+y2+"' />";
+        }).join("")+"</svg>" : "";
+
+      var layerCurrentNode="";
+      if (selectedTimeEvent && selectedTimeEvent.layer===layer && currentStateLabel) {
+        layerCurrentNode="<div class='cc-time-current-node' style='left:"+nowP.toFixed(2)+"%' title='Текущее состояние источника'><i></i><span><small>Сейчас</small>"+E(human(currentStateLabel))+"</span></div>";
+      }
+
+      var layerFuture=xs.filter(function(e){return future(e.at);}).length;
+      return "<div class='cc-time-lane' data-cc-time-lane='"+E(layer)+"' style='--cc-time-row:"+rowH+"px'>"+
+        "<div class='cc-time-lane-name'><b>"+E(timelineLayerTitle(layer))+"</b><small>"+xs.length+" событий"+(layerFuture?" · "+layerFuture+" будущих":"")+"</small></div>"+
+        "<div class='cc-time-track' style='height:"+rowH+"px'>"+trajectorySvg+
+          "<span class='cc-time-now-line' style='left:"+nowP.toFixed(2)+"%'></span>"+layerCurrentNode+xs.map(dot).join("")+
+        "</div></div>";
+    }
+
+    var activeLaneLayers=activeTimeLayers().slice();
+    var layerLanes=activeLaneLayers.map(renderLayerLane).join("");
+
     var futureN=visible.filter(function(e){return future(e.at);}).length;
     var semCounts={fact:0,transition:0,waiting:0,closed_wait:0,milestone:0,event:0};
     visible.forEach(function(e){semCounts[e.semantic]=(semCounts[e.semantic]||0)+1;});
@@ -1866,18 +1884,18 @@
 
     page.querySelector("[data-cc='swim']").innerHTML =
       timelineControls() +
-      "<div class='cc-time-scroll'><div class='cc-time-canvas' style='--cc-time-row:"+rowH+"px'>" +
+      "<div class='cc-time-scroll'><div class='cc-time-canvas cc-time-canvas-layered'>" +
         "<div class='cc-time-axis'>"+ticks+"<span class='cc-time-today' style='left:"+nowP.toFixed(2)+"%'>сегодня</span></div>" +
-        "<div class='cc-time-lane'><div class='cc-time-lane-name'><b>"+E(activeTimeLayers().length===6?"Все слои":activeTimeLayers().map(timelineLayerTitle).join(" + "))+"</b><small>"+E(semSummary || (visible.length+" событий"))+(futureN?" · "+futureN+" будущих":"")+"</small></div>" +
-          "<div class='cc-time-track'>"+trajectorySvg+"<span class='cc-time-now-line' style='left:"+nowP.toFixed(2)+"%'></span>"+currentNode+marks+"</div></div>" +
+        layerLanes+
       "</div></div>" +
+      "<div class='cc-time-field-summary'>"+E(semSummary || (visible.length+" событий"))+(futureN?" · "+futureN+" будущих":"")+"</div>"+
       focusFlow +
       "<div class='cc-legend cc-time-legend'><span><i class='mk material'></i>факт</span><span><i class='mk transition'></i>переход</span><span><i class='mk waiting'></i>ожидание</span><span><i class='mk next'></i>контрольная точка</span><span><i class='mk closed'></i>закрытое ожидание</span><span>Серые будущие точки — известные даты, а не уже случившиеся факты.</span></div>" +
       (visible.length ? "<div class='cc-time-event-list'>" + visible.slice(0,8).map(function(e){
         var why=e.raw&&e.raw.why_it_matters?String(e.raw.why_it_matters):"";
         var g=trajectoryGroup(e), fc=focusGroup ? (g&&g===focusGroup?" trajectory-focus":" trajectory-dim") : "";
         return "<button type='button' class='cc-time-event-row "+E(e.layer)+" semantic-"+E(e.semantic)+(future(e.at)?" future":"")+(e.superseded?" superseded":"")+fc+"' data-cc-time-group='"+E(g)+"'"+sel("timeevent",e.timelineKey)+"><time>"+E(dateLabel(e.at))+"</time><div><b>"+E(H.cut(e.text,86))+"</b>"+(why?"<small>"+E(H.cut(why,120))+"</small>":"")+(e.superseded?"<small class='cc-time-superseded-note'>Перекрыто подтверждённым фактом от "+E(dateLabel(e.superseded.at))+"</small>":"")+"</div><span>"+E(timelineSemanticTitle(e.semantic))+" · "+E(timelineLayerTitle(e.layer))+"</span></button>";
-      }).join("") + "</div>" : "<div class='cc-time-empty'>В выбранном слое и диапазоне датированных событий нет.</div>");
+      }).join("") + "</div>" : "<div class='cc-time-empty'>В выбранных слоях и диапазоне датированных событий нет.</div>");
 
     // compact chronological structure; keep the source-backed star axes below the main field.
     var tree = U.worlds.map(function (w) {

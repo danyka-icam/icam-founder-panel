@@ -46,6 +46,8 @@ for (const w of WIDTHS) {
       // real contract shapes (schema_id, temporal, history events, maps, capital, path)
       check(/Без закрытия receipt readiness/.test(tl) && /Soak выявил orphan receipt/.test(tl), "history event: change + why_it_matters shown");
       check(/Публикации/.test(tl) && /Twin/.test(tl) && /Сигналы/.test(tl) && /Заявки и тендеры/.test(tl) && /Этапы/.test(tl), "timeline exposes layered filters");
+      await page.evaluate(() => { location.hash = "timeline"; });
+      await page.waitForTimeout(150);
       const layerButtons = page.locator('[data-page-panel="timeline"] [data-cc-time-layer]');
       const layerCount = await layerButtons.count();
       if (layerCount > 2) {
@@ -61,8 +63,6 @@ for (const w of WIDTHS) {
       }
       check(/type=.?date/i.test(await page.locator('[data-page-panel="timeline"]').innerHTML()), "timeline exposes exact date-range controls");
       check(/PENDING_RECONCILIATION/.test(tl), "history event: truth_status / binding_class shown as proof tag");
-      await page.evaluate(() => { location.hash = "timeline"; });
-      await page.waitForTimeout(150);
       const timeDots = await page.locator('[data-page-panel="timeline"] .cc-time-dot').count();
       check(timeDots > 0, `timeline renders selectable dated points (${timeDots})`);
       if (timeDots > 0) {
