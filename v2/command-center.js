@@ -21,7 +21,7 @@
   var H = null;
   var ui = {
     selected: null, lineFilter: "all", routesAll: false,
-    timeLayer: "all", timePastDays: 14, timeFutureDays: 14, timeShiftDays: 0,
+    timeLayers: ["publications","twin","signals","applications","stages","system"], timePastDays: 14, timeFutureDays: 14, timeShiftDays: 0,
     timeCustomFrom: null, timeCustomTo: null
   };
   var M = null; // current model
@@ -1659,16 +1659,23 @@
     return y+"-"+m+"-"+day;
   }
 
+  function activeTimeLayers() {
+    if (!Array.isArray(ui.timeLayers) || !ui.timeLayers.length) ui.timeLayers=["publications","twin","signals","applications","stages","system"];
+    return ui.timeLayers;
+  }
+
   function timelineControls() {
-    var layers = ["all","publications","twin","signals","applications","stages"];
+    var layers = ["publications","twin","signals","applications","stages","system"];
+    var activeLayers = activeTimeLayers();
+    var allOn = layers.every(function(k){ return activeLayers.indexOf(k) >= 0; });
     var presets = [
       { k:"7", label:"±7 дн.", p:7, f:7 },
       { k:"14", label:"±14 дн.", p:14, f:14 },
       { k:"30", label:"±30 дн.", p:30, f:30 }
     ];
     return "<div class='cc-time-controls'>" +
-      "<div class='cc-time-layers'>" + layers.map(function (k) {
-        return "<button class='" + (ui.timeLayer === k ? "active" : "") + "' data-cc-time-layer='" + k + "'>" + E(timelineLayerTitle(k)) + "</button>";
+      "<div class='cc-time-layers'><button class='" + (allOn ? "active" : "") + "' data-cc-time-layer='all'>Все</button>" + layers.map(function (k) {
+        return "<button class='" + (activeLayers.indexOf(k) >= 0 ? "active" : "") + "' data-cc-time-layer='" + k + "'>" + E(timelineLayerTitle(k)) + "</button>";
       }).join("") + "</div>" +
       "<div class='cc-time-range'>" +
         "<button data-cc-time-shift='-7' title='На неделю назад'>← 7 дн.</button>" +
@@ -1699,7 +1706,7 @@
     function pos(at) { return (new Date(at).getTime() - R.from) / span * 100; }
     function inRange(at) { var t=new Date(at).getTime(); return isFinite(t) && t>=R.from && t<=R.to; }
     function future(at) { return new Date(at).getTime() > Date.now(); }
-    function matches(layer) { return ui.timeLayer === "all" || layer === ui.timeLayer; }
+    function matches(layer) { return activeTimeLayers().indexOf(layer) >= 0; }
     function trajectoryGroup(e) { return e && e.kind && e.key && /^(star|line)$/.test(e.kind) ? e.kind+":"+e.key : ""; }
     function dot(e) {
       if (!e.at || !inRange(e.at) || !matches(e.layer)) return "";
@@ -1861,7 +1868,7 @@
       timelineControls() +
       "<div class='cc-time-scroll'><div class='cc-time-canvas' style='--cc-time-row:"+rowH+"px'>" +
         "<div class='cc-time-axis'>"+ticks+"<span class='cc-time-today' style='left:"+nowP.toFixed(2)+"%'>сегодня</span></div>" +
-        "<div class='cc-time-lane'><div class='cc-time-lane-name'><b>"+E(timelineLayerTitle(ui.timeLayer))+"</b><small>"+E(semSummary || (visible.length+" событий"))+(futureN?" · "+futureN+" будущих":"")+"</small></div>" +
+        "<div class='cc-time-lane'><div class='cc-time-lane-name'><b>"+E(activeTimeLayers().length===6?"Все слои":activeTimeLayers().map(timelineLayerTitle).join(" + "))+"</b><small>"+E(semSummary || (visible.length+" событий"))+(futureN?" · "+futureN+" будущих":"")+"</small></div>" +
           "<div class='cc-time-track'>"+trajectorySvg+"<span class='cc-time-now-line' style='left:"+nowP.toFixed(2)+"%'></span>"+currentNode+marks+"</div></div>" +
       "</div></div>" +
       focusFlow +
@@ -3146,7 +3153,20 @@
     if (e.target.closest("[data-cc-hero-more]")) { ui.heroAll = !ui.heroAll; renderAll(); return; }
     if (e.target.closest("[data-cc-routes-more]")) { ui.routesAll = !ui.routesAll; renderAll(); return; }
     var tl = e.target.closest("[data-cc-time-layer]");
-    if (tl) { ui.timeLayer = tl.getAttribute("data-cc-time-layer") || "all"; renderAll(); return; }
+    if (tl) {
+      var lk=tl.getAttribute("data-cc-time-layer") || "all";
+      var allLayers=["publications","twin","signals","applications","stages","system"];
+      if (lk==="all") {
+        ui.timeLayers=allLayers.slice();
+      } else {
+        var xs=activeTimeLayers().slice(), ix=xs.indexOf(lk);
+        if (ix>=0) {
+          if (xs.length>1) xs.splice(ix,1);
+        } else xs.push(lk);
+        ui.timeLayers=xs;
+      }
+      renderAll(); return;
+    }
     var tp = e.target.closest("[data-cc-time-preset]");
     if (tp) { var n = Number(tp.getAttribute("data-cc-time-preset")); if (isFinite(n)) { ui.timePastDays=n; ui.timeFutureDays=n; ui.timeCustomFrom=null; ui.timeCustomTo=null; ui.timeShiftDays=0; } renderAll(); return; }
     var ts = e.target.closest("[data-cc-time-shift]");

@@ -46,6 +46,19 @@ for (const w of WIDTHS) {
       // real contract shapes (schema_id, temporal, history events, maps, capital, path)
       check(/Без закрытия receipt readiness/.test(tl) && /Soak выявил orphan receipt/.test(tl), "history event: change + why_it_matters shown");
       check(/Публикации/.test(tl) && /Twin/.test(tl) && /Сигналы/.test(tl) && /Заявки и тендеры/.test(tl) && /Этапы/.test(tl), "timeline exposes layered filters");
+      const layerButtons = page.locator('[data-page-panel="timeline"] [data-cc-time-layer]');
+      const layerCount = await layerButtons.count();
+      if (layerCount > 2) {
+        const beforeActive = await page.locator('[data-page-panel="timeline"] [data-cc-time-layer].active').count();
+        await layerButtons.nth(1).click();
+        await page.waitForTimeout(80);
+        const afterActive = await page.locator('[data-page-panel="timeline"] [data-cc-time-layer].active').count();
+        check(afterActive >= 1 && afterActive < beforeActive, `timeline layer controls support independent toggles (${beforeActive} → ${afterActive})`);
+        await page.locator('[data-page-panel="timeline"] [data-cc-time-layer="all"]').click();
+        await page.waitForTimeout(80);
+        const restoredActive = await page.locator('[data-page-panel="timeline"] [data-cc-time-layer].active').count();
+        check(restoredActive >= beforeActive, `timeline "Все" restores the full active layer set (${restoredActive})`);
+      }
       check(/type=.?date/i.test(await page.locator('[data-page-panel="timeline"]').innerHTML()), "timeline exposes exact date-range controls");
       check(/PENDING_RECONCILIATION/.test(tl), "history event: truth_status / binding_class shown as proof tag");
       await page.evaluate(() => { location.hash = "timeline"; });
