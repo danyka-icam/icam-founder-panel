@@ -446,3 +446,24 @@ Regression suite:
 
 Current limitation:
 - No local LLM runtime is installed on the server. Navigator currently uses deterministic contextual retrieval and structured response logic. Do not silently add a paid/external language-model dependency.
+## 2026-10-03 — Founder decision controls boundary
+
+Founder Panel may eventually expose direct decision controls for READY Founder Decision Presentation cards:
+- Одобрить / APPROVE
+- Отклонить / REJECT
+- Отложить / DEFER
+
+Current backend facts:
+- context-steward-actions is the only approved write-capable Panel service.
+- Its approve/reject path requires exact action_id + confirmed_hash and Founder authority.
+- Founder Decision Lifecycle is read-only and currently exposes stable lifecycle identity.
+- Founder Decision Presentation v0.2 renders the decision but does not expose a write-safe identity join to the Action ledger.
+
+Therefore:
+- Do NOT wire decision buttons by matching question text, title similarity, branch names or object labels.
+- Do NOT place Founder credentials/tokens in browser JavaScript.
+- Do NOT create a second write path that writes DECISION directly to Continuity.
+- Direct controls remain unimplemented until an exact identity bridge exists between the presented lifecycle and the canonical pending action, with stale-view protection.
+- Approve/reject must close the same lifecycle through the existing canonical decision path; DEFER must leave the lifecycle open.
+
+Meanwhile the Steward may explain a formal decision from its structured Presentation context and must tell the Founder that searching for a chat/branch is not required to understand the choice.
