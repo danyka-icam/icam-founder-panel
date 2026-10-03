@@ -572,3 +572,13 @@ Panel:
 - Founder Radar surface introduced in panel commit 96d4624.
 - Timeline master toggle “Все” is commit 06110d6.
 - Timeline listItems recognizes an explicit YYYY-MM-DD literal in source waiting/next text only when no structured date field is supplied; this is display extraction, not a new deadline.
+
+## 2026-10-03 — Signals surface aligned with Command Center
+
+- Signals page is signal-only. Founder decisions / requests requiring Founder action stay in Command Center and are not rendered as a Signals card.
+- Signals page now uses the Command Center visual language: cc-page frame, left working surface, sticky right inspector, selectable signal cards.
+- Amber/orange on Signals means IMPORTANT_NOW presentation, not crisis.
+- Coral/red remains reserved for an explicit critical source state.
+- Full agent-network topology remains outside Signals. Network health / authority conflicts / stalled agents / unregistered changes belong to the future System network surface.
+- Shared integration boundary for the neighboring agent-network branch: FOUNDER_PANEL_AGENT_SIGNAL_CONTRACT.md.
+- Founder Panel remains read-only; future agent signal producers must expose normalized signals through a projection rather than write into the panel.

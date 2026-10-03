@@ -1624,81 +1624,141 @@
   function renderFounderRadar(radar) {
     var page=document.querySelector('[data-page-panel="signals"]');
     if(!page)return;
-    var state=page.querySelector("[data-radar-state]");
     function arr(k){return radar&&Array.isArray(radar[k])?radar[k]:[];}
-    function kpi(k,v){var e=page.querySelector('[data-radar-kpi="'+k+'"]');if(e)e.textContent=String(v);}
     function box(k){return page.querySelector('[data-radar="'+k+'"]');}
     function dateRu(v){if(!v)return "";var d=new Date(String(v).length===10?v+"T12:00:00":v);return isNaN(d)?String(v):d.toLocaleDateString("ru-RU",{day:"2-digit",month:"short",year:"numeric"});}
     function money(v){if(v==null)return "—";return "$"+Number(v).toLocaleString("en-US",{maximumFractionDigits:0});}
     function pct(v){return v==null?"недостаточно данных":Number(v).toLocaleString("ru-RU",{maximumFractionDigits:2})+"%";}
     function branch(x){var c=x&&x.context||{};return c.branch||c.line||"";}
-    function rows(items,emptyText,limit){
-      items=(items||[]).slice(0,limit||5);
-      if(!items.length)return '<div class="radar-empty">'+esc(emptyText)+'</div>';
-      return '<div class="radar-list">'+items.map(function(x){
-        var meta=[dateRu(x.date),branch(x)].filter(Boolean).join(" · ");
-        return '<div class="radar-row"><div><b>'+esc(cut(x.title||"Событие",110))+'</b>'+(x.why?'<span>'+esc(cut(x.why,170))+'</span>':'')+(meta?'<small>'+esc(meta)+'</small>':'')+'</div></div>';
-      }).join("")+'</div>';
+    function textRu(v){
+      var s=String(v||"");
+      var m={
+        "External NIST consideration / no response required from system now.":"Внешнее рассмотрение NIST; сейчас действий от системы не требуется.",
+        "Outcome windows not yet resolved; first gate around 2026-10-13.":"Окна исходов ещё не разрешены; первый рубеж — около 13 октября 2026.",
+        "Outcome windows not yet mature.":"Окна исходов ещё не созрели.",
+        "External response / fresh status confirmation.":"Ждём внешний ответ или свежее подтверждение статуса.",
+        "External replies / opportunity creation.":"Ждём внешние ответы или появление возможности.",
+        "External program decision/credits.":"Ждём внешнее решение программы или начисление кредитов.",
+        "Twin: текущий прогноз":"Twin: текущий прогноз",
+        "Прогноз Twin запечатан":"Прогноз Twin запечатан"
+      };
+      return m[s]||s;
     }
+    function daysTo(v){if(!v)return null;var d=new Date(String(v).length===10?v+"T12:00:00":v);if(isNaN(d))return null;return Math.ceil((d-Date.now())/86400000);}
+    function important(x,kind){
+      var d=daysTo(x&&x.date);
+      if(d!=null&&d>=0&&d<=14)return true;
+      var st=String(x&&x.status||"").toLowerCase();
+      if(kind==="opportunities"&&(st==="act"||st==="opportunity"))return true;
+      if(kind==="predictions"&&/due|reveal|resolution|outcome/.test(st))return true;
+      if(kind==="field"){
+        var enr=x&&x.enrichment||{};
+        var a=String(enr.recommended_action||x.status||"").toLowerCase();
+        if(a==="act"||a==="opportunity")return true;
+        if(Number(x&&x.relevance_score)>=70)return true;
+      }
+      return false;
+    }
+    var inspectorItems={};
+    function sourceLabel(x){
+      var r=x&&x.source_ref||{};
+      var m={market_signal:"Market Scanner",temporal_branch_waiting:"Temporal Universe",temporal_branch_next:"Temporal Universe",activity_event:"Activity Inbox",twin_state:"Digital Twin",signal_lab:"ATLAS Signal Lab",founder_decision:"Founder Projection"};
+      if(x&&x.source&&x.source.name)return x.source.name;
+      return m[r.kind]||humanCode(r.kind||"источник не указан");
+    }
+    function itemHTML(x,kind,i){
+      var key=kind+":"+i;
+      inspectorItems[key]={item:x,kind:kind};
+      var imp=important(x,kind);
+      var meta=[dateRu(x.date),branch(x),sourceLabel(x)].filter(Boolean).join(" · ");
+      var state=imp?"важно сейчас":(x.status?humanCode(x.status):"наблюдаем");
+      return '<button type="button" class="radar-signal-card'+(imp?' important':'')+'" data-radar-select="'+esc(key)+'">'+
+        '<div class="radar-signal-head"><span class="radar-mini-hex">'+(imp?'!':'•')+'</span><div><b>'+esc(cut(textRu(x.title||"Сигнал"),115))+'</b><small>'+esc(meta||"контекст не передан")+'</small></div><em>'+esc(state)+'</em></div>'+
+        (x.why?'<p>'+esc(cut(textRu(x.why),190))+'</p>':'')+
+      '</button>';
+    }
+    function listHTML(items,kind,empty,limit){
+      items=(items||[]).slice(0,limit||6);
+      if(!items.length)return '<div class="cc-empty"><b>'+esc(empty)+'</b></div>';
+      return '<div class="radar-card-list">'+items.map(function(x,i){return itemHTML(x,kind,i);}).join("")+'</div>';
+    }
+    function showInspector(key){
+      var host=page.querySelector("[data-radar-inspector]");
+      var rec=inspectorItems[key];
+      if(!host||!rec)return;
+      var x=rec.item||{}, kind=rec.kind, imp=important(x,kind);
+      var ctx=x.context||{}, ref=x.source_ref||{};
+      var why=x.why||x.why_it_matters_ru||(x.enrichment&&x.enrichment.why_it_matters_ru)||"Источник не передал отдельное объяснение значимости.";
+      var source=sourceLabel(x);
+      var ctxLine=[ctx.world,ctx.line,ctx.branch].filter(Boolean);
+      var evidence="";
+      if(Array.isArray(x.evidence)&&x.evidence.length)evidence=x.evidence.length+" свидетельств";
+      host.innerHTML=
+        '<div class="cc-insp-title">Сигнал</div>'+
+        '<div class="cc-insp-head"><span class="radar-insp-mark '+(imp?'important':'')+'">'+(imp?'!':'•')+'</span><div><h3>'+esc(textRu(x.title||"Сигнал"))+'</h3><small>'+esc(imp?"важно сейчас":"наблюдаем")+'</small></div></div>'+
+        '<div class="cc-insp-sec"><h4>Почему на радаре</h4><p>'+esc(textRu(why))+'</p></div>'+
+        (x.date?'<div class="cc-insp-sec"><h4>Дата</h4><p>'+esc(dateRu(x.date))+'</p></div>':'')+
+        (ctxLine.length?'<div class="cc-insp-sec"><h4>Контекст</h4><div class="cc-crumbs">'+ctxLine.map(function(v){return '<span>'+esc(v)+'</span>';}).join('<i>→</i>')+'</div></div>':'')+
+        '<div class="cc-insp-sec"><h4>Источник</h4><p>'+esc(source)+'</p>'+(evidence?'<small>'+esc(evidence)+'</small>':'')+'</div>'+
+        (x.status?'<div class="cc-insp-sec"><h4>Состояние источника</h4><p>'+esc(humanCode(x.status))+'</p></div>':'')+
+        '<div class="cc-insp-sec"><h4>Граница</h4><p>Панель показывает запись источника и не повышает её до действия, решения или причинной связи без отдельного подтверждения.</p></div>';
+      page.querySelectorAll("[data-radar-select]").forEach(function(b){b.classList.toggle("selected",b.getAttribute("data-radar-select")===key);});
+    }
+
+    var stamp=page.querySelector("[data-radar-stamp]");
     if(!sourceState.radar.ok||!radar){
-      if(state){state.className="state unavailable";state.textContent="RADAR НЕДОСТУПЕН";}
-      ["attention","opportunities","waiting","predictions","field","learning","investment","reputation"].forEach(function(k){var e=box(k);if(e)e.innerHTML=unavailableHTML("Radar недоступен","Read-only проекция не ответила. Старые значения не подставляются.");});
+      if(stamp)stamp.innerHTML='<div class="cc-stamp"><span class="cc-pulse bad"></span><span>Radar недоступен</span></div>';
+      ["opportunities","waiting","predictions","field","learning","investment","reputation"].forEach(function(k){var e=box(k);if(e)e.innerHTML='<div class="cc-unavailable"><b>Источник Radar недоступен</b><span>Старые значения не подставляются.</span></div>';});
       return;
     }
-    if(state){state.className="state live";state.textContent="RADAR · LIVE";}
-    var attention=arr("attention"), opportunities=arr("opportunities"), waiting=arr("waiting"), upcoming=arr("upcoming"), predictions=arr("predictions");
-    kpi("attention",attention.length);kpi("waiting",waiting.length);kpi("upcoming",upcoming.length);kpi("opportunities",opportunities.length);
-    if(box("attention"))box("attention").innerHTML=rows(attention,"Сейчас нет подтверждённых запросов, где следующий ход у Основателя.",5);
-    if(box("opportunities"))box("opportunities").innerHTML=rows(opportunities,"Подтверждённых внешних окон для действия сейчас нет.",5);
-    if(box("waiting"))box("waiting").innerHTML=rows(waiting,"Внешних ожиданий и ожидаемых исходов сейчас нет.",6);
+    if(stamp)stamp.innerHTML='<div class="cc-stamp"><span class="cc-pulse ok"></span><span>Radar · live</span></div>';
 
-    if(box("predictions")){
-      var ps=predictions.slice().sort(function(a,b){return String(a.date||"9999").localeCompare(String(b.date||"9999"));}).slice(0,7);
-      box("predictions").innerHTML=ps.length?'<div class="radar-list">'+ps.map(function(x){
-        var meta=[dateRu(x.date),branch(x)].filter(Boolean).join(" · ");
-        var result=x.result!=null?'<span>Результат: '+esc(String(x.result))+'</span>':(x.status?'<span>Этап: '+esc(humanCode(x.status))+'</span>':'');
-        return '<div class="radar-row prediction"><div><b>'+esc(cut(x.title||"Прогноз",105))+'</b>'+result+(meta?'<small>'+esc(meta)+'</small>':'')+'</div></div>';
-      }).join("")+'</div>':'<div class="radar-empty">Открытых прогнозных точек сейчас нет.</div>';
-    }
+    var opportunities=arr("opportunities"), waiting=arr("waiting"), upcoming=arr("upcoming"), predictions=arr("predictions");
+    var field=radar.field||{}, sigs=Array.isArray(field.signals)?field.signals.slice(0,6):[];
+    var learning=arr("atlas_learning"), reputation=arr("reputation");
+    var allForImportant=[];
+    opportunities.forEach(function(x){allForImportant.push([x,"opportunities"]);});
+    waiting.forEach(function(x){allForImportant.push([x,"waiting"]);});
+    predictions.forEach(function(x){allForImportant.push([x,"predictions"]);});
+    sigs.forEach(function(x){allForImportant.push([x,"field"]);});
+    learning.forEach(function(x){allForImportant.push([x,"learning"]);});
+    reputation.forEach(function(x){allForImportant.push([x,"reputation"]);});
+    var importantN=allForImportant.filter(function(p){return important(p[0],p[1]);}).length;
+    var summary=page.querySelector("[data-radar-summary]");
+    if(summary)summary.innerHTML=
+      '<div class="cc-kpi radar-kpi risk"><span class="cc-kpi-icon">!</span><span class="cc-kpi-body"><small>Важных сейчас</small><strong>'+importantN+'</strong><em>выделены оранжевым</em></span></div>'+
+      '<div class="cc-kpi radar-kpi wait"><span class="cc-kpi-icon">○</span><span class="cc-kpi-body"><small>Ждём</small><strong>'+waiting.length+'</strong><em>внешние ответы и исходы</em></span></div>'+
+      '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">◷</span><span class="cc-kpi-body"><small>Ближайшие даты</small><strong>'+upcoming.length+'</strong><em>из тех же источников, что «Во времени»</em></span></div>'+
+      '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">↗</span><span class="cc-kpi-body"><small>Внешних сигналов</small><strong>'+sigs.length+'</strong><em>отобранный поток поля</em></span></div>';
 
-    var field=radar.field||{}, sigs=Array.isArray(field.signals)?field.signals.slice(0,5):[];
+    if(box("opportunities"))box("opportunities").innerHTML=listHTML(opportunities,"opportunities","Подтверждённых внешних окон для действия сейчас нет.",6);
+    if(box("waiting"))box("waiting").innerHTML=listHTML(waiting,"waiting","Внешних ожиданий и ожидаемых исходов сейчас нет.",7);
+    var ps=predictions.slice().sort(function(a,b){return String(a.date||"9999").localeCompare(String(b.date||"9999"));});
+    if(box("predictions"))box("predictions").innerHTML=listHTML(ps,"predictions","Открытых прогнозных точек сейчас нет.",7);
+
     if(box("field")){
       var cov=field.source_coverage||{}, covText=(cov.ok_count!=null&&cov.total_sources!=null)?("Покрытие Scanner: "+cov.ok_count+" из "+cov.total_sources+" источников."):"Покрытие Scanner не подтверждено.";
-      box("field").innerHTML='<div class="radar-field-note">'+esc(covText)+'</div>'+(sigs.length?'<div class="radar-list">'+sigs.map(function(s){
-        var enr=s.enrichment||{};var source=s.source&&s.source.name?(" · "+s.source.name):"";
-        return '<div class="radar-row"><div><b>'+esc(cut(s.title||s.entity||"Внешний сигнал",105))+'</b><span>'+esc(cut(enr.summary_ru||s.summary_ru||enr.why_it_matters_ru||s.why_it_matters_ru||"",175))+'</span><small>'+esc((s.entity||"Внешнее поле")+source)+'</small></div></div>';
-      }).join("")+'</div>':'<div class="radar-empty">Новых отобранных внешних сигналов нет.</div>');
+      box("field").innerHTML='<div class="radar-source-note">'+esc(covText)+'</div>'+listHTML(sigs,"field","Новых отобранных внешних сигналов нет.",6);
     }
-
-    var learning=arr("atlas_learning");
-    if(box("learning"))box("learning").innerHTML=learning.length?'<div class="radar-list">'+learning.map(function(x){
-      var parts=[];if(x.stage)parts.push("Этап: "+humanCode(x.stage));if(x.result)parts.push("Результат: "+(typeof x.result==="string"?x.result:"получен новый результат"));if(x.next)parts.push("Дальше: "+humanCode(x.next));
-      return '<div class="radar-row"><div><b>'+esc(x.title)+'</b><span>'+esc(parts.join(" · ")||"Состояние передано без человеческого резюме.")+'</span>'+(x.next_date?'<small>Следующая дата: '+esc(dateRu(x.next_date))+'</small>':'')+'</div></div>';
-    }).join("")+'</div>':'<div class="radar-empty">Исследовательские контуры не передали текущий этап.</div>';
+    if(box("learning"))box("learning").innerHTML=listHTML(learning.map(function(x){return Object.assign({},x,{title:x.title||"ATLAS",why:[x.stage?("Этап: "+humanCode(x.stage)):"",x.result?("результат получен"):"",x.next?("дальше: "+humanCode(x.next)):""].filter(Boolean).join(" · "),date:x.next_date});}),"learning","Исследовательские контуры не передали текущий этап.",5);
+    if(box("reputation"))box("reputation").innerHTML=listHTML(reputation,"reputation","Новых внешних репутационных или институциональных точек нет.",6);
 
     var inv=radar.investment||{};
     if(box("investment")){
-      if(!inv.available) box("investment").innerHTML=unavailableHTML("Investment ATLAS недоступен","Агрегированная проекция не ответила.");
-      else {
-        var vc=inv.virtual_capital||{}, h=inv.hypotheses||{}, a=inv.activity||{}, dq=inv.data_quality||{};
-        var cells=[
-          ["Виртуальный капитал",money(vc.current_total)],
-          ["Доходность",pct(vc.return_pct)],
-          ["Свободный капитал",money(vc.cash_total)],
-          ["Подтверждено гипотез",pct(h.success_rate_pct)],
-          ["Активные позиции",a.active_positions_total==null?"—":a.active_positions_total],
-          ["Зафиксировано решений",a.committed_decisions==null?"—":a.committed_decisions],
-          ["Обнаружено ошибок",a.errors_detected==null?"—":a.errors_detected],
-          ["Качество входа",humanCode(dq.status||"не передано")]
-        ];
-        var ports=(inv.portfolios||[]).map(function(p){return '<div><small>'+esc(humanCode(p.mode||p.portfolio_id))+'</small><b>'+esc(money(p.nav_usd))+'</b><span>макс. просадка '+esc(pct(p.max_drawdown_pct))+'</span></div>';}).join("");
+      if(!inv.available)box("investment").innerHTML='<div class="cc-unavailable"><b>Investment ATLAS недоступен</b><span>Агрегированная проекция не ответила.</span></div>';
+      else{
+        var vc=inv.virtual_capital||{},h=inv.hypotheses||{},a=inv.activity||{},dq=inv.data_quality||{};
+        var cells=[["Виртуальный капитал",money(vc.current_total)],["Доходность",pct(vc.return_pct)],["Свободный капитал",money(vc.cash_total)],["Подтверждено гипотез",pct(h.success_rate_pct)],["Активные позиции",a.active_positions_total==null?"—":a.active_positions_total],["Решений",a.committed_decisions==null?"—":a.committed_decisions],["Ошибок",a.errors_detected==null?"—":a.errors_detected],["Качество входа",humanCode(dq.status||"не передано")]];
         box("investment").innerHTML='<div class="radar-invest-grid">'+cells.map(function(c){return '<div><small>'+esc(c[0])+'</small><b>'+esc(c[1])+'</b></div>';}).join("")+'</div>'+
-          (ports?'<div class="radar-portfolios">'+ports+'</div>':'')+
           '<div class="radar-next"><span>Этап: '+esc(humanCode(inv.stage||inv.lab_status||"не передан"))+'</span><span>Следующий рубеж: '+esc(humanCode(inv.next_gate||"не передан"))+'</span></div>';
       }
     }
-    if(box("reputation"))box("reputation").innerHTML=rows(arr("reputation"),"Новых внешних репутационных или институциональных точек нет.",6);
-    pageBadge("signals","live","FOUNDER RADAR · LIVE");
+
+    page.querySelectorAll("[data-radar-select]").forEach(function(btn){btn.addEventListener("click",function(){showInspector(btn.getAttribute("data-radar-select"));});});
+    var firstImportant=page.querySelector("[data-radar-select].important");
+    var first=firstImportant||page.querySelector("[data-radar-select]");
+    if(first)showInspector(first.getAttribute("data-radar-select"));
+    pageBadge("signals","live","СИГНАЛЫ · LIVE");
   }
 
   function renderSignals(objectsResp, blockersResp, inbox, testingSummary, marketSignals, organizationalIntelligence) {

@@ -2989,70 +2989,27 @@
     если Object ID неизвестен — показываем «не определён», а не выбираем ближайший похожий ID. Это особенно важно для Testing Department и Path Legibility.
   </div>
 </section>
-<section class="page radar-page" data-page-panel="signals">
-<header class="topbar">
-<div>
-<h1>Founder Radar</h1>
-<p>возможности, ожидания, будущие точки проверки и изменения поля, которые могут изменить следующий ход</p>
-</div>
-<div class="top-actions">
-<span class="state unavailable" data-radar-state>ЧИТАЕМ RADAR…</span>
-<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
-</div>
+<section class="page cc-page radar-page" data-page-panel="signals">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Сигналы</h1><p>Внешние окна, ожидания, прогнозные точки и изменения поля, которые могут изменить следующий ход</p></div></div>
+<div data-radar-stamp><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем Radar…</span></div></div>
 </header>
-
-<section class="strip radar-kpis">
-<article class="card"><small>Требует внимания</small><strong data-radar-kpi="attention">—</strong><span>решения и запросы, где следующий ход у вас</span></article>
-<article class="card"><small>Ждём</small><strong data-radar-kpi="waiting">—</strong><span>внешние ответы, исходы и решения программ</span></article>
-<article class="card"><small>Ближайшие даты</small><strong data-radar-kpi="upcoming">—</strong><span>дедлайны и контрольные точки из тех же источников, что «Во времени»</span></article>
-<article class="card"><small>Возможности</small><strong data-radar-kpi="opportunities">—</strong><span>тендеры, программы, проекты и другие подтверждённые окна</span></article>
-</section>
-
-<section class="radar-grid">
-<article class="card radar-card radar-attention">
-<div class="panel-head"><div class="head-title"><h2>ТРЕБУЕТ ВНИМАНИЯ</h2><small>только то, где действительно нужен ваш следующий ход</small></div></div>
-<div class="panel-body" data-radar="attention"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
-</article>
-
-<article class="card radar-card radar-opportunities">
-<div class="panel-head"><div class="head-title"><h2>ВОЗМОЖНОСТИ</h2><small>внешние окна для действия, не общий поток новостей</small></div></div>
-<div class="panel-body" data-radar="opportunities"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
-</article>
-
-<article class="card radar-card radar-waiting">
-<div class="panel-head"><div class="head-title"><h2>ЖДЁМ</h2><small>кто или что держит следующий ход и что должно произойти дальше</small></div></div>
-<div class="panel-body" data-radar="waiting"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
-</article>
-
-<article class="card radar-card radar-predictions">
-<div class="panel-head"><div class="head-title"><h2>ПРЕДСКАЗАНИЯ И ДАТЫ РАСКРЫТИЯ</h2><small>запечатано → ждём исход → раскрытие → результат → следующий прогноз</small></div></div>
-<div class="panel-body" data-radar="predictions"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
-</article>
-
-<article class="card radar-card radar-field">
-<div class="panel-head"><div class="head-title"><h2>ПОЛЕ И РЫНОК</h2><small>отобранные изменения внешней среды и покрытие наблюдения</small></div></div>
-<div class="panel-body" data-radar="field"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
-</article>
-
-<article class="card radar-card radar-learning">
-<div class="panel-head"><div class="head-title"><h2>ATLAS УЧИТСЯ</h2><small>что система сейчас проверяет, что получила и какой следующий рубеж</small></div></div>
-<div class="panel-body" data-radar="learning"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
-</article>
-
-<article class="card radar-card radar-investment radar-wide">
-<div class="panel-head"><div class="head-title"><h2>INVESTMENT ATLAS</h2><small>агрегаты капитала и качества без раскрытия отдельных инвестиционных гипотез</small></div></div>
-<div class="panel-body" data-radar="investment"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
-</article>
-
-<article class="card radar-card radar-reputation radar-wide">
-<div class="panel-head"><div class="head-title"><h2>РЕПУТАЦИЯ И ПРИСУТСТВИЕ</h2><small>публикации, внешние ответы, научные и институциональные следы</small></div></div>
-<div class="panel-body" data-radar="reputation"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
-</article>
-</section>
-
-<div class="radar-sync-note">
-<b>Автоматическая синхронизация.</b>
-<span>Ветки фиксируют обычное событие, ожидание или следующий рубеж. Radar ничего не копирует вручную: он читает эти же записи, а датированные точки одновременно появляются во временной линии.</span>
+<div class="cc-page-grid">
+<div class="cc-body radar-body" data-cc-body>
+<section class="radar-summary" data-radar-summary></section>
+<div class="radar-signal-grid">
+<article class="cc-panel radar-panel"><header><h2>Возможности</h2><small>подтверждённые внешние окна для действия</small></header><div data-radar="opportunities"><div class="cc-loading">Читаем…</div></div></article>
+<article class="cc-panel radar-panel"><header><h2>Ждём</h2><small>внешние ответы, исходы и решения программ</small></header><div data-radar="waiting"><div class="cc-loading">Читаем…</div></div></article>
+<article class="cc-panel radar-panel"><header><h2>Предсказания и даты раскрытия</h2><small>запечатано → исход → раскрытие → результат → следующий прогноз</small></header><div data-radar="predictions"><div class="cc-loading">Читаем…</div></div></article>
+<article class="cc-panel radar-panel"><header><h2>Поле и рынок</h2><small>отобранные изменения внешней среды</small></header><div data-radar="field"><div class="cc-loading">Читаем…</div></div></article>
+<article class="cc-panel radar-panel"><header><h2>ATLAS учится</h2><small>текущие проверки, результаты и следующий рубеж</small></header><div data-radar="learning"><div class="cc-loading">Читаем…</div></div></article>
+<article class="cc-panel radar-panel"><header><h2>Репутация и присутствие</h2><small>публикации, научные и институциональные внешние следы</small></header><div data-radar="reputation"><div class="cc-loading">Читаем…</div></div></article>
+<article class="cc-panel radar-panel radar-invest-panel"><header><h2>Investment ATLAS</h2><small>агрегаты капитала и качества без раскрытия отдельных гипотез</small></header><div data-radar="investment"><div class="cc-loading">Читаем…</div></div></article>
+</div>
+</div>
+<aside class="cc-inspector radar-inspector" data-radar-inspector>
+<div class="cc-insp-idle"><b>Сигнальный радар</b><span>Выберите сигнал слева. Здесь появятся источник, дата, контекст и причина, почему он находится на радаре.</span></div>
+</aside>
 </div>
 </section>
 <section class="page" data-page-panel="documents">
