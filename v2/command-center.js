@@ -3295,35 +3295,12 @@
     return "<div class='cc-steward-msg "+role+"'><p>"+E(text||"")+"</p>"+refs+"</div>";
   }
 
-  function localStewardAnswer(ctx,question) {
-    ctx=ctx||{}; var q=String(question||"").toLowerCase();
-    if (ctx.kind==="decision_context") {
-      var choices=Array.isArray(ctx.choices)&&ctx.choices.length?ctx.choices.join(", "):"варианты источником не переданы";
-      if (/ветк|где проход|где это/.test(q)) return "Это не исследовательская ветка, а формальное решение Основателя. Искать отдельный чат или ветку для самого выбора не нужно.";
-      if (/что это|что за|объясни/.test(q)) return "Это формальное решение Основателя: "+(ctx.question||ctx.title||"требуется выбор")+". Доступные варианты: "+choices+"."+(ctx.why?" Почему сейчас: "+ctx.why:"")+(ctx.deadline?" "+ctx.deadline:"");
-      if (/что делать|что дальше|как .*запуст|как запуст|запустить/.test(q)) return "Нужно выбрать один из допустимых вариантов: "+choices+"."+(ctx.next?" После выбора: "+ctx.next:"")+" Искать ветку для этого решения не нужно.";
-      if (/чего жд|когда/.test(q)) return ctx.deadline||"Решение ждёт явного выбора Основателя; отдельный срок не передан.";
-    }
-    if ((ctx.layer==="Сигналы" || /сигнал/i.test(String(ctx.sub||""))) && /ветк|где проход|где это/.test(q)) {
-      return "Это внешний Research Signal, а не уже назначенная внутренняя исследовательская ветка. Точная ветка ATLAS в источнике не передана; сначала сигнал нужно содержательно просмотреть и только потом, если связь подтвердится, привязать к ветке.";
-    }
-    return "";
-  }
-
   function askSteward(d,question) {
     var thread=d.querySelector("[data-cc-steward-thread]"), status=d.querySelector("[data-cc-steward-status]");
     thread.insertAdjacentHTML("beforeend",stewardBubble("user",question));
-    var local=localStewardAnswer(d._stewardContext||{},question);
-    if(local){
-      thread.insertAdjacentHTML("beforeend",stewardBubble("assistant",local,[]));
-      d._stewardHistory=(d._stewardHistory||[]).concat([{role:"user",content:question},{role:"assistant",content:local}]).slice(-10);
-      status.textContent="Ответ по структуре выбранной карточки";
-      thread.scrollTop=thread.scrollHeight;
-      return;
-    }
-    thread.insertAdjacentHTML("beforeend","<div class='cc-steward-msg assistant pending'>Ищу в рабочей памяти…</div>");
+    thread.insertAdjacentHTML("beforeend","<div class='cc-steward-msg assistant pending'>Разбираю вопрос и проверяю рабочий контекст…</div>");
     thread.scrollTop=thread.scrollHeight;
-    status.textContent="Steward Navigator ищет подтверждённый контекст…";
+    status.textContent="Стюард сверяет память, связи и живое состояние системы…";
     fetch("/founder-ui-preview/api/steward-navigator/query",{
       method:"POST",credentials:"same-origin",cache:"no-store",
       headers:{"Content-Type":"application/json"},
@@ -3340,8 +3317,8 @@
       thread.scrollTop=thread.scrollHeight;
     }).catch(function(){
       var p=thread.querySelector(".pending"); if(p)p.remove();
-      thread.insertAdjacentHTML("beforeend",stewardBubble("assistant","Навигатор пока не подключён к серверу этой панели. Контекст сохранён только в текущем окне; я не буду изображать ответ без доступа к рабочей памяти."));
-      status.textContent="Steward Navigator недоступен · серверный контур ещё не подключён";
+      thread.insertAdjacentHTML("beforeend",stewardBubble("assistant","Стюард сейчас недоступен. Я не буду подменять агентный ответ догадкой; попробуй ещё раз через минуту."));
+      status.textContent="Стюард временно недоступен";
       thread.scrollTop=thread.scrollHeight;
     });
   }
