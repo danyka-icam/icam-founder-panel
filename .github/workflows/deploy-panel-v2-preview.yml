@@ -1,0 +1,32 @@
+name: Deploy panel-v2 preview
+
+on:
+  push:
+    branches: [panel-v2]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write restricted preview deploy key
+        run: |
+          umask 077
+          printf '%s\n' "${{ secrets.ICAM_PANEL_DEPLOY_KEY }}" > deploy_key
+          chmod 600 deploy_key
+
+      - name: Deploy v2 preview only
+        env:
+          ICAM_PANEL_DEPLOY_KEY: deploy_key
+        run: |
+          rsync -az --delete -e "ssh -i $ICAM_PANEL_DEPLOY_KEY -o StrictHostKeyChecking=accept-new" \
+            v2/ icam-panel-deploy@187.127.32.207:v2/
+
+      - name: Remove deploy key
+        if: always()
+        run: rm -f deploy_key
