@@ -1,21 +1,21 @@
 # ICAM Founder Panel v2 — Public Handoff
 
-Current as of: 2026-09-03
+Current as of: 2026-10-03
 
 ## Repository and branches
 
 - Repository: `github.com/danyka-icam/icam-founder-panel`
 - Repository visibility: **public**
-- `main` = production
-- `panel-v2` = accepted v2 integration candidate
-- merge/push to `main` triggers the existing production deploy workflow
-- `panel-v2` must not be treated as production before Founder review and merge
+- `main` remains the release branch for the existing production deploy workflow.
+- `panel-v2` is the active v2 integration branch and is deployed to the Founder Panel v2 preview path.
+- the console root currently redirects to `/founder-ui-preview/v2/`, so v2 is the live Founder working surface even though `panel-v2` has not been merged to `main`.
+- merge/push to `main` still controls the repository's production release workflow; branch identity and live routing must not be conflated.
 
 Current v2 frontend:
 - `v2/index.html`
 - `v2/live.js`
 
-Current production/reference material remains under `final/` until the v2 switch is accepted.
+`final/` remains rollback/reference material. The live Founder working route is v2; repository promotion to `main` is still a separate release step.
 
 ## Product boundary
 
@@ -325,17 +325,22 @@ Signal truth rules:
 
 ## Write / authority boundary
 
-Current v2 is **READ ONLY**.
+Current v2 is **read by default with two narrow mediated Founder write paths**. The browser never becomes a canonical store and never writes directly to Continuity.
 
-Any future write path requires:
+Currently approved write-capable flows:
+- exact-object status correction through Steward Navigator → context-steward-actions → Continuity, currently limited to explicit Founder-confirmed `CLOSED`;
+- formal Founder Decision recording through the exact lifecycle identity → context-steward-actions → Continuity, with separate proposal and confirmation.
+
+Every write path requires:
 - an explicit owning backend
 - authenticated same-origin route
 - defined authority envelope
-- Founder-safe confirmation where required
-- audit receipt
-- failure semantics
+- exact target identity
+- Founder-safe confirmation
+- audit receipt / authoritative event
+- failure and stale-state semantics
 
-No browser-only local mutation may masquerade as canonical state.
+No browser-only local mutation may masquerade as canonical state. All other panel surfaces remain read-only unless a separately documented authority path is added.
 
 ## Integration acceptance checks
 
@@ -347,17 +352,17 @@ Before PR to `main`:
 4. Atlas / DT / BrazilPortal / Operations do not use guessed identities or invented source mappings.
 5. Market Scanner is not enabled before QA PASS.
 6. No canonical write path is added implicitly.
-7. All 16 current top-level routes load (6 Founder modes + 10 contour pages).
+7. All 17 current top-level routes load (6 Founder modes + 3 direction pages + BrazilPortal + 7 system-tool pages, including Agent Network).
 8. desktop/tablet/mobile layout has no horizontal overflow.
 9. browser console has no uncaught runtime errors.
    - local regression: `node dev/static-contract-check.mjs` + `node dev/check.mjs` on the dev stand
 10. Founder reviews the integrated `panel-v2`.
 
-Production flow:
+Release-branch promotion flow:
 
-`panel-v2 → integration verification → Founder review → PR → merge to main → existing deploy workflow → production smoke`
+`panel-v2 live working surface → integration verification → Founder review → PR → merge to main → existing main deploy workflow → release smoke`
 
-A green browser smoke check proves technical loading only; it is not a semantic truth gate.
+The current console redirect to v2 does not by itself mean the branch was promoted to `main`. A green browser smoke check proves technical loading only; it is not a semantic truth gate.
 
 ## Timeline v2 — layered temporal field
 

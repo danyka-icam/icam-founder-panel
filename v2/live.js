@@ -1721,7 +1721,9 @@
         '<div class="cc-insp-sec"><h4>Источник</h4><p>'+esc(source)+'</p>'+(evidence?'<small>'+esc(evidence)+'</small>':'')+'</div>'+
         (x.status?'<div class="cc-insp-sec"><h4>Состояние источника</h4><p>'+esc(humanCode(x.status))+'</p></div>':'')+
         '<div class="cc-insp-sec"><h4>Граница</h4><p>Панель показывает запись источника и не повышает её до действия, решения или причинной связи без отдельного подтверждения.</p></div>'+
-        '<button type="button" class="cc-steward-ask" data-cc-steward-context="'+esc(JSON.stringify(stewardCtx))+'"><b>Спросить Стюарда</b><span>объяснить сигнал, источник, связь или следующий шаг</span></button>';
+        '<button type="button" class="cc-steward-ask"><b>Спросить Стюарда</b><span>объяснить сигнал, источник, связь или следующий шаг</span></button>';
+      var stewardBtn=host.querySelector(".cc-steward-ask");
+      if(stewardBtn)stewardBtn.setAttribute("data-cc-steward-context",JSON.stringify(stewardCtx));
       page.querySelectorAll("[data-radar-select]").forEach(function(b){b.classList.toggle("selected",b.getAttribute("data-radar-select")===key);});
     }
 
