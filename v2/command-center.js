@@ -1,7 +1,9 @@
 // Founder Panel v2 — Command Center modes
-// Scope: READ ONLY. Renders five modes (Командный центр, Во времени, Связи и
-// стратегии, Линии и объекты, Размещение) from the snapshot that live.js
-// already fetched (window.__PANEL_V2_DATA). No extra requests, no writes.
+// Scope: READ BY DEFAULT + two narrow Founder-confirmed action paths.
+// Renders Founder modes from the snapshot that live.js already fetched
+// (window.__PANEL_V2_DATA). Canonical reads stay in live.js; this module may
+// call only the explicitly whitelisted Steward status / Founder decision action
+// bridges. The browser never writes directly to Continuity or keeps local truth.
 //
 // Sources of truth:
 //   - worlds, canonical lines, stars, company/line history, trajectories,
