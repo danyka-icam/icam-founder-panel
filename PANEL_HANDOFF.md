@@ -586,7 +586,7 @@ Panel:
 - Coral/red remains reserved for an explicit critical source state.
 - Full agent-network topology remains outside Signals. Network health / authority conflicts / stalled agents / unregistered changes belong to the future System network surface.
 - Shared integration boundary for the neighboring agent-network branch: FOUNDER_PANEL_AGENT_SIGNAL_CONTRACT.md.
-- Founder Panel remains read-only; future agent signal producers must expose normalized signals through a projection rather than write into the panel.
+- Signals and future agent-network surfaces remain read-only projections; future agent signal producers must expose normalized signals through a projection rather than write into the panel. This is separate from the two explicitly approved Founder-confirmed action paths documented above.
 
 ## 2026-10-03 — Steward explicit Founder status correction
 
@@ -709,3 +709,4 @@ Regression proof:
 - Agent Network remains intentionally unavailable until the neighboring Registry/Lineage work exposes a real projection contract. The panel must not infer the network from systemd services.
 
 - Dead-control cleanup: removed all 65 legacy `top-corner-arrow` controls and the generic drawer they opened. That drawer contained only placeholder `—` fields and promised future details, so it was not a real inspector. Disabled future subview buttons remain intentionally disabled and explicitly explain that their read projection is not connected; real Founder-mode inspectors are unchanged.
+- Russian UI pass: removed mixed semantic copy such as `current`, `hard failure`, `runtime/deployment`, `recovery path`, `write-authority`, `fake throughput`, `Founder-facing`, `operational`, `commitments/blockers`. Literal field names, status codes and component names remain unchanged where they identify a real contract or source.
