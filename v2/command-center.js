@@ -3080,6 +3080,7 @@
         ceilingRow("info", "Панель read-only: выбор здесь не записывается"),
         consequencesKnown ? ceilingRow(consequences.length ? "ok" : "info", consequences.length ? "Проверенные последствия переданы источником" : "Источник явно передал пустой verified_consequences[]") : ceilingRow("info", "Поле verified_consequences[] не передано")
       ],
+      stewardContext:{kind:"decision_context",question:r.question||d.title,why:r.why_now||"",deadline:r.deadline_or_condition||"",next:r.what_happens_after_choice||"",choices:choices.map(function(c){return c.label||c.canonical||scalar(c);}),authority_mode:r.authority_mode||""},
       nav: "<a href='#command'>Командный центр →</a>"
     });
   }
@@ -3294,9 +3295,32 @@
     return "<div class='cc-steward-msg "+role+"'><p>"+E(text||"")+"</p>"+refs+"</div>";
   }
 
+  function localStewardAnswer(ctx,question) {
+    ctx=ctx||{}; var q=String(question||"").toLowerCase();
+    if (ctx.kind==="decision_context") {
+      var choices=Array.isArray(ctx.choices)&&ctx.choices.length?ctx.choices.join(", "):"варианты источником не переданы";
+      if (/ветк|где проход|где это/.test(q)) return "Это не исследовательская ветка, а формальное решение Основателя. Искать отдельный чат или ветку для самого выбора не нужно.";
+      if (/что это|что за|объясни/.test(q)) return "Это формальное решение Основателя: "+(ctx.question||ctx.title||"требуется выбор")+". Доступные варианты: "+choices+"."+(ctx.why?" Почему сейчас: "+ctx.why:"")+(ctx.deadline?" "+ctx.deadline:"");
+      if (/что делать|что дальше|как .*запуст|как запуст|запустить/.test(q)) return "Нужно выбрать один из допустимых вариантов: "+choices+"."+(ctx.next?" После выбора: "+ctx.next:"")+" Искать ветку для этого решения не нужно.";
+      if (/чего жд|когда/.test(q)) return ctx.deadline||"Решение ждёт явного выбора Основателя; отдельный срок не передан.";
+    }
+    if ((ctx.layer==="Сигналы" || /сигнал/i.test(String(ctx.sub||""))) && /ветк|где проход|где это/.test(q)) {
+      return "Это внешний Research Signal, а не уже назначенная внутренняя исследовательская ветка. Точная ветка ATLAS в источнике не передана; сначала сигнал нужно содержательно просмотреть и только потом, если связь подтвердится, привязать к ветке.";
+    }
+    return "";
+  }
+
   function askSteward(d,question) {
     var thread=d.querySelector("[data-cc-steward-thread]"), status=d.querySelector("[data-cc-steward-status]");
     thread.insertAdjacentHTML("beforeend",stewardBubble("user",question));
+    var local=localStewardAnswer(d._stewardContext||{},question);
+    if(local){
+      thread.insertAdjacentHTML("beforeend",stewardBubble("assistant",local,[]));
+      d._stewardHistory=(d._stewardHistory||[]).concat([{role:"user",content:question},{role:"assistant",content:local}]).slice(-10);
+      status.textContent="Ответ по структуре выбранной карточки";
+      thread.scrollTop=thread.scrollHeight;
+      return;
+    }
     thread.insertAdjacentHTML("beforeend","<div class='cc-steward-msg assistant pending'>Ищу в рабочей памяти…</div>");
     thread.scrollTop=thread.scrollHeight;
     status.textContent="Steward Navigator ищет подтверждённый контекст…";
@@ -3368,6 +3392,14 @@
     var insp = page && page.querySelector("[data-cc-inspector]");
     if (insp && window.matchMedia("(max-width:1280px)").matches) insp.scrollIntoView({ behavior: "smooth", block: "start" });
   });
+  document.addEventListener("keydown", function(e){
+    var input=e.target.closest && e.target.closest("[data-cc-steward-input]");
+    if(!input || e.key!=="Enter" || e.shiftKey || e.isComposing)return;
+    e.preventDefault();
+    var form=input.closest("[data-cc-steward-form]");
+    if(form) form.requestSubmit();
+  });
+
   document.addEventListener("submit", function(e){
     var form=e.target.closest && e.target.closest("[data-cc-steward-form]");
     if(!form)return;

@@ -1075,13 +1075,13 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .cc-steward-context b,.cc-steward-context span{display:block}.cc-steward-context b{font-size:11px}.cc-steward-context span{margin-top:2px;font-size:9px;color:var(--muted)}
 .cc-steward-thread{overflow:auto;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
 .cc-steward-intro{padding:11px;border:1px dashed rgba(145,170,167,.18);border-radius:10px;color:var(--muted);font-size:11px;line-height:1.5}
-.cc-steward-msg{max-width:88%;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.045);font-size:11px;line-height:1.5}
+.cc-steward-msg{max-width:90%;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.045);font-size:13px;line-height:1.58}
 .cc-steward-msg.user{align-self:flex-end;background:rgba(57,203,170,.11);border:1px solid rgba(57,203,170,.15)}
 .cc-steward-msg.assistant{align-self:flex-start}.cc-steward-msg.pending{color:var(--muted)}
 .cc-steward-msg p{margin:0;white-space:pre-wrap}
-.cc-steward-msg details{margin-top:8px}.cc-steward-msg summary{cursor:pointer;color:var(--muted);font-size:9px}
+.cc-steward-msg details{margin-top:8px}.cc-steward-msg summary{cursor:pointer;color:var(--muted);font-size:10px}
 .cc-steward-evidence{display:grid;gap:5px;margin-top:7px}.cc-steward-evidence div{padding:6px 7px;border-left:2px solid rgba(89,213,187,.25);background:rgba(255,255,255,.025)}
-.cc-steward-evidence b,.cc-steward-evidence small{display:block}.cc-steward-evidence b{font-size:9px}.cc-steward-evidence small{margin-top:2px;color:var(--muted);font-size:8px}
+.cc-steward-evidence b,.cc-steward-evidence small{display:block}.cc-steward-evidence b{font-size:10px}.cc-steward-evidence small{margin-top:2px;color:var(--muted);font-size:9px}
 .cc-steward-shell form{padding:12px 18px;display:grid;grid-template-columns:1fr auto;gap:8px;border-top:1px solid var(--line)}
 .cc-steward-shell textarea{resize:none;min-height:58px;border:1px solid var(--line);border-radius:9px;background:#0a1315;color:inherit;padding:9px 10px;font:inherit}
 .cc-steward-shell form button{align-self:stretch;border:1px solid rgba(89,213,187,.28);border-radius:9px;background:rgba(57,203,170,.1);color:var(--cc-flow);padding:0 14px;cursor:pointer}
