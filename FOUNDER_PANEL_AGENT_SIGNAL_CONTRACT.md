@@ -106,3 +106,11 @@ Before adding a new signal-producing agent:
 6. only then expose the read projection to Founder Radar.
 
 This file is the shared integration boundary. Changes to field meaning should be versioned rather than silently reinterpreted.
+
+## System surface for Agent Network
+
+Founder Panel now has a dedicated read-only page `#agents` / «Сеть агентов» under «Инструменты системы».
+
+Expected future normalized projection fields: `source_status`, `generated_at`, `counts.total_agents`, `counts.active_agents`, `counts.degraded_agents`, `counts.stalled_agents`, `counts.unregistered_agents`, `counts.authority_conflicts`, `counts.lineage_gaps`, `counts.decisions_without_evidence`, plus `agents[].agent_id`, `role`, `state`, `owner`, `authority_scope`, `parent_agent_id`, `lineage_id`, `evidence_status`, `last_transition_at`, and incident records.
+
+Rules: systemd process names are not agent identity; service liveness is not network health; semantic similarity is not lineage; action history is not authority; missing lineage/authority/evidence remains unknown. Founder Panel may highlight an upstream incident but never mutate Agent Registry, authority or lineage.

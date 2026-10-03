@@ -615,3 +615,13 @@ GovAI example:
 - observer/routes already reports GovAI Research Scholar — второй этап as status=CLOSED_NO_GO.
 - Its remaining “Ждать ответ” next_move is stale historical route text, not current waiting state.
 - Therefore GovAI requires no Founder mutation; the Panel presentation was the defect.
+
+## 2026-10-03 — Agent Network moved to System tools
+
+- Added dedicated Founder Panel page `#agents` / «Сеть агентов» under «Инструменты системы».
+- Signals page remains signal-only; agent topology and health are not rendered there.
+- No live Agent Registry / Lineage endpoint was found on the server at this time.
+- The page therefore shows explicit unavailable/unknown state and does not infer agents from systemd services.
+- Integration contract is recorded in `FOUNDER_PANEL_AGENT_SIGNAL_CONTRACT.md`.
+- Steward Agent v0.3 now reads exact `observer/routes` live state by `route_id` before old indexed memory, and exact object matches before semantic retrieval when IDs are available.
+- Live selected context / exact live match outranks stale indexed documents on state conflicts.

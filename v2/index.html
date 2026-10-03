@@ -1518,11 +1518,12 @@
 <a data-page="digital-twin" href="#digital-twin"><span class="dot">DT</span><span>Digital Twin</span></a>
 <div class="nav-peripheral"><span>Периферия</span><a data-page="brazilportal" href="#brazilportal">BrazilPortal</a></div>
 <details class="nav-tools" id="systemTools">
-<summary><span>Инструменты системы</span><em>6</em></summary>
+<summary><span>Инструменты системы</span><em>7</em></summary>
 <div class="nav-tools-links">
 <a data-page="foundation" href="#foundation"><span class="dot">F</span><span>Фундамент</span></a>
 <a data-page="operations" href="#operations"><span class="dot">O</span><span>Операции</span></a>
 <a data-page="registry" href="#registry"><span class="dot">R</span><span>Реестр объектов</span></a>
+<a data-page="agents" href="#agents"><span class="dot">AN</span><span>Сеть агентов</span></a>
 <a data-page="documents" href="#documents"><span class="dot">D</span><span>Документы</span></a>
 <a data-page="testing" href="#testing"><span class="dot">T</span><span>Тестирование</span></a>
 <a data-page="diagnostics" href="#diagnostics"><span class="dot">⚙</span><span>Доверие и диагностика</span></a>
@@ -2989,6 +2990,36 @@
     если Object ID неизвестен — показываем «не определён», а не выбираем ближайший похожий ID. Это особенно важно для Testing Department и Path Legibility.
   </div>
 </section>
+<section class="page cc-page agent-network-page" data-page-panel="agents">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Сеть агентов</h1><p>состояние агентской сети, полномочия, lineage и системные разрывы — без управления сетью из панели</p></div></div>
+<div class="cc-stamp"><span class="cc-pulse"></span><span>Источник сети ещё не подключён</span></div>
+</header>
+<div class="cc-body agent-network-body">
+<section class="radar-summary agent-network-kpis">
+<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">A</span><span class="cc-kpi-body"><small>Агентов</small><strong>—</strong><em>ждём Agent Registry</em></span></div>
+<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">✓</span><span class="cc-kpi-body"><small>Активны</small><strong>—</strong><em>не выводим из systemd-процессов</em></span></div>
+<div class="cc-kpi radar-kpi risk"><span class="cc-kpi-icon">!</span><span class="cc-kpi-body"><small>Разрывы</small><strong>—</strong><em>authority / lineage / evidence</em></span></div>
+<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">↗</span><span class="cc-kpi-body"><small>Изменения сети</small><strong>—</strong><em>ждём нормализованную проекцию</em></span></div>
+</section>
+<div class="agent-network-grid">
+<article class="cc-panel"><header><h2>Состояние сети</h2><small>только подтверждённые агрегаты</small></header>
+<div class="cc-unavailable"><b>Живой источник ещё не подключён</b><span>Панель не считает сервисы на сервере «агентами» и не строит сеть по именам процессов.</span></div></article>
+<article class="cc-panel"><header><h2>Реестр агентов</h2><small>идентичность, роль, владелец и текущий lifecycle</small></header>
+<div class="agent-contract-list"><div><b>agent_id</b><span>стабильная идентичность агента</span></div><div><b>role</b><span>что агент делает</span></div><div><b>state</b><span>активен / остановлен / деградирован — только от Registry</span></div></div></article>
+<article class="cc-panel"><header><h2>Полномочия</h2><small>что агент может делать и где заканчиваются его права</small></header>
+<div class="cc-unavailable"><b>Authority projection не подключена</b><span>Панель не выводит полномочия из поведения агента. Нужен явный authority scope.</span></div></article>
+<article class="cc-panel"><header><h2>Lineage</h2><small>кто породил действие, решение, сигнал или дочернего агента</small></header>
+<div class="cc-unavailable"><b>Lineage Graph ещё не подключён</b><span>Сходство названий и совместная работа не считаются доказанной родословной.</span></div></article>
+<article class="cc-panel agent-network-wide"><header><h2>Что будет подниматься Основателю</h2><small>только системные состояния, действительно требующие видимости</small></header>
+<div class="agent-network-alerts">
+<span>конфликт полномочий</span><span>агент без Registry</span><span>решение без доказательств</span><span>разрыв lineage</span><span>зависший агент</span><span>изменение состава сети</span>
+</div></article>
+</div>
+<div class="agent-network-rule"><b>Граница:</b> эта страница — read-only проекция. Создание агентов, выдача полномочий, отзыв прав, делегирование и изменение lineage здесь невозможны.</div>
+</div>
+</section>
+
 <section class="page cc-page radar-page" data-page-panel="signals">
 <header class="cc-top">
 <div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Сигналы</h1><p>Внешние окна, ожидания, прогнозные точки и изменения поля, которые могут изменить следующий ход</p></div></div>
@@ -3765,7 +3796,7 @@
     panel.classList.add("active");
     document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("active",a.dataset.page===key));
     const tools=document.getElementById("systemTools");
-    if(tools&&["foundation","operations","registry","documents","testing","diagnostics"].includes(key)) tools.open=true;
+    if(tools&&["foundation","operations","registry","agents","documents","testing","diagnostics"].includes(key)) tools.open=true;
     window.scrollTo(0,0);
   }
 

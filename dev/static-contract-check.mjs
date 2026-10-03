@@ -9,7 +9,7 @@ function check(ok, msg) {
 }
 const panels = [...src["v2/index.html"].matchAll(/data-page-panel="([a-z0-9-]+)"/g)].map((m) => m[1]);
 const uniquePanels = [...new Set(panels)];
-check(uniquePanels.length === 16, `16 top-level panels declared (${uniquePanels.length})`);
+check(uniquePanels.length === 17, `17 top-level panels declared (${uniquePanels.length})`);
 const browserWrites = [...all.matchAll(/fetch\(\s*["']([^"']+)["']\s*,\s*\{[\s\S]{0,500}?method\s*:\s*["'](POST|PUT|PATCH|DELETE)["']/gi)].map((m) => ({ url: m[1], method: m[2].toUpperCase() }));
 const allowedPosts = new Set([
   "/founder-ui-preview/api/steward-navigator/query",
