@@ -3077,7 +3077,7 @@
       }).join("") + "</div>" : muted(choicesKnown ? "Источник явно передал пустой choices[]." : "Варианты решения источником не переданы."),
       ceiling: [
         ceilingRow("ok", "Решение показано только из Founder Decision Presentation"),
-        ceilingRow("info", "Панель read-only: выбор здесь не записывается"),
+        ceilingRow("info", "Это формальное решение Основателя. Искать отдельную ветку для выбора не нужно. Прямая фиксация решения из панели пока не подключена."),
         consequencesKnown ? ceilingRow(consequences.length ? "ok" : "info", consequences.length ? "Проверенные последствия переданы источником" : "Источник явно передал пустой verified_consequences[]") : ceilingRow("info", "Поле verified_consequences[] не передано")
       ],
       stewardContext:{kind:"decision_context",question:r.question||d.title,why:r.why_now||"",deadline:r.deadline_or_condition||"",next:r.what_happens_after_choice||"",choices:choices.map(function(c){return c.label||c.canonical||scalar(c);}),authority_mode:r.authority_mode||""},
