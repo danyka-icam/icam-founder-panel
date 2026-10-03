@@ -43,7 +43,7 @@ const routes = [
   { route_id: "R-FND", source_object_id: "FND-001", status: "ACTIVE", stage: "FOUNDATION_FINAL_SOAK", next_move: "Закрыть orphan receipt", ball_owner: "Founder", last_movement_at: iso(4), blockers: [] },
   { route_id: "R-SIG", source_object_id: "OPS-777", status: "ACTIVE", stage: "ACTIVE_SERVICE", ball_owner: "Scanner", last_movement_at: null },
   { route_id: "R-FND2", source_object_id: "FND-001", status: "ACTIVE", stage: "ACTIVE_BUILD", next_move: "Readback byte-for-byte", ball_owner: "Инженер", last_movement_at: iso(6) },
-  { route_id: "R-OLD", source_object_id: "RD1-OLD", status: "CLOSED", stage: "DONE", last_movement_at: iso(140) }
+  { route_id: "R-OLD", source_object_id: "RD1-OLD", status: "CLOSED_NO_GO", stage: "DONE", next_move: "старый шаг не должен считаться активным", deadline: "2026-08-20", last_movement_at: iso(140) }
 ];
 const founderProjection = {
   schema_id: "founder-projection.v0.1", compiled_at: new Date().toISOString(), read_only: true,

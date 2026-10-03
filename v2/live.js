@@ -222,9 +222,14 @@
     return String(r.route_id || r.id || r.source_object_id || r.object_id || r.area || r.title || "");
   }
 
+  var TERMINAL_STATES = {
+    CLOSED:1, CLOSED_NO_GO:1, DONE:1, ARCHIVED:1, CANCELLED:1,
+    COMPLETED:1, RESOLVED:1, RETIRED:1, DEPRECATED:1, INVALIDATED:1, SUPERSEDED:1
+  };
+
   function isClosed(r) {
-    var s = String(r.status || "").toUpperCase();
-    return s === "CLOSED" || s === "DONE" || s === "ARCHIVED" || s === "CANCELLED";
+    var s = String((r && (r.status || r.state)) || "").toUpperCase();
+    return !!TERMINAL_STATES[s];
   }
 
   function isFounderOwner(owner) {

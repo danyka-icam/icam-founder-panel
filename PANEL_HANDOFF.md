@@ -625,3 +625,27 @@ GovAI example:
 - Integration contract is recorded in `FOUNDER_PANEL_AGENT_SIGNAL_CONTRACT.md`.
 - Steward Agent v0.3 now reads exact `observer/routes` live state by `route_id` before old indexed memory, and exact object matches before semantic retrieval when IDs are available.
 - Live selected context / exact live match outranks stale indexed documents on state conflicts.
+
+## 2026-10-03 — Unified terminal-state semantics
+
+Founder Panel now uses one terminal-state contract for route/activity interpretation.
+
+Terminal states:
+- CLOSED
+- CLOSED_NO_GO
+- DONE
+- ARCHIVED
+- CANCELLED
+- COMPLETED
+- RESOLVED
+- RETIRED
+- DEPRECATED
+- INVALIDATED
+- SUPERSEDED
+
+Rules:
+- terminal state suppresses active waiting / next move / deadline presentation;
+- stale operational fields may remain in the raw source as history but must not reactivate the entity;
+- Command Center, Timeline and all live.js surfaces share H.isClosed() for route state;
+- Temporal / Portfolio archival classification uses the same terminal vocabulary plus HISTORICAL;
+- browser fixture R-OLD is CLOSED_NO_GO and deliberately retains stale next_move/deadline to guard this regression.
