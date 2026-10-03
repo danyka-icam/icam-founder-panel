@@ -29,5 +29,6 @@ check(!/(?:10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)\d{1,3}\.\d{1,3}/.test(al
 check(!/(?:sk-[A-Za-z0-9_-]{12,}|ghp_[A-Za-z0-9]{20,}|github_pat_|AKIA[0-9A-Z]{16})/.test(all), "no credential-like literals");
 check(!/x-atlas-signals-key|ATLAS_SIGNALS_KEY_FILE/i.test(all), "no signals ingest secret markers");
 check(!/с объектом FND-007|Legacy-код обращается к `FND-007`/.test(all), "no legacy BrazilPortal identity hard-code");
+check(!/data-drawer=|id="drawer"|top-corner-arrow/.test(src["v2/index.html"]), "no legacy placeholder drawer controls");
 console.log(fails ? `STATIC CONTRACT FAILED: ${fails}` : "STATIC CONTRACT OK");
 process.exit(fails ? 1 : 0);

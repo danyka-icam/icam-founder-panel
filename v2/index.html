@@ -138,13 +138,6 @@
       margin:0;font:400 18px Georgia,"Times New Roman",serif
     }
     .head-title small{display:block;margin-top:3px;color:#929a95;font-size:11px}
-    .top-corner-arrow{
-      width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
-      border:1px solid rgba(225,229,225,.12);background:rgba(20,26,29,.24);
-      color:#cfd5cf;font-size:15px;cursor:pointer
-    }
-    .top-corner-arrow:hover{color:var(--sage);border-color:rgba(169,196,127,.25)}
-
     .state{
       display:inline-flex;align-items:center;gap:7px;padding:5px 8px;border-radius:999px;
       border:1px solid var(--line);font-size:10.5px;color:#c4cac5;background:rgba(20,25,27,.18)
@@ -269,28 +262,6 @@
       padding:9px;border:1px solid var(--line-soft);border-radius:9px;background:rgba(22,28,30,.18)
     }
     .gate b{font-size:10.5px}.gate span{display:block;margin-top:4px;color:#8f9792;font-size:9.5px}
-
-    .migration{
-      min-height:360px;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px
-    }
-    .migration h2{margin:0;font:400 23px Georgia,"Times New Roman",serif}
-    .migration p{max-width:580px;margin:9px auto 0;color:#9fa7a2;font-size:13px;line-height:1.6}
-
-    .drawer{
-      position:fixed;top:0;right:0;width:min(440px,92vw);height:100vh;z-index:40;
-      background:linear-gradient(180deg,rgba(42,51,56,.98),rgba(31,39,43,.99));
-      border-left:1px solid var(--line);box-shadow:-24px 0 48px rgba(4,7,8,.24);
-      transform:translateX(105%);transition:transform .2s ease;padding:22px;overflow:auto
-    }
-    .drawer.open{transform:translateX(0)}
-    .drawer button{
-      border:1px solid var(--line);border-radius:16px;background:rgba(20,26,29,.24);
-      color:#c9cec9;padding:7px 10px;cursor:pointer
-    }
-    .drawer h2{font:400 25px Georgia,"Times New Roman",serif;margin:22px 0 8px}
-    .drawer p{color:#9fa7a2;font-size:12px;line-height:1.6}
-    .drawer dl{display:grid;grid-template-columns:120px 1fr;gap:9px 12px;font-size:11px}
-    .drawer dt{color:#818a85}.drawer dd{margin:0;color:#d5d9d4}
 
     .footer-note{
       margin-top:14px;color:#707a75;font-size:9.5px;text-align:right;letter-spacing:.03em
@@ -1654,31 +1625,31 @@
 </div>
 <section class="atlas-grid">
 <article class="card atlas-now">
-<div class="panel-head"><div class="head-title"><h2>Атлас сейчас</h2><small>3–8 активных линий внимания, не поток новостей</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>Атлас сейчас</h2><small>3–8 активных линий внимания, не поток новостей</small></div></div>
 <div class="panel-body"><div class="empty-copy"><strong>Нормализованный источник Атласа ещё не подключён</strong><span>До появления нормализованного источника здесь не будет выдуманных миров, версий или линий внимания.</span></div></div>
 </article>
 <article class="card worlds">
-<div class="panel-head"><div class="head-title"><h2>МИРЫ</h2><small>Динамические модели участков мира</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>МИРЫ</h2><small>Динамические модели участков мира</small></div></div>
 <div class="panel-body"><p>Состояние · уверенность · активные гипотезы · существенное изменение · последнее противоречие · актуальность.</p></div>
 </article>
 <article class="card model">
-<div class="panel-head"><div class="head-title"><h2>ТЕКУЩАЯ МОДЕЛЬ</h2><small>Что Атлас считает происходящим</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>ТЕКУЩАЯ МОДЕЛЬ</h2><small>Что Атлас считает происходящим</small></div></div>
 <div class="panel-body"><p>НОВАЯ / УСИЛИВАЕТСЯ / СТАБИЛЬНА / ОСЛАБЕВАЕТ / ОСПАРИВАЕТСЯ / НЕ РАЗРЕШЕНА / ОТКЛОНЕНА.</p></div>
 </article>
 <article class="card forecasts">
-<div class="panel-head"><div class="head-title"><h2>ПРОГНОЗЫ</h2><small>ОТКРЫТЫЕ / ЗАВЕРШЁННЫЕ</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>ПРОГНОЗЫ</h2><small>ОТКРЫТЫЕ / ЗАВЕРШЁННЫЕ</small></div></div>
 <div class="panel-body"><div class="rows"><div class="row"><div><strong>Исходный прогноз неизменяем</strong><small>Вероятность · горизонт · версия модели · исход · оценка</small></div><span class="state unavailable">НЕДОСТУПНО</span></div></div></div>
 </article>
 <article class="card performance">
-<div class="panel-head"><div class="head-title"><h2>КАЧЕСТВО</h2><small>Как развивается Наблюдатель</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>КАЧЕСТВО</h2><small>Как развивается Наблюдатель</small></div></div>
 <div class="panel-body"><p>Калибровка · оценка Брайера · улучшение прогнозов · время до признания противоречия · кандидат против канона.</p></div>
 </article>
 <article class="card surprises">
-<div class="panel-head"><div class="head-title"><h2>НЕОЖИДАННОСТИ</h2><small>Где реальность сильно нарушила ожидания</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>НЕОЖИДАННОСТИ</h2><small>Где реальность сильно нарушила ожидания</small></div></div>
 <div class="panel-body"><p>Не каждая ошибка — только существенная неожиданность.</p></div>
 </article>
 <article class="card changing">
-<div class="panel-head"><div class="head-title"><h2>КАК МЕНЯЕТСЯ АТЛАС</h2><small>История изменений модели</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>КАК МЕНЯЕТСЯ АТЛАС</h2><small>История изменений модели</small></div></div>
 <div class="panel-body"><p>ПРЕДЛОЖЕНО / ТЕСТИРУЕТСЯ / ПРОЙДЕНО / НЕ ПРОЙДЕНО / ОТКЛОНЕНО / ПРИНЯТО. Отклонённые изменения остаются видимыми.</p></div>
 </article>
 </section>
@@ -1705,7 +1676,7 @@
 <article class="card dt-overview">
 <div class="panel-head">
 <div class="head-title"><h2>КАК Я УЧУСЬ</h2><small>что изменилось после последнего оценённого исхода</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="empty-copy">
@@ -1717,7 +1688,7 @@
 <article class="card dt-gates">
 <div class="panel-head">
 <div class="head-title"><h2>МОЙ ДВОЙНИК И БАЗОВАЯ МОДЕЛЬ</h2><small>сравнение только после достаточного числа исходов</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="twin-compare">
@@ -1731,7 +1702,7 @@
 <article class="card humans">
 <div class="panel-head">
 <div class="head-title"><h2>УВЕРЕННОСТЬ ЯДРА</h2><small>что в Personal Core уже устойчиво, а что ещё гипотеза</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="core-confidence">
@@ -1745,7 +1716,7 @@
 <article class="card population">
 <div class="panel-head">
 <div class="head-title"><h2>ТРЕБУЕТ ПОДТВЕРЖДЕНИЯ</h2><small>только если реальный Founder-outcome неоднозначен</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="empty-copy compact">
@@ -1850,7 +1821,7 @@
 <h2>МОЖНО ЛИ БЕЗОПАСНО СТРОИТЬ ДАЛЬШЕ?</h2>
 <small>один Founder-facing ответ вместо набора технических метрик</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-fnd="readiness-card">
 <div class="foundation-readiness-body">
@@ -1886,7 +1857,7 @@
 <h2>ЧТО НАРУШАЕТ ОСНОВАНИЕ</h2>
 <small>только системные проблемы, а не очередь всех проектов</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-fnd="attention">
 <div class="foundation-empty compact">
@@ -1980,7 +1951,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ВОССТАНОВЛЕНИЕ</h2><small>что произойдёт, если один из несущих слоёв упадёт</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="recovery-path">
@@ -1998,7 +1969,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ЦЕПОЧКА ИСТИНЫ</h2><small>как состояние доходит до Основателя</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="truth-chain">
@@ -2018,7 +1989,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ДОЛГОВЕЧНОСТЬ</h2><small>файл существует не тогда, когда его название видно в интерфейсе</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-fnd="durability-detail">
 <div class="durability-grid">
@@ -2031,7 +2002,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПОСЛЕДНЕЕ ИЗМЕНЕНИЕ ФУНДАМЕНТА</h2><small>только существенное изменение основания</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-fnd="last-change">
 <div class="foundation-empty compact">
@@ -2101,7 +2072,7 @@
 <h2>КАРТА ИССЛЕДОВАТЕЛЬСКИХ ЛИНИЙ</h2>
 <small>одним взглядом: что проверяем, где находимся и какой следующий переход</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="research-column-head">
@@ -2125,7 +2096,7 @@
 <h2>ГДЕ НУЖНА Я</h2>
 <small>решение, подтверждение или исследовательский выбор</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-r="attention">
 <div class="research-empty compact">
@@ -2140,7 +2111,7 @@
 <h2>ЖДЁМ / ВЕРНУТЬСЯ ПО УСЛОВИЮ</h2>
 <small>не всё, что стоит, является проблемой</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-r="waiting">
 <div class="research-empty compact">
@@ -2207,7 +2178,7 @@
 <h2>ПОСЛЕДНИЙ СУЩЕСТВЕННЫЙ РЕЗУЛЬТАТ</h2>
 <small>не последнее техническое событие, а изменение исследовательского смысла</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-r="result">
 <div class="research-result-placeholder">
@@ -2222,7 +2193,7 @@
 <h2>ДОКАЗАТЕЛЬСТВА</h2>
 <small>что действительно поддерживает текущий вывод</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="research-evidence-model">
@@ -2239,7 +2210,7 @@
 <h2>СЛЕДУЮЩАЯ ПРОВЕРКА</h2>
 <small>какой факт способен сдвинуть линию дальше</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-r="next-gates">
 <div class="research-empty compact">
@@ -2254,7 +2225,7 @@
 <h2>ЧТО ИЗМЕНИЛОСЬ</h2>
 <small>материальные изменения по исследовательским линиям</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-r="changes">
 <div class="research-empty compact">
@@ -2346,7 +2317,7 @@
 <h2>ЧТО СЕЙЧАС ПРОИСХОДИТ</h2>
 <small>каноническое состояние → последний подтверждённый результат → следующий ход</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-now-layout">
@@ -2388,7 +2359,7 @@
 <h2>ЧТО МЕШАЕТ</h2>
 <small>только реальные препятствия этого объекта</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-empty compact">
@@ -2449,7 +2420,7 @@
 <h2>ПРОДУКТ И ПОВЕРХНОСТИ</h2>
 <small>что реально доступно пользователю сейчас</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-product-layers">
@@ -2482,7 +2453,7 @@
 <h2>ДОКАЗАТЕЛЬСТВО ДВИЖЕНИЯ</h2>
 <small>что подтверждает, что продукт не просто существует, а используется</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-evidence-grid">
@@ -2499,7 +2470,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПОСЛЕДНЕЕ МАТЕРИАЛЬНОЕ ИЗМЕНЕНИЕ</h2><small>что действительно поменялось в продукте или коммерческом контуре</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-empty compact">
@@ -2511,7 +2482,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>СЛЕДУЮЩИЙ ЭКСПЕРИМЕНТ</h2><small>что именно мы проверяем дальше и какой факт изменит решение</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-empty compact">
@@ -2523,7 +2494,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ТРЕБУЕТ ОСНОВАТЕЛЯ</h2><small>только решение, которое действительно нельзя делегировать</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-empty compact">
@@ -2535,7 +2506,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ВНЕШНЯЯ СРЕДА</h2><small>регуляторные, рыночные и партнёрские события — только если есть источник</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-empty compact">
@@ -2603,7 +2574,7 @@
 <h2>ЧТО РЕАЛЬНО ИСПОЛНЯЕТСЯ СЕЙЧАС</h2>
 <small>не весь портфель маршрутов, а только действия, уже перешедшие из решения в исполнение</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="operations-table-head">
@@ -2627,7 +2598,7 @@
 <h2>У КОГО ХОД</h2>
 <small>исполнение должно иметь конкретного владельца</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="owner-compass">
@@ -2687,7 +2658,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ОТКРЫТЫЕ ОБЯЗАТЕЛЬСТВА</h2><small>что было обещано или принято на себя и ещё не закрыто</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="operations-empty compact">
@@ -2699,7 +2670,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПРЕПЯТСТВИЯ И ОСТАНОВКИ</h2><small>что мешает уже утверждённому действию двигаться</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="operations-empty compact">
@@ -2711,7 +2682,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПОСЛЕДНЕЕ ДВИЖЕНИЕ</h2><small>что действительно произошло, а не что было запланировано</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="movement-timeline">
@@ -2726,7 +2697,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ЖДЁМ ВНЕШНИЙ ХОД</h2><small>активное ожидание не должно выглядеть как внутренний застой</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="operations-empty compact">
@@ -2840,7 +2811,7 @@
 <h2>ЧТО СУЩЕСТВУЕТ В СИСТЕМЕ</h2>
 <small>зарегистрированные объекты с object_id; отдельный вердикт устойчивости идентичности этот контракт не передаёт</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="registry-table-head">
@@ -2864,7 +2835,7 @@
 <h2>ГРАНИЦА ИДЕНТИЧНОСТИ</h2>
 <small>что текущий контракт объектов может и не может доказать об идентичности</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="identity-orbit">
@@ -2904,7 +2875,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ТРЕБУЕТ РУЧНОГО УЧАСТИЯ</h2><small>объекты, которые источник пометил как требующие Основателя; это не формальный Decision Lifecycle</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-g="founder-list">
 <div class="registry-empty compact">
@@ -2916,7 +2887,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>BLOCKER-ЗАПИСИ ПО ОБЪЕКТАМ</h2><small>явный OPEN показывается как OPEN; неизвестный lifecycle сохраняется как неизвестный; CLEARED не выводится</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-g="blockers-list">
 <div class="registry-empty compact">
@@ -2928,7 +2899,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПОСЛЕДНИЕ КАНОНИЧЕСКИЕ ИЗМЕНЕНИЯ</h2><small>какие объекты действительно менялись, а не просто перерисовались в интерфейсе</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-g="recent-list">
 <div class="registry-empty compact">
@@ -2940,7 +2911,7 @@
 <article class="card registry-relations-card">
 <div class="panel-head">
 <div class="head-title"><h2>СВЯЗИ МЕЖДУ ОБЪЕКТАМИ</h2><small>только если источник действительно отдаёт канонические отношения</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="registry-relations-empty">
@@ -3092,7 +3063,7 @@
 <h2>ЧТО ДЕЙСТВИТЕЛЬНО ТРЕБУЕТ РАЗБОРА</h2>
 <small>не все сохранённые файлы, а только очередь, которую нельзя принять автоматически</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="document-queue-head">
@@ -3115,7 +3086,7 @@
 <h2>ПОЧЕМУ ФАЙЛ ПОПАЛ СЮДА</h2>
 <small>классификация определяет маршрут, а не внешний вид файла</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="artifact-class-list">
@@ -3224,7 +3195,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПРОИСХОЖДЕНИЕ</h2><small>откуда появился артефакт и какой объект его породил</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="artifact-provenance-chain">
@@ -3242,7 +3213,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПОСЛЕДНИЕ ИЗМЕНЕНИЯ АРТЕФАКТОВ</h2><small>не «последние документы» из демонстрационного списка, а реальные материальные события</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="documents-empty compact">
@@ -3254,7 +3225,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ДОЛГОВЕЧНОСТЬ И ПРОВЕРКА</h2><small>состояние Artifact Durability, а не размер файловой библиотеки</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="documents-durability-grid">
@@ -3267,7 +3238,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>НЕОПРЕДЕЛЁННАЯ СВЯЗЬ</h2><small>артефакт есть, но объект или роль ещё не доказаны</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="documents-empty compact">
@@ -3362,7 +3333,7 @@
 <h2>ЧТО СЕЙЧАС ВАЖНО</h2>
 <small>не вся очередь, а только проверки, которые меняют решение или блокируют движение</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="testing-attention-board" data-t="attention">
@@ -3385,7 +3356,7 @@
 <h2>ИСПОЛНИТЕЛЬ ТЕСТОВ</h2>
 <small>отвечает ли локальный раннер и какая конфигурация ему доступна</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="runner-state">
@@ -3411,7 +3382,7 @@
 <h2>СОСТОЯНИЯ ПРОВЕРОК</h2>
 <small>запрос → исполнение → результат → разбор → при необходимости повтор; строки не означают одновременное исполнение</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="testing-table-head">
@@ -3470,7 +3441,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПОСЛЕДНИЕ РЕЗУЛЬТАТЫ</h2><small>что реально завершилось и какой научный исход зафиксирован</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-t="recent">
 <div class="testing-empty compact">
@@ -3482,7 +3453,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ТРЕБУЕТ РАЗБОРА</h2><small>дефект, неоднозначность или вывод, который должна принять владеющая ветка</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-t="adjudication-list">
 <div class="testing-empty compact">
@@ -3494,7 +3465,7 @@
 <article class="card testing-lineage-card">
 <div class="panel-head">
 <div class="head-title"><h2>ПРОИСХОЖДЕНИЕ РЕЗУЛЬТАТА</h2><small>какой именно прогон породил текущий результат</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="lineage-chain">
@@ -3514,7 +3485,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ДОКАЗАТЕЛЬСТВА ПРОГОНА</h2><small>что можно проверить независимо от красивого статуса</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="testing-evidence-grid">
@@ -3590,7 +3561,7 @@
 <h2>ПОЧЕМУ ЭТОМУ ЭКРАНУ МОЖНО / НЕЛЬЗЯ ВЕРИТЬ</h2>
 <small>итоговое доверие зависит от всей цепочки данных, а не от цвета карточки</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-x="trust-chain"><div class="diagnostics-empty compact"><strong>Читаем границы доверия…</strong><span>Единый рейтинг доверия не вычисляется.</span></div></div>
 </article>
@@ -3600,7 +3571,7 @@
 <h2>БРАУЗЕР / СЕССИЯ</h2>
 <small>технический слой текущей сессии Панели</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="runtime-kv"><span>модуль чтения v2</span><b data-x-runtime="module">—</b></div>
@@ -3617,7 +3588,7 @@
 <h2>MARKET SCANNER</h2>
 <small>свежесть, покрытие источников, ingest/enrichment</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="runtime-kv"><span>Свежесть последнего цикла</span><b data-scan="freshness">—</b></div>
@@ -3642,7 +3613,7 @@
 <h2>КАРТА ИСТОЧНИКОВ ЧТЕНИЯ</h2>
 <small>на этом экране можно быть техническими; на рабочих страницах — только результат</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="diagnostics-source-head">
@@ -3699,7 +3670,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПОСЛЕДНИЕ ОШИБКИ</h2><small>что именно сломалось, когда и на каком участке</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="diagnostics-empty compact">
@@ -3711,7 +3682,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>СВЕЖЕСТЬ</h2><small>возраст каждой проекции чтения относительно её собственного контракта</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="diagnostics-empty compact">
@@ -3723,7 +3694,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ВОССТАНОВЛЕНИЕ</h2><small>ошибка → безопасная деградация → новое чтение → возврат текущее состояние</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="diagnostic-recovery-flow">
@@ -3738,7 +3709,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>СПЕЦИАЛИЗИРОВАННЫЕ КОНТУРЫ: ЧТО ДОКАЗАНО СЕЙЧАС</h2><small>подключённость проекции, здоровье внешнего источника и качество результата — разные уровни</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="integration-pending">
@@ -3769,20 +3740,6 @@
 <div class="footer-note">Панель Основателя v2 · живая рабочая поверхность · данные читаются из авторитетных проекций · запись возможна только через отдельное подтверждённое действие Основателя</div>
 </main>
 </div>
-<aside class="drawer" id="drawer">
-<button id="drawerClose">← Закрыть</button>
-<h2>Инспектор</h2>
-<p id="drawerContext">Выберите карточку, чтобы увидеть её контекст и технические поля.</p>
-<dl>
-<dt>ID объекта</dt><dd>—</dd>
-<dt>Ветка-владелец</dt><dd>—</dd>
-<dt>Источник</dt><dd>—</dd>
-<dt>Актуальность</dt><dd>—</dd>
-<dt>Следующий ход</dt><dd>—</dd>
-<dt>Проверка</dt><dd>—</dd>
-<dt>Блокеры</dt><dd>—</dd>
-</dl>
-</aside>
 <script>
 (function(){
   "use strict";
@@ -3799,24 +3756,6 @@
     if(tools&&["foundation","operations","registry","agents","documents","testing","diagnostics"].includes(key)) tools.open=true;
     window.scrollTo(0,0);
   }
-
-  const drawer=document.getElementById("drawer");
-  const drawerTitle=drawer.querySelector("h2");
-  const drawerContext=document.getElementById("drawerContext");
-  document.addEventListener("click",e=>{
-    const trigger=e.target.closest("[data-drawer]");
-    if(!trigger)return;
-    const card=trigger.closest(".card");
-    const page=trigger.closest(".page");
-    const cardTitle=card&&card.querySelector(".head-title h2");
-    const pageTitle=page&&page.querySelector(".topbar h1");
-    drawerTitle.textContent=cardTitle?cardTitle.textContent.trim():"Инспектор";
-    if(drawerContext){
-      drawerContext.textContent=(pageTitle?pageTitle.textContent.trim()+" · ":"")+"подробности появятся из того же read-model, что и карточка; Панель не создаёт отдельную истину.";
-    }
-    drawer.classList.add("open");
-  });
-  document.getElementById("drawerClose").addEventListener("click",()=>drawer.classList.remove("open"));
 
   window.addEventListener("hashchange",route);
   route();
