@@ -1089,3 +1089,6 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 
 .cc-time-dot.selected{z-index:7;box-shadow:0 0 0 3px rgba(10,19,21,.9),0 0 0 5px rgba(151,226,211,.62),0 0 16px rgba(151,226,211,.35)}
 .cc-time-more{padding:7px 9px;text-align:center;font-size:9px;color:var(--muted);border-top:1px dashed rgba(145,170,167,.14)}
+
+.cc-feed-item.unresolved{border-left-style:dashed;background:rgba(255,255,255,.012)}
+.cc-feed-item.unresolved>i{opacity:.5}

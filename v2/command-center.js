@@ -1146,7 +1146,7 @@
   }
 
   function datedEvents() {
-    if (M.tu.ok) return M.U.company.concat(M.U.events).filter(function (e) { return e.at; });
+    if (M.tu.ok) return M.U.company.concat(M.U.events).concat(M.U.unresolved).filter(function (e) { return e.at; });
     if (!objectDataOk() && !routeDataOk()) return null;
     return M.events;
   }
@@ -1260,7 +1260,7 @@
       var at = r.last_seen || r.first_seen || null;
       if (at) rows.push({ type: "movement", at: at, ent: m });
     });
-    if (M.tu.ok) M.U.company.concat(M.U.events).forEach(function (e) {
+    if (M.tu.ok) M.U.company.concat(M.U.events).concat(M.U.unresolved).forEach(function (e) {
       if (e.at) rows.push({ type: "event", at: e.at, ent: e });
     });
     rows.sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); });
@@ -1273,10 +1273,10 @@
             E(H.cut(r.human_change || m.title, 110)) + (r.why_it_matters ? " · " + E(H.cut(r.why_it_matters, 100)) : "") +
             "</small></div><span>" + E(dateLabel(row.at)) + "</span></div>";
         }
-        var e = row.ent, isLine = e.scope === "line";
-        return "<div class='cc-feed-item " + (isLine ? "material" : "company") + "'" + sel("event", e.key) + "><i></i><div>" +
+        var e = row.ent, isLine = e.scope === "line", isUnresolved = e.scope === "unresolved";
+        return "<div class='cc-feed-item " + (isLine ? "material" : (isUnresolved ? "unresolved" : "company")) + "'" + sel("event", e.key) + "><i></i><div>" +
           eventBody({ main: e.v.main, why: e.v.why, next: "", proof: e.v.proof, known: e.v.known, raw: e.v.raw },
-            (isLine ? e.line.title + " · " + e.world.title : "Компания")) +
+            (isLine ? e.line.title + " · " + e.world.title : (isUnresolved ? "Событие требует структурной привязки" : "Компания"))) +
           "</div><span>" + E(dateLabel(e.at)) + "</span></div>";
       }).join("") + "</div><div class='cc-foot-note'>" + (!changesComplete ? "Лента неполная: часть источников изменений недоступна или не передала исторические поля. " : "") + (movementGap ? (M.fp.ok ? "Founder Projection не передал today.company_movements[]; " : "Founder Projection недоступен; ") : "Founder Projection · движения компании; ") + (temporalGap ? (M.tu.ok ? "Temporal Universe передал историю не полностью." : "Temporal Universe недоступен.") : "Temporal Universe · история компании и линий.") + "</div>";
     }
@@ -1838,7 +1838,9 @@
     var minGapPct=1.7;
     var selectedTimeEvent=ui.selected&&ui.selected.kind==="timeevent"?timelineInspectorEvents[ui.selected.key]:null;
     var focusGroup=trajectoryGroup(selectedTimeEvent);
-    var nowP=Math.max(0,Math.min(100,(Date.now()-R.from)/span*100));
+    var nowMs=Date.now();
+    var nowInRange=nowMs>=R.from && nowMs<=R.to;
+    var nowP=Math.max(0,Math.min(100,(nowMs-R.from)/span*100));
 
     var currentStateLabel="";
     if (selectedTimeEvent && selectedTimeEvent.kind==="star") {
@@ -1887,7 +1889,7 @@
         }).join("")+"</svg>" : "";
 
       var layerCurrentNode="";
-      if (selectedTimeEvent && selectedTimeEvent.layer===layer && currentStateLabel) {
+      if (selectedTimeEvent && selectedTimeEvent.layer===layer && currentStateLabel && nowInRange) {
         layerCurrentNode="<div class='cc-time-current-node' style='left:"+nowP.toFixed(2)+"%' title='Текущее состояние источника'><i></i><span><small>Сейчас</small>"+E(human(currentStateLabel))+"</span></div>";
       }
 
@@ -1895,7 +1897,7 @@
       return "<div class='cc-time-lane' data-cc-time-lane='"+E(layer)+"' style='--cc-time-row:"+rowH+"px'>"+
         "<div class='cc-time-lane-name'><b>"+E(timelineLayerTitle(layer))+"</b><small>"+xs.length+" событий"+(layerFuture?" · "+layerFuture+" будущих":"")+"</small></div>"+
         "<div class='cc-time-track' style='height:"+rowH+"px'>"+trajectorySvg+
-          "<span class='cc-time-now-line' style='left:"+nowP.toFixed(2)+"%'></span>"+layerCurrentNode+xs.map(dot).join("")+
+          (nowInRange?"<span class='cc-time-now-line' style='left:"+nowP.toFixed(2)+"%'></span>":"")+layerCurrentNode+xs.map(dot).join("")+
         "</div></div>";
     }
 
@@ -1909,8 +1911,8 @@
     var focusFlow="";
     if (focusGroup) {
       var focusEvents=visible.filter(function(e){return trajectoryGroup(e)===focusGroup;});
-      var pastItems=focusEvents.filter(function(e){return !future(e.at) && e.semantic!=="waiting" && e.semantic!=="milestone";});
-      var waitItems=focusEvents.filter(function(e){return e.semantic==="waiting" || e.semantic==="closed_wait";});
+      var pastItems=focusEvents.filter(function(e){return !future(e.at) && /^(fact|transition|event)$/.test(e.semantic);});
+      var waitItems=focusEvents.filter(function(e){return e.semantic==="waiting" && !e.superseded;});
       var nextItems=focusEvents.filter(function(e){return e.semantic==="milestone" || (future(e.at) && e.semantic==="transition");});
       function flowCell(cls,label,main,sub){
         return "<div class='cc-time-flow-cell "+cls+"'><small>"+E(label)+"</small><b>"+E(main||"—")+"</b>"+(sub?"<span>"+E(sub)+"</span>":"")+"</div>";
@@ -1936,7 +1938,7 @@
     page.querySelector("[data-cc='swim']").innerHTML =
       timelineControls() +
       "<div class='cc-time-scroll'><div class='cc-time-canvas cc-time-canvas-layered'>" +
-        "<div class='cc-time-axis'>"+ticks+"<span class='cc-time-today' style='left:"+nowP.toFixed(2)+"%'>сегодня</span></div>" +
+        "<div class='cc-time-axis'>"+ticks+(nowInRange?"<span class='cc-time-today' style='left:"+nowP.toFixed(2)+"%'>сегодня</span>":"")+"</div>" +
         layerLanes+
       "</div></div>" +
       "<div class='cc-time-field-summary'>"+E(semSummary || (visible.length+" событий"))+(futureN?" · "+futureN+" будущих":"")+"</div>"+
