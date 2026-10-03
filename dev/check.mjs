@@ -78,6 +78,10 @@ for (const w of WIDTHS) {
       check(/Атлас/.test(atlasLive) && /источник сообщает|источник состояния|не передано/i.test(atlasLive), "ATLAS keeps explicit unavailable/no-state semantics instead of fabricating state");
       const agentsText = await page.locator('[data-page-panel="agents"]').innerText();
       check(/Живой источник ещё не подключён/.test(agentsText) && /не считает сервисы/.test(agentsText), "Agent Network remains explicitly unavailable without Registry/Lineage projection");
+      const diagErrors = await page.locator('[data-page-panel="diagnostics"] [data-x-cycle-errors]').innerText();
+      const diagReads = await page.locator('[data-page-panel="diagnostics"] [data-x-read-times]').innerText();
+      check(/Ошибок чтения в текущем цикле нет/.test(diagErrors), "diagnostics derives current-cycle read errors instead of showing an unconnected journal placeholder");
+      check(/Founder Radar/.test(diagReads) && /ответ получен/.test(diagReads), "diagnostics shows per-projection browser read timestamps without inventing semantic freshness");
       // real contract shapes (schema_id, temporal, history events, maps, capital, path)
       check(/Без закрытия receipt readiness/.test(tl) && /Soak выявил orphan receipt/.test(tl), "history event: change + why_it_matters shown");
       check(/Публикации/.test(tl) && /Twin/.test(tl) && /Сигналы/.test(tl) && /Заявки и тендеры/.test(tl) && /Этапы/.test(tl), "timeline exposes layered filters");

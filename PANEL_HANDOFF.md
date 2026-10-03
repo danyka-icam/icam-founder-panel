@@ -714,3 +714,10 @@ Regression proof:
 
 - Authority-comment cleanup: `command-center.js` no longer claims the whole module is read-only; it documents the two narrow Founder-confirmed action paths and the rule that the browser never writes directly to Continuity.
 - Russian UI cleanup follow-up: removed remaining semantic mixed-language copy on the Twin/Foundation/Documents surfaces (`Founder-outcome`, `one-click control`, `health/readback`, narrative `readback`, synthetic/empirical prose) while preserving literal protocol/status/field identifiers such as `PASS` and `objects_on_disk` where they identify the source contract.
+
+## 2026-10-03 — Diagnostics current-cycle truth
+
+- Replaced two genuinely unconnected Diagnostics placeholders with data the browser already possesses safely from the current read cycle.
+- `Ошибки текущего цикла чтения` now lists only current fetch failures / partial read errors from `sourceState`; it explicitly does not reconstruct a historical failure journal.
+- `Последнее чтение проекций` now shows the browser read timestamp and read success/failure per projection. This timestamp is not promoted to semantic freshness; source-defined freshness remains separate.
+- Added browser regressions proving the Diagnostics placeholders are replaced after a successful cycle and that Radar appears in the per-projection read list.

@@ -1176,6 +1176,7 @@
     .diagnostic-principles span{display:block;margin-top:4px;color:#8f9792;font-size:9.5px;line-height:1.45}
     .runtime-kv{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line-soft);font-size:9.5px}
     .runtime-kv:first-child{border-top:0}.runtime-kv span{color:#858e89}.runtime-kv b{font-weight:500;color:#cfd3ce}
+    .runtime-kv span b{display:block}.runtime-kv span small{display:block;margin-top:3px;color:#858e89;font-size:8.5px}
     .diagnostics-note{margin-top:10px!important;color:#858e89!important;font-size:9.3px!important}
     .diagnostics-source-head,.diagnostics-source-list>div{
       display:grid;grid-template-columns:1fr 1.25fr .75fr .65fr 1.35fr;gap:10px;align-items:center
@@ -3670,26 +3671,20 @@
 <section class="diagnostics-lower-grid">
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>ПОСЛЕДНИЕ ОШИБКИ</h2><small>что именно сломалось, когда и на каком участке</small></div>
+<div class="head-title"><h2>ОШИБКИ ТЕКУЩЕГО ЦИКЛА ЧТЕНИЯ</h2><small>какие проекции не ответили панели в последнем цикле</small></div>
 
 </div>
-<div class="panel-body">
-<div class="diagnostics-empty compact">
-<strong>Журнал ошибок не подключён</strong>
-<span>Нужны источник, операция, время, класс ошибки, затронутая поверхность и последнее хорошее чтение. Без секретов и значений учётных данных.</span>
-</div>
+<div class="panel-body" data-x-cycle-errors>
+<div class="diagnostics-empty compact"><strong>Читаем текущий цикл…</strong><span>Исторический журнал ошибок здесь не подменяется состоянием браузера.</span></div>
 </div>
 </article>
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>СВЕЖЕСТЬ</h2><small>возраст каждой проекции чтения относительно её собственного контракта</small></div>
+<div class="head-title"><h2>ПОСЛЕДНЕЕ ЧТЕНИЕ ПРОЕКЦИЙ</h2><small>время ответа панели; не доказательство свежести самих данных</small></div>
 
 </div>
-<div class="panel-body">
-<div class="diagnostics-empty compact">
-<strong>Отдельная общая проекция свежести не подключена</strong>
-<span>Порог свежести задаётся источником/контрактом. Панель не придумывает универсальные «15 минут» для всех систем.</span>
-</div>
+<div class="panel-body" data-x-read-times>
+<div class="diagnostics-empty compact"><strong>Читаем метки времени…</strong><span>Порог свежести задаётся каждым источником отдельно; универсальный порог панель не придумывает.</span></div>
 </div>
 </article>
 <article class="card">

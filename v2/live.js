@@ -2654,6 +2654,35 @@
       current.textContent = active ? active.textContent.trim() : "—";
     }
 
+    var sourceNames = {
+      routes:"Маршруты Оркестратора", summary:"Сводка Оркестратора", metrics:"Метрики Оркестратора",
+      inbox:"Входящие Основателя", objects:"Объекты Continuity", blockers:"Блокеры Continuity",
+      testingSummary:"Сводка Testing", testingHealth:"Состояние Testing", testingRunner:"Исполнитель Testing",
+      hubHealth:"ICAM Hub", continuityHealth:"Continuity", researchRD1:"Исследовательские RD1-проекции",
+      opsProjection:"Операции", brazilPortal:"BrazilPortal", foundationAgg:"Фундамент", atlasState:"ATLAS",
+      twinState:"Digital Twin", marketSignals:"Market Scanner · сигналы", fieldMovement:"Движение поля",
+      scannerDiagnostics:"Диагностика Scanner", founderProjection:"Founder Projection",
+      organizationalIntelligence:"Организационные наблюдения", stewardReconciliation:"Системная сверка",
+      signalLabStatus:"ATLAS Signal Lab", temporalUniverse:"Temporal Universe", portfolioAdmission:"Portfolio Admission",
+      radar:"Founder Radar"
+    };
+    function sourceName(k){return sourceNames[k]||humanCode(k);}
+    function readClock(v){return v ? new Date(v).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit",second:"2-digit"}) : "—";}
+    var cycleErrors = page.querySelector("[data-x-cycle-errors]");
+    if (cycleErrors) {
+      var issueKeys = keys.filter(function(k){var s=sourceState[k]||{};return !s.ok || !!s.error;});
+      cycleErrors.innerHTML = issueKeys.length ? issueKeys.map(function(k){var s=sourceState[k]||{};return "<div class='runtime-kv'><span><b>"+esc(sourceName(k))+"</b><small>"+esc(s.ok?"частичное чтение":"чтение недоступно")+"</small></span><b>"+esc(s.error||"ответ не подтверждён")+" · "+esc(readClock(s.at))+"</b></div>";}).join("")+
+        "<p class='diagnostics-note'>Это ошибки и неполнота только текущего цикла чтения панели. Исторический журнал отказов здесь не реконструируется.</p>" :
+        "<div class='diagnostics-empty compact'><strong>Ошибок чтения в текущем цикле нет</strong><span>Все известные проекции ответили. Это подтверждает доступность чтения, но не означает, что каждая из них сообщает здоровое или свежее состояние.</span></div>";
+    }
+    var readTimes = page.querySelector("[data-x-read-times]");
+    if (readTimes) {
+      var timedKeys = keys.filter(function(k){return !!(sourceState[k]&&sourceState[k].at);}).sort(function(a,b){return String(sourceState[b].at||"").localeCompare(String(sourceState[a].at||""));});
+      readTimes.innerHTML = timedKeys.length ? timedKeys.map(function(k){var s=sourceState[k]||{};return "<div class='runtime-kv'><span>"+esc(sourceName(k))+"</span><b>"+esc(readClock(s.at))+" · "+esc(s.ok?"ответ получен":(s.error?"ошибка чтения":"ответ не подтверждён"))+"</b></div>";}).join("")+
+        "<p class='diagnostics-note'>Время выше — момент чтения браузером. Семантическая свежесть определяется собственным контрактом источника и показывается отдельно там, где источник её передаёт.</p>" :
+        "<div class='diagnostics-empty compact'><strong>Нет меток чтения</strong><span>Панель ещё не получила ни одного результата текущего цикла.</span></div>";
+    }
+
     pageBadge("diagnostics", failed ? (ok ? "warn" : "unavailable") : "live", failed ? (ok ? "ПРОЕКЦИИ ЧТЕНИЯ ЧАСТИЧНО" : "ПРОЕКЦИИ ЧТЕНИЯ НЕДОСТУПНЫ") : "ПРОЕКЦИИ ЧТЕНИЯ ДОСТУПНЫ");
   }
 
