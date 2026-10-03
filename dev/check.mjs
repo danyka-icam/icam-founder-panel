@@ -68,6 +68,16 @@ for (const w of WIDTHS) {
       check(/ждёт сверки/.test(tl), "system codes shown with a human label");
       check(!/Общий владелец хода/.test(ln), "links: no shared-ball_owner resource claim");
       check(/Фундамент и инфраструктура/.test(cc), "command center shows canonical worlds");
+      const researchResult = await page.locator('[data-page-panel="research"] [data-r="result"]').innerText();
+      check(!/Результаты ещё не подключены/.test(researchResult), "research replaces startup result placeholder after a successful read cycle");
+      for (const liveKey of ["foundation","operations","brazilportal","digital-twin","atlas"]) {
+        const liveText = await page.locator(`[data-normalized-live="${liveKey}"] .panel-body`).innerText();
+        check(!/^Загрузка…?$/m.test(liveText.trim()), `${liveKey} normalized projection replaces its startup loading state`);
+      }
+      const atlasLive = await page.locator('[data-normalized-live="atlas"] .panel-body').innerText();
+      check(/Атлас/.test(atlasLive) && /источник сообщает|источник состояния|не передано/i.test(atlasLive), "ATLAS keeps explicit unavailable/no-state semantics instead of fabricating state");
+      const agentsText = await page.locator('[data-page-panel="agents"]').innerText();
+      check(/Живой источник ещё не подключён/.test(agentsText) && /не считает сервисы/.test(agentsText), "Agent Network remains explicitly unavailable without Registry/Lineage projection");
       // real contract shapes (schema_id, temporal, history events, maps, capital, path)
       check(/Без закрытия receipt readiness/.test(tl) && /Soak выявил orphan receipt/.test(tl), "history event: change + why_it_matters shown");
       check(/Публикации/.test(tl) && /Twin/.test(tl) && /Сигналы/.test(tl) && /Заявки и тендеры/.test(tl) && /Этапы/.test(tl), "timeline exposes layered filters");
