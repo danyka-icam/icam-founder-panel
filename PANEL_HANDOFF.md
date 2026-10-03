@@ -697,3 +697,13 @@ Regression proof:
 - The existing shared Steward dialog and query endpoint are reused; no second agent/chat implementation is introduced.
 - Status mutation remains protected by the existing exact-object gate. A Radar signal does not gain write authority merely because Steward can discuss it.
 - Dev stand now includes a synthetic Founder Radar fixture and the browser regression checks that the selected signal opens the shared Steward dialog with the exact signal context.
+
+## 2026-10-03 — full-audit checkpoint
+
+- Static structure: 17 unique top-level routes, no orphan nav route, no duplicate HTML IDs, no `href="#"` or inline `onclick` placeholders.
+- Browser protocol sweep: 68 route/viewport cases (17 routes × 1680/1280/820/390) resolve to exactly one active panel with no document/body horizontal overflow and no uncaught runtime exceptions. Timeline and Links keep their intentional internal horizontal scroll canvases.
+- Signals desktop/mobile visual smoke passed. Radar → Steward was also exercised as a real click, not only render inspection; exact selected signal context reaches the shared Steward dialog after the attribute-serialization fix.
+- Authority copy was reconciled with current reality: v2 is read-by-default, but exact Founder-confirmed status correction and formal decision recording are approved mediated write paths. The live footer no longer claims that the whole panel is read-only or that v2 is not the working surface.
+- Human terminology pass restored the accepted `DT` label in Founder navigation/deep links and translated Radar runtime labels; technical source names remain literal where they identify a source/component.
+- Live source snapshot during audit: Operations and BrazilPortal are DEGRADED/STALE by their own freshness contracts; Foundation is DEGRADED/FRESH because `artifact_durability_readback` is failing; ATLAS specialized state is explicitly UNAVAILABLE because no authoritative state source exists; DT is LIVE; Market Signals are AVAILABLE/ACTIVATED; Founder Radar has no source errors and includes the live Investment ATLAS aggregate. These are source states, not UI failures, and must remain visible rather than normalized away.
+- Agent Network remains intentionally unavailable until the neighboring Registry/Lineage work exposes a real projection contract. The panel must not infer the network from systemd services.

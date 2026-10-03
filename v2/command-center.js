@@ -1207,7 +1207,7 @@
     if (!M.tu.ok) return "";
     var specs = [
       { title: "Исследовательский ATLAS", href: "#atlas", note: "специализированное состояние ATLAS", ok: M.U.worlds.some(function (w) { return w.title === "Исследовательский ATLAS"; }) },
-      { title: "Digital Twin", href: "#digital-twin", note: "линия «Двойники и синтетические миры»", ok: !!lineByExactTitle("Двойники и синтетические миры") }
+      { title: "DT", href: "#digital-twin", note: "линия «Двойники и синтетические миры»", ok: !!lineByExactTitle("Двойники и синтетические миры") }
     ].filter(function (x) { return x.ok; });
     if (!specs.length) return "";
     return "<div class='cc-deep-head'><span>Глубже в контур</span><small>специализированные поверхности только по точному каноническому соответствию</small></div>" +
@@ -2856,7 +2856,7 @@
     var key = String(title || "");
     if (kind === "world" && key === "Исследовательский ATLAS") return "<a href='#atlas'>Специализированный ATLAS →</a>";
     if (kind === "line" && key === "BrazilPortal") return "<a href='#brazilportal'>Продуктовая проекция BrazilPortal →</a>";
-    if (kind === "line" && key === "Двойники и синтетические миры") return "<a href='#digital-twin'>Открыть Digital Twin →</a>";
+    if (kind === "line" && key === "Двойники и синтетические миры") return "<a href='#digital-twin'>Открыть DT →</a>";
     return "";
   }
 
@@ -2953,7 +2953,7 @@
       if (raw.clones_active!=null) bits.push("В текущем прогоне активно "+raw.clones_active+" клонов.");
       if (raw.outcome_due_at || raw.expected_outcome_at || raw.reveal_at) bits.push("Ожидаемая точка проверки или раскрытия: "+dateLabel(raw.outcome_due_at||raw.expected_outcome_at||raw.reveal_at)+".");
       if (raw.outcome || raw.expected_outcome) bits.push("Переданный исход/ожидание: "+human(raw.outcome||raw.expected_outcome)+".");
-      bits.push("Это запись из рабочего состояния Digital Twin; Стюард не должен подменять её похожими Twin-идеями из памяти.");
+      bits.push("Это запись из рабочего состояния DT; Стюард не должен подменять её похожими идеями о цифровых двойниках из памяти.");
       return bits.join(" ");
     }
     if (e.layer === "signals") {

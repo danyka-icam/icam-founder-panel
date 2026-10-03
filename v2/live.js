@@ -1665,9 +1665,12 @@
       return false;
     }
     var inspectorItems={};
+    function radarSectionLabel(kind){
+      return ({opportunities:"возможности",waiting:"ожидания",predictions:"прогнозы и даты",field:"поле и рынок",learning:"обучение ATLAS",investment:"инвестиционный ATLAS",reputation:"репутация и присутствие"})[kind]||humanCode(kind||"сигнал");
+    }
     function sourceLabel(x){
       var r=x&&x.source_ref||{};
-      var m={market_signal:"Market Scanner",temporal_branch_waiting:"Temporal Universe",temporal_branch_next:"Temporal Universe",activity_event:"Activity Inbox",twin_state:"Digital Twin",signal_lab:"ATLAS Signal Lab",founder_decision:"Founder Projection"};
+      var m={market_signal:"Market Scanner",temporal_branch_waiting:"Temporal Universe",temporal_branch_next:"Temporal Universe",activity_event:"Activity Inbox",twin_state:"DT",signal_lab:"ATLAS Signal Lab",founder_decision:"Founder Projection"};
       if(x&&x.source&&x.source.name)return x.source.name;
       return m[r.kind]||humanCode(r.kind||"источник не указан");
     }
@@ -1701,7 +1704,7 @@
       var stewardCtx={
         kind:"radar_signal",
         title:textRu(x.title||"Сигнал"),
-        sub:"Founder Radar · "+kind,
+        sub:"Радар Основателя · "+radarSectionLabel(kind),
         date:x.date||"",
         layer:kind,
         source:source,
@@ -1729,11 +1732,11 @@
 
     var stamp=page.querySelector("[data-radar-stamp]");
     if(!sourceState.radar.ok||!radar){
-      if(stamp)stamp.innerHTML='<div class="cc-stamp"><span class="cc-pulse bad"></span><span>Radar недоступен</span></div>';
-      ["opportunities","waiting","predictions","field","learning","investment","reputation"].forEach(function(k){var e=box(k);if(e)e.innerHTML='<div class="cc-unavailable"><b>Источник Radar недоступен</b><span>Старые значения не подставляются.</span></div>';});
+      if(stamp)stamp.innerHTML='<div class="cc-stamp"><span class="cc-pulse bad"></span><span>Радар недоступен</span></div>';
+      ["opportunities","waiting","predictions","field","learning","investment","reputation"].forEach(function(k){var e=box(k);if(e)e.innerHTML='<div class="cc-unavailable"><b>Источник радара недоступен</b><span>Старые значения не подставляются.</span></div>';});
       return;
     }
-    if(stamp)stamp.innerHTML='<div class="cc-stamp"><span class="cc-pulse ok"></span><span>Radar · live</span></div>';
+    if(stamp)stamp.innerHTML='<div class="cc-stamp"><span class="cc-pulse ok"></span><span>Радар · данные поступают</span></div>';
 
     var opportunities=arr("opportunities"), waiting=arr("waiting"), upcoming=arr("upcoming"), predictions=arr("predictions");
     var field=radar.field||{}, sigs=Array.isArray(field.signals)?field.signals.slice(0,6):[];
