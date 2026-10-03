@@ -1661,7 +1661,7 @@
   }
 
   function activeTimeLayers() {
-    if (!Array.isArray(ui.timeLayers) || !ui.timeLayers.length) ui.timeLayers=["publications","twin","signals","applications","stages","system"];
+    if (!Array.isArray(ui.timeLayers)) ui.timeLayers=["publications","twin","signals","applications","stages","system"];
     return ui.timeLayers;
   }
 
@@ -3343,12 +3343,12 @@
       var lk=tl.getAttribute("data-cc-time-layer") || "all";
       var allLayers=["publications","twin","signals","applications","stages","system"];
       if (lk==="all") {
-        ui.timeLayers=allLayers.slice();
+        var allOn=allLayers.every(function(k){return activeTimeLayers().indexOf(k)>=0;});
+        ui.timeLayers=allOn?[]:allLayers.slice();
       } else {
         var xs=activeTimeLayers().slice(), ix=xs.indexOf(lk);
-        if (ix>=0) {
-          if (xs.length>1) xs.splice(ix,1);
-        } else xs.push(lk);
+        if (ix>=0) xs.splice(ix,1);
+        else xs.push(lk);
         ui.timeLayers=xs;
       }
       renderAll(); return;
