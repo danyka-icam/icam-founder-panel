@@ -2944,6 +2944,9 @@
     if (e.layer === "twin") {
       var bits=[];
       if (raw.seal_created_at) bits.push("Прогноз Twin был запечатан "+dateLabel(raw.seal_created_at)+".");
+      if (String(raw.current_prediction||"").toUpperCase()==="SEALED") bits.push("Текущий прогноз остаётся запечатанным до появления исхода.");
+      if (raw.last_outcome==null && raw.current_prediction) bits.push("Исход пока не зарегистрирован.");
+      if (raw.clones_active!=null) bits.push("В текущем прогоне активно "+raw.clones_active+" клонов.");
       if (raw.outcome_due_at || raw.expected_outcome_at || raw.reveal_at) bits.push("Ожидаемая точка проверки или раскрытия: "+dateLabel(raw.outcome_due_at||raw.expected_outcome_at||raw.reveal_at)+".");
       if (raw.outcome || raw.expected_outcome) bits.push("Переданный исход/ожидание: "+human(raw.outcome||raw.expected_outcome)+".");
       bits.push("Это запись из рабочего состояния Digital Twin; Стюард не должен подменять её похожими Twin-идеями из памяти.");
