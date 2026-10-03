@@ -78,6 +78,9 @@ for (const w of WIDTHS) {
       check(/Атлас/.test(atlasLive) && /источник сообщает|источник состояния|не передано/i.test(atlasLive), "ATLAS keeps explicit unavailable/no-state semantics instead of fabricating state");
       const agentsText = await page.locator('[data-page-panel="agents"]').innerText();
       check(/Живой источник ещё не подключён/.test(agentsText) && /не считает сервисы/.test(agentsText), "Agent Network remains explicitly unavailable without Registry/Lineage projection");
+      const documentsRecent = await page.locator('[data-page-panel="documents"] [data-d="recent"]').innerText();
+      check(/SMOKE_PACKET_2026-10-03\.json/.test(documentsRecent) && /на сервере/.test(documentsRecent) && /в индексе/.test(documentsRecent), "documents renders recent Hub arrivals as transport/index facts");
+      check(/не доказывают публикацию/.test(documentsRecent), "documents keeps recent Hub arrivals below semantic artifact-change ceiling");
       const diagErrors = await page.locator('[data-page-panel="diagnostics"] [data-x-cycle-errors]').innerText();
       const diagReads = await page.locator('[data-page-panel="diagnostics"] [data-x-read-times]').innerText();
       check(/Ошибок чтения в текущем цикле нет/.test(diagErrors), "diagnostics derives current-cycle read errors instead of showing an unconnected journal placeholder");

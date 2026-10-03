@@ -1086,6 +1086,26 @@
         q.innerHTML = "<div class='documents-empty compact'><strong>oldest_5[] пуст, но общий ноль не подтверждён</strong><span>Счётчик manual_review_required не равен явному нулю или не передан.</span></div>";
       }
     }
+    var recentBox = page.querySelector('[data-d="recent"]');
+    if (recentBox) {
+      var recentKnown = Array.isArray(health.recent_48h);
+      var recent = recentKnown ? health.recent_48h.slice().sort(function(a,b){return String(b.received_at||"").localeCompare(String(a.received_at||""));}) : [];
+      if (!recentKnown) {
+        recentBox.innerHTML = unavailableHTML("Недавние поступления не проверены", "Hub не передал поле recent_48h[]. Панель не реконструирует историю по файловым именам.");
+      } else if (!recent.length) {
+        recentBox.innerHTML = "<div class='documents-empty compact'><strong>За последние 48 часов поступлений нет</strong><span>Hub явно передал пустой recent_48h[]. Это говорит только о приёме пакетов в этом окне.</span></div>";
+      } else {
+        recentBox.innerHTML = recent.slice(0,8).map(function(r){
+          var transport=[];
+          if(r.server===true)transport.push("на сервере"); else if(r.server===false)transport.push("нет на сервере");
+          if(r.index===true)transport.push("в индексе"); else if(r.index===false)transport.push("не в индексе");
+          if(r.outbox===true)transport.push("виден в исходящей очереди");
+          var review = r.review==null || r.review==="" ? "разбор не передан" : humanCode(r.review);
+          return "<div class='document-live-row'><b>"+esc(r.filename||"файл без имени")+"</b><span>"+esc(r.branch||"ветка не указана")+"</span><span>"+esc((transport.length?transport.join(" · ")+" · ":"")+review)+"</span><small>"+esc(r.received_at?ago(r.received_at):"время не передано")+"</small></div>";
+        }).join("")+"<p class='documents-note'>Это факты приёма и технического состояния Hub. Они не доказывают публикацию, заморозку, замену версии или изменение канонической роли артефакта.</p>";
+      }
+    }
+
     var oldestCard = page.querySelector('[data-d="oldest"]');
     if (oldestCard) {
       var card = oldestCard.closest(".card");

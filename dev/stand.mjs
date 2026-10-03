@@ -131,7 +131,7 @@ const panelApi = {
   "continuity/blockers": () => ({ items: [{ object_id: "FND-001", title: "orphan receipt в soak", status: "OPEN" }, { object_id: "X", is_test: true, status: "OPEN" }] }),
   "testing/summary": () => ({ active: [], recent: [] }),
   "testing-health": () => ({}), "testing-runner-health": () => ({}),
-  "hub/sync-health": () => ({}), "continuity-health": () => ({}),
+  "hub/sync-health": () => ({ recent_48h: [{ filename: "SMOKE_PACKET_2026-10-03.json", branch: "Smoke branch", outbox: true, server: true, index: true, review: "PENDING", received_at: iso(0) }] }), "continuity-health": () => ({}),
   "panel/operations": () => ({ source_status: "AVAILABLE", freshness_state: "FRESH", counts: {}, operations: [] }),
   "panel/brazilportal": () => ({
     source_status: "AVAILABLE",

@@ -721,3 +721,10 @@ Regression proof:
 - `Ошибки текущего цикла чтения` now lists only current fetch failures / partial read errors from `sourceState`; it explicitly does not reconstruct a historical failure journal.
 - `Последнее чтение проекций` now shows the browser read timestamp and read success/failure per projection. This timestamp is not promoted to semantic freshness; source-defined freshness remains separate.
 - Added browser regressions proving the Diagnostics placeholders are replaced after a successful cycle and that Radar appears in the per-projection read list.
+
+## 2026-10-03 — Recent Hub arrivals on Documents
+
+- Replaced the unsupported `Последние изменения артефактов` placeholder with `Недавние поступления в Hub`, sourced only from `hub/sync-health.recent_48h[]`.
+- The page now shows filename, branch, server/index/outbox transport facts, review state and received time for recent Hub arrivals.
+- This block deliberately does not claim publication, freezing, version replacement, recovery or canonical-role change; those semantic artifact transitions still require a dedicated source.
+- Added a synthetic Hub arrival fixture and browser checks for both the rendered transport facts and the evidence ceiling.
