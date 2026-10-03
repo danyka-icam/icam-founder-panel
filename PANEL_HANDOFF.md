@@ -501,3 +501,74 @@ Current releases:
 - /opt/aiclavis-steward-agent/releases/20261003-1435
 - /opt/aiclavis-steward-navigator/releases/20261003-1420
 - Panel commit 76764cd routes all Steward questions to the server agent; browser-side template interception was removed.
+
+## 2026-10-03 — Founder Radar v0.2 and automatic branch synchronization
+
+Founder Radar replaces the old internal Signals-page model with a read-only Founder attention projection.
+
+Runtime:
+- service: aiclavis-founder-radar
+- localhost: 127.0.0.1:8843
+- endpoint: /api/v1/founder-radar
+- current release: /opt/aiclavis-founder-radar/releases/20261003-1800
+- public Founder Panel read route: /founder-ui-preview/api/radar
+- browser access remains Founder Panel authenticated and GET-only.
+
+Radar sections:
+- attention
+- opportunities
+- waiting
+- upcoming
+- predictions
+- field
+- atlas_learning
+- investment
+- reputation
+
+Agent network is explicitly excluded from Founder Radar. Its Founder-level summary belongs to the System surface.
+
+Branch synchronization contract:
+- Branches do NOT write to Founder Radar.
+- No manual “move/copy to Signals” workflow is allowed.
+- Branches publish their normal Activity / Temporal state.
+- Existing ATLAS Activity Inbox contract is the branch event interface:
+  source_branch, event_type, human_change, why_it_matters, valid_at, evidence_ceiling, next_milestone.
+- Temporal Universe remains the preferred normalized source for branch waiting conditions and future milestones.
+- Activity Inbox is a supplementary/faster branch-event source when the change is not yet normalized into Temporal Universe.
+- Radar is a projection only. It never creates a canonical reminder, deadline or state transition.
+
+Date synchronization:
+- Radar and Timeline must render the same source date, not maintain copies.
+- Explicit structured date fields are preferred.
+- If a Temporal waiting/next record contains an explicit ISO date in its source text and no separate date field, the UI may extract that literal date for placement; it must not infer or calculate a date.
+- valid_at on an Activity Event is the date of the branch event, not automatically the date of its future milestone.
+- Future Radar date from Activity comes only from an explicit next_milestone/human_change date or later normalized Temporal field.
+- If the canonical/source date changes, Radar and Timeline change together on their next read cycle.
+
+Founder relevance filter:
+- Founder Radar waiting includes dated milestones, prediction/outcome/reveal windows, external replies/decisions, applications, outreach, conferences, tenders, grants, publications/invitations, and waiting from Market Entry / Institutional Opportunities / Scientific Presence.
+- Internal technical/research waiting remains in its owning ATLAS/System surface unless it has a Founder-relevant future date or external hinge.
+- FOUNDER_APPROVAL_REQUIRED inbox records are not duplicated when Founder Projection already exposes a formal Founder Decision.
+
+Investment ATLAS Radar contract:
+- virtual_capital.current_total
+- virtual_capital.return_pct
+- virtual_capital.cash_total
+- hypotheses.success_rate_pct
+- activity.active_positions_total
+- portfolios[].nav_usd
+- portfolios[].max_drawdown_pct
+- activity.committed_decisions
+- activity.errors_detected
+- data_quality.status
+Individual investment hypotheses are not exposed on Founder Radar.
+
+Current live Investment Lab source:
+- aiclavis-investment-live-lab
+- /api/v1/investment-lab/summary
+- Radar reads aggregates only.
+
+Panel:
+- Founder Radar surface introduced in panel commit 96d4624.
+- Timeline master toggle “Все” is commit 06110d6.
+- Timeline listItems recognizes an explicit YYYY-MM-DD literal in source waiting/next text only when no structured date field is supplied; this is display extraction, not a new deadline.
