@@ -582,3 +582,36 @@ Panel:
 - Full agent-network topology remains outside Signals. Network health / authority conflicts / stalled agents / unregistered changes belong to the future System network surface.
 - Shared integration boundary for the neighboring agent-network branch: FOUNDER_PANEL_AGENT_SIGNAL_CONTRACT.md.
 - Founder Panel remains read-only; future agent signal producers must expose normalized signals through a projection rather than write into the panel.
+
+## 2026-10-03 — Steward explicit Founder status correction
+
+Steward Navigator now has one narrow write-capable workflow, mediated by the existing context-steward-actions service.
+
+Rules:
+- The normal Steward reasoning path remains read-only.
+- A status mutation is considered only when the Founder gives an explicit close command in Steward chat.
+- v0.1 supports only CLOSED.
+- A write requires an exact canonical Continuity object_id already proven by the selected panel entity.
+- Route title similarity, memory similarity, source_object_id provenance or semantic matching are insufficient.
+- If exact_object is false/missing, proposal is refused with exact_object_required and nothing is written.
+- If the selected route is already closed in its live source, no action is proposed.
+- Proposal and execution are separate. Steward creates a PENDING context-steward-actions action; the UI shows old → new status and requires explicit Founder confirmation.
+- Confirmation is hash-matched through the existing Founder role in context-steward-actions.
+- Only after confirmation does context-steward-actions emit the authoritative Continuity DECISION event carrying new_state.status=CLOSED.
+- Cancel leaves the ledger/system state unchanged.
+- Browser write whitelist is limited to Steward query, propose-status and confirm-status. Static contract rejects other browser writes.
+
+Endpoints:
+- POST /founder-ui-preview/api/steward-navigator/action/propose-status
+- POST /founder-ui-preview/api/steward-navigator/action/confirm-status
+- server bridge: aiclavis-steward-navigator v0.5 → context-steward-actions (8800) → Continuity.
+
+Closed-route presentation fix:
+- CLOSED/CLOSED_NO_GO/DONE/ARCHIVED routes no longer expose historical next_move as an active next step.
+- closed routes do not enter timeline from stale route deadline/next_move.
+- Steward route context now includes route_id, exact object_id when proven, live status, closed flag and historical_next_move separately.
+
+GovAI example:
+- observer/routes already reports GovAI Research Scholar — второй этап as status=CLOSED_NO_GO.
+- Its remaining “Ждать ответ” next_move is stale historical route text, not current waiting state.
+- Therefore GovAI requires no Founder mutation; the Panel presentation was the defect.

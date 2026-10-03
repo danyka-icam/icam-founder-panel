@@ -1168,3 +1168,14 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 @media(max-width:1180px){.radar-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.radar-signal-grid{grid-template-columns:1fr}.radar-invest-panel{grid-column:auto}}
 @media(max-width:900px){.radar-page .cc-page-grid{grid-template-columns:1fr}.radar-inspector{position:relative;top:auto;max-height:none}.radar-invest-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.radar-summary,.radar-invest-grid{grid-template-columns:1fr}.radar-signal-head{grid-template-columns:28px minmax(0,1fr)}.radar-signal-head em{grid-column:2}.radar-signal-card p{margin-left:37px}}
+
+.cc-steward-action-card{margin:10px 0;padding:12px 13px;border:1px solid rgba(227,165,72,.38);border-radius:11px;background:linear-gradient(160deg,rgba(227,165,72,.10),rgba(8,19,24,.72));display:flex;flex-direction:column;gap:6px}
+.cc-steward-action-card b{font-size:12.5px;color:#f1e4c8}
+.cc-steward-action-card span{font-size:12px;color:#e5ece9}
+.cc-steward-action-card small{font-size:10px;color:var(--muted)}
+.cc-steward-action-card p{margin:2px 0;font-size:10.5px;line-height:1.45;color:#b9c5c1}
+.cc-steward-action-card>div{display:flex;gap:8px;margin-top:5px}
+.cc-steward-action-card button{border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.025);color:#dbe7e3;padding:7px 10px;font-size:10.5px;cursor:pointer}
+.cc-steward-action-card button[data-cc-steward-confirm]{border-color:rgba(227,165,72,.44);background:rgba(227,165,72,.10);color:#f0d8a7}
+.cc-steward-action-card button:hover{border-color:rgba(63,207,166,.4)}
+.cc-steward-action-card button:disabled{opacity:.5;cursor:default}

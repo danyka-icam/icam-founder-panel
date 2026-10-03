@@ -794,8 +794,8 @@
         risk: risk, closed: closed, state: state, rd1: rd1, area: area, star: star,
         origin: obj ? (obj.owning_branch || obj.owner || null) : null,
         waiting: !closed && /^EXTERNAL$/i.test(String(r.ball_owner || "").trim()),
-        next: r.next_move || (rd1 && (rd1.next_gate || rd1.next_move)) || null,
-        nextSource: r.next_move ? "Оркестратор · next_move" : (rd1 && rd1.next_gate ? "RD1 · next_gate" : (rd1 && rd1.next_move ? "RD1 · next_move" : null)),
+        next: closed ? null : (r.next_move || (rd1 && (rd1.next_gate || rd1.next_move)) || null),
+        nextSource: closed ? null : (r.next_move ? "Оркестратор · next_move" : (rd1 && rd1.next_gate ? "RD1 · next_gate" : (rd1 && rd1.next_move ? "RD1 · next_move" : null))),
         upstream: [], downstream: [], bridges: [],
         objBlockers: obj ? blockerRecords.filter(function (b) { return String(b.object_id || "") === objId; }) : []
       };
@@ -1801,6 +1801,7 @@
     var sd=M.d.scannerDiagnostics||{};
     push(sd.observed_at||sd.updated_at||sd.checked_at, "Диагностика Market Scanner", "signals", null, null, sd, "fact");
     M.lines.forEach(function(l){
+      if(l.closed) return;
       var r=l.r||{}, text=l.title+" "+String(r.next_move||"");
       var at=r.deadline||r.due_at||r.expected_at||r.scheduled_at||r.next_gate_at||r.decision_at||r.result_at||null;
       if (!at) {
@@ -2718,10 +2719,11 @@
     if (l.star) l.star.line.history.map(eventView).forEach(function (v) { hist.push(histItem(v, "Temporal Universe")); });
     if (l.obj && l.obj.last_event_at) hist.push("<li><b>" + E(dateLabel(l.obj.last_event_at)) + "</b>" + E((l.obj.last_meaning_kind ? H.signalKindRu(l.obj.last_meaning_kind) : "событие объекта") + (l.obj.last_summary ? " — " + H.cut(humanActionText(l.obj.last_summary), 110) : "")) + " <em>· Continuity</em></li>");
     if (r.last_movement_at) hist.push("<li><b>" + E(dateLabel(r.last_movement_at)) + "</b>движение по маршруту <em>· Оркестратор</em></li>");
-    var step = r.next_move ? { text: humanActionText(r.next_move), src: "Оркестратор · next_move" } :
-      (l.rd1 && l.rd1.next_move ? { text: humanActionText(l.rd1.next_move), src: "RD1 · next_move" } : null);
+    var step = !l.closed && r.next_move ? { text: humanActionText(r.next_move), src: "Оркестратор · next_move" } :
+      (!l.closed && l.rd1 && l.rd1.next_move ? { text: humanActionText(l.rd1.next_move), src: "RD1 · next_move" } : null);
     return inspector({
       badge: hexBadge(initials(routeDisplayTitle(l.title)), l.tone, "lg"), title: routeDisplayTitle(l.title), sub: "Маршрут Оркестратора" + (routeDisplayTitle(l.title) !== l.title ? " · исходное название: " + l.title : "") + (l.area ? " · " + H.humanCode(l.area) : ""),
+      stewardContext:{kind:"route",route_id:l.key,object_id:l.objId||"",source_object_id:l.sourceObjectId||"",exact_object:!!l.obj,status:r.status||"",closed:!!l.closed,next_move:l.closed?"":(r.next_move||""),historical_next_move:l.closed?(r.next_move||""):""},
       what: para("Маршрут работы в Оркестраторе" + (l.star ? " по звезде «" + l.star.title + "» линии «" + l.star.line.title + "»." : ".") +
         (r.ball_owner == null || r.ball_owner === "" ? " Поле ball_owner не передано." : " Ход: «" + ownerLabel(r.ball_owner) + "».")),
       where: crumbs([{ t: "ICAM" }, { t: place.world ? place.world.title : (M.tu.ok ? "связь с Founder Universe не подтверждена" : "мир не проверен") },
@@ -2736,10 +2738,10 @@
         (l.downstream.length ? " Его остановка явно задержит " + l.downstream.length + " маршрута." : "") +
         (l.star && hasCapital(l.star.line) ? " У канонической линии есть доказанный капитал: " + capitalItems(l.star.line).join("; ") + "." : "")),
       history: hist.length ? "<ul class='cc-hist'>" + hist.join("") + "</ul>" : "",
-      waiting: (r.review_condition ? para(r.review_condition) : (l.waiting ? para("Действия от «" + ownerLabel(r.ball_owner) + "».") : "")) +
+      waiting: l.closed ? para("Маршрут закрыт; активного ожидания больше нет.") : ((r.review_condition ? para(r.review_condition) : (l.waiting ? para("Действия от «" + ownerLabel(r.ball_owner) + "».") : "")) +
         (tv && tv.waiting.length ? "<small>Temporal Universe</small>" + titlesList(tv.waiting) : "") +
-        (l.rd1 && l.rd1.next_gate ? muted("RD1 · следующий гейт: " + l.rd1.next_gate) : ""),
-      next: l.next ? para(humanActionText(l.next)) + (humanActionText(l.next) !== l.next ? muted("Исходный текст источника: " + l.next) : "") + (l.nextSource ? muted(l.nextSource) : "") : "",
+        (l.rd1 && l.rd1.next_gate ? muted("RD1 · следующий гейт: " + l.rd1.next_gate) : "")),
+      next: l.closed ? (r.next_move ? muted("Исторический текст прежнего next_move: " + humanActionText(r.next_move)) : muted("Маршрут закрыт; следующего перехода нет.")) : (l.next ? para(humanActionText(l.next)) + (humanActionText(l.next) !== l.next ? muted("Исходный текст источника: " + l.next) : "") + (l.nextSource ? muted(l.nextSource) : "") : ""),
       step: step,
       links: refsBlock("Звезда и линия Founder Universe", l.star ? starRef(l.star) + ulineRef(l.star.line) + worldRef(l.star.world) : "") +
         refsBlock("Зависит от", lineRefs(l.upstream)) + refsBlock("От него зависят", lineRefs(l.downstream)) +
@@ -3303,12 +3305,38 @@
     return "<div class='cc-steward-msg "+role+"'><p>"+E(text||"")+"</p>"+refs+"</div>";
   }
 
+  function closeStatusCommand(q) {
+    return /(?:^|\s)(закрой|закрыть|закрываем|переведи\s+статус\s+в\s+закрыт|отметь[^.]{0,30}закрыт)/i.test(String(q||""));
+  }
+
+  function stewardActionCard(p) {
+    return "<div class='cc-steward-action-card' data-cc-steward-action-card data-action-id='"+E(p.action_id||"")+"' data-action-hash='"+E(p.action_hash||"")+"'>"+
+      "<b>Подтвердить изменение?</b><span>"+E(p.title||p.target_object_id||"Объект")+"</span>"+
+      "<small>"+E((p.old_status||"—")+" → "+(p.new_status||"CLOSED"))+"</small>"+
+      "<p>"+E(p.reason||"Явная команда Основателя")+"</p>"+
+      "<div><button type='button' data-cc-steward-confirm>Подтвердить</button><button type='button' data-cc-steward-cancel>Отмена</button></div></div>";
+  }
+
+  function proposeStewardClose(d,question,thread,status) {
+    var ctx=d._stewardContext||{};
+    if(ctx.closed===true){
+      var p=thread.querySelector(".pending");if(p)p.remove();
+      thread.insertAdjacentHTML("beforeend",stewardBubble("assistant","Этот маршрут уже закрыт в текущем источнике: "+(ctx.status||"CLOSED")+". Ничего менять не нужно."));
+      status.textContent="Изменение не требуется · источник уже закрыт";thread.scrollTop=thread.scrollHeight;return;
+    }
+    fetch("/founder-ui-preview/api/steward-navigator/action/propose-status",{method:"POST",credentials:"same-origin",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({context:ctx,new_status:"CLOSED",reason:question})})
+    .then(function(r){return r.json().then(function(j){if(!r.ok){var e=new Error(j.error||("HTTP "+r.status));e.code=j.error;throw e;}return j;});})
+    .then(function(data){var p=thread.querySelector(".pending");if(p)p.remove();thread.insertAdjacentHTML("beforeend",stewardActionCard(data.proposal||{}));status.textContent="Жду явного подтверждения Основателя";thread.scrollTop=thread.scrollHeight;})
+    .catch(function(err){var p=thread.querySelector(".pending");if(p)p.remove();var msg=err&&err.code==="exact_object_required"?"Я не могу безопасно изменить этот статус: у выбранной карточки нет доказанной точной связи с каноническим объектом Continuity. Сначала нужна точная привязка объекта.":"Не удалось подготовить изменение статуса. Система ничего не изменила.";thread.insertAdjacentHTML("beforeend",stewardBubble("assistant",msg));status.textContent="Изменение не выполнено";thread.scrollTop=thread.scrollHeight;});
+  }
+
   function askSteward(d,question) {
     var thread=d.querySelector("[data-cc-steward-thread]"), status=d.querySelector("[data-cc-steward-status]");
     thread.insertAdjacentHTML("beforeend",stewardBubble("user",question));
     thread.insertAdjacentHTML("beforeend","<div class='cc-steward-msg assistant pending'>Разбираю вопрос и проверяю рабочий контекст…</div>");
     thread.scrollTop=thread.scrollHeight;
     status.textContent="Стюард сверяет память, связи и живое состояние системы…";
+    if(closeStatusCommand(question)){proposeStewardClose(d,question,thread,status);return;}
     fetch("/founder-ui-preview/api/steward-navigator/query",{
       method:"POST",credentials:"same-origin",cache:"no-store",
       headers:{"Content-Type":"application/json"},
@@ -3332,6 +3360,20 @@
   }
 
   document.addEventListener("click", function (e) {
+    var cancelAction=e.target.closest("[data-cc-steward-cancel]");
+    if(cancelAction){var card=cancelAction.closest("[data-cc-steward-action-card]");if(card){card.innerHTML="<b>Изменение отменено</b><small>Система ничего не изменила.</small>";}return;}
+    var confirmAction=e.target.closest("[data-cc-steward-confirm]");
+    if(confirmAction){
+      var card=confirmAction.closest("[data-cc-steward-action-card]"), dialog=e.target.closest("[data-cc-steward-dialog]");
+      if(!card||!dialog)return;
+      var aid=card.getAttribute("data-action-id"), ah=card.getAttribute("data-action-hash"), status=dialog.querySelector("[data-cc-steward-status]");
+      confirmAction.disabled=true;if(status)status.textContent="Записываю подтверждённое изменение…";
+      fetch("/founder-ui-preview/api/steward-navigator/action/confirm-status",{method:"POST",credentials:"same-origin",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({action_id:aid,action_hash:ah,founder_confirmation:"CONFIRM"})})
+      .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||("HTTP "+r.status));return j;});})
+      .then(function(){card.innerHTML="<b>Изменение подтверждено</b><span>Авторитетное событие записано в Continuity.</span><small>История сохранена; новое состояние появится после обновления проекций.</small>";if(status)status.textContent="Изменение записано";})
+      .catch(function(){confirmAction.disabled=false;if(status)status.textContent="Запись не выполнена";card.insertAdjacentHTML("beforeend","<small class='warn'>Не удалось записать изменение. Система не подтверждает смену статуса.</small>");});
+      return;
+    }
     var sa=e.target.closest("[data-cc-steward-context]");
     if(sa){openSteward(sa.getAttribute("data-cc-steward-context"));return;}
     if(e.target.closest("[data-cc-steward-close]")){var sd=e.target.closest("[data-cc-steward-dialog]");if(sd)sd.classList.remove("open");return;}
