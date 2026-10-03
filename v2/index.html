@@ -2989,321 +2989,71 @@
     если Object ID неизвестен — показываем «не определён», а не выбираем ближайший похожий ID. Это особенно важно для Testing Department и Path Legibility.
   </div>
 </section>
-<section class="page" data-page-panel="signals">
+<section class="page radar-page" data-page-panel="signals">
 <header class="topbar">
 <div>
-<h1>Сигналы</h1>
-<p>только изменения, которые заслуживают внимания и могут изменить следующий ход</p>
+<h1>Founder Radar</h1>
+<p>возможности, ожидания, будущие точки проверки и изменения поля, которые могут изменить следующий ход</p>
 </div>
 <div class="top-actions">
-<span class="state unavailable">ИСТОЧНИКИ НЕ ПОДКЛЮЧЕНЫ</span>
+<span class="state unavailable" data-radar-state>ЧИТАЕМ RADAR…</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
 </header>
-<div class="workspace-switcher signals-switcher">
-<button class="active" disabled="" title="Текущий обзор">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Требует меня</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Изменения</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Риски</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Внешнее наблюдение</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">История</button>
-</div>
-<section class="strip signals-kpis-v2">
-<article class="card">
-<small>Запросы к вам</small>
-<strong data-s="founder">—</strong>
-<span>Founder inbox: запросы на участие, не формальные решения</span>
+
+<section class="strip radar-kpis">
+<article class="card"><small>Требует внимания</small><strong data-radar-kpi="attention">—</strong><span>решения и запросы, где следующий ход у вас</span></article>
+<article class="card"><small>Ждём</small><strong data-radar-kpi="waiting">—</strong><span>внешние ответы, исходы и решения программ</span></article>
+<article class="card"><small>Ближайшие даты</small><strong data-radar-kpi="upcoming">—</strong><span>дедлайны и контрольные точки из тех же источников, что «Во времени»</span></article>
+<article class="card"><small>Возможности</small><strong data-radar-kpi="opportunities">—</strong><span>тендеры, программы, проекты и другие подтверждённые окна</span></article>
+</section>
+
+<section class="radar-grid">
+<article class="card radar-card radar-attention">
+<div class="panel-head"><div class="head-title"><h2>ТРЕБУЕТ ВНИМАНИЯ</h2><small>только то, где действительно нужен ваш следующий ход</small></div></div>
+<div class="panel-body" data-radar="attention"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
 </article>
-<article class="card">
-<small>Материальные изменения</small>
-<strong data-s="changes">—</strong>
-<span>события, которые реально меняют состояние линии</span>
+
+<article class="card radar-card radar-opportunities">
+<div class="panel-head"><div class="head-title"><h2>ВОЗМОЖНОСТИ</h2><small>внешние окна для действия, не общий поток новостей</small></div></div>
+<div class="panel-body" data-radar="opportunities"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
 </article>
-<article class="card">
-<small>Открытые записи блокеров</small>
-<strong data-s="risks">—</strong>
-<span data-s="risks-detail">Continuity OPEN + тесты с подтверждённой остановкой; тяжесть отдельно</span>
+
+<article class="card radar-card radar-waiting">
+<div class="panel-head"><div class="head-title"><h2>ЖДЁМ</h2><small>кто или что держит следующий ход и что должно произойти дальше</small></div></div>
+<div class="panel-body" data-radar="waiting"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
 </article>
-<article class="card">
-<small>Рыночные сигналы</small>
-<strong data-s="opportunities">—</strong>
-<span data-s="market-kpi-note">сохранённые внешние наблюдения; не автоматически возможности или действия</span>
+
+<article class="card radar-card radar-predictions">
+<div class="panel-head"><div class="head-title"><h2>ПРЕДСКАЗАНИЯ И ДАТЫ РАСКРЫТИЯ</h2><small>запечатано → ждём исход → раскрытие → результат → следующий прогноз</small></div></div>
+<div class="panel-body" data-radar="predictions"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
+</article>
+
+<article class="card radar-card radar-field">
+<div class="panel-head"><div class="head-title"><h2>ПОЛЕ И РЫНОК</h2><small>отобранные изменения внешней среды и покрытие наблюдения</small></div></div>
+<div class="panel-body" data-radar="field"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
+</article>
+
+<article class="card radar-card radar-learning">
+<div class="panel-head"><div class="head-title"><h2>ATLAS УЧИТСЯ</h2><small>что система сейчас проверяет, что получила и какой следующий рубеж</small></div></div>
+<div class="panel-body" data-radar="learning"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
+</article>
+
+<article class="card radar-card radar-investment radar-wide">
+<div class="panel-head"><div class="head-title"><h2>INVESTMENT ATLAS</h2><small>агрегаты капитала и качества без раскрытия отдельных инвестиционных гипотез</small></div></div>
+<div class="panel-body" data-radar="investment"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
+</article>
+
+<article class="card radar-card radar-reputation radar-wide">
+<div class="panel-head"><div class="head-title"><h2>РЕПУТАЦИЯ И ПРИСУТСТВИЕ</h2><small>публикации, внешние ответы, научные и институциональные следы</small></div></div>
+<div class="panel-body" data-radar="reputation"><div class="signals-empty compact"><strong>Читаем…</strong></div></div>
 </article>
 </section>
-<section class="signals-hero-grid">
-<article class="card signals-now-card">
-<div class="panel-head">
-<div class="head-title">
-<h2>ЧТО ЗАСЛУЖИВАЕТ ВНИМАНИЯ СЕЙЧАС</h2>
-<small>сигнал появляется здесь только если источник подтверждает изменение или необходимость реакции</small>
+
+<div class="radar-sync-note">
+<b>Автоматическая синхронизация.</b>
+<span>Ветки фиксируют обычное событие, ожидание или следующий рубеж. Radar ничего не копирует вручную: он читает эти же записи, а датированные точки одновременно появляются во временной линии.</span>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body" data-s="hero">
-<div class="signals-empty hero">
-<div class="signal-pulse">
-<span></span><i></i><b></b>
-</div>
-<strong>Читаем сигнальный слой…</strong>
-<p>Панель не показывает демонстрационные «возможности», корреляции или угрозы. Здесь появляются только события участия Основателя, существенные изменения и внешние наблюдения из разрешённых источников.</p>
-</div>
-</div>
-</article>
-<article class="card signals-founder-card">
-<div class="panel-head">
-<div class="head-title">
-<h2>ЗАПРОСЫ К ВАМ</h2>
-<small>Founder inbox: запросы на участие; формальные решения показываются отдельно в Командном центре</small>
-</div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body" data-s="founder-list">
-<div class="signals-empty compact">
-<strong>Входящие Основателя не подключены</strong>
-<span>Когда источник будет подключён, сюда попадут только реальные `needs_founder`, а не все уведомления системы.</span>
-</div>
-</div>
-</article>
-</section>
-<section class="card signals-org-card">
-<div class="panel-head"><div class="head-title"><h2>ОРГАНИЗАЦИОННЫЕ НАБЛЮДЕНИЯ</h2><small>структурные факты о повторном использовании капитала, концентрации, разрывах маршрутов и полномочиях; не рейтинг риска</small></div></div>
-<div class="panel-body" data-s="org-observations"><div class="signals-empty compact"><strong>Читаем Organizational Intelligence…</strong></div></div>
-</section>
-<div class="section-title">
-<div>
-<h2>Типы сигналов</h2>
-<p>разные причины внимания не смешиваем в одну красную ленту</p>
-</div>
-</div>
-<section class="signal-type-grid">
-<article class="card signal-type-card change">
-<div class="panel-body">
-<span class="signal-type-mark">Δ</span>
-<small>ИЗМЕНЕНИЕ</small>
-<h3>Что-то реально стало другим</h3>
-<p>Смена статуса или этапа, новый результат проверки, внешний ответ, новый файл с каноническим значением, изменение владельца хода или другого материального поля.</p>
-<em>не каждое событие</em>
-</div>
-</article>
-<article class="card signal-type-card risk">
-<div class="panel-body">
-<span class="signal-type-mark">!</span>
-<small>РИСК / ОТКЛОНЕНИЕ</small>
-<h3>Источник сообщает о проблеме</h3>
-<p>Открытый блокер, деградация, просрочка, неудачный тест, нарушение целостности или другой подтверждённый источник риска.</p>
-<em>без собственных домыслов панели</em>
-</div>
-</article>
-<article class="card signal-type-card opportunity">
-<div class="panel-body">
-<span class="signal-type-mark">↗</span>
-<small>ВОЗМОЖНОСТЬ</small>
-<h3>Появилось окно для действия</h3>
-<p>Внешний ответ, рыночное изменение, новый контакт, грант, партнёрство или другой шанс — только если его факт действительно пришёл из подключённого источника.</p>
-<em>не прогноз без данных</em>
-</div>
-</article>
-<article class="card signal-type-card watch">
-<div class="panel-body">
-<span class="signal-type-mark">○</span>
-<small>НАБЛЮДАТЬ</small>
-<h3>Решение пока не требуется</h3>
-<p>Изменение важно помнить, но оно ещё не требует действия. Такой сигнал не должен попадать на Главную как срочная задача.</p>
-<em>контекст, не тревога</em>
-</div>
-</article>
-</section>
-<div class="section-title">
-<div>
-<h2>Путь сигнала</h2>
-<p>Панель не создаёт факты — она только отбирает и объясняет то, что уже существует в источниках</p>
-</div>
-</div>
-<section class="card signal-flow-card">
-<div class="panel-body">
-<div class="signal-flow">
-<div>
-<span>01</span>
-<b>Событие</b>
-<small>реальное событие в Continuity, Testing, Orchestrator, Atlas или другом разрешённом источнике</small>
-</div>
-<i>→</i>
-<div>
-<span>02</span>
-<b>Материальность</b>
-<small>изменяет ли оно состояние, решение, риск, возможность или следующий ход</small>
-</div>
-<i>→</i>
-<div>
-<span>03</span>
-<b>Сигнал</b>
-<small>читаемая проекция с источником, объектом, временем и причиной внимания</small>
-</div>
-<i>→</i>
-<div>
-<span>04</span>
-<b>Маршрут</b>
-<small>если требуется действие — оно уходит в Оркестратор или внимание Основателя, а не живёт второй задачей здесь</small>
-</div>
-</div>
-<div class="signal-flow-note">
-        «Сигналы» — это слой внимания, а не второй хранилище событий и не второй список задач.
-      </div>
-</div>
-</section>
-<section class="signals-lower-grid">
-<article class="card">
-<div class="panel-head">
-<div class="head-title"><h2>ПОСЛЕДНИЕ МАТЕРИАЛЬНЫЕ ИЗМЕНЕНИЯ</h2><small>что изменилось в системе или внешней среде</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body" data-s="changes-list">
-<div class="signals-empty compact">
-<strong>История изменений ещё не подключена</strong>
-<span>Показываем событие, объект, источник, время и человеческое объяснение «было → стало → почему важно».</span>
-</div>
-</div>
-</article>
-<article class="card">
-<div class="panel-head">
-<div class="head-title"><h2>БЛОКЕРЫ И ОТКЛОНЕНИЯ</h2><small>открытые записи источников; наличие записи не равно автоматически высокой тяжести</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body" data-s="risks-list">
-<div class="signals-empty compact">
-<strong>Источник рисков ещё не подключён</strong>
-<span>Приоритет или severity берётся из источника. Если источник не оценил тяжесть, Панель показывает «без оценки», а не рассчитывает собственный красный балл.</span>
-</div>
-</div>
-</article>
-<article class="card">
-<div class="panel-head">
-<div class="head-title"><h2>ВНЕШНЕЕ НАБЛЮДЕНИЕ</h2><small>рыночные и исследовательские сигналы из внешних источников; сигнал не равен возможности или действию</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body" data-s="opportunities-list">
-<div class="signals-empty compact">
-<strong>Внешний поток ещё не подключён</strong>
-<span>Здесь показываются внешние наблюдения вместе с их происхождением и текущим покрытием источников. Панель не повышает их до «возможности» без явной классификации источника.</span>
-</div>
-</div>
-</article>
-<article class="card">
-<div class="panel-head">
-<div class="head-title"><h2>НАБЛЮДАТЬ</h2><small>важно помнить, но сейчас ничего не делать</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body" data-s="watch-list">
-<div class="signals-empty compact">
-<strong>Наблюдаемых сигналов пока нет в проекции</strong>
-<span>Это отдельная полка, чтобы несрочный контекст не превращался в ложное «Требует меня».</span>
-</div>
-</div>
-</article>
-</section>
-<div class="section-title scanner-section-title">
-<div>
-<h2>Движение поля · 7 дней</h2>
-<p>ATLAS Market Scanner: где внешнее поле сдвинулось по архитектурным осям и почему это важно ATLAS / Twin</p>
-</div>
-<span class="state unavailable" data-fm="badge">АГРЕГАТ ЕЩЁ НЕ ПРОЧИТАН</span>
-</div><section class="card field-movement-card">
-<div class="panel-body">
-<div class="field-movement-grid">
-<div><small>Модели мира</small><strong data-fm="world-model">—</strong><span data-fm-note="world-model">к предыдущим 7 дням</span></div>
-<div><small>Интеллект принятия решений</small><strong data-fm="decision-intelligence">—</strong><span data-fm-note="decision-intelligence">к предыдущим 7 дням</span></div>
-<div><small>Моделирование</small><strong data-fm="simulation">—</strong><span data-fm-note="simulation">к предыдущим 7 дням</span></div>
-<div><small>Внешнее наблюдение</small><strong data-fm="external-sensing">—</strong><span data-fm-note="external-sensing">к предыдущим 7 дням</span></div>
-<div><small>Эпистемический контроль</small><strong data-fm="epistemics">—</strong><span data-fm-note="epistemics">к предыдущим 7 дням</span></div>
-<div><small>Агентные системы</small><strong data-fm="agents">—</strong><span data-fm-note="agents">к предыдущим 7 дням</span></div>
-</div>
-<div class="field-movement-note" data-fm="footnote">
-      Показывается агрегат взвешенной релевантности по двум семидневным окнам: → / ↑ / ↑↑ / ↑↑↑. Доступность этого агрегата не доказывает текущее внешнее покрытие Scanner — здоровье источников показывается отдельно.
-    </div>
-</div>
-</section><section class="card scanner-card-contract">
-<div class="panel-head">
-<div class="head-title">
-<h2>КАРТОЧКА СИГНАЛА</h2>
-<small>поля, которые Панель обязана сохранить без потери provenance</small>
-</div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body">
-<div class="scanner-contract-fields">
-<span>entity</span><span>type</span><span>relevance 0–100</span><span>title</span>
-<span>summary_ru</span><span>why_it_matters_ru</span><span>axes</span><span>evidence count</span>
-<span>source</span><span>observed_at</span><span>status</span>
-</div>
-<div class="scanner-status-model">
-<div><b>90–100</b><span>STRATEGIC · наверх</span></div>
-<div><b>70–89</b><span>IMPORTANT · основная лента</span></div>
-<div><b>50–69</b><span>WATCH · фильтр / дайджест</span></div>
-<div><b>&lt;50</b><span>ARCHIVE</span></div>
-</div>
-<p class="scanner-rule">Изменение веб-страницы само по себе не является рыночным сигналом. Карточка появляется только при deterministic semantic evidence.</p>
-</div>
-</section><section class="scanner-bridge-grid">
-<article class="card">
-<div class="panel-body">
-<b>Signals Bridge → Панель</b>
-<span>Браузер не выполняет ingest. Scanner / bridge отправляет `POST /api/signals/ingest`; Панель читает `GET /api/signals`.</span>
-</div>
-</article>
-<article class="card">
-<div class="panel-body">
-<b>Статус сигнала</b>
-<span>Позже Панель может менять только `status` через PATCH. До согласования auth/authority эта возможность остаётся отключённой.</span>
-</div>
-</article>
-<article class="card">
-<div class="panel-body">
-<b>LLM enrichment</b>
-<span>После QA — только для candidate signal и только поверх deterministic evidence. LLM не создаёт событие самостоятельно.</span>
-</div>
-</article>
-<article class="card">
-<div class="panel-body">
-<b>Customer worlds</b>
-<span>Scanner относится к Meta/Founder world и не меняет TMK/Graza causal graph автоматически. Promotion — отдельное ручное решение.</span>
-</div>
-</article>
-</section><div class="section-title">
-<div>
-<h2>Что здесь специально не делаем</h2>
-<p>убираем шум, который в старой панели выглядел убедительно, но не имел источника</p>
-</div>
-</div>
-<section class="signals-noise-grid">
-<article class="card">
-<div class="panel-body">
-<b>Не считаем «активные сигналы» сами</b>
-<span>Нет канонического сигнального store — нет красивой цифры 26 или «+5 за сутки».</span>
-</div>
-</article>
-<article class="card">
-<div class="panel-body">
-<b>Не рисуем корреляции</b>
-<span>Совпадение по времени не становится причинной связью или кластером без явного источника.</span>
-</div>
-</article>
-<article class="card">
-<div class="panel-body">
-<b>Не создаём свой рейтинг</b>
-<span>Панель не объявляет сигнал №1, если источник не даёт явного приоритета или severity.</span>
-</div>
-</article>
-<article class="card">
-<div class="panel-body">
-<b>Не дублируем задачи</b>
-<span>Если сигнал требует действия, действием управляет Оркестратор или внимание Основателя. Здесь остаётся источник и смысл сигнала.</span>
-</div>
-</article>
-</section>
-<div class="signals-boundary-note">
-<b>Граница:</b>
-    Главная отвечает «что мне делать сейчас», Оркестратор — «как движутся маршруты и действия», Тестирование — «что показала проверка», а Сигналы — «какое изменение заслуживает внимания и почему».
-  </div>
 </section>
 <section class="page" data-page-panel="documents">
 <header class="topbar">

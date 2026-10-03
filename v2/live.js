@@ -32,7 +32,8 @@
     signalLabStatus: API + "/signal-lab-status",
     // Founder Universe read-only backend (separate service, same origin).
     temporalUniverse: "/founder-star-view/api/temporal-universe",
-    portfolioAdmission: "/founder-star-view/api/portfolio-admission"
+    portfolioAdmission: "/founder-star-view/api/portfolio-admission",
+    radar: API + "/radar"
   };
   // Only the Founder Universe reads get a client timeout, so a hung service
   // degrades to "unavailable" instead of stalling the whole read cycle.
@@ -71,7 +72,8 @@
     stewardReconciliation: { ok: false, at: null, error: null },
     signalLabStatus: { ok: false, at: null, error: null },
     temporalUniverse: { ok: false, at: null, error: null },
-    portfolioAdmission: { ok: false, at: null, error: null }
+    portfolioAdmission: { ok: false, at: null, error: null },
+    radar: { ok: false, at: null, error: null }
   };
 
   function esc(value) {
@@ -1619,6 +1621,86 @@
     return m[String(kind || "").toUpperCase()] || "Материальное изменение";
   }
 
+  function renderFounderRadar(radar) {
+    var page=document.querySelector('[data-page-panel="signals"]');
+    if(!page)return;
+    var state=page.querySelector("[data-radar-state]");
+    function arr(k){return radar&&Array.isArray(radar[k])?radar[k]:[];}
+    function kpi(k,v){var e=page.querySelector('[data-radar-kpi="'+k+'"]');if(e)e.textContent=String(v);}
+    function box(k){return page.querySelector('[data-radar="'+k+'"]');}
+    function dateRu(v){if(!v)return "";var d=new Date(String(v).length===10?v+"T12:00:00":v);return isNaN(d)?String(v):d.toLocaleDateString("ru-RU",{day:"2-digit",month:"short",year:"numeric"});}
+    function money(v){if(v==null)return "—";return "$"+Number(v).toLocaleString("en-US",{maximumFractionDigits:0});}
+    function pct(v){return v==null?"недостаточно данных":Number(v).toLocaleString("ru-RU",{maximumFractionDigits:2})+"%";}
+    function branch(x){var c=x&&x.context||{};return c.branch||c.line||"";}
+    function rows(items,emptyText,limit){
+      items=(items||[]).slice(0,limit||5);
+      if(!items.length)return '<div class="radar-empty">'+esc(emptyText)+'</div>';
+      return '<div class="radar-list">'+items.map(function(x){
+        var meta=[dateRu(x.date),branch(x)].filter(Boolean).join(" · ");
+        return '<div class="radar-row"><div><b>'+esc(cut(x.title||"Событие",110))+'</b>'+(x.why?'<span>'+esc(cut(x.why,170))+'</span>':'')+(meta?'<small>'+esc(meta)+'</small>':'')+'</div></div>';
+      }).join("")+'</div>';
+    }
+    if(!sourceState.radar.ok||!radar){
+      if(state){state.className="state unavailable";state.textContent="RADAR НЕДОСТУПЕН";}
+      ["attention","opportunities","waiting","predictions","field","learning","investment","reputation"].forEach(function(k){var e=box(k);if(e)e.innerHTML=unavailableHTML("Radar недоступен","Read-only проекция не ответила. Старые значения не подставляются.");});
+      return;
+    }
+    if(state){state.className="state live";state.textContent="RADAR · LIVE";}
+    var attention=arr("attention"), opportunities=arr("opportunities"), waiting=arr("waiting"), upcoming=arr("upcoming"), predictions=arr("predictions");
+    kpi("attention",attention.length);kpi("waiting",waiting.length);kpi("upcoming",upcoming.length);kpi("opportunities",opportunities.length);
+    if(box("attention"))box("attention").innerHTML=rows(attention,"Сейчас нет подтверждённых запросов, где следующий ход у Основателя.",5);
+    if(box("opportunities"))box("opportunities").innerHTML=rows(opportunities,"Подтверждённых внешних окон для действия сейчас нет.",5);
+    if(box("waiting"))box("waiting").innerHTML=rows(waiting,"Внешних ожиданий и ожидаемых исходов сейчас нет.",6);
+
+    if(box("predictions")){
+      var ps=predictions.slice().sort(function(a,b){return String(a.date||"9999").localeCompare(String(b.date||"9999"));}).slice(0,7);
+      box("predictions").innerHTML=ps.length?'<div class="radar-list">'+ps.map(function(x){
+        var meta=[dateRu(x.date),branch(x)].filter(Boolean).join(" · ");
+        var result=x.result!=null?'<span>Результат: '+esc(String(x.result))+'</span>':(x.status?'<span>Этап: '+esc(humanCode(x.status))+'</span>':'');
+        return '<div class="radar-row prediction"><div><b>'+esc(cut(x.title||"Прогноз",105))+'</b>'+result+(meta?'<small>'+esc(meta)+'</small>':'')+'</div></div>';
+      }).join("")+'</div>':'<div class="radar-empty">Открытых прогнозных точек сейчас нет.</div>';
+    }
+
+    var field=radar.field||{}, sigs=Array.isArray(field.signals)?field.signals.slice(0,5):[];
+    if(box("field")){
+      var cov=field.source_coverage||{}, covText=(cov.ok_count!=null&&cov.total_sources!=null)?("Покрытие Scanner: "+cov.ok_count+" из "+cov.total_sources+" источников."):"Покрытие Scanner не подтверждено.";
+      box("field").innerHTML='<div class="radar-field-note">'+esc(covText)+'</div>'+(sigs.length?'<div class="radar-list">'+sigs.map(function(s){
+        var enr=s.enrichment||{};var source=s.source&&s.source.name?(" · "+s.source.name):"";
+        return '<div class="radar-row"><div><b>'+esc(cut(s.title||s.entity||"Внешний сигнал",105))+'</b><span>'+esc(cut(enr.summary_ru||s.summary_ru||enr.why_it_matters_ru||s.why_it_matters_ru||"",175))+'</span><small>'+esc((s.entity||"Внешнее поле")+source)+'</small></div></div>';
+      }).join("")+'</div>':'<div class="radar-empty">Новых отобранных внешних сигналов нет.</div>');
+    }
+
+    var learning=arr("atlas_learning");
+    if(box("learning"))box("learning").innerHTML=learning.length?'<div class="radar-list">'+learning.map(function(x){
+      var parts=[];if(x.stage)parts.push("Этап: "+humanCode(x.stage));if(x.result)parts.push("Результат: "+(typeof x.result==="string"?x.result:"получен новый результат"));if(x.next)parts.push("Дальше: "+humanCode(x.next));
+      return '<div class="radar-row"><div><b>'+esc(x.title)+'</b><span>'+esc(parts.join(" · ")||"Состояние передано без человеческого резюме.")+'</span>'+(x.next_date?'<small>Следующая дата: '+esc(dateRu(x.next_date))+'</small>':'')+'</div></div>';
+    }).join("")+'</div>':'<div class="radar-empty">Исследовательские контуры не передали текущий этап.</div>';
+
+    var inv=radar.investment||{};
+    if(box("investment")){
+      if(!inv.available) box("investment").innerHTML=unavailableHTML("Investment ATLAS недоступен","Агрегированная проекция не ответила.");
+      else {
+        var vc=inv.virtual_capital||{}, h=inv.hypotheses||{}, a=inv.activity||{}, dq=inv.data_quality||{};
+        var cells=[
+          ["Виртуальный капитал",money(vc.current_total)],
+          ["Доходность",pct(vc.return_pct)],
+          ["Свободный капитал",money(vc.cash_total)],
+          ["Подтверждено гипотез",pct(h.success_rate_pct)],
+          ["Активные позиции",a.active_positions_total==null?"—":a.active_positions_total],
+          ["Зафиксировано решений",a.committed_decisions==null?"—":a.committed_decisions],
+          ["Обнаружено ошибок",a.errors_detected==null?"—":a.errors_detected],
+          ["Качество входа",humanCode(dq.status||"не передано")]
+        ];
+        var ports=(inv.portfolios||[]).map(function(p){return '<div><small>'+esc(humanCode(p.mode||p.portfolio_id))+'</small><b>'+esc(money(p.nav_usd))+'</b><span>макс. просадка '+esc(pct(p.max_drawdown_pct))+'</span></div>';}).join("");
+        box("investment").innerHTML='<div class="radar-invest-grid">'+cells.map(function(c){return '<div><small>'+esc(c[0])+'</small><b>'+esc(c[1])+'</b></div>';}).join("")+'</div>'+
+          (ports?'<div class="radar-portfolios">'+ports+'</div>':'')+
+          '<div class="radar-next"><span>Этап: '+esc(humanCode(inv.stage||inv.lab_status||"не передан"))+'</span><span>Следующий рубеж: '+esc(humanCode(inv.next_gate||"не передан"))+'</span></div>';
+      }
+    }
+    if(box("reputation"))box("reputation").innerHTML=rows(arr("reputation"),"Новых внешних репутационных или институциональных точек нет.",6);
+    pageBadge("signals","live","FOUNDER RADAR · LIVE");
+  }
+
   function renderSignals(objectsResp, blockersResp, inbox, testingSummary, marketSignals, organizationalIntelligence) {
     var page = document.querySelector('[data-page-panel="signals"]');
     if (!page) return;
@@ -2517,7 +2599,8 @@
       fetchJSON("stewardReconciliation", ENDPOINTS.stewardReconciliation, UNIVERSE_TIMEOUT_MS),
       fetchJSON("signalLabStatus", ENDPOINTS.signalLabStatus, UNIVERSE_TIMEOUT_MS),
       fetchJSON("temporalUniverse", ENDPOINTS.temporalUniverse, UNIVERSE_TIMEOUT_MS),
-      fetchJSON("portfolioAdmission", ENDPOINTS.portfolioAdmission, UNIVERSE_TIMEOUT_MS)
+      fetchJSON("portfolioAdmission", ENDPOINTS.portfolioAdmission, UNIVERSE_TIMEOUT_MS),
+      fetchJSON("radar", ENDPOINTS.radar, UNIVERSE_TIMEOUT_MS)
     ]).then(function (res) {
       var routesJSON = res[0];
       var summaryJSON = res[1];
@@ -2544,6 +2627,7 @@
       var signalLabStatus = res[22];
       var temporalUniverse = res[23];
       var portfolioAdmission = res[24];
+      var radar = res[25];
 
       var routesKnown = !!(routesJSON && Array.isArray(routesJSON.routes));
       var routes = routesKnown ? routesJSON.routes : [];
@@ -2560,7 +2644,7 @@
         marketSignals: marketSignals, fieldMovement: fieldMovement, scannerDiagnostics: scannerDiagnostics,
         founderProjection: founderProjection, organizationalIntelligence: organizationalIntelligence,
         stewardReconciliation: stewardReconciliation, signalLabStatus: signalLabStatus, temporalUniverse: temporalUniverse,
-        portfolioAdmission: portfolioAdmission, rd1: {},
+        portfolioAdmission: portfolioAdmission, radar: radar, rd1: {},
         collections: { routes: routesKnown }
       };
 
@@ -2584,7 +2668,7 @@
       renderRegistry(objects, blockers);
       renderDocuments(hubHealth, testingSummary);
       renderTesting(testingSummary, testingRunner);
-      renderSignals(objects, blockers, inbox, testingSummary, marketSignals, organizationalIntelligence);
+      renderFounderRadar(radar);
       renderFieldMovement(fieldMovement);
       renderScannerDiagnostics(scannerDiagnostics);
       renderOperationsProjection(opsProjection);

@@ -192,10 +192,12 @@
     if (v == null) return [];
     return (Array.isArray(v) ? v : [v]).map(function (x) {
       if (x && typeof x === "object") {
+        var rawTitle = x.title || pickText(x) || x.id || "—";
         var at = x.date || x.at || x.expected_at || x.due_at || x.scheduled_at || x.resolve_at || x.resolution_at || x.reveal_at || x.opens_at || x.deadline || null;
+        if (!at) { var dm=String(rawTitle).match(/20\d\d-\d\d-\d\d/); if(dm) at=dm[0]; }
         if (at && !isFinite(new Date(at).getTime())) at = null;
         return {
-          title: temporalTextRu(x.title || pickText(x) || x.id || "—"),
+          title: temporalTextRu(rawTitle),
           timeClass: x.time_class || null,
           at: at,
           raw: x
