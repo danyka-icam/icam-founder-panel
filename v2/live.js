@@ -2604,11 +2604,11 @@
         "<div class='diag-boundary-grid'>" +
           "<div class='" + readTone + "'><small>Чтение панели</small><b>" + esc(ok + " / " + keys.length) + "</b><span>проекций ответили · ошибок чтения " + esc(failed) + "</span><em>влияет на доступность экранов</em></div>" +
           "<div class='" + foundationTone + "'><small>Системное основание</small><b>" + esc(passDimsDiag.length ? passN + " / " + passDimsDiag.length : "—") + "</b><span>" + esc(!dimensionsKnownDiag ? "dimensions[] не передан" : (mandatoryKnownDiag ? "обязательных измерений пройдено" : "PASS среди переданных dimensions; mandatory не полностью указан")) + " · состояние: " + esc(HumanFoundationStatus(f.source_status)) + "</span><em>влияет на утверждение «основание готово»</em></div>" +
-          "<div class='" + durabilityTone + "'><small>Долговечность артефактов</small><b>" + esc(dd.objects_on_disk != null ? dd.objects_on_disk + " объектов на диске" : "—") + "</b><span>хэши: " + esc(dd.hash_mismatches == null ? "—" : dd.hash_mismatches) + " расхождений · потеряно: " + esc(dd.artifacts_missing == null ? "—" : dd.artifacts_missing) + " · осиротевших расписок: " + esc(dd.orphan_receipts == null ? "—" : dd.orphan_receipts) + "</span><em>наличие на диске не равно доказанному полному readback</em></div>" +
+          "<div class='" + durabilityTone + "'><small>Долговечность артефактов</small><b>" + esc(dd.objects_on_disk != null ? dd.objects_on_disk + " объектов на диске" : "—") + "</b><span>хэши: " + esc(dd.hash_mismatches == null ? "—" : dd.hash_mismatches) + " расхождений · потеряно: " + esc(dd.artifacts_missing == null ? "—" : dd.artifacts_missing) + " · осиротевших расписок: " + esc(dd.orphan_receipts == null ? "—" : dd.orphan_receipts) + "</span><em>наличие на диске не равно доказанному полному обратному чтению</em></div>" +
           "<div class='" + scannerTone + "'><small>Внешнее рыночное покрытие</small><b>" + esc(scanAvailable && scanTotal != null && scanOk != null ? scanOk + " / " + scanTotal : "—") + "</b><span>" + esc(!scanAvailable ? "диагностика Scanner недоступна" : ("источников отвечают · отказов " + (scanFail == null ? "—" : scanFail) + " · ещё не объяснено " + (scanUnknown == null ? "—" : scanUnknown))) + "</span><em>ограничивает внешние рыночные сигналы, а не внутреннее состояние компании</em></div>" +
         "</div>" +
         "<div class='diag-boundary-freshness'><b>Свежесть не сводится к одному таймеру.</b><span>Фундамент: " + esc(f.freshness_state ? humanCode(f.freshness_state) : "контракт не прочитан") + " · Market Scanner: " + esc(scan.scanner && scan.scanner.freshness_state ? humanCode(scan.scanner.freshness_state) : "контракт не прочитан") + ". Остальные источники не объявляются свежими только потому, что HTTP-чтение успешно.</span></div>" +
-        "<div class='diag-boundary-rule'>Панель может одновременно иметь 26/26 успешных чтений и показывать деградацию отдельного upstream-контура. Это не противоречие: первое описывает доступность проекций, второе — состояние данных за ними.</div>";
+        "<div class='diag-boundary-rule'>Панель может одновременно иметь " + esc(ok + "/" + keys.length) + " успешных чтений и показывать деградацию отдельного вышестоящего контура. Это не противоречие: первое описывает доступность проекций, второе — состояние данных за ними.</div>";
     }
 
     var map = {
@@ -2620,6 +2620,7 @@
       scanner: ["marketSignals", "fieldMovement", "scannerDiagnostics"],
       "founder-universe": ["temporalUniverse", "portfolioAdmission"],
       "founder-command": ["founderProjection", "organizationalIntelligence", "stewardReconciliation"],
+      radar: ["radar"],
       specialized: ["foundationAgg", "opsProjection", "atlasState", "twinState", "brazilPortal", "signalLabStatus"]
     };
     Object.keys(map).forEach(function (group) {
