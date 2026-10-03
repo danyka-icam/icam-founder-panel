@@ -395,3 +395,30 @@ Steward Navigator is a separate role from Steward Reconciliation.
 - Missing memory must be reported as missing; old chat history is not assumed to exist unless a receipt/summary has been indexed.
 - The closed ICAM Library is not exposed by widening permissions. Navigator currently indexes only already-readable project sources / receipts / explicitly seeded working artifacts.
 
+
+## 2026-10-03 — Event-integrity / live temporal coverage repair
+
+A Founder Research Brief exposed three polling-to-semantic contamination paths and a separate temporal coverage gap.
+
+Repairs:
+- Delivery Watch no longer downgrades a confirmed INDEXED delivery after a transient document-search miss. Confirmed delivery is monotonic unless an explicit authority action invalidates it.
+- Observer summary adapter excludes last_event_at from semantic identity.
+- Research Hub sync-health uses a normalized health-state projection instead of raw queue-count changes for semantic identity.
+- RD1 Research Watch must distinguish channel silence from company inactivity and SYSTEM ACTION from OWNER ACTION.
+- Exact external POST route exists for read-only Steward Navigator while the general Founder Panel route remains GET-only.
+- Server change-set: /srv/context-steward/changes/20261003-event-integrity
+- Founder Map release: /opt/aiclavis-atlas-founder-map/releases/0.1-20261003-r4
+
+Temporal coverage:
+- Historical Activity Inbox remains a reconstruction source and is not mutated by Continuity.
+- Founder Map r4 adds continuity_history.py as a second read-only temporal source from Continuity meaning-layer changes-feed.
+- Known telemetry summary streams are excluded from Founder movement history.
+- Continuity events with a parent_object_id are retained at company/system-object scope unless another exact Founder branch binding exists.
+- Events without an exact binding are retained in unresolved_history; they must not disappear and must not be placed by text similarity.
+- Founder Panel includes unresolved_history in recent dated activity and labels it as requiring structural binding.
+
+Known reconciliation gap:
+- Recent Reachability Testing events carry object_ref R1-CORE-REACH and owning_branch ATLAS / Forecast Core / REACHABILITY-01.
+- Current canonical memory object MEM-REACHABILITY-01 has owning_branch ATLAS Structural & Epistemic Core and explicitly says its detailed live state is not yet reconciled into Continuity.
+- Therefore no automatic alias/binding between R1-CORE-REACH and MEM-REACHABILITY-01 is permitted yet. The RV1/RV2N1 events remain visible as unresolved history until exact identity/ownership reconciliation is established.
+- This is SYSTEM reconciliation, not Founder action.
