@@ -649,3 +649,37 @@ Rules:
 - Command Center, Timeline and all live.js surfaces share H.isClosed() for route state;
 - Temporal / Portfolio archival classification uses the same terminal vocabulary plus HISTORICAL;
 - browser fixture R-OLD is CLOSED_NO_GO and deliberately retains stale next_move/deadline to guard this regression.
+
+## 2026-10-03 — Direct Founder Decision controls
+
+Formal Founder decisions can now be executed from the Command Center inspector only when exact lifecycle identity is present.
+
+Backend releases:
+- founder-decision-presentation v0.3 exposes read-only lifecycle_id, object_refs and identity_evidence for READY cards.
+- context-steward-actions remains the only write-capable Panel service; it now supports action_type FOUNDER_DECISION_RECORD.
+- Steward Navigator v0.6 bridges Panel controls to Founder Actions without exposing role tokens to the browser.
+- Nginx exposes authenticated exact POST routes:
+  - /founder-ui-preview/api/steward-navigator/action/propose-decision
+  - /founder-ui-preview/api/steward-navigator/action/confirm-decision
+  - /founder-ui-preview/api/steward-navigator/action/cancel
+
+Decision semantics:
+- Browser never writes DECISION directly to Continuity.
+- First click on APPROVE / REJECT / DEFER only prepares or updates one PENDING FOUNDER_DECISION_RECORD for the exact lifecycle.
+- The action payload carries lifecycle_id, decision_id, decision_packet_sha256, decision_effect and a digest of the exact READY presentation.
+- Changing choice before confirmation updates the same PENDING action_id and changes its action_hash; an old confirmation becomes STALE and is rejected.
+- Confirmation re-reads the lifecycle and presentation. If the lifecycle is no longer OPEN, identity changed, or presentation digest changed, nothing is written.
+- Only the second explicit confirmation approves the wrapper action through the existing Founder role.
+- context-steward-actions emits the authoritative Continuity DECISION with decision_id, decision_packet_sha256 and decision_effect at the level already consumed by Founder Decision Lifecycle.
+- APPROVE and REJECT resolve the exact lifecycle.
+- DEFER records decision_effect=DEFER and leaves the lifecycle OPEN.
+- Cancel performs hash-matched reject of the pending wrapper action and produces no Continuity event.
+- A READY card without lifecycle_id never receives write controls.
+
+Regression proof:
+- isolated bridge test verifies cancellation without Continuity write;
+- one lifecycle has at most one PENDING decision wrapper;
+- changing choice preserves action_id but rotates hash;
+- stale hash is rejected with 409;
+- confirmed REJECT produces a DECISION recognized by the lifecycle projector and resolves the exact lifecycle;
+- browser stand contains one exact READY decision and one READY decision without lifecycle_id to enforce the UI boundary.

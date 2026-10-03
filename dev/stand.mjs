@@ -59,7 +59,7 @@ const founderProjection = {
   ],
   today: {
     founder_decisions: [
-      { decision_id: "D-1", question: "Разрешить тестовый запуск?", why_now: "Пакет готов к явному решению.", presentation_state: "READY", authority_mode: "RECONCILED_EXISTING_CANON", deadline_or_condition: "До решения запуск запрещён.", choices: [{ canonical: "APPROVE", label: "Одобрить" }, { canonical: "DEFER", label: "Отложить" }] },
+      { decision_id: "D-1", lifecycle_id: "FDL-SMOKE-1", question: "Разрешить тестовый запуск?", why_now: "Пакет готов к явному решению.", presentation_state: "READY", authority_mode: "RECONCILED_EXISTING_CANON", deadline_or_condition: "До решения запуск запрещён.", object_refs: [{ id: "FND-003", kind: "founder_object" }], identity_evidence: [{ type: "decision_id", value: "D-1" }, { type: "decision_packet_sha256", value: "smoke-packet-1" }], choices: [{ canonical: "APPROVE", label: "Одобрить" }, { canonical: "DEFER", label: "Отложить" }] },
       { decision_id: "D-2", question: "Подтвердить следующий этап?", why_now: "Достигнут текущий рубеж.", presentation_state: "READY", choices: [{ canonical: "APPROVE", label: "Подтвердить" }] }
     ],
     company_movements: [

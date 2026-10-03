@@ -8,7 +8,7 @@ import { chromium } from "playwright";
 const BASE = process.env.BASE || "http://127.0.0.1:8765/founder-ui-preview/v2/";
 const EXPECT = process.env.EXPECT || "ok";
 const WAIT = Number(process.env.WAIT || 1200);
-const MODES = ["command", "timeline", "links", "lines", "placement", "signals", "foundation", "research", "atlas", "digital-twin", "brazilportal", "operations", "registry", "documents", "testing", "diagnostics"];
+const MODES = ["command", "timeline", "links", "lines", "placement", "signals", "foundation", "research", "atlas", "digital-twin", "brazilportal", "operations", "registry", "agents", "documents", "testing", "diagnostics"];
 const WIDTHS = (process.env.WIDTHS || "1680,1280,820,390").split(",").map(Number);
 let fails = 0;
 const check = (ok, msg) => { console.log(`  [${ok ? "OK  " : "FAIL"}] ${msg}`); if (!ok) fails++; };
@@ -40,6 +40,19 @@ for (const w of WIDTHS) {
       check(/Требует вашего решения/.test(cc) && /Нужно решить/.test(cc) && /Маршруты на вашей стороне/.test(cc), "hero separates formal decisions from Founder-assigned routes");
       check(/2 формальн(?:ое|ых) решени/.test(cc) && (/2 маршрутов на вашей стороне/.test(cc) || (/— маршрутов на вашей стороне/.test(cc) && /эта группа не проверена/.test(cc))),
         "hero headline keeps formal decisions separate from assigned routes (routes down → «—» and group unchecked)");
+      await page.evaluate(() => { location.hash = "command"; });
+      await page.waitForTimeout(120);
+      const decisionCards = page.locator('[data-page-panel="command"] .cc-hero-item.decision');
+      const decisionCount = await decisionCards.count();
+      check(decisionCount >= 2, `command fixture exposes two formal decision cards (${decisionCount})`);
+      if (decisionCount >= 2) {
+        await decisionCards.nth(0).click(); await page.waitForTimeout(100);
+        const exactControls = await page.locator('[data-page-panel="command"] .cc-decision-actions').count();
+        check(exactControls === 1, "READY decision with exact lifecycle_id exposes direct Founder controls");
+        await decisionCards.nth(1).click(); await page.waitForTimeout(100);
+        const missingControls = await page.locator('[data-page-panel="command"] .cc-decision-actions').count();
+        check(missingControls === 0, "decision without lifecycle_id does not expose write controls");
+      }
       check(/ждёт сверки/.test(tl), "system codes shown with a human label");
       check(!/Общий владелец хода/.test(ln), "links: no shared-ball_owner resource claim");
       check(/Фундамент и инфраструктура/.test(cc), "command center shows canonical worlds");

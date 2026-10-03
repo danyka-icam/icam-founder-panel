@@ -1195,3 +1195,26 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .agent-network-rule{padding:11px 13px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(255,255,255,.015);font-size:10px;line-height:1.5;color:var(--muted)}
 .agent-network-rule b{color:#dfe8e5}
 @media(max-width:1000px){.agent-network-grid{grid-template-columns:1fr}.agent-network-wide{grid-column:auto}}
+
+/* Founder Decision direct controls */
+.cc-decision-actions{margin-top:12px;padding:11px 12px;border:1px solid rgba(126,214,195,.18);border-radius:10px;background:rgba(63,207,166,.035)}
+.cc-decision-actions>small{display:block;margin-bottom:8px;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em}
+.cc-decision-buttons{display:flex;gap:7px;flex-wrap:wrap}
+.cc-decision-buttons button,.cc-decision-confirm button{border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.025);color:#dce7e3;padding:7px 10px;font-size:10.5px;cursor:pointer}
+.cc-decision-buttons .choice-approve{border-color:rgba(63,207,166,.38);background:rgba(63,207,166,.08);color:#bfeadd}
+.cc-decision-buttons .choice-reject{border-color:rgba(227,165,72,.38);background:rgba(227,165,72,.08);color:#eed3a1}
+.cc-decision-buttons .choice-defer{color:#c8d0cd}
+.cc-decision-buttons button:hover,.cc-decision-confirm button:hover{border-color:rgba(126,214,195,.55)}
+.cc-decision-buttons button:disabled,.cc-decision-confirm button:disabled{opacity:.48;cursor:default}
+.cc-decision-action-state{margin-top:9px;font-size:9.5px;line-height:1.45;color:var(--muted)}
+.cc-decision-action-state .warn{color:#e1b774}
+.cc-decision-confirm{padding:10px 11px;border:1px solid rgba(227,165,72,.34);border-radius:9px;background:rgba(227,165,72,.07);display:flex;flex-direction:column;gap:5px}
+.cc-decision-confirm b{color:#f0dfbe;font-size:11.5px}
+.cc-decision-confirm span{color:#d7dfdc;font-size:10.5px;line-height:1.4}
+.cc-decision-confirm small{color:var(--muted);font-size:9px}
+.cc-decision-confirm>div{display:flex;gap:7px;margin-top:4px}
+.cc-decision-confirm [data-cc-decision-confirm]{border-color:rgba(227,165,72,.45);background:rgba(227,165,72,.10);color:#f0d8a7}
+.cc-decision-writing{display:block;margin-top:6px;color:#d7c08e}
+.cc-decision-recorded{padding:10px;border:1px solid rgba(63,207,166,.28);border-radius:9px;background:rgba(63,207,166,.06);display:flex;flex-direction:column;gap:4px}
+.cc-decision-recorded b{color:#c8ece2;font-size:11px}
+.cc-decision-recorded span,.cc-decision-recorded small{font-size:9.5px;color:var(--muted)}

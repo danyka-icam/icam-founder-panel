@@ -3070,6 +3070,10 @@
   function inspectDecision(d) {
     var r = d.raw || {}, choicesKnown = Array.isArray(r.choices), choices = choicesKnown ? r.choices : [];
     var consequencesKnown = Array.isArray(r.verified_consequences), consequences = consequencesKnown ? r.verified_consequences : [];
+    var actionable = r.presentation_state === "READY" && !!r.lifecycle_id && choices.length > 0;
+    var decisionControls = actionable ? ("<div class='cc-decision-actions' data-cc-decision-actions data-lifecycle-id='" + E(r.lifecycle_id) + "'>" +
+      "<small>Зафиксировать решение</small><div class='cc-decision-buttons'>" + choices.map(function(c){ var k=String(c.canonical||"").toUpperCase(); return "<button type='button' class='choice-"+E(k.toLowerCase())+"' data-cc-decision-choice='"+E(k)+"'>"+E(c.label||k)+"</button>"; }).join("") + "</div>" +
+      "<div class='cc-decision-action-state' data-cc-decision-action-state><span>Первый клик только готовит действие. Запись произойдёт после отдельного подтверждения.</span></div></div>") : "";
     return inspector({
       badge: "<span class='cc-obj-badge strategy'>?</span>",
       title: d.title, sub: "Формальное решение Основателя · Founder Projection",
@@ -3080,15 +3084,15 @@
       why: r.why_now ? para(r.why_now) : "",
       waiting: r.deadline_or_condition ? para(r.deadline_or_condition) : "",
       next: r.what_happens_after_choice ? para(r.what_happens_after_choice) : "",
-      links: choices.length ? "<small>Допустимые варианты</small><div class='cc-caps'>" + choices.map(function (c) {
+      links: (choices.length ? "<small>Допустимые варианты</small><div class='cc-caps'>" + choices.map(function (c) {
         return "<span class='cc-cap'>" + E(c.label || c.canonical || scalar(c)) + "</span>";
-      }).join("") + "</div>" : muted(choicesKnown ? "Источник явно передал пустой choices[]." : "Варианты решения источником не переданы."),
+      }).join("") + "</div>" : muted(choicesKnown ? "Источник явно передал пустой choices[]." : "Варианты решения источником не переданы.")) + decisionControls,
       ceiling: [
         ceilingRow("ok", "Решение показано только из Founder Decision Presentation"),
-        ceilingRow("info", "Это формальное решение Основателя. Искать отдельную ветку для выбора не нужно. Прямая фиксация решения из панели пока не подключена."),
+        actionable ? ceilingRow("ok", "Точная lifecycle-идентичность передана; решение фиксируется через hash-защищённый Founder Actions path после отдельного подтверждения") : ceilingRow("info", "Прямая фиксация недоступна: нет READY presentation с точной lifecycle-идентичностью"),
         consequencesKnown ? ceilingRow(consequences.length ? "ok" : "info", consequences.length ? "Проверенные последствия переданы источником" : "Источник явно передал пустой verified_consequences[]") : ceilingRow("info", "Поле verified_consequences[] не передано")
       ],
-      stewardContext:{kind:"decision_context",question:r.question||d.title,why:r.why_now||"",deadline:r.deadline_or_condition||"",next:r.what_happens_after_choice||"",choices:choices.map(function(c){return c.label||c.canonical||scalar(c);}),authority_mode:r.authority_mode||""},
+      stewardContext:{kind:"decision_context",lifecycle_id:r.lifecycle_id||"",question:r.question||d.title,why:r.why_now||"",deadline:r.deadline_or_condition||"",next:r.what_happens_after_choice||"",choices:choices.map(function(c){return c.label||c.canonical||scalar(c);}),authority_mode:r.authority_mode||""},
       nav: "<a href='#command'>Командный центр →</a>"
     });
   }
@@ -3359,9 +3363,30 @@
     });
   }
 
+  function panelPost(url,payload) {
+    return fetch(url,{method:"POST",credentials:"same-origin",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload||{})})
+      .then(function(r){return r.json().then(function(j){if(!r.ok){var er=new Error(j.error||("HTTP "+r.status));er.code=j.error||"http_error";er.status=r.status;throw er;}return j;});});
+  }
+
+  function decisionErrorText(err) {
+    var c=err&&err.code||"";
+    if(c==="decision_not_open") return "Это решение уже не открыто. Обнови панель — возможно, оно уже было зафиксировано.";
+    if(c==="decision_presentation_stale"||c==="decision_identity_changed") return "Карточка решения изменилась после просмотра. Ничего не записано; нужно открыть актуальную версию заново.";
+    if(c==="decision_action_not_pending"||c==="action_not_pending") return "Это предложение уже обработано. Ничего повторно не записано.";
+    if(c==="choice_not_offered") return "Этот вариант больше не предлагается актуальной карточкой решения.";
+    return "Не удалось безопасно подготовить или записать решение. Система ничего не изменила.";
+  }
+
   document.addEventListener("click", function (e) {
     var cancelAction=e.target.closest("[data-cc-steward-cancel]");
-    if(cancelAction){var card=cancelAction.closest("[data-cc-steward-action-card]");if(card){card.innerHTML="<b>Изменение отменено</b><small>Система ничего не изменила.</small>";}return;}
+    if(cancelAction){
+      var card=cancelAction.closest("[data-cc-steward-action-card]"); if(!card)return;
+      var caid=card.getAttribute("data-action-id"), cah=card.getAttribute("data-action-hash"); cancelAction.disabled=true;
+      panelPost("/founder-ui-preview/api/steward-navigator/action/cancel",{action_id:caid,action_hash:cah,founder_confirmation:"CANCEL"})
+        .then(function(){card.innerHTML="<b>Изменение отменено</b><small>Pending action закрыт; Continuity не изменялась.</small>";})
+        .catch(function(){cancelAction.disabled=false;card.insertAdjacentHTML("beforeend","<small class='warn'>Не удалось закрыть pending action. Изменение не применено.</small>");});
+      return;
+    }
     var confirmAction=e.target.closest("[data-cc-steward-confirm]");
     if(confirmAction){
       var card=confirmAction.closest("[data-cc-steward-action-card]"), dialog=e.target.closest("[data-cc-steward-dialog]");
@@ -3372,6 +3397,37 @@
       .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||("HTTP "+r.status));return j;});})
       .then(function(){card.innerHTML="<b>Изменение подтверждено</b><span>Авторитетное событие записано в Continuity.</span><small>История сохранена; новое состояние появится после обновления проекций.</small>";if(status)status.textContent="Изменение записано";})
       .catch(function(){confirmAction.disabled=false;if(status)status.textContent="Запись не выполнена";card.insertAdjacentHTML("beforeend","<small class='warn'>Не удалось записать изменение. Система не подтверждает смену статуса.</small>");});
+      return;
+    }
+    var decisionChoice=e.target.closest("[data-cc-decision-choice]");
+    if(decisionChoice){
+      var dscope=decisionChoice.closest("[data-cc-decision-actions]"), dstate=dscope&&dscope.querySelector("[data-cc-decision-action-state]");
+      if(!dscope||!dstate)return;
+      var dlid=dscope.getAttribute("data-lifecycle-id"), dchoice=decisionChoice.getAttribute("data-cc-decision-choice");
+      dscope.querySelectorAll("[data-cc-decision-choice]").forEach(function(b){b.disabled=true;});
+      dstate.innerHTML="<span>Готовлю точное действие и проверяю актуальность решения…</span>";
+      panelPost("/founder-ui-preview/api/steward-navigator/action/propose-decision",{lifecycle_id:dlid,choice:dchoice})
+        .then(function(data){var p=data.proposal||{};dstate.innerHTML="<div class='cc-decision-confirm' data-cc-decision-confirm-card data-action-id='"+E(p.action_id||"")+"' data-action-hash='"+E(p.action_hash||"")+"' data-lifecycle-id='"+E(p.lifecycle_id||dlid)+"'><b>Подтвердить: "+E(p.choice_label||dchoice)+"?</b><span>"+E(p.question||"")+"</span><small>До подтверждения решение не записано.</small><div><button type='button' data-cc-decision-confirm>Подтвердить</button><button type='button' data-cc-decision-cancel>Отмена</button></div></div>";})
+        .catch(function(err){dscope.querySelectorAll("[data-cc-decision-choice]").forEach(function(b){b.disabled=false;});dstate.innerHTML="<span class='warn'>"+E(decisionErrorText(err))+"</span>";});
+      return;
+    }
+    var decisionCancel=e.target.closest("[data-cc-decision-cancel]");
+    if(decisionCancel){
+      var dcard=decisionCancel.closest("[data-cc-decision-confirm-card]"), dscope2=decisionCancel.closest("[data-cc-decision-actions]"); if(!dcard||!dscope2)return;
+      decisionCancel.disabled=true; var dstate2=dscope2.querySelector("[data-cc-decision-action-state]");
+      panelPost("/founder-ui-preview/api/steward-navigator/action/cancel",{action_id:dcard.getAttribute("data-action-id"),action_hash:dcard.getAttribute("data-action-hash"),founder_confirmation:"CANCEL"})
+        .then(function(){dscope2.querySelectorAll("[data-cc-decision-choice]").forEach(function(b){b.disabled=false;});dstate2.innerHTML="<span>Предложение отменено. Решение не записано.</span>";})
+        .catch(function(err){decisionCancel.disabled=false;dstate2.insertAdjacentHTML("beforeend","<span class='warn'>"+E(decisionErrorText(err))+"</span>");});
+      return;
+    }
+    var decisionConfirm=e.target.closest("[data-cc-decision-confirm]");
+    if(decisionConfirm){
+      var dcard2=decisionConfirm.closest("[data-cc-decision-confirm-card]"), dscope3=decisionConfirm.closest("[data-cc-decision-actions]"); if(!dcard2||!dscope3)return;
+      decisionConfirm.disabled=true; var dstate3=dscope3.querySelector("[data-cc-decision-action-state]");
+      dstate3.insertAdjacentHTML("beforeend","<span class='cc-decision-writing'>Записываю подтверждённое решение…</span>");
+      panelPost("/founder-ui-preview/api/steward-navigator/action/confirm-decision",{action_id:dcard2.getAttribute("data-action-id"),action_hash:dcard2.getAttribute("data-action-hash"),lifecycle_id:dcard2.getAttribute("data-lifecycle-id"),founder_confirmation:"CONFIRM"})
+        .then(function(data){var life=data.lifecycle||{}, eff=data.decision_effect||"решение";dscope3.querySelectorAll("button").forEach(function(b){b.disabled=true;});dstate3.innerHTML="<div class='cc-decision-recorded'><b>Решение записано: "+E(human(eff))+"</b><span>"+(life.status==="RESOLVED"?"Lifecycle закрыт.":"Lifecycle остаётся открытым согласно выбранному варианту.")+"</span><small>Карточка обновится при следующем чтении Founder Projection.</small></div>";})
+        .catch(function(err){decisionConfirm.disabled=false;dstate3.innerHTML="<span class='warn'>"+E(decisionErrorText(err))+"</span>";});
       return;
     }
     var sa=e.target.closest("[data-cc-steward-context]");
