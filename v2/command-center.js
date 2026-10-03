@@ -2683,7 +2683,9 @@
   function para(t) { return "<p>" + E(t) + "</p>"; }
 
   function inspector(x) {
-    var stewardContext=E(JSON.stringify({title:x.title||"",sub:x.sub||"",page:(location.hash||"#command").slice(1)}));
+    var stewardRaw={title:x.title||"",sub:x.sub||"",page:(location.hash||"#command").slice(1)};
+    if (x.stewardContext && typeof x.stewardContext==="object") Object.keys(x.stewardContext).forEach(function(k){stewardRaw[k]=x.stewardContext[k];});
+    var stewardContext=E(JSON.stringify(stewardRaw));
     return "<div class='cc-insp-head'>" + x.badge + "<div><h3>" + E(x.title) + "</h3><small>" + E(x.sub) + "</small></div></div>" +
       "<button type='button' class='cc-steward-ask' data-cc-steward-context='"+stewardContext+"'><span>Спросить Стюарда</span><small>объяснить, найти контекст или связанные материалы</small></button>" +
       section("Что это", x.what || muted("не передано источником")) +
@@ -2939,6 +2941,14 @@
   }
 
   function timelineContextExplanation(e, raw) {
+    if (e.layer === "twin") {
+      var bits=[];
+      if (raw.seal_created_at) bits.push("Прогноз Twin был запечатан "+dateLabel(raw.seal_created_at)+".");
+      if (raw.outcome_due_at || raw.expected_outcome_at || raw.reveal_at) bits.push("Ожидаемая точка проверки или раскрытия: "+dateLabel(raw.outcome_due_at||raw.expected_outcome_at||raw.reveal_at)+".");
+      if (raw.outcome || raw.expected_outcome) bits.push("Переданный исход/ожидание: "+human(raw.outcome||raw.expected_outcome)+".");
+      bits.push("Это запись из рабочего состояния Digital Twin; Стюард не должен подменять её похожими Twin-идеями из памяти.");
+      return bits.join(" ");
+    }
     if (e.layer === "signals") {
       var bits=[];
       var entity=raw.entity || raw.company || raw.subject || raw.target || "";
@@ -2980,6 +2990,7 @@
         ceilingRow(superseded?"warn":(isFuture?"warn":"info"),superseded?"Запись сохранена для происхождения данных, но её активный смысл закрыт более поздним подтверждённым фактом":(isFuture?"Будущая точка не считается наступившим фактом":"Статус события не усиливается интерфейсом")),
         ceilingRow(e.kind&&e.key?"ok":"info",e.kind&&e.key?"Есть точная ссылка на исходный объект":"Связь с объектом не выводится по сходству текста")
       ],
+      stewardContext:{date:e.at,layer:timelineLayerTitle(e.layer),semantic:timelineSemanticTitle(e.semantic),source:source,why:String(why||""),details:contextExplanation},
       nav:NAV_TIME
     });
   }
@@ -3263,6 +3274,7 @@
     var d=stewardDialog(), ctx={};
     try { ctx=JSON.parse(raw||"{}"); } catch (_) {}
     d._stewardContext=ctx;
+    d._stewardHistory=[];
     var c=d.querySelector("[data-cc-steward-context-view]");
     c.innerHTML="<b>"+E(ctx.title||"Текущий объект")+"</b>"+(ctx.sub?"<span>"+E(ctx.sub)+"</span>":"");
     d.classList.add("open");
@@ -3273,7 +3285,7 @@
     var refs="";
     if (Array.isArray(evidence) && evidence.length) {
       refs="<details><summary>На чём основан ответ · "+evidence.length+"</summary><div class='cc-steward-evidence'>"+
-        evidence.slice(0,6).map(function(x){return "<div><b>"+E(H.cut(x.title||x.path||"источник",70))+"</b><small>"+E(H.cut(x.path||x.kind||"",110))+"</small></div>";}).join("")+
+        evidence.slice(0,6).map(function(x){var src=x.kind==="projection"?"живой системный источник":(x.kind==="file_item"?"запись рабочего журнала":"рабочий артефакт");return "<div><b>"+E(H.cut(x.title||"источник",70))+"</b><small>"+E(src)+"</small></div>";}).join("")+
       "</div></details>";
     }
     return "<div class='cc-steward-msg "+role+"'><p>"+E(text||"")+"</p>"+refs+"</div>";
@@ -3288,13 +3300,15 @@
     fetch("/founder-ui-preview/api/steward-navigator/query",{
       method:"POST",credentials:"same-origin",cache:"no-store",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({question:question,context:d._stewardContext||{}})
+      body:JSON.stringify({question:question,context:d._stewardContext||{},history:d._stewardHistory||[]})
     }).then(function(r){
       if(!r.ok) throw new Error("HTTP "+r.status);
       return r.json();
     }).then(function(data){
       var p=thread.querySelector(".pending"); if(p)p.remove();
-      thread.insertAdjacentHTML("beforeend",stewardBubble("assistant",data.answer||"Ответ не передан.",data.evidence));
+      var answer=data.answer||"Ответ не передан.";
+      thread.insertAdjacentHTML("beforeend",stewardBubble("assistant",answer,data.evidence));
+      d._stewardHistory=(d._stewardHistory||[]).concat([{role:"user",content:question},{role:"assistant",content:answer}]).slice(-10);
       status.textContent=data.memory_complete===false ? "Ответ по доступной памяти · старые чат-ветки могут быть ещё не индексированы" : "Ответ по рабочей памяти";
       thread.scrollTop=thread.scrollHeight;
     }).catch(function(){
