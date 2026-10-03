@@ -2958,6 +2958,10 @@
       var kind=raw.kind || raw.type || raw.category || "";
       if (entity) bits.push("Объект наблюдения: "+scalar(entity)+".");
       if (kind && typeof kind !== "object") bits.push("Тип записи: "+human(kind)+".");
+      if (raw.source) {
+        var signalSource=typeof raw.source==="object" ? (raw.source.name||raw.source.title||raw.source.provider||"") : raw.source;
+        if(signalSource) bits.push("Источник Market Scanner: "+scalar(signalSource)+".");
+      }
       bits.push("Это событие пришло из слоя сигналов. Если точная связь со звездой, линией или маршрутом не передана источником, панель намеренно не дорисовывает её.");
       return bits.join(" ");
     }
@@ -3279,6 +3283,8 @@
     try { ctx=JSON.parse(raw||"{}"); } catch (_) {}
     d._stewardContext=ctx;
     d._stewardHistory=[];
+    var thread=d.querySelector("[data-cc-steward-thread]");
+    if(thread) thread.innerHTML="<div class='cc-steward-intro'>Спрашивай обычным языком. Стюард разберёт выбранную точку, сверит рабочую память и внутреннюю карту ATLAS/AICLAVIS и отдельно отметит доказанные связи и смысловую близость.</div>";
     var c=d.querySelector("[data-cc-steward-context-view]");
     c.innerHTML="<b>"+E(ctx.title||"Текущий объект")+"</b>"+(ctx.sub?"<span>"+E(ctx.sub)+"</span>":"");
     d.classList.add("open");
