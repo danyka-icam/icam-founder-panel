@@ -422,3 +422,27 @@ Known reconciliation gap:
 - Current canonical memory object MEM-REACHABILITY-01 has owning_branch ATLAS Structural & Epistemic Core and explicitly says its detailed live state is not yet reconciled into Continuity.
 - Therefore no automatic alias/binding between R1-CORE-REACH and MEM-REACHABILITY-01 is permitted yet. The RV1/RV2N1 events remain visible as unresolved history until exact identity/ownership reconciliation is established.
 - This is SYSTEM reconciliation, not Founder action.
+
+## 2026-10-03 — Steward Navigator grounding contract v0.3
+
+Navigator is no longer allowed to behave as a generic file search result surface.
+
+Required behavior:
+- Selected Founder Panel entity/event is a hard retrieval anchor.
+- Generic vocabulary such as Twin / Research / signal / forecast is insufficient to establish identity.
+- JSONL/event journals are indexed item-by-item, not as one mixed document.
+- Market Scanner signals are indexed directly from the live read-only signals projection.
+- If no exact/sufficiently specific context match exists, evidence must be empty and the answer must state the gap instead of substituting a thematically similar branch.
+- Main answers are plain Russian. File paths, SHA-256, JSON field names, model names and infrastructure coordinates stay out of the conversational answer unless explicitly requested.
+- Evidence is rendered separately with human source labels.
+- Panel passes selected event date, layer, semantic type, source, explanation and recent dialog history.
+- Supported structured intents: what is this / result / waiting / next / where.
+- Twin live context may explain only fields actually present in the current Twin projection (for example sealed prediction, no recorded outcome, active clone count). Missing outcome or deadline remains unknown.
+
+Regression suite:
+- /opt/aiclavis-steward-navigator/releases/20261003-1020/regression.py
+- BLT must resolve only to its own Market Scanner signal and never to Eliva/Human AI artifacts.
+- A generic sealed Twin point with no exact run record must return no foreign evidence and must not invent a result/deadline.
+
+Current limitation:
+- No local LLM runtime is installed on the server. Navigator currently uses deterministic contextual retrieval and structured response logic. Do not silently add a paid/external language-model dependency.
