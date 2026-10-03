@@ -53,6 +53,18 @@ for (const w of WIDTHS) {
         const missingControls = await page.locator('[data-page-panel="command"] .cc-decision-actions').count();
         check(missingControls === 0, "decision without lifecycle_id does not expose write controls");
       }
+      await page.evaluate(() => { location.hash = "signals"; });
+      await page.waitForTimeout(160);
+      const signalSteward = page.locator('[data-page-panel="signals"] [data-cc-steward-context]').first();
+      check(await signalSteward.count() === 1, "selected Radar signal exposes Ask Steward control");
+      if (await signalSteward.count()) {
+        await signalSteward.click(); await page.waitForTimeout(80);
+        const stewardOpen = page.locator('[data-cc-steward-dialog].open');
+        check(await stewardOpen.count() === 1, "Radar signal opens shared Steward dialog");
+        const stewardContext = await stewardOpen.locator('[data-cc-steward-context-view]').innerText();
+        check(/Внешний сигнал для проверки/.test(stewardContext), "Steward receives exact selected Radar signal context");
+        await stewardOpen.locator('[data-cc-steward-close]').click();
+      }
       check(/ждёт сверки/.test(tl), "system codes shown with a human label");
       check(!/Общий владелец хода/.test(ln), "links: no shared-ball_owner resource claim");
       check(/Фундамент и инфраструктура/.test(cc), "command center shows canonical worlds");

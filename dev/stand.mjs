@@ -84,6 +84,15 @@ const organizationalIntelligence = {
   ]
 };
 
+const founderRadar = {
+  schema: "aiclavis.founder-radar.v0.1", generated_at: new Date().toISOString(), read_only: true,
+  attention: [], opportunities: [],
+  waiting: [{ radar_id: "wait-smoke-1", title: "Ждём внешний ответ по тестовой заявке.", date: null, status: "WAITING", why: "Ответ находится вне контура компании.", context: { world: "Коммерческий ATLAS", line: "Рыночный вход", branch: "Smoke branch" }, source_ref: { kind: "temporal_branch_waiting", memory_id: "MEM-SMOKE", waiting_id: "N-SMOKE" } }],
+  upcoming: [], predictions: [],
+  field: { source_coverage: { ok_count: 1, total_sources: 1 }, signals: [{ radar_id: "field-smoke-1", signal_id: "SIG-SMOKE-1", title: "Внешний сигнал для проверки", status: "ACT", relevance_score: 88, why: "Появилось подтверждённое изменение во внешнем поле.", context: { world: "Коммерческий ATLAS", line: "Рынок", branch: "Signal smoke" }, source_ref: { kind: "market_signal", signal_id: "SIG-SMOKE-1" }, evidence: [{ kind: "fixture" }] }] },
+  atlas_learning: [], investment: { available: false }, reputation: []
+};
+
 const stewardReconciliation = {
   schema_id: "steward-reconciliation-projection.v0.1", compiled_at: new Date().toISOString(), read_only: true,
   system_reconciliation_count: 3, founder_gate_count: 1, workqueue_observed_count: 4, organizational_intelligence_signal_count: 4, intersection_edge_count: 1,
@@ -98,6 +107,7 @@ const stewardReconciliation = {
 
 const panelApi = {
   "founder-projection": () => founderProjection,
+  "radar": () => founderRadar,
   "organizational-intelligence": () => organizationalIntelligence,
   "steward-reconciliation": () => stewardReconciliation,
   "observer/routes": () => ROUTES === "down" ? null : { routes },

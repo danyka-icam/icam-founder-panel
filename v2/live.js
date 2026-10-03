@@ -1698,6 +1698,20 @@
       var ctxLine=[ctx.world,ctx.line,ctx.branch].filter(Boolean);
       var evidence="";
       if(Array.isArray(x.evidence)&&x.evidence.length)evidence=x.evidence.length+" свидетельств";
+      var stewardCtx={
+        kind:"radar_signal",
+        title:textRu(x.title||"Сигнал"),
+        sub:"Founder Radar · "+kind,
+        date:x.date||"",
+        layer:kind,
+        source:source,
+        why:textRu(why),
+        signal_id:ref.signal_id||x.signal_id||"",
+        radar_id:x.radar_id||"",
+        source_ref:ref,
+        context:ctx,
+        details:[ctx.world,ctx.line,ctx.branch].filter(Boolean).join(" → ")
+      };
       host.innerHTML=
         '<div class="cc-insp-title">Сигнал</div>'+
         '<div class="cc-insp-head"><span class="radar-insp-mark '+(imp?'important':'')+'">'+(imp?'!':'•')+'</span><div><h3>'+esc(textRu(x.title||"Сигнал"))+'</h3><small>'+esc(imp?"важно сейчас":"наблюдаем")+'</small></div></div>'+
@@ -1706,7 +1720,8 @@
         (ctxLine.length?'<div class="cc-insp-sec"><h4>Контекст</h4><div class="cc-crumbs">'+ctxLine.map(function(v){return '<span>'+esc(v)+'</span>';}).join('<i>→</i>')+'</div></div>':'')+
         '<div class="cc-insp-sec"><h4>Источник</h4><p>'+esc(source)+'</p>'+(evidence?'<small>'+esc(evidence)+'</small>':'')+'</div>'+
         (x.status?'<div class="cc-insp-sec"><h4>Состояние источника</h4><p>'+esc(humanCode(x.status))+'</p></div>':'')+
-        '<div class="cc-insp-sec"><h4>Граница</h4><p>Панель показывает запись источника и не повышает её до действия, решения или причинной связи без отдельного подтверждения.</p></div>';
+        '<div class="cc-insp-sec"><h4>Граница</h4><p>Панель показывает запись источника и не повышает её до действия, решения или причинной связи без отдельного подтверждения.</p></div>'+
+        '<button type="button" class="cc-steward-ask" data-cc-steward-context="'+esc(JSON.stringify(stewardCtx))+'"><b>Спросить Стюарда</b><span>объяснить сигнал, источник, связь или следующий шаг</span></button>';
       page.querySelectorAll("[data-radar-select]").forEach(function(b){b.classList.toggle("selected",b.getAttribute("data-radar-select")===key);});
     }
 

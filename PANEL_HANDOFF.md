@@ -683,3 +683,12 @@ Regression proof:
 - stale hash is rejected with 409;
 - confirmed REJECT produces a DECISION recognized by the lifecycle projector and resolves the exact lifecycle;
 - browser stand contains one exact READY decision and one READY decision without lifecycle_id to enforce the UI boundary.
+
+## 2026-10-03 — Radar signal → Steward context
+
+- The Signals / Founder Radar inspector now exposes the shared `Спросить Стюарда` control for the currently selected signal.
+- The Steward context is source-bounded and carries the displayed signal title, Radar section, date, source label, why-it-matters text, signal/radar IDs, source_ref and explicit world/line/branch context when present.
+- Opening Steward from Signals does not promote a signal into an action, decision or causal claim; the Signals evidence boundary remains unchanged.
+- The existing shared Steward dialog and query endpoint are reused; no second agent/chat implementation is introduced.
+- Status mutation remains protected by the existing exact-object gate. A Radar signal does not gain write authority merely because Steward can discuss it.
+- Dev stand now includes a synthetic Founder Radar fixture and the browser regression checks that the selected signal opens the shared Steward dialog with the exact signal context.
