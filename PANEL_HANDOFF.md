@@ -883,3 +883,14 @@ Current verified state:
   - SHA `8a28240f...`: `event_type=NEW_FILE`, but `object_id` is explicitly empty.
   No automatic semantic normalization or branch-to-object inference was authorized. Keep this as honest historical owner debt unless a canonical alias/binding is supplied.
 - FND-002 `TERMINAL_CONFLICT` was traced to exact provenance. The fresh next-move field comes from raw event `fe424809-d3c1-4276-bca4-29cdacc16d44`, which is the `last_raw_event_id` of cleared blocker `SECURITY-CREDENTIAL-ROTATION-20260926-001`. The blocker is `CLEARED`, owned by `SYSTEM / Infrastructure Security`; next gate is CLOSED. A Supervisor patch has been prepared locally to classify an exact terminal next-move sourced from a CLEARED blocker as `TERMINAL_CLOSURE` instead of `TERMINAL_CONFLICT`. This uses event provenance, not text interpretation. Deployment was not yet verified at the time of this handoff note because the SSH channel reset during the final provenance read.
+
+## 2026-10-04 — Final closure of remaining Founder Panel upstream debt
+
+- Supervisor release `21-terminal-closure-20261004-r1` was compiled, integrity-hashed, activated, and restarted successfully.
+- Exact FND-002 provenance rule is live: a fresh next-move sourced from the exact `last_raw_event_id` of a `CLEARED` blocker under a terminal gate is classified as `TERMINAL_CLOSURE`, not as an executable route and not as `TERMINAL_CONFLICT`.
+- Verified current FND-002 state: `canonical_route.route_state = TERMINAL_CLOSURE`; projected executable `next_move = None`; projected executable `next_gate = None`.
+- Verified current Supervisor discrepancies no longer contain `canonical-terminal-next-move:FND-002`.
+- Verified prior `branch_freshness.UNKNOWN.freshness=STALE` attention is resolved and absent from current discrepancies.
+- Final service smoke: `icam-hub-api.service=active`, `context-steward.service=active`, `aiclavis-supervisor.service=active`.
+- Final review-authority smoke: `manual_review_required=36`, `actionable_review=2`, `unassigned_review_quarantine=34`, `legacy_unassigned_quarantine=34`, `new_unassigned_quarantine=0`, `freshness=OK`.
+- Remaining `ingress_accepted_but_not_ingested=2` is intentionally unresolved historical owner debt, not an infrastructure defect: one packet has an out-of-contract event type and one has an explicitly empty object_id. Do not auto-map either without a canonical alias/binding.
