@@ -12,9 +12,9 @@ Founder Panel больше не имеет известных архитекту
 ## 1. LIVE / READY
 
 ### Agent Registry / Lineage
-- Registry LIVE, revision 18, 18 verified agents.
-- Lineage LIVE, revision 14, 14 verified edges.
-- `lineage_gaps=3` остаётся реальным состоянием сети, а не отсутствием источника.
+- Registry LIVE, revision 42, 36 verified agents.
+- Lineage LIVE, revision 43. Current snapshot exposes 39 active VERIFIED edges; authority history contains 41 distinct verified edge identities, of which 2 were later retracted.
+- `lineage_gaps=0`, `authority_conflicts=0`, `unregistered_agents=0`; отсутствие gap здесь является source-backed состоянием, а не выводом UI.
 - Browser читает только same-origin Founder projections.
 
 ### ATLAS State
@@ -71,6 +71,24 @@ Founder Panel больше не имеет известных архитекту
 Старый `/api/panel/atlas` сохранял pre-Gate-2 `NO_ATLAS_STATE_SOURCE` после появления canonical ATLAS State, создавая вторую противоречивую правду.
 
 Он retired: legacy route возвращает HTTP 410 с указанием текущего read-route `/founder-ui-preview/api/atlas-state`. Официальная проекция остаётся HTTP 200 LIVE.
+
+
+### Signals → Founder Radar cleanup
+Founder Radar v0.2 является текущей канонической Founder-facing проекцией страницы «Сигналы» и заменил старую внутреннюю модель Signals-page.
+
+В финальном проходе обнаружены остатки старого browser-renderer:
+- `renderSignals(...)` больше не имел DOM-контракта;
+- `renderFieldMovement(...)` обращался к удалённым `data-fm=*` hooks;
+- старый integrated smoke всё ещё проверял market-card UI и Field Movement axes, которых в текущей Radar surface уже нет.
+
+Исправление:
+- legacy renderers удалены из browser client;
+- Market Scanner и Field Movement остаются отдельными read sources текущего цикла и видимы в Diagnostics;
+- Signals surface проверяется через Founder Radar: field signal → card → inspector → bounded Steward context;
+- outage/empty states fail closed;
+- Market Scanner ingest/write boundary остаётся закрытой.
+
+Обновлённый integrated smoke: 41/41 PASS.
 
 ## 3. Реальные состояния, которые НЕ надо искусственно чинить
 

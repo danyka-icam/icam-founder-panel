@@ -837,3 +837,13 @@ Regression proof:
 - Temporal Universe remains `coverage_complete=false` because Research and Commercial ledgers are prospective-only from their baseline. This is an honest historical-coverage limitation, not a broken collector.
 - Full local browser regression passed at 1680 / 1280 / 820 / 390 with no JS errors after the final-audit UI changes.
 - Full residual classification is recorded in `FOUNDER_PANEL_FINAL_AUDIT_2026-10-04.md`.
+
+
+## 2026-10-04 — Founder Radar legacy cleanup + final smoke
+
+- Reconciled the final integrated smoke with the already-approved Founder Radar v0.2 contract. Founder Radar remains the current Signals surface; the pre-Radar internal Signals-page model is not restored.
+- Removed dead browser renderers `renderSignals(...)` and `renderFieldMovement(...)`; their old DOM hooks no longer exist after the Radar replacement.
+- Raw Market Scanner signals / Field Movement remain read-only current-cycle sources for diagnostics. They are not a second competing Founder Signals UI.
+- Updated integrated Pass 5 to verify Radar field signal → card → inspector → exact bounded Steward context, explicit empty/unavailable behavior, Scanner/Field Movement diagnostic reads, and the closed ingest/write boundary.
+- Updated integrated smoke passes 41/41. Standard browser regression matrix also passes for normal, Temporal-down, Admission-down and large-Founder-inbox scenarios across 1680 / 1280 / 820 / 390.
+- Current Agent Registry/Lineage authority after network hardening: Registry revision 42 with 36 verified agents; Lineage revision 43 with 39 active VERIFIED edges. Authority history contains 41 distinct verified edge identities, 2 later retracted. Current source counters report lineage_gaps=0 and authority_conflicts=0.

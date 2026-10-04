@@ -240,145 +240,101 @@ console.log("\n=== PASS 4: OWNER RENDER — a known ball_owner must reach the sc
 }
 
 // ---------------------------------------------------------------- pass 5
-console.log("\n=== PASS 5: MARKET SIGNALS — activation contract + boundary ===");
+console.log("\n=== PASS 5: FOUNDER RADAR / MARKET SOURCES — projection + boundary ===");
 {
+  const RADAR_EP = "/founder-ui-preview/api/radar";
   const SIGNALS_EP = "/founder-ui-preview/api/signals";
-  const KNOWN_ENTITY = "SMOKE-FIXTURE-ENTITY";
-  const KNOWN_SUMMARY = "SMOKE-FIXTURE-SUMMARY-RU";
+  const FIELD_EP = "/founder-ui-preview/api/signals/field-movement";
+  const DIAG_EP = "/founder-ui-preview/api/signals/diagnostics";
 
-  // 5a: activated + populated, with enrichment — the FULL market card
-  // contract must reach the rendered screen text (base fields AND the
-  // enrichment sub-object), and opening the source/evidence drawer must show
-  // the real source url and evidence items from the fixture.
+  // 5a: Founder Radar is the current Signals surface. A field signal must
+  // reach the Radar card + inspector with its source-bounded context.
   {
-    const KNOWN_TYPE = "smoke-fixture-signal-type";
-    const KNOWN_TITLE = "SMOKE-FIXTURE-TITLE-TEXT";
-    const KNOWN_WHY = "SMOKE-FIXTURE-WHY-RU-TEXT";
-    const KNOWN_AXIS = "smoke-fixture-axis-alpha";
-    const KNOWN_SOURCE_NAME = "smoke-fixture-source-name";
-    const KNOWN_SOURCE_URL = "https://example.invalid/smoke-fixture-evidence-source";
-    const KNOWN_STATUS = "smoke-fixture-status-watch";
-    const KNOWN_EVIDENCE_1 = "smoke-fixture-evidence-item-one";
-    const KNOWN_EVIDENCE_2 = "smoke-fixture-evidence-item-two";
-    const RELEVANCE = 77;
-
+    const TITLE = "SMOKE-RADAR-FIELD-TITLE";
+    const WHY = "SMOKE-RADAR-FIELD-WHY";
+    const BRANCH = "Smoke Radar Branch";
     const page = await newPage(browser);
-    await page.route("**" + SIGNALS_EP + "**", async (route) => {
+    await page.route("**" + RADAR_EP + "**", async (route) => {
       await route.fulfill({
-        status: 200,
-        contentType: "application/json",
+        status: 200, contentType: "application/json",
         body: JSON.stringify({
-          activation_state: "ACTIVATED",
-          source_status: "AVAILABLE",
-          flow_activated: true,
-          observed_at: new Date().toISOString(),
-          degraded_reason: null,
-          counts: { returned: 1, stored_total: 1 },
-          source_coverage: { status: "OK", reason: null, ok_count: 12, total_sources: 12, failing: [] },
-          signals: [{
-            schema: "atlas.market-signal.v1",
-            signal_id: "mkt-smoke-fixture-1",
-            observed_at: new Date().toISOString(),
-            entity: KNOWN_ENTITY,
-            signal_type: KNOWN_TYPE,
-            title: KNOWN_TITLE,
-            axis: [KNOWN_AXIS, "agents"],
-            relevance_score: RELEVANCE,
-            confidence: "high",
-            source: { name: KNOWN_SOURCE_NAME, url: KNOWN_SOURCE_URL },
-            evidence: [KNOWN_EVIDENCE_1, KNOWN_EVIDENCE_2],
-            status: KNOWN_STATUS,
-            enrichment: {
-              summary_ru: KNOWN_SUMMARY,
-              why_it_matters_ru: KNOWN_WHY,
-              architecture_proximity: 60,
-              market_significance: 40,
-              architecture_convergence: true,
-              recommended_action: "watch",
-            },
-          }],
-        }),
+          schema: "aiclavis.founder-radar.v0.2", generated_at: new Date().toISOString(), read_only: true,
+          attention: [], opportunities: [], waiting: [], upcoming: [], predictions: [],
+          field: {
+            source_coverage: { ok_count: 11, total_sources: 12 },
+            signals: [{
+              radar_id: "radar-smoke-field-1", signal_id: "signal-smoke-field-1",
+              title: TITLE, status: "ACT", relevance_score: 88, why: WHY,
+              context: { world: "Коммерческий ATLAS", line: "Рынок", branch: BRANCH },
+              source_ref: { kind: "market_signal", signal_id: "signal-smoke-field-1" },
+              evidence: [{ kind: "fixture-1" }, { kind: "fixture-2" }]
+            }]
+          },
+          atlas_learning: [], investment: { available: false }, reputation: []
+        })
       });
     });
-    await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+    await page.goto(BASE + "#signals", { waitUntil: "networkidle", timeout: 30000 });
     await page.waitForTimeout(2000);
-
     const txt = await textOfPage(page, "signals");
-    const contractFields = {
-      entity: KNOWN_ENTITY, type: KNOWN_TYPE, relevance: String(RELEVANCE),
-      title: KNOWN_TITLE, summary_ru: KNOWN_SUMMARY, why_it_matters_ru: KNOWN_WHY,
-      axes: KNOWN_AXIS, evidence_count: "evidence: 2", source: KNOWN_SOURCE_NAME,
-      status: KNOWN_STATUS,
-    };
-    const missing = Object.entries(contractFields).filter(([, v]) => !txt.includes(v)).map(([k]) => k);
-    record(5, "full market card contract reaches the screen",
-      missing.length === 0,
-      missing.length ? "missing: " + missing.join(", ") : "all 10 contract fields present");
+    record(5, "Founder Radar field signal reaches the current Signals surface",
+      txt.includes(TITLE) && txt.includes(WHY) && txt.includes(BRANCH) && /Покрытие Scanner: 11 из 12/.test(txt),
+      txt.includes(TITLE) ? "signal rendered" : "signal MISSING");
 
-    // Open the drawer and verify the real source url + evidence items show —
-    // not summary text, the actual provenance the fixture carried.
-    const opened = await page.evaluate(() => {
-      const btn = document.querySelector('[data-market-card] [data-drawer-toggle]');
-      if (!btn) return false;
-      btn.click();
-      return true;
-    });
-    await page.waitForTimeout(300);
-    const drawerTxt = opened ? await page.evaluate(() => {
-      const el = document.querySelector('[data-market-card] [data-drawer-body]');
+    const inspector = await page.evaluate(() => {
+      const el = document.querySelector('[data-radar-inspector]');
       return el ? el.innerText : "";
-    }) : "";
-    record(5, "source/evidence drawer opens and shows real provenance",
-      opened && drawerTxt.includes(KNOWN_SOURCE_URL) && drawerTxt.includes(KNOWN_EVIDENCE_1) && drawerTxt.includes(KNOWN_EVIDENCE_2),
-      !opened ? "drawer toggle not found" :
-        (drawerTxt.includes(KNOWN_SOURCE_URL) ? "source url ok" : "source url MISSING") + ", " +
-        (drawerTxt.includes(KNOWN_EVIDENCE_1) && drawerTxt.includes(KNOWN_EVIDENCE_2) ? "evidence items ok" : "evidence items MISSING"));
+    });
+    record(5, "Radar inspector preserves source and evidence boundary",
+      inspector.includes(TITLE) && inspector.includes(WHY) && /Market Scanner/.test(inspector) && /2 свидетельств/.test(inspector),
+      /Market Scanner/.test(inspector) ? "source/evidence shown" : "source/evidence MISSING");
 
+    const stewardContext = await page.evaluate(() => {
+      const btn = document.querySelector('[data-radar-inspector] [data-cc-steward-context]');
+      return btn ? btn.getAttribute("data-cc-steward-context") : "";
+    });
+    record(5, "Radar signal exposes exact bounded Steward context",
+      stewardContext.includes(TITLE) && stewardContext.includes("signal-smoke-field-1") && stewardContext.includes(BRANCH),
+      stewardContext ? "context present" : "context MISSING");
     await page.close();
   }
 
-  // 5b: activated but empty — must say "активен, новых сигналов нет", not the
-  // pre-activation copy and not a silent blank.
+  // 5b: empty field is explicit and keeps source coverage separate.
   {
     const page = await newPage(browser);
-    await page.route("**" + SIGNALS_EP + "**", async (route) => {
+    await page.route("**" + RADAR_EP + "**", async (route) => {
       await route.fulfill({
-        status: 200,
-        contentType: "application/json",
+        status: 200, contentType: "application/json",
         body: JSON.stringify({
-          activation_state: "ACTIVATED_EMPTY",
-          source_status: "EMPTY",
-          flow_activated: true,
-          observed_at: new Date().toISOString(),
-          degraded_reason: "Поток активен, новых сигналов нет.",
-          counts: { returned: 0, stored_total: 0 },
-          source_coverage: { status: "OK", reason: null, ok_count: 12, total_sources: 12, failing: [] },
-          signals: [],
-        }),
+          schema: "aiclavis.founder-radar.v0.2", generated_at: new Date().toISOString(), read_only: true,
+          attention: [], opportunities: [], waiting: [], upcoming: [], predictions: [],
+          field: { source_coverage: { ok_count: 12, total_sources: 12 }, signals: [] },
+          atlas_learning: [], investment: { available: false }, reputation: []
+        })
       });
     });
-    await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+    await page.goto(BASE + "#signals", { waitUntil: "networkidle", timeout: 30000 });
     await page.waitForTimeout(2000);
     const txt = await textOfPage(page, "signals");
-    record(5, "activated+empty shows 'активен, новых сигналов нет'",
-      /активен, новых сигналов нет|Поток активен/i.test(txt),
-      /активен, новых сигналов нет|Поток активен/i.test(txt) ? "found" : "NOT FOUND");
+    record(5, "empty Radar field is explicit, not a silent blank",
+      /Новых отобранных внешних сигналов нет/.test(txt) && /Покрытие Scanner: 12 из 12/.test(txt),
+      /Новых отобранных внешних сигналов нет/.test(txt) ? "explicit empty state" : "empty state MISSING");
     await page.close();
   }
 
-  // 5c: source aborted entirely — must say unavailable, never keep showing
-  // whatever the previous successful fetch happened to render.
+  // 5c: Radar outage must fail closed; no stale signal cards survive.
   {
-    const page = await newPage(browser, { failEndpoint: SIGNALS_EP });
-    await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+    const page = await newPage(browser, { failEndpoint: RADAR_EP });
+    await page.goto(BASE + "#signals", { waitUntil: "networkidle", timeout: 30000 });
     await page.waitForTimeout(2000);
     const txt = await textOfPage(page, "signals");
-    record(5, "aborted market signals source shown as unavailable",
-      /Market Scanner недоступен|источник не ответил/i.test(txt),
-      /Market Scanner недоступен|источник не ответил/i.test(txt) ? "reported unavailable" : "SILENT — old/fake data risk");
+    record(5, "Founder Radar outage is shown as unavailable",
+      /Радар недоступен|Источник радара недоступен/.test(txt),
+      /Радар недоступен|Источник радара недоступен/.test(txt) ? "reported unavailable" : "SILENT — stale/fake data risk");
+    await page.close();
   }
 
-  // 5d/5e/5f: boundary — GET/POST /ingest -> 404, POST /signals -> 403.
+  // 5d: Market Scanner remains read-only from the browser. Ingest is absent.
   {
     const page = await newPage(browser);
     await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
@@ -387,7 +343,7 @@ console.log("\n=== PASS 5: MARKET SIGNALS — activation contract + boundary ===
         try { const r = await fetch(args.u, { method: args.m }); return r.status; }
         catch (e) { return "blocked:" + e.message; }
       }, { u: SIGNALS_EP + "/ingest", m: method });
-      record(5, `${method} /signals/ingest -> 404`, status === 404, "status " + status);
+      record(5, method + " /signals/ingest -> 404", status === 404, "status " + status);
     }
     const postStatus = await page.evaluate(async (u) => {
       try { const r = await fetch(u, { method: "POST" }); return r.status; }
@@ -397,75 +353,21 @@ console.log("\n=== PASS 5: MARKET SIGNALS — activation contract + boundary ===
     await page.close();
   }
 
-  // 5f1: regression guard for the 2026-09-04 cleanup -- when the flow is
-  // active, neither page may still show the pre-cleanup static "not
-  // connected" copy. This is not "assert the new copy" (that would be a
-  // second hardcode); it only asserts the specific stale strings are gone.
+  // 5e: raw Market Scanner / Field Movement remain observable as read sources
+  // in Diagnostics; they are not a second competing Signals-page UI.
   {
-    const page = await newPage(browser);
-    await page.route("**" + SIGNALS_EP + "**", async (route) => {
-      await route.fulfill({
-        status: 200, contentType: "application/json",
-        body: JSON.stringify({
-          activation_state: "ACTIVATED", source_status: "AVAILABLE", flow_activated: true,
-          observed_at: new Date().toISOString(), degraded_reason: null,
-          counts: { returned: 1, stored_total: 1 },
-          source_coverage: { status: "OK", reason: null, ok_count: 12, total_sources: 12, failing: [] },
-          signals: [{
-            schema: "atlas.market-signal.v1", signal_id: "mkt-smoke-regression-1",
-            observed_at: new Date().toISOString(), entity: "Regression Fixture Entity",
-            signal_type: "capability-release", title: "Regression fixture title",
-            axis: ["world-model"], relevance_score: 80, confidence: "high",
-            source: { name: "regression-source", url: "https://example.invalid/regression" },
-            evidence: ["ev-1"], status: "watch",
-          }],
-        }),
-      });
-    });
-    await page.goto(BASE + "#signals", { waitUntil: "networkidle", timeout: 30000 });
-    await page.waitForTimeout(2000);
-    const sigTxt = await textOfPage(page, "signals");
-    record(5, "no stale 'ещё не подключён' static block on Signals when active",
-      !/Market Scanner ещё не подключён к Панели/i.test(sigTxt),
-      /Market Scanner ещё не подключён к Панели/i.test(sigTxt) ? "STALE BLOCK STILL PRESENT" : "gone");
-
-    await page.goto(BASE + "#diagnostics", { waitUntil: "networkidle", timeout: 30000 });
-    await page.waitForTimeout(2000);
-    const scannerRow = await page.evaluate(() => {
-      const el = document.querySelector('[data-x-source="scanner"]');
-      return el ? el.innerText : null;
-    });
-    record(5, "Diagnostics source table shows live scanner state, not hardcoded НЕ ПОДКЛЮЧЁН",
-      !!scannerRow && !/НЕ ПОДКЛЮЧЁН/i.test(scannerRow),
-      "data-x-source=scanner: " + JSON.stringify(scannerRow));
-    await page.close();
-  }
-
-  // 5f2: a fixture field-movement axis and a fixture scanner-diagnostics
-  // value must each reach their real DOM hooks -- not just "no error", an
-  // actual positive check that the specific fixture value landed.
-  {
-    const FM_TREND = "up2";
     const DIAG_COVERAGE_TAG = "SMOKE-FIXTURE-COVERAGE-STATUS";
-
     const page = await newPage(browser);
-    await page.route("**" + API + "/signals/field-movement**", async (route) => {
+    await page.route("**" + FIELD_EP + "**", async (route) => {
       await route.fulfill({
         status: 200, contentType: "application/json",
         body: JSON.stringify({
-          status: "AVAILABLE", reason: null, observed_at: new Date().toISOString(),
-          axes: [
-            { axis: "world-model", label: "World models", trend: FM_TREND, current_weight: 200, prior_weight: 90 },
-            { axis: "decision-intelligence", label: "Decision intelligence", trend: null, current_weight: 0, prior_weight: 0 },
-            { axis: "simulation", label: "Simulation", trend: null, current_weight: 0, prior_weight: 0 },
-            { axis: "external-sensing", label: "External sensing", trend: null, current_weight: 0, prior_weight: 0 },
-            { axis: "epistemics", label: "Epistemics", trend: null, current_weight: 0, prior_weight: 0 },
-            { axis: "agents", label: "Agents", trend: null, current_weight: 0, prior_weight: 0 },
-          ],
-        }),
+          status: "AVAILABLE", observed_at: new Date().toISOString(),
+          axes: [{ axis: "world-model", label: "World models", trend: "up2", current_weight: 200, prior_weight: 90 }]
+        })
       });
     });
-    await page.route("**" + API + "/signals/diagnostics**", async (route) => {
+    await page.route("**" + DIAG_EP + "**", async (route) => {
       await route.fulfill({
         status: 200, contentType: "application/json",
         body: JSON.stringify({
@@ -473,39 +375,37 @@ console.log("\n=== PASS 5: MARKET SIGNALS — activation contract + boundary ===
           scanner: { last_run_at: new Date().toISOString(), freshness_state: "FRESH", age_seconds: 120, run_summary: null },
           source_coverage: { status: DIAG_COVERAGE_TAG, reason: null, ok_count: 9, total_sources: 12, failing: [] },
           enrichment: { stored_signals: 9, enriched_signals: 9, pending: 0 },
-          ingest: { key_configured: true, patch_implemented: false },
-        }),
+          ingest: { key_configured: true, patch_implemented: false }
+        })
       });
     });
-    await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+    await page.goto(BASE + "#diagnostics", { waitUntil: "networkidle", timeout: 30000 });
     await page.waitForTimeout(2000);
-
-    const fmText = await page.evaluate(() => {
-      const el = document.querySelector('[data-fm="world-model"]');
-      return el ? el.textContent : null;
+    const reads = await page.evaluate(() => {
+      const el = document.querySelector('[data-x-read-times]');
+      return el ? el.innerText : "";
     });
-    record(5, "fixture field-movement axis reaches the DOM",
-      fmText === "↑↑", "data-fm=world-model textContent: " + JSON.stringify(fmText));
+    record(5, "Field Movement remains visible as a successful read source in Diagnostics",
+      /Движение поля/.test(reads) && /ответ получен/.test(reads),
+      /Движение поля/.test(reads) ? "read source shown" : "read source MISSING");
 
     const diagText = await page.evaluate(() => {
       const el = document.querySelector('[data-scan="coverage"]');
       return el ? el.textContent : null;
     });
-    record(5, "fixture scanner-diagnostics coverage reaches the DOM",
+    record(5, "scanner-diagnostics coverage reaches the Diagnostics DOM",
       !!diagText && diagText.includes(DIAG_COVERAGE_TAG),
       "data-scan=coverage textContent: " + JSON.stringify(diagText));
-
     await page.close();
   }
 
-  // 5g: no write verbs, no ingest secret anywhere in the shipped client.
+  // 5f: shipped client remains free of direct write verbs / ingest secrets.
   {
     const js = await (await fetch(BASE + "live.js")).text();
-    record(5, "no write verbs in client (re-check after signals wiring)",
+    record(5, "no write verbs in client (Radar/market boundary)",
       !/method:\s*["'](POST|PATCH|PUT|DELETE)/.test(js));
     record(5, "no ingest key/secret literal in client",
-      !/x-atlas-signals-key/i.test(js) && !/ATLAS_SIGNALS_KEY_FILE/i.test(js) &&
-      !/sk-ant-/i.test(js));
+      !/x-atlas-signals-key/i.test(js) && !/ATLAS_SIGNALS_KEY_FILE/i.test(js) && !/sk-ant-/i.test(js));
   }
 }
 
