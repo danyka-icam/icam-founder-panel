@@ -93,6 +93,12 @@ for (const w of WIDTHS) {
       const documentsUnresolved = await page.locator('[data-page-panel="documents"] [data-d="unresolved"]').innerText();
       check(/UNKNOWN_PACKET_2026-10-03\.md/.test(documentsUnresolved) && /Object ID не разрешён/.test(documentsUnresolved), "documents renders active UNKNOWN review rows without assigning an object");
       check(/artifact_class=UNKNOWN/.test(documentsUnresolved) && /не используется для назначения объекта/.test(documentsUnresolved), "documents preserves the unresolved artifact identity boundary");
+      const testingLineage = await page.locator('[data-page-panel="testing"] [data-t="lineage"]').innerText();
+      const testingEvidence = await page.locator('[data-page-panel="testing"] [data-t="evidence-chain"]').innerText();
+      check(/TEST-SMOKE-1/.test(testingLineage) && /U10_HANDOFF/.test(testingLineage) && /result__rev2\.json/.test(testingLineage), "testing lineage uses explicit test/gate/result fields");
+      check(/protocol_id \/ run_id/.test(testingLineage) && /не выводит их из путей/.test(testingLineage), "testing lineage states missing protocol/run identity boundary");
+      check(/result__rev2\.json/.test(testingEvidence) && /abcdef012345/.test(testingEvidence) && /Ссылки на доказательства\s+2/.test(testingEvidence), "testing evidence card uses result filename, request SHA and evidence_refs count");
+      check(!/\/private\/testing/.test(testingLineage+testingEvidence), "testing lineage never exposes internal server paths");
       const diagErrors = await page.locator('[data-page-panel="diagnostics"] [data-x-cycle-errors]').innerText();
       const diagReads = await page.locator('[data-page-panel="diagnostics"] [data-x-read-times]').innerText();
       check(!/Журнал ошибок не подключён|Читаем текущий цикл/.test(diagErrors) && /Ошибок чтения в текущем цикле нет|чтение недоступно|частичное чтение/.test(diagErrors), "diagnostics derives current-cycle read errors instead of showing an unconnected journal placeholder");

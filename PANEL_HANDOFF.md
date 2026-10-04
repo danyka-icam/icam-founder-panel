@@ -734,3 +734,10 @@ Regression proof:
 - Documents durability lower card no longer shows static dashes. It renders only literal Hub counters: `objects_on_disk`, `orphan_receipts`, `hash_mismatches`, and Hub-declared `coverage`. Labels were changed away from unsupported claims such as a generic successful durable write/readback result.
 
 - Documents unresolved-artifact surface now reads active `review_rows[]` where `artifact_class=UNKNOWN`. It shows the packet file, only an explicitly claimed object ID (otherwise `Object ID не разрешён`), classification reason and received age. Filename text never assigns an object or canonical role.
+
+## 2026-10-03 — Testing result lineage from explicit summary fields
+
+- Replaced the generic five-step Testing lineage diagram with a factual chain driven by one current test: `test_id/request_sha` → `current_gate` → result filename from `result_path` → `evidence_refs` count → `delivery_state/delivery_revision`.
+- `protocol_id` and `run_id` are not present in Testing summary and are explicitly not reconstructed from request/result paths.
+- The evidence card now shows only the result filename (never the internal server path), shortened request SHA, and evidence reference count.
+- Selection prefers a `NEEDS_ADJUDICATION` test, otherwise the most recently ordered available test; no scientific conclusion is promoted by this selection.

@@ -3460,22 +3460,11 @@
 </article>
 <article class="card testing-lineage-card">
 <div class="panel-head">
-<div class="head-title"><h2>ПРОИСХОЖДЕНИЕ РЕЗУЛЬТАТА</h2><small>какой именно прогон породил текущий результат</small></div>
+<div class="head-title"><h2>ДОКАЗУЕМАЯ ЦЕПОЧКА РЕЗУЛЬТАТА</h2><small>только идентификаторы и переходы, которые передал Testing summary</small></div>
 
 </div>
-<div class="panel-body">
-<div class="lineage-chain">
-<div><span>1</span><b>Запрос</b><small>исходный test ID и владеющая ветка</small></div>
-<i>→</i>
-<div><span>2</span><b>Протокол</b><small>зафиксированные условия проверки</small></div>
-<i>→</i>
-<div><span>3</span><b>Прогон</b><small>конкретное исполнение и среда</small></div>
-<i>→</i>
-<div><span>4</span><b>Результат</b><small>артефакт и его контрольная сумма</small></div>
-<i>→</i>
-<div><span>5</span><b>Ревизия</b><small>текущая или заменённая версия результата</small></div>
-</div>
-<p class="testing-note">Предыдущая ревизия не исчезает при повторе. Панель показывает, какая версия текущая, какая заменена и почему.</p>
+<div class="panel-body" data-t="lineage">
+<div class="testing-empty compact"><strong>Читаем происхождение результата…</strong><span>Отсутствующие ID протокола и прогона не реконструируются из путей или названий.</span></div>
 </div>
 </article>
 <article class="card">
@@ -3483,12 +3472,8 @@
 <div class="head-title"><h2>ДОКАЗАТЕЛЬСТВА ПРОГОНА</h2><small>что можно проверить независимо от красивого статуса</small></div>
 
 </div>
-<div class="panel-body">
-<div class="testing-evidence-grid">
-<div><small>Результат</small><strong>—</strong><span>сохранённый артефакт результата</span></div>
-<div><small>Контрольная сумма</small><strong>—</strong><span>если контракт теста её предусматривает</span></div>
-<div><small>Версия</small><strong>—</strong><span>какая ревизия является текущей</span></div>
-</div>
+<div class="panel-body" data-t="evidence-chain">
+<div class="testing-empty compact"><strong>Читаем доказательства выбранного результата…</strong><span>Показываются только поля Testing summary; отсутствие поля не заполняется догадкой.</span></div>
 </div>
 </article>
 </section>

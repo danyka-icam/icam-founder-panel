@@ -1176,6 +1176,7 @@
       });
       var q = page.querySelector('[data-t="queue"]');
       if (q) q.innerHTML = unavailableHTML("Testing summary недоступен", "Очередь проверок не подтверждена.");
+      ["lineage","evidence-chain"].forEach(function(k){var e=page.querySelector('[data-t="'+k+'"]');if(e)e.innerHTML=unavailableHTML("Testing summary недоступен", "Происхождение и доказательства результата не реконструируются из старых данных.");});
       pageBadge("testing", "unavailable", "ИСТОЧНИК НЕДОСТУПЕН");
     } else {
       var testState = testCollectionState(summary);
@@ -1258,6 +1259,35 @@
             esc(t.owning_branch || "владеющая ветка не указана") + " · " + esc(testOutcomeRu(t.scientific_outcome || "нужен разбор")) + "</span></div>";
         }).join("") + "</div>" :
         (testComplete ? "<div class='testing-empty compact'><strong>NEEDS_ADJUDICATION не найден</strong><span>Полные active[] + recent[] не содержат такого состояния.</span></div>" : unavailableHTML("Потребность в разборе не подтверждена", "Доступная часть не содержит NEEDS_ADJUDICATION, но набор тестов неполный."));
+      }
+
+      var lineageTest = adj[0] || tests[0] || null;
+      var lineageBox = page.querySelector('[data-t="lineage"]');
+      var evidenceChain = page.querySelector('[data-t="evidence-chain"]');
+      function fileNameOnly(v){var s=String(v||"");return s?s.split("/").pop():"—";}
+      if (lineageBox) {
+        if (!lineageTest) lineageBox.innerHTML = testComplete ? "<div class='testing-empty compact'><strong>Нет теста для цепочки происхождения</strong><span>Полный Testing summary не содержит активного или недавнего теста.</span></div>" : unavailableHTML("Цепочка происхождения не подтверждена", "Набор тестов неполный.");
+        else {
+          var requestSha=String(lineageTest.request_sha||"");
+          var evidenceKnown=Array.isArray(lineageTest.evidence_refs), evidenceN=evidenceKnown?lineageTest.evidence_refs.length:null;
+          lineageBox.innerHTML="<div class='lineage-chain'>"+
+            "<div><span>1</span><b>Запрос</b><small>"+esc(lineageTest.test_id||"test ID не передан")+(requestSha?" · SHA "+esc(requestSha.slice(0,12))+"…":" · SHA не передан")+"</small></div><i>→</i>"+
+            "<div><span>2</span><b>Текущий гейт</b><small>"+esc(lineageTest.current_gate||"не передан")+"</small></div><i>→</i>"+
+            "<div><span>3</span><b>Результат</b><small>"+esc(fileNameOnly(lineageTest.result_path))+"</small></div><i>→</i>"+
+            "<div><span>4</span><b>Доказательства</b><small>"+esc(evidenceKnown?evidenceN+" ссылок":"evidence_refs[] не передан")+"</small></div><i>→</i>"+
+            "<div><span>5</span><b>Доставка</b><small>"+esc(lineageTest.delivery_state?humanCode(lineageTest.delivery_state):"не передана")+(lineageTest.delivery_revision!=null?" · ревизия "+esc(lineageTest.delivery_revision):"")+"</small></div></div>"+
+            "<p class='testing-note'>Владеющая ветка: "+esc(lineageTest.owning_branch||"не передана")+". Отдельные protocol_id / run_id Testing summary не передаёт; Панель не выводит их из путей request_path/result_path.</p>";
+        }
+      }
+      if (evidenceChain) {
+        if (!lineageTest) evidenceChain.innerHTML = testComplete ? "<div class='testing-empty compact'><strong>Нет результата для доказательной карточки</strong></div>" : unavailableHTML("Доказательства не проверены", "Набор тестов неполный.");
+        else {
+          var ers=Array.isArray(lineageTest.evidence_refs)?lineageTest.evidence_refs:[];
+          evidenceChain.innerHTML="<div class='testing-evidence-grid'>"+
+            "<div><small>Файл результата</small><strong>"+esc(fileNameOnly(lineageTest.result_path))+"</strong><span>только имя файла из result_path; путь на сервере не показывается</span></div>"+
+            "<div><small>SHA запроса</small><strong>"+esc(lineageTest.request_sha?String(lineageTest.request_sha).slice(0,12)+"…":"—")+"</strong><span>request_sha из Testing summary</span></div>"+
+            "<div><small>Ссылки на доказательства</small><strong>"+esc(Array.isArray(lineageTest.evidence_refs)?ers.length:"—")+"</strong><span>количество evidence_refs; содержание не повышается до принятого вывода</span></div></div>";
+        }
       }
 
       pageBadge("testing", sourceState.testingRunner.ok ? "live" : "warn", sourceState.testingRunner.ok ? "ДАННЫЕ ПОДКЛЮЧЕНЫ" : "ДАННЫЕ ЧАСТИЧНО");
