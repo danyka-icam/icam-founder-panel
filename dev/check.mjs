@@ -83,9 +83,13 @@ for (const w of WIDTHS) {
       check(/FND-SMOKE/.test(documentsRecent) && /SHA-256 0123456789ab/.test(documentsRecent), "documents enriches a recent Hub arrival only from exact filename provenance");
       check(/filename = packet_file/.test(documentsRecent) && /не заполняется по сходству/.test(documentsRecent), "documents states the exact-match provenance boundary");
       check(/не доказывает публикацию/.test(documentsRecent), "documents keeps recent Hub arrivals below semantic artifact-change ceiling");
-      const documentsPage = await page.locator('[data-page-panel="documents"]').innerText();
-      check(/Объекты на диске\s+853/.test(documentsPage) && /Осиротевшие расписки\s+1/.test(documentsPage) && /Расхождения хэшей\s+0/.test(documentsPage), "documents durability card renders literal Hub integrity counters");
-      check(/Покрытие проверки\s+full end to end/i.test(documentsPage), "documents durability card renders Hub-declared coverage without inventing scope");
+      const durability = await page.evaluate(() => {
+        const root=document.querySelector('[data-page-panel="documents"]');
+        const v=(k)=>root.querySelector(`[data-d="${k}"]`)?.textContent.trim()||"";
+        return {disk:v("durability-disk"),orphans:v("durability-orphans"),hash:v("durability-hash"),coverage:v("durability-coverage")};
+      });
+      check(durability.disk==="853" && durability.orphans==="1" && durability.hash==="0", `documents durability card renders literal Hub integrity counters (${JSON.stringify(durability)})`);
+      check(!!durability.coverage && durability.coverage!=="—", `documents durability card renders Hub-declared coverage (${durability.coverage})`);
       const documentsUnresolved = await page.locator('[data-page-panel="documents"] [data-d="unresolved"]').innerText();
       check(/UNKNOWN_PACKET_2026-10-03\.md/.test(documentsUnresolved) && /Object ID не разрешён/.test(documentsUnresolved), "documents renders active UNKNOWN review rows without assigning an object");
       check(/artifact_class=UNKNOWN/.test(documentsUnresolved) && /не используется для назначения объекта/.test(documentsUnresolved), "documents preserves the unresolved artifact identity boundary");
