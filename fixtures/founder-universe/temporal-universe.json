@@ -5,6 +5,15 @@
   "to": "2026-09-30T00:00:00Z",
   "days": 90
  },
+ "coverage": {
+  "coverage_complete": false,
+  "activity_inbox": {
+   "available": true,
+   "count": 15,
+   "last_received_at": "2026-09-29T00:43:29.060774+00:00"
+  },
+  "missing_historical_sources": ["Research Ledger", "Commercial Ledger"]
+ },
  "company_history": [
   {
    "event_id": "E-C1",

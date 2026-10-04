@@ -576,6 +576,7 @@
     U.rulesKnown = Array.isArray(j.rules) || !!(j.rules && typeof j.rules === "object");
     U.rules = Array.isArray(j.rules) ? j.rules : (j.rules && typeof j.rules === "object" ? Object.keys(j.rules).map(function (k) { return k + ": " + scalar(j.rules[k]); }) : []);
     U.window = j.window || null;
+    U.coverage = j.coverage && typeof j.coverage === "object" ? j.coverage : null;
     return U;
   }
 
@@ -1609,11 +1610,26 @@
     return { from: from.getTime(), to: to.getTime() };
   }
 
+  function temporalCoverageBanner() {
+    var c=M.U&&M.U.coverage;
+    if(!c || c.coverage_complete!==false) return "";
+    var names={"Research Ledger":"журнал исследований","Commercial Ledger":"коммерческий журнал"};
+    var missing=A(c.missing_historical_sources).map(function(x){return names[x]||human(x);});
+    var activity=c.activity_inbox&&typeof c.activity_inbox==="object"?c.activity_inbox:{};
+    var last=activity.last_received_at?dateLabel(activity.last_received_at):"не передано";
+    var parts=[];
+    if(missing.length) parts.push("Не подключены: "+missing.join(", ")+".");
+    if(activity.available===true) parts.push("Последнее принятое событие ветки в Activity Inbox: "+last+".");
+    else if(activity.available===false) parts.push("Activity Inbox сейчас недоступен.");
+    parts.push("Пустой день означает пробел наблюдаемости, а не доказанное отсутствие работы.");
+    return banner("fallback","Историческое покрытие неполное",parts.join(" "));
+  }
+
   function renderTimeline(page) {
     timelineInspectorEvents = {};
     page.querySelector("[data-cc='stamp']").innerHTML = readStamp();
     page.querySelector("[data-cc='source']").innerHTML = M.tu.ok ?
-      sourceBadge("tu") :
+      sourceBadge("tu") + temporalCoverageBanner() :
       sourceBadge("tu") + banner("fallback", "Реконструкция, не Temporal Universe",
         "Ниже — приблизительная картина из observer/routes, continuity/objects и RD1: только последнее событие объекта и последнее движение маршрута. Миры не определяются; группировка — по происхождению объекта (owning_branch), это не канонический мир.");
     if (M.tu.ok) renderTimelineUniverse(page); else renderTimelineFallback(page);

@@ -770,3 +770,13 @@ Regression proof:
 - The validator checks required field presence only. Explicit unknown/null values remain unknown; the validator does not invent or reinterpret them.
 - Passing the validator does not prove ownership, authority, freshness, semantics, or readiness to connect. Gate removal still requires the versioned ownership/semantic contract.
 - Added validator self-tests to the existing Panel v2 CI static stage; no new workflow or notification stream was introduced.
+
+## 2026-10-04 — Temporal coverage made explicit
+
+- Founder Map release `0.1-20261004-r5` extends `atlas-temporal-universe` to v0.2 with a read-only `coverage` block.
+- The coverage block does not create events. It reports observable historical-source reach: Activity Inbox count/last receipt, Company Event Export source coverage, and missing historical ledgers.
+- Current live finding: Activity Inbox has 15 records and its latest receipt is 2026-09-29; Research Ledger and Commercial Ledger are absent historical sources. `coverage_complete=false` is therefore explicit.
+- Timeline UI now renders this incompleteness above the temporal field. Empty days are labelled as an observability gap, not proof that no work occurred.
+- Activity Inbox remains the branch event interface and is not backfilled from Continuity or read-model snapshots.
+- Testing return bridge was verified healthy; immutable GATE_RESULT events already flow to Continuity. Testing snapshot `updated_at` is not promoted into historical fact.
+- Browser regression passed at 1680 / 1280 / 820 / 390 with no JS errors.
