@@ -740,13 +740,15 @@ Regression proof:
 - Selection persists across panel refreshes only by exact `object_id` while that object remains in the displayed source list; otherwise the newest displayed object becomes selected.
 - Canonical object relationships remain unrendered because the current Continuity objects contract does not provide them.
 
-## 2026-10-03 — ATLAS no-state boundary made actionable
+## 2026-10-03 — ATLAS no-state boundary made actionable (исторический checkpoint; superseded 2026-10-04)
 
-- Verified live `/panel/atlas` remains `UNAVAILABLE` with `error_class=NO_ATLAS_STATE_SOURCE`; no authoritative ATLAS state service / Continuity state object currently exists.
+На момент этой записи Gate 2 ещё не был снят. Ниже сохранена историческая фиксация состояния до появления `aiclavis-atlas-state`; она больше не описывает текущий live-read path.
+
+- На 2026-10-03 live `/panel/atlas` корректно оставался `UNAVAILABLE` с `error_class=NO_ATLAS_STATE_SOURCE`; authoritative ATLAS state source тогда ещё не существовал.
 - The ATLAS page now renders the source-provided `degraded_reason`, `blocked_stage`, `unblock_requires`, and literal `unavailable_fields[]` instead of reducing the condition to a generic unavailable message.
 - Known ATLAS no-state / unblock messages are translated into Russian for the Founder UI while the formal error code remains visible.
 - Library documents remain explicitly below the state boundary: `ATLAS_UPDATE_*` artifacts are not parsed or promoted into current state.
-- Agent Network was re-verified separately: no live Agent Registry / Lineage projection endpoint is present; systemd services and the historical static registry scaffold remain non-authoritative and must not populate `#agents`.
+- На 2026-10-03 Agent Network также ещё не имел live Agent Registry / Lineage projection; это историческое состояние было superseded 2026-10-04 после снятия Gate 1. Правило при этом сохранилось: systemd services и static seed artifacts не являются Agent Registry.
 
 ## 2026-10-03 — Source-declared unknown fields are visible
 
@@ -818,3 +820,20 @@ Regression proof:
 - The renderer does not synthesize a global health value from domain status and does not promote pending investment review into a committed decision.
 - Signal state, research state, investment state, commercial state, freeze registry and Founder projections remain distinct authority domains.
 - Browser regression passed at 1680 / 1280 / 820 / 390 with no JS errors.
+
+## 2026-10-04 — Final live-source audit
+
+- Completed a full live-source sweep after Gate 1 and Gate 2 activation. Agent Registry/Lineage, ATLAS State, Twin, Signals and Signal Lab are live; the remaining non-green states were audited individually instead of normalized away.
+- Foundation false-partial condition was traced to Hub READ credential drift inside `context-steward-face`: its embedded token had been revoked by rotation. The Face service now uses systemd `LoadCredential` from the canonical root-owned Hub READ token file rather than duplicating the secret in the unit.
+- After restoring Hub access, Foundation exposed one real historical orphan receipt. Exact SHA/receipt investigation found the corresponding structured cleanup event proving it was a `KLIM_RULE_SELFTEST`, explicitly REJECTED and removed as a test artifact with `scientific_promotion=false`.
+- Hub release r10 introduced an append-only, exact-SHA durability exclusion with scope `PRODUCTION_DURABILITY_ORPHAN_METRIC_ONLY`. The original STORED receipt remains immutable. Live production orphan count is now 0; `excluded_test_orphan_receipts=1` remains separately visible.
+- Hub release r11 corrected review-gap semantics: `still_unreviewed=1302` is not presented as 1302 manual-review problems. Live breakdown is `manual_review_required=93`, `non_manual_pending=1209`, `unassigned_review_quarantine=93`, `actionable_review=0`.
+- Foundation is now `READY / FRESH`; all four mandatory dimensions are PASS. Its durability detail explicitly carries the evidence-backed self-test exclusion so READY does not erase the historical receipt.
+- Documents UI now distinguishes production orphan count, evidence-backed self-test exclusions, manual review debt, non-manual pending records, and unassigned review authority.
+- The legacy pre-Gate-2 `/api/panel/atlas` route was retired with HTTP 410. The only current Founder read path is the official sanitized `/founder-ui-preview/api/atlas-state` projection.
+- `integrated_smoke.mjs` was updated to the current contracts: ATLAS Gate 2 route/state and Foundation READY with production orphan=0 plus visible self-test exclusion.
+- Operations remains intentionally `DEGRADED / STALE` because its canonical source is the narrow Continuity commitments projection and its last commitment movement is 2026-09-26. The UI explicitly does not interpret this as company-wide inactivity.
+- BrazilPortal remains intentionally `DEGRADED / STALE`: its FND-007 source has no recent projected/material movement and projected `status` retains `canonical_relation=UNRESOLVED`. The UI does not choose a canonical status locally.
+- Temporal Universe remains `coverage_complete=false` because Research and Commercial ledgers are prospective-only from their baseline. This is an honest historical-coverage limitation, not a broken collector.
+- Full local browser regression passed at 1680 / 1280 / 820 / 390 with no JS errors after the final-audit UI changes.
+- Full residual classification is recorded in `FOUNDER_PANEL_FINAL_AUDIT_2026-10-04.md`.

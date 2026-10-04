@@ -51,7 +51,7 @@ const PAGES = {
   operations: { nav: "operations", endpoint: API + "/panel/operations", expect: ["Операционная проекция"] },
   brazilportal: { nav: "brazilportal", endpoint: API + "/panel/brazilportal", expect: ["BrazilPortal", "Объявленный статус", "Спроецированный статус"] },
   foundation: { nav: "foundation", endpoint: API + "/panel/foundation", expect: ["Готовность основания"] },
-  atlas: { nav: "atlas", endpoint: API + "/panel/atlas", expect: ["Атлас"] },
+  atlas: { nav: "atlas", endpoint: API + "/atlas-state", expect: ["ATLAS", "частично объявленное состояние"] },
   "digital-twin": { nav: "digital-twin", endpoint: API + "/panel/twin", expect: ["Twin"] },
 };
 
@@ -102,13 +102,19 @@ console.log("\n=== PASS 1: LIVE — every projection renders real state ===");
 
   // honest-state assertions on real current data
   const fnd = await textOfPage(page, "foundation");
-  // A bare /READY/ match is not enough: the page legitimately contains the
-  // sentence "Зелёный READY не показывается". Assert the aggregate verdict and
-  // the blocking evidence instead of keyword-hunting.
-  const claimsReady = /Общий статус\s*READY/i.test(fnd);
-  record(1, "foundation shows DEGRADED not green",
-    /Готовность основания\s*—\s*DEGRADED/i.test(fnd) && !claimsReady && fnd.includes("orphan receipt"),
-    fnd.includes("orphan receipt") ? "DEGRADED + orphan receipt shown as blocker" : "no orphan mention");
+  record(1, "foundation current readiness is source-backed",
+    /Общий статус\s*источник сообщает READY/i.test(fnd) &&
+    /Осиротевшие расписки\s*0/i.test(fnd) &&
+    /Исключённые self-test расписки\s*1/i.test(fnd),
+    "READY only with production orphan=0; evidence-backed self-test exclusion remains visible");
+
+  const atlas = await textOfPage(page, "atlas");
+  record(1, "ATLAS Gate 2 live canonical projection",
+    /частично объявленное состояние/i.test(atlas) &&
+    /aiclavis-atlas-state/.test(atlas) &&
+    /FOUNDER_READ_ONLY_SANITIZED_V1/.test(atlas) &&
+    !/NO_ATLAS_STATE_SOURCE/.test(atlas),
+    "canonical authority + sanitized Founder projection");
 
   const bp = await textOfPage(page, "brazilportal");
   record(1, "brazilportal keeps both statuses separate",

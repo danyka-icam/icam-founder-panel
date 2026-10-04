@@ -1054,11 +1054,13 @@
       var indexed = health.indexed_ok;
       var unindexed = health.unindexed;
       var orphan = health.orphan_receipts;
+      var excludedTestOrphans = health.excluded_test_orphan_receipts;
       var hashMismatch = health.hash_mismatches;
       durableNote.textContent = "на диске: " + (health.objects_on_disk == null ? "—" : health.objects_on_disk) +
         " · индексировано: " + (indexed == null ? "—" : indexed) +
         " · не индексировано: " + (unindexed == null ? "—" : unindexed) +
         " · осиротевших расписок: " + (orphan == null ? "—" : orphan) +
+        " · доказанно исключено self-test расписок: " + (excludedTestOrphans == null ? "—" : excludedTestOrphans) +
         " · расхождений хэшей: " + (hashMismatch == null ? "—" : hashMismatch);
     }
 
@@ -1070,6 +1072,8 @@
         return isFinite(n) ? n : null;
       }
       var manual = countOrNull(rq.manual_review_required);
+      var nonManual = countOrNull(rq.non_manual_pending);
+      var unassigned = countOrNull(rq.unassigned_review_quarantine);
       var op = countOrNull(rq.operational_evidence);
       var work = countOrNull(rq.working_reference);
       var canonical = countOrNull(rq.canonical_review);
@@ -1096,8 +1100,8 @@
       var authorityRu = authority === "UNASSIGNED_REVIEW_QUARANTINE" ? "владелец разбора ещё не назначен" :
         (authority ? humanCode(authority) : "состояние полномочий не передано");
       evidenceBox.innerHTML =
-        "<div class='doc-integrity-boundary'><b>Граница сохранности:</b><span>Hub сообщает " + esc(health.objects_on_disk == null ? "—" : health.objects_on_disk) + " объектов на диске, из них индексировано " + esc(health.indexed_ok == null ? "—" : health.indexed_ok) + ", не индексировано " + esc(health.unindexed == null ? "—" : health.unindexed) + ". Осиротевших расписок: " + esc(health.orphan_receipts == null ? "—" : health.orphan_receipts) + "; расхождений хэшей: " + esc(health.hash_mismatches == null ? "—" : health.hash_mismatches) + ". Наличие файла на диске не повышается до доказанного полного readback.</span></div>" +
-        "<div class='doc-evidence-head'><div><small>КЛАССИФИКАЦИЯ НЕРАЗОБРАННОГО КОНТУРА</small><b>" + esc(roleTotal != null ? roleTotal + " артефактов распределены по переданным ролям" : (rq.still_unreviewed != null ? rq.still_unreviewed + " остаются неразобранными; полный role-breakdown не передан" : "разбивка по ролям не передана")) + "</b></div><span>ручного разбора сейчас: <strong>" + esc(shownCount(manual)) + "</strong></span></div>" +
+        "<div class='doc-integrity-boundary'><b>Граница сохранности:</b><span>Hub сообщает " + esc(health.objects_on_disk == null ? "—" : health.objects_on_disk) + " объектов на диске, из них индексировано " + esc(health.indexed_ok == null ? "—" : health.indexed_ok) + ", не индексировано " + esc(health.unindexed == null ? "—" : health.unindexed) + ". Осиротевших расписок: " + esc(health.orphan_receipts == null ? "—" : health.orphan_receipts) + "; доказанно исключённых self-test расписок: " + esc(health.excluded_test_orphan_receipts == null ? "—" : health.excluded_test_orphan_receipts) + "; расхождений хэшей: " + esc(health.hash_mismatches == null ? "—" : health.hash_mismatches) + ". Исключение self-test не удаляет исходную receipt и не распространяется на другие orphan. Наличие файла на диске не повышается до доказанного полного readback.</span></div>" +
+        "<div class='doc-evidence-head'><div><small>КЛАССИФИКАЦИЯ НЕРАЗОБРАННОГО КОНТУРА</small><b>" + esc(roleTotal != null ? roleTotal + " артефактов распределены по переданным ролям" : (rq.still_unreviewed != null ? rq.still_unreviewed + " остаются неразобранными; полный role-breakdown не передан" : "разбивка по ролям не передана")) + "</b></div><span>ручного разбора: <strong>" + esc(shownCount(manual)) + "</strong> · неручной pending: <strong>" + esc(shownCount(nonManual)) + "</strong> · без назначенного authority: <strong>" + esc(shownCount(unassigned)) + "</strong></span></div>" +
         "<div class='doc-role-grid'>" +
           "<div class='operational'><small>Операционные свидетельства</small><b>" + esc(shownCount(op)) + "</b><span>рабочий след; сам по себе не меняет канон</span></div>" +
           "<div class='working'><small>Рабочие ссылки</small><b>" + esc(shownCount(work)) + "</b><span>справочный материал</span></div>" +
@@ -1110,7 +1114,7 @@
           ((reviewRowsKnown && testingComplete) ?
             "<div class='doc-test-link calm'><div><small>СВЯЗЬ С ТЕКУЩЕЙ ПРОВЕРКОЙ</small><b>Точного совпадения test_id в текущих полных наборах не найдено</b><span>Панель не связывает артефакты с тестом по названию или похожему тексту.</span></div></div>" :
             "<div class='doc-test-link calm'><div><small>СВЯЗЬ С ТЕКУЩЕЙ ПРОВЕРКОЙ</small><b>Полнота сверки не подтверждена</b><span>" + esc(!reviewRowsKnown ? "review_rows не передан Hub." : "Testing active[] или recent[] не передан; отсутствие совпадения не доказано.") + "</span></div></div>")) +
-        "<div class='doc-evidence-rule'>Ручная очередь = активный канонический разбор + неизвестная классификация. Исторические тестовые разборы не возвращаются в активную очередь автоматически.</div>";
+        "<div class='doc-evidence-rule'>Ручная очередь = активный канонический разбор + неизвестная классификация. still_unreviewed дополнительно включает неручные pending-записи; они не приравниваются к ручному долгу. Исторические тестовые разборы не возвращаются в активную очередь автоматически.</div>";
     }
     var q = page.querySelector('[data-d="queue"]');
     if (q) {
@@ -2502,17 +2506,19 @@
         var det = d.detail || {};
         var explicitCleanCounts = det.hash_mismatches === 0 && det.artifacts_missing === 0;
         var orphanFailureN = numberOrNull(det.orphan_receipts);
+        var excludedTestOrphanN = numberOrNull(det.excluded_test_orphan_receipts);
         var explicitOrphanFailure = String(d.state || "").toUpperCase() === "FAIL" && orphanFailureN != null && orphanFailureN > 0;
         var proofNote = d.blocking_reason ?
           "Причина состояния передана в blocking_reason выше; Панель не заменяет её собственной причинной моделью." :
           (explicitCleanCounts && explicitOrphanFailure ?
             "Источник явно передал 0 потерянных артефактов, 0 расхождений хэшей и ненулевой orphan_receipts при state=FAIL. Панель показывает это сочетание, но не идентифицирует конкретную расписку без поля источника." :
-            "Поля readback показаны буквально. Причина PASS/FAIL сверх переданных state, detail и blocking_reason Панелью не выводится.");
+            "Поля readback показаны буквально. Причина PASS/FAIL сверх переданных state, detail и blocking_reason Панелью не выводится." + (excludedTestOrphanN != null && excludedTestOrphanN > 0 ? " Источник отдельно передал " + excludedTestOrphanN + " доказанно исключённую self-test расписку; она не считается production orphan и не удалена из исторического учёта." : ""));
         extra = "<div class='foundation-proof-grid'>" +
           "<span><small>На диске</small><b>" + esc(det.objects_on_disk != null ? det.objects_on_disk : "—") + "</b></span>" +
           "<span><small>Расхождения хэшей</small><b>" + esc(det.hash_mismatches != null ? det.hash_mismatches : "—") + "</b></span>" +
           "<span><small>Потерянные артефакты</small><b>" + esc(det.artifacts_missing != null ? det.artifacts_missing : "—") + "</b></span>" +
-          "<span><small>Осиротевшие расписки</small><b>" + esc(det.orphan_receipts != null ? det.orphan_receipts : "—") + "</b></span></div>" +
+          "<span><small>Осиротевшие расписки</small><b>" + esc(det.orphan_receipts != null ? det.orphan_receipts : "—") + "</b></span>" +
+          "<span><small>Исключённые self-test расписки</small><b>" + esc(det.excluded_test_orphan_receipts != null ? det.excluded_test_orphan_receipts : "—") + "</b></span></div>" +
           "<div class='foundation-proof-note'><b>Граница интерпретации:</b> " + esc(proofNote) + "</div>";
       }
       return "<div class='live-item-clean'><div class='live-item-clean-head'><h3>"+esc(names[d.dimension]||d.dimension)+"</h3>"+chip(d.state)+"</div>"+

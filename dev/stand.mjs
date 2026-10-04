@@ -151,7 +151,23 @@ const panelApi = {
   "continuity/blockers": () => ({ items: [{ object_id: "FND-001", title: "orphan receipt в soak", status: "OPEN" }, { object_id: "X", is_test: true, status: "OPEN" }] }),
   "testing/summary": () => ({ active: [{ test_id: "TEST-SMOKE-1", request_sha: "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789", owning_branch: "Smoke Research", object_id: "FND-SMOKE", test_type: "METHODOLOGY", status: "NEEDS_ADJUDICATION", current_gate: "U10_HANDOFF", procedure_status: "PROCEDURE_PASS", scientific_outcome: "DOMAIN_ADJUDICATION_REQUIRED", result_path: "/private/testing/TEST-SMOKE-1/result__rev2.json", delivery_state: "PUBLISHED", delivery_revision: 2, evidence_refs: ["TEST-SMOKE-1:A:aaa", "TEST-SMOKE-1:B:bbb"], updated_at: iso(0) }], recent: [] }),
   "testing-health": () => ({}), "testing-runner-health": () => ({}),
-  "hub/sync-health": () => ({ objects_on_disk: 853, orphan_receipts: 1, hash_mismatches: 0, coverage: "FULL_END_TO_END", recent_48h: [{ filename: "SMOKE_PACKET_2026-10-03.json", branch: "Smoke branch", outbox: true, server: true, index: true, review: "PENDING", received_at: iso(0) }], review_rows: [{ packet_file: "SMOKE_PACKET_2026-10-03.json", claimed_object_id: "FND-SMOKE", sha256: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", artifact_class: "WORKING_REFERENCE", still_pending: true }, { packet_file: "UNKNOWN_PACKET_2026-10-03.md", claimed_object_id: "UNRESOLVED", sha256: "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789", artifact_class: "UNKNOWN", still_pending: true, classification_reason: "no explicit canonical/operational/working signal found in content", received_at: iso(0) }] }), "continuity-health": () => ({}),
+  "hub/sync-health": () => ({
+    objects_on_disk: 853, indexed_ok: 840, unindexed: 13,
+    orphan_receipts: 0, excluded_test_orphan_receipts: 1, hash_mismatches: 0, coverage: "FULL_END_TO_END",
+    review_queue: {
+      total: 20, still_unreviewed: 9, manual_review_required: 2, non_manual_pending: 7,
+      actionable_review: 0, unassigned_review_quarantine: 2,
+      operational_evidence: 5, working_reference: 2, canonical_review: 1,
+      canonical_review_active: 1, historical_testing_review: 0, unknown_classification: 1,
+      oldest_manual_review_minutes: 60,
+      oldest_5: [{ packet_file: "UNKNOWN_PACKET_2026-10-03.md", claimed_object_id: "UNRESOLVED", artifact_class: "UNKNOWN", classification_reason: "no explicit canonical/operational/working signal found in content", received_at: iso(0) }]
+    },
+    recent_48h: [{ filename: "SMOKE_PACKET_2026-10-03.json", branch: "Smoke branch", outbox: true, server: true, index: true, review: "PENDING", received_at: iso(0) }],
+    review_rows: [
+      { packet_file: "SMOKE_PACKET_2026-10-03.json", claimed_object_id: "FND-SMOKE", sha256: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", artifact_class: "WORKING_REFERENCE", still_pending: true },
+      { packet_file: "UNKNOWN_PACKET_2026-10-03.md", claimed_object_id: "UNRESOLVED", sha256: "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789", artifact_class: "UNKNOWN", still_pending: true, classification_reason: "no explicit canonical/operational/working signal found in content", received_at: iso(0) }
+    ]
+  }), "continuity-health": () => ({}),
   "panel/operations": () => ({ source_status: "DEGRADED", freshness_state: "STALE", degraded_reason: "no commitment movement within freshness window", unavailable_fields: ["factual_result"], counts: {}, operations: [] }),
   "panel/brazilportal": () => ({
     source_status: "AVAILABLE",
@@ -169,7 +185,15 @@ const panelApi = {
     open_blockers: { count: 2 },
     unavailable_fields: ["factual_result"]
   }),
-  "panel/foundation": () => ({ source_status: "DEGRADED", dimensions: [], blocking_reasons: ["orphan receipt"] }),
+  "panel/foundation": () => ({
+    source_status: "READY", freshness_state: "FRESH", blocking_reasons: [],
+    dimensions: [
+      { dimension: "continuity_source_health", state: "PASS", mandatory: true, proven_by_source: "continuity", detail: {} },
+      { dimension: "artifact_durability_readback", state: "PASS", mandatory: true, proven_by_source: "hub", detail: { hash_mismatches: 0, artifacts_missing: 0, orphan_receipts: 0, excluded_test_orphan_receipts: 1, objects_on_disk: 853, coverage: "FULL_END_TO_END" } },
+      { dimension: "authority_action_path", state: "PASS", mandatory: true, proven_by_source: "actions", detail: {} },
+      { dimension: "testing_execution_integrity", state: "PASS", mandatory: true, proven_by_source: "testing", detail: {} }
+    ]
+  }),
   "atlas-state": () => ({
     atlas_state_version: "1.0.0", generated_at: iso(0), source_status: "LIVE", atlas_state_revision: 4, projection_boundary: "FOUNDER_READ_ONLY_SANITIZED_V1",
     source_authority: { authority_id: "aiclavis-atlas-state", authority_class: "CANONICAL_CROSS_DOMAIN_READ_MODEL", semantic_owner: "ATLAS_STATE_CANON_V1" },

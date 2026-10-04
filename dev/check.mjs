@@ -112,8 +112,13 @@ for (const w of WIDTHS) {
         const v=(k)=>root.querySelector(`[data-d="${k}"]`)?.textContent.trim()||"";
         return {disk:v("durability-disk"),orphans:v("durability-orphans"),hash:v("durability-hash"),coverage:v("durability-coverage")};
       });
-      check(durability.disk==="853" && durability.orphans==="1" && durability.hash==="0", `documents durability card renders literal Hub integrity counters (${JSON.stringify(durability)})`);
-      check(!!durability.coverage && durability.coverage!=="—", `documents durability card renders Hub-declared coverage (${durability.coverage})`);
+      check(durability.disk==="853" && durability.orphans==="0" && durability.hash==="0", "documents durability card renders literal Hub production integrity counters");
+      check(!!durability.coverage && durability.coverage!=="—", "documents durability card renders Hub-declared coverage");
+      const documentsEvidence = await page.locator('[data-page-panel="documents"] [data-d="evidence-overview"]').innerText();
+      check(/доказанно исключённых self-test расписок:\s*1/.test(documentsEvidence), "documents preserves the evidence-backed self-test exclusion instead of hiding the historical receipt");
+      check(/ручного разбора:\s*2/.test(documentsEvidence) && /неручной pending:\s*7/.test(documentsEvidence) && /без назначенного authority:\s*2/.test(documentsEvidence), "documents separates manual review debt from non-manual pending records and unassigned authority");
+      const foundationLive = await page.locator('[data-normalized-live="foundation"] .panel-body').innerText();
+      check(/Исключённые self-test расписки\s*1/.test(foundationLive) && /Осиротевшие расписки\s*0/.test(foundationLive), "Foundation shows production orphan zero while preserving the evidence-backed self-test exclusion");
       const documentsUnresolved = await page.locator('[data-page-panel="documents"] [data-d="unresolved"]').innerText();
       check(/UNKNOWN_PACKET_2026-10-03\.md/.test(documentsUnresolved) && /Object ID не разрешён/.test(documentsUnresolved), "documents renders active UNKNOWN review rows without assigning an object");
       check(/artifact_class=UNKNOWN/.test(documentsUnresolved) && /не используется для назначения объекта/.test(documentsUnresolved), "documents preserves the unresolved artifact identity boundary");
