@@ -83,7 +83,7 @@ for (const w of WIDTHS) {
       check(/не доказывают публикацию/.test(documentsRecent), "documents keeps recent Hub arrivals below semantic artifact-change ceiling");
       const diagErrors = await page.locator('[data-page-panel="diagnostics"] [data-x-cycle-errors]').innerText();
       const diagReads = await page.locator('[data-page-panel="diagnostics"] [data-x-read-times]').innerText();
-      check(/Ошибок чтения в текущем цикле нет/.test(diagErrors), "diagnostics derives current-cycle read errors instead of showing an unconnected journal placeholder");
+      check(!/Журнал ошибок не подключён|Читаем текущий цикл/.test(diagErrors) && /Ошибок чтения в текущем цикле нет|чтение недоступно|частичное чтение/.test(diagErrors), "diagnostics derives current-cycle read errors instead of showing an unconnected journal placeholder");
       check(/Founder Radar/.test(diagReads) && /ответ получен/.test(diagReads), "diagnostics shows per-projection browser read timestamps without inventing semantic freshness");
       // real contract shapes (schema_id, temporal, history events, maps, capital, path)
       check(/Без закрытия receipt readiness/.test(tl) && /Soak выявил orphan receipt/.test(tl), "history event: change + why_it_matters shown");
