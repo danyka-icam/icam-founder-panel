@@ -894,3 +894,26 @@ Current verified state:
 - Final service smoke: `icam-hub-api.service=active`, `context-steward.service=active`, `aiclavis-supervisor.service=active`.
 - Final review-authority smoke: `manual_review_required=36`, `actionable_review=2`, `unassigned_review_quarantine=34`, `legacy_unassigned_quarantine=34`, `new_unassigned_quarantine=0`, `freshness=OK`.
 - Remaining `ingress_accepted_but_not_ingested=2` is intentionally unresolved historical owner debt, not an infrastructure defect: one packet has an out-of-contract event type and one has an explicitly empty object_id. Do not auto-map either without a canonical alias/binding.
+
+## 2026-10-04 — Founder decision closure + external signal source repair
+
+- Founder decision path was verified with the real GVF-002A action. Lifecycle `FDL-0a39b64bade7f11ec971931e` is `RESOLVED`; the authoritative Continuity DECISION is `action-approved:1f9c7700-2f8e-4486-a663-98014657e59c`, effect `APPROVE`, with exact `decision_id=GVF002A_2019_FOUNDER_GATE_v0.1` and matching decision-packet SHA.
+- Root cause of the stale “Founder approval required” card: Continuity Attention Lifecycle opened `FOUNDER_APPROVAL_REQUIRED` but had no symmetric rule to close it when the exact formal decision was later recorded.
+- Context Steward now reconciles open Founder approval issues against native DECISION events by exact `decision_id` plus packet SHA when present. Only APPROVE/REJECT resolve; DEFER deliberately leaves the gate open. Object/title similarity is never used.
+- Verified after repair: Continuity Founder Inbox has `needs_founder_count=0`; FND-003/GVF-002A is absent. Founder Projection was explicitly refreshed and exposes zero open founder decisions. Supervisor discrepancies contain no FND-003/GVF gate.
+- Market Scanner source repair:
+  - Celonis moved from dead `/news/press/` to official `https://www.celonis.com/news`.
+  - Quid moved from dead `/press/` to official `https://www.quid.com/knowledge-hub/product-releases`.
+  - Both return HTTP 200 from the production server and the scanner run verifies them as OK.
+  - Gartner remains explicit DEGRADED: production server receives HTTP 403 from Gartner public research/conference pages; no browser-UA spoofing or access-wall bypass is authorized.
+  - Latest scan: 12 sources, 11 OK, 1 failing (Gartner), signals_emitted=0, scanner freshness FRESH.
+- Radar Opportunities is still legitimately empty. Current Signals API window contains only research signals (50/50); actions are watch/review-atlas/none. The current scanner is market/research sensing, not an opportunity-discovery feed. Do not promote research-watch items into Opportunities just to fill the UI. A separate opportunity-sensing source set is still required for grants/programs/RFPs/partnerships/conference calls or other actionable external windows.
+- Current update cadence:
+  - open Panel browser re-reads live sources every 90s;
+  - Continuity adapter poll ~30s, attention/projection loops ~15s;
+  - Mac ICAM outbox transport runs every 120s, but only transports files already emitted into `ICAM_SYNC_OUTBOX`;
+  - Founder Projection compiles every 5min;
+  - canonical ATLAS State compiles every 60s;
+  - Market Scanner runs every 6h;
+  - market-signal ingest every 15min, enrichment every 20min.
+- Important boundary: ordinary chat activity is not itself a canonical branch-state update. `com.klim.conversations-sync` archives conversations every 120s, but does not create Continuity state events. A branch appears current only after it emits a structured update/event into the canonical transport. Transport is automatic; event creation is not yet universal across branches.
