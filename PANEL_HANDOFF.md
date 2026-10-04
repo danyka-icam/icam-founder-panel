@@ -732,3 +732,5 @@ Regression proof:
 - Recent Hub provenance enrichment: `recent_48h[]` rows are enriched from `review_rows[]` only when `filename === packet_file` exactly. Exact matches may show `claimed_object_id`, `artifact_class` and a shortened SHA-256; unmatched arrivals remain explicitly unbound. No fuzzy filename matching is allowed.
 
 - Documents durability lower card no longer shows static dashes. It renders only literal Hub counters: `objects_on_disk`, `orphan_receipts`, `hash_mismatches`, and Hub-declared `coverage`. Labels were changed away from unsupported claims such as a generic successful durable write/readback result.
+
+- Documents unresolved-artifact surface now reads active `review_rows[]` where `artifact_class=UNKNOWN`. It shows the packet file, only an explicitly claimed object ID (otherwise `Object ID не разрешён`), classification reason and received age. Filename text never assigns an object or canonical role.

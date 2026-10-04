@@ -86,6 +86,9 @@ for (const w of WIDTHS) {
       const documentsPage = await page.locator('[data-page-panel="documents"]').innerText();
       check(/Объекты на диске\s+853/.test(documentsPage) && /Осиротевшие расписки\s+1/.test(documentsPage) && /Расхождения хэшей\s+0/.test(documentsPage), "documents durability card renders literal Hub integrity counters");
       check(/Покрытие проверки\s+full end to end/i.test(documentsPage), "documents durability card renders Hub-declared coverage without inventing scope");
+      const documentsUnresolved = await page.locator('[data-page-panel="documents"] [data-d="unresolved"]').innerText();
+      check(/UNKNOWN_PACKET_2026-10-03\.md/.test(documentsUnresolved) && /Object ID не разрешён/.test(documentsUnresolved), "documents renders active UNKNOWN review rows without assigning an object");
+      check(/artifact_class=UNKNOWN/.test(documentsUnresolved) && /не используется для назначения объекта/.test(documentsUnresolved), "documents preserves the unresolved artifact identity boundary");
       const diagErrors = await page.locator('[data-page-panel="diagnostics"] [data-x-cycle-errors]').innerText();
       const diagReads = await page.locator('[data-page-panel="diagnostics"] [data-x-read-times]').innerText();
       check(!/Журнал ошибок не подключён|Читаем текущий цикл/.test(diagErrors) && /Ошибок чтения в текущем цикле нет|чтение недоступно|частичное чтение/.test(diagErrors), "diagnostics derives current-cycle read errors instead of showing an unconnected journal placeholder");

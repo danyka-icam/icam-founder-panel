@@ -1112,6 +1112,24 @@
       }
     }
 
+    var unresolvedBox = page.querySelector('[data-d="unresolved"]');
+    if (unresolvedBox) {
+      var unresolvedRowsKnown = Array.isArray(health.review_rows);
+      var unresolvedRows = unresolvedRowsKnown ? health.review_rows.filter(function(r){return String(r&&r.artifact_class||"").toUpperCase()==="UNKNOWN" && r.still_pending!==false;}).sort(function(a,b){return String(b.received_at||"").localeCompare(String(a.received_at||""));}) : [];
+      if (!unresolvedRowsKnown) {
+        unresolvedBox.innerHTML = unavailableHTML("Неопределённые связи не проверены", "Hub не передал review_rows[]. Панель не строит список по именам файлов.");
+      } else if (!unresolvedRows.length) {
+        unresolvedBox.innerHTML = "<div class='documents-empty compact'><strong>Активных UNKNOWN-строк нет</strong><span>В переданном review_rows[] не найдено pending-артефактов с artifact_class=UNKNOWN.</span></div>";
+      } else {
+        unresolvedBox.innerHTML = unresolvedRows.slice(0,6).map(function(r){
+          var claimed=String(r.claimed_object_id||"").trim();
+          var obj = claimed && !/^unresolved$/i.test(claimed) ? claimed : "Object ID не разрешён";
+          var reason = r.classification_reason ? humanCode(r.classification_reason) : "причина классификации не передана";
+          return "<div class='document-live-row'><b>"+esc(r.packet_file||"артефакт без имени")+"</b><span>"+esc(obj)+"</span><span>"+esc(reason)+"</span><small>"+esc(r.received_at?ago(r.received_at):"время не передано")+"</small></div>";
+        }).join("")+"<p class='documents-note'>Показаны только активные строки review_rows[] с artifact_class=UNKNOWN. Имя файла не используется для назначения объекта или канонической роли.</p>";
+      }
+    }
+
     var oldestCard = page.querySelector('[data-d="oldest"]');
     if (oldestCard) {
       var card = oldestCard.closest(".card");
