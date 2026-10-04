@@ -1,5 +1,5 @@
 import fs from "node:fs";
-const files = ["v2/index.html", "v2/live.js", "v2/command-center.js"];
+const files = ["v2/index.html", "v2/live.js", "v2/command-center.js", "FOUNDER_PANEL_UPSTREAM_GATES_CONSUMER_CONTRACT_v0.1.md", "FOUNDER_PANEL_UPSTREAM_SOURCE_CONTRACTS.md"];
 const src = Object.fromEntries(files.map((f) => [f, fs.readFileSync(new URL("../" + f, import.meta.url), "utf8")]));
 const all = Object.values(src).join("\n");
 let fails = 0;
@@ -30,5 +30,19 @@ check(!/(?:sk-[A-Za-z0-9_-]{12,}|ghp_[A-Za-z0-9]{20,}|github_pat_|AKIA[0-9A-Z]{1
 check(!/x-atlas-signals-key|ATLAS_SIGNALS_KEY_FILE/i.test(all), "no signals ingest secret markers");
 check(!/с объектом FND-007|Legacy-код обращается к `FND-007`/.test(all), "no legacy BrazilPortal identity hard-code");
 check(!/data-drawer=|id="drawer"|top-corner-arrow/.test(src["v2/index.html"]), "no legacy placeholder drawer controls");
+
+const liveClient = src["v2/live.js"];
+const agentEndpointPattern = /["'`](?:\/founder-ui-preview\/api\/)?(?:agent-registry|agent-lineage|lineage-graph)(?:\/|["'`])/i;
+check(!agentEndpointPattern.test(liveClient), "Agent Registry/Lineage upstream gate is not bypassed by a browser endpoint");
+const atlasStart = liveClient.indexOf("function renderAtlasStateClean");
+const atlasEnd = liveClient.indexOf("function renderAtlasSignalLab", atlasStart);
+const atlasRenderer = atlasStart >= 0 && atlasEnd > atlasStart ? liveClient.slice(atlasStart, atlasEnd) : "";
+check(!!atlasRenderer && !/marketSignals|signalLabStatus|founderMap|hubHealth|hub\/sync-health/i.test(atlasRenderer), "canonical ATLAS renderer does not promote adjacent signal/lab/map/Hub sources into ATLAS state");
+const gates = src["FOUNDER_PANEL_UPSTREAM_GATES_CONSUMER_CONTRACT_v0.1.md"];
+check(/Current state: UNRESOLVED \/ NOT AVAILABLE/.test(gates) && /Ownership is explicitly unresolved/.test(gates), "Agent Registry ownership remains explicitly unresolved in the consumer contract");
+check(/Current state: `NO_ATLAS_STATE_SOURCE`/.test(gates) && /signal-store state is not overall ATLAS state/.test(gates), "ATLAS no-state boundary remains explicit in the consumer contract");
+const sourceContracts = src["FOUNDER_PANEL_UPSTREAM_SOURCE_CONTRACTS.md"];
+check(/канонический upstream → серверная нормализованная проекция → Founder Panel/.test(sourceContracts) && /не становятся каноническим Agent Registry, Lineage или ATLAS state/.test(sourceContracts), "panel-facing source contracts remain explicitly downstream of canonical ownership");
+
 console.log(fails ? `STATIC CONTRACT FAILED: ${fails}` : "STATIC CONTRACT OK");
 process.exit(fails ? 1 : 0);

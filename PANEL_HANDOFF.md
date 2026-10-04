@@ -754,3 +754,12 @@ Regression proof:
 - ATLAS now renders `current_state`, `learning_state`, `promotion_state`, and related unavailable fields in Russian while preserving the upstream field boundary.
 - Operations and BrazilPortal now render source-declared `unavailable_fields[]`; live `factual_result` absence is shown explicitly instead of looking like zero, omission, or a successful closed outcome.
 - No unavailable field is inferred from missing UI content; these surfaces appear only when the upstream projection provides the array.
+
+## 2026-10-03 — Agent-network upstream contracts consumed
+
+- Consumed the neighboring agent-network handoff `FOUNDER_PANEL_UPSTREAM_GATES_HANDOFF_2026-10-03.md`.
+- Added `FOUNDER_PANEL_UPSTREAM_GATES_CONSUMER_CONTRACT_v0.1.md` as the panel-side gate contract: Agent Registry/Lineage ownership remains unresolved; ATLAS remains `NO_ATLAS_STATE_SOURCE`.
+- Reconciled `FOUNDER_PANEL_UPSTREAM_SOURCE_CONTRACTS.md` as the downstream normalized read-projection shape, not a canonical authority contract.
+- Required layering is now explicit: canonical upstream → normalized server projection → Founder Panel.
+- Added static regression gates that fail if browser code bypasses Agent Registry/Lineage ownership via a direct endpoint, or if the ATLAS canonical renderer starts promoting adjacent Signals / Signal Lab / Founder Map / Hub data into overall ATLAS state.
+- Existing audit/schema artifacts remain below the live-state boundary; they are useful as design seeds only.

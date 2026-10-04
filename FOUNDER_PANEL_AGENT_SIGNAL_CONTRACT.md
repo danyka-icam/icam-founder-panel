@@ -111,6 +111,10 @@ This file is the shared integration boundary. Changes to field meaning should be
 
 Founder Panel now has a dedicated read-only page `#agents` / «Сеть агентов» under «Инструменты системы».
 
-Expected future normalized projection fields: `source_status`, `generated_at`, `counts.total_agents`, `counts.active_agents`, `counts.degraded_agents`, `counts.stalled_agents`, `counts.unregistered_agents`, `counts.authority_conflicts`, `counts.lineage_gaps`, `counts.decisions_without_evidence`, plus `agents[].agent_id`, `role`, `state`, `owner`, `authority_scope`, `parent_agent_id`, `lineage_id`, `evidence_status`, `last_transition_at`, and incident records.
+The page is gated by `FOUNDER_PANEL_UPSTREAM_GATES_CONSUMER_CONTRACT_v0.1.md`. No live Agent Registry / Lineage source exists yet, and the existing registry JSON / census / edge files are audit-schema seeds only.
 
-Rules: systemd process names are not agent identity; service liveness is not network health; semantic similarity is not lineage; action history is not authority; missing lineage/authority/evidence remains unknown. Founder Panel may highlight an upstream incident but never mutate Agent Registry, authority or lineage.
+A future Founder-facing normalized projection may expose summary counts such as `counts.total_agents`, `counts.active_agents`, `counts.degraded_agents`, `counts.stalled_agents`, `counts.unregistered_agents`, `counts.authority_conflicts`, `counts.lineage_gaps`, `counts.decisions_without_evidence`, plus agent/incident views. Those fields are downstream view-model fields, not substitutes for the canonical upstream contract.
+
+Before activation, the canonical registry must expose the exact minimum identity/authority/runtime/evidence fields defined by the upstream-gates consumer contract, and Lineage must exist as a separately owned canonical edge source. Ownership must be resolved upstream; Founder Panel does not choose it.
+
+Rules: systemd process names are not agent identity; service liveness is not network health; semantic similarity is not lineage; action history is not authority; missing lineage/authority/evidence remains unknown. Founder Panel may highlight an upstream incident but never mutate Agent Registry, authority or lineage. Until the gate is explicitly removed by a versioned contract change, the page remains unavailable rather than falling back to inventory or audit artifacts.
