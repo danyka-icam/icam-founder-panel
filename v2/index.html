@@ -1260,6 +1260,9 @@
     .registry-live-row:first-child{border-top:0}
     .registry-live-row b{font:400 12px Georgia,"Times New Roman",serif}
     .registry-live-row span,.registry-live-row small{color:#929a95;line-height:1.35}
+    button.registry-live-row{width:100%;border-left:0;border-right:0;border-bottom:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
+    button.registry-live-row:hover,button.registry-live-row.selected{background:rgba(169,196,127,.055)}
+    button.registry-live-row.selected{box-shadow:inset 2px 0 0 rgba(169,196,127,.45)}
     .registry-mini-list{display:flex;flex-direction:column;gap:7px}
     .registry-mini-item{padding:8px 0;border-top:1px solid var(--line-soft)}
     .registry-mini-item:first-child{border-top:0}
@@ -2860,12 +2863,12 @@
 <section class="card registry-object-card">
 <div class="panel-body">
 <div class="registry-fact-grid">
-<div><small>ID объекта</small><strong>—</strong><span>неизменяемая ссылка на объект</span></div>
-<div><small>Название</small><strong>—</strong><span>читаемое имя, не заменяет ID</span></div>
-<div><small>Владеющая ветка</small><strong>—</strong><span>кто отвечает за смысл и решения</span></div>
-<div><small>Объявленное состояние</small><strong>—</strong><span>текущее каноническое состояние объекта</span></div>
-<div><small>Последнее событие</small><strong>—</strong><span>когда идентичность подтверждалась движением</span></div>
-<div><small>Требует Основателя</small><strong>—</strong><span>есть ли незавершённое решение уровня Основателя</span></div>
+<div><small>ID объекта</small><strong data-g-detail="id">—</strong><span>неизменяемая ссылка на объект</span></div>
+<div><small>Название</small><strong data-g-detail="name">—</strong><span>читаемое имя, не заменяет ID</span></div>
+<div><small>Владеющая ветка</small><strong data-g-detail="owner">—</strong><span>кто отвечает за смысл и решения</span></div>
+<div><small>Объявленное состояние</small><strong data-g-detail="status">—</strong><span>текущее состояние из Continuity</span></div>
+<div><small>Последнее событие</small><strong data-g-detail="event">—</strong><span>дата последнего события, если поле передано</span></div>
+<div><small>Требует Основателя</small><strong data-g-detail="founder">—</strong><span>буквальный needs_founder / needs_nika, если поле передано</span></div>
 </div>
 <div class="registry-card-rule">
         Следующий ход, контрольная проверка и рабочие блокеры могут отображаться в Инспекторе, но Реестр не превращается в второй Оркестратор или страницу Исследований.

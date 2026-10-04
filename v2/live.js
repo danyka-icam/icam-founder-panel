@@ -892,6 +892,7 @@
       ["count", "active", "unresolved", "founder"].forEach(function (k) {
         var el = page.querySelector('[data-g="' + k + '"]'); if (el) el.textContent = "Недоступно";
       });
+      ["id","name","owner","status","event","founder"].forEach(function(k){var e=page.querySelector('[data-g-detail="'+k+'"]');if(e)e.textContent="Недоступно";});
       var list = page.querySelector('[data-g="objects"]');
       if (list) list.innerHTML = unavailableHTML("Объекты Continuity недоступны", "Реестр не показывает прошлый список как текущее состояние.");
       return;
@@ -912,22 +913,49 @@
     put("count", itemsKnown ? items.length : "—"); put("active", itemsKnown ? (statusUnknown ? "≥ " + active.length : active.length) : "—"); put("unresolved", itemsKnown ? (eventHistoryUnknown ? "≥ " + noEventHistory.length : noEventHistory.length) : "—"); put("founder", itemsKnown ? (founderUnknown ? "≥ " + founder.length : founder.length) : "—");
     var core = page.querySelector('[data-g="identity-core"]'); if (core) core.textContent = String(itemsKnown ? (eventHistoryUnknown ? "≥ " + noEventHistory.length : noEventHistory.length) : "—");
 
+    function fillRegistryDetail(o) {
+      function detail(k,v){var e=page.querySelector('[data-g-detail="'+k+'"]');if(e)e.textContent=v;}
+      if (!o) { ["id","name","owner","status","event","founder"].forEach(function(k){detail(k,"—");}); return; }
+      detail("id", o.object_id || "не передан");
+      detail("name", o.name || "не передано");
+      detail("owner", o.owning_branch || o.owner || "не передана");
+      detail("status", Object.prototype.hasOwnProperty.call(o,"declared_status") ? (o.declared_status==null||o.declared_status===""?"передано пустое значение":ruStatus(o.declared_status)) : "поле не передано");
+      if (!Object.prototype.hasOwnProperty.call(o,"last_event_at")) detail("event","поле не передано");
+      else if (!o.last_event_at) detail("event","дата события не передана");
+      else { var dt=new Date(o.last_event_at); detail("event", isNaN(dt)?String(o.last_event_at):dt.toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})); }
+      var ff=founderFlagState(o); detail("founder", ff.known ? (ff.value?"да":"нет") : "поле не передано");
+    }
+
     var list = page.querySelector('[data-g="objects"]');
     if (list) {
       if (!itemsKnown) {
         list.innerHTML = unavailableHTML("Коллекция объектов не проверена", "Endpoint ответил, но поле items[] не передано.");
+        fillRegistryDetail(null);
       } else {
       var recent = items.slice().sort(function (a, b) {
         return String(b.last_event_at || "").localeCompare(String(a.last_event_at || ""));
       });
-      list.innerHTML = recent.length ? recent.slice(0, 12).map(function (o) {
-        return "<div class='registry-live-row'>" +
+      var shown = recent.slice(0,12);
+      var selectedId = String(page._registrySelectedObjectId || "");
+      var selectedIndex = shown.findIndex(function(o){return String(o.object_id||"")===selectedId;});
+      if (selectedIndex < 0) selectedIndex = shown.length ? 0 : -1;
+      list.innerHTML = shown.length ? shown.map(function (o,idx) {
+        return "<button type='button' class='registry-live-row"+(idx===selectedIndex?" selected":"")+"' data-g-select-index='"+idx+"'>" +
           "<b>" + esc(o.object_id || "не определён") + "</b>" +
           "<span>" + esc(o.name || "без названия") + "</span>" +
           "<span>" + esc(o.owning_branch || o.owner || "—") + "</span>" +
           "<span>" + esc(ruStatus(o.declared_status)) + "</span>" +
-          "<small>" + esc(ago(o.last_event_at)) + "</small></div>";
+          "<small>" + esc(ago(o.last_event_at)) + "</small></button>";
       }).join("") : "<div class='registry-empty'><strong>Реестр пуст в текущем items[]</strong><span>Источник явно передал пустой массив объектов.</span></div>";
+      if (selectedIndex >= 0) {
+        page._registrySelectedObjectId = shown[selectedIndex].object_id || "";
+        fillRegistryDetail(shown[selectedIndex]);
+      } else fillRegistryDetail(null);
+      list.querySelectorAll('[data-g-select-index]').forEach(function(btn){btn.addEventListener("click",function(){
+        var idx=Number(btn.getAttribute("data-g-select-index")); if(!isFinite(idx)||!shown[idx])return;
+        page._registrySelectedObjectId=shown[idx].object_id||""; fillRegistryDetail(shown[idx]);
+        list.querySelectorAll('[data-g-select-index]').forEach(function(x){x.classList.toggle("selected",x===btn);});
+      });});
       }
     }
 

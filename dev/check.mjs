@@ -78,6 +78,18 @@ for (const w of WIDTHS) {
       check(/Атлас/.test(atlasLive) && /источник сообщает|источник состояния|не передано/i.test(atlasLive), "ATLAS keeps explicit unavailable/no-state semantics instead of fabricating state");
       const agentsText = await page.locator('[data-page-panel="agents"]').innerText();
       check(/Живой источник ещё не подключён/.test(agentsText) && /не считает сервисы/.test(agentsText), "Agent Network remains explicitly unavailable without Registry/Lineage projection");
+      await page.evaluate(() => { location.hash = "registry"; });
+      await page.waitForTimeout(100);
+      const registryRows = page.locator('[data-page-panel="registry"] [data-g="objects"] [data-g-select-index]');
+      check(await registryRows.count() >= 2, "registry renders selectable Continuity object rows");
+      const bpRegistryRow = registryRows.filter({hasText:"CMP-000005"}).first();
+      await bpRegistryRow.click(); await page.waitForTimeout(60);
+      const registryDetail = async (k) => page.locator(`[data-page-panel="registry"] [data-g-detail="${k}"]`).innerText();
+      check((await registryDetail("id"))==="CMP-000005" && (await registryDetail("name"))==="BrazilPortal" && /активная сборка/i.test(await registryDetail("status")), "registry selection fills exact object identity/state fields");
+      check((await registryDetail("founder"))==="поле не передано", "registry distinguishes a missing Founder flag from explicit false");
+      const founderRegistryRow = registryRows.filter({hasText:"FND-005"}).first();
+      await founderRegistryRow.click(); await page.waitForTimeout(60);
+      check((await registryDetail("founder"))==="да", "registry renders an explicit Founder flag true without inference");
       const documentsRecent = await page.locator('[data-page-panel="documents"] [data-d="recent"]').innerText();
       check(/SMOKE_PACKET_2026-10-03\.json/.test(documentsRecent) && /на сервере/.test(documentsRecent) && /в индексе/.test(documentsRecent), "documents renders recent Hub arrivals as transport/index facts");
       check(/FND-SMOKE/.test(documentsRecent) && /SHA-256 0123456789ab/.test(documentsRecent), "documents enriches a recent Hub arrival only from exact filename provenance");

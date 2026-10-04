@@ -741,3 +741,10 @@ Regression proof:
 - `protocol_id` and `run_id` are not present in Testing summary and are explicitly not reconstructed from request/result paths.
 - The evidence card now shows only the result filename (never the internal server path), shortened request SHA, and evidence reference count.
 - Selection prefers a `NEEDS_ADJUDICATION` test, otherwise the most recently ordered available test; no scientific conclusion is promoted by this selection.
+
+## 2026-10-03 — Selectable Continuity object card
+
+- Registry object rows are now selectable and the object card is filled only from the selected Continuity `objects.items[]` record: `object_id`, `name`, `owning_branch/owner`, `declared_status`, `last_event_at`, and the explicit `needs_founder/needs_nika` flag.
+- Missing fields are distinguished from explicit empty/false values. In particular, a missing Founder flag renders `поле не передано`, while explicit true renders `да`.
+- Selection persists across panel refreshes only by exact `object_id` while that object remains in the displayed source list; otherwise the newest displayed object becomes selected.
+- Canonical object relationships remain unrendered because the current Continuity objects contract does not provide them.
