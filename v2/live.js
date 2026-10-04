@@ -2160,6 +2160,99 @@
       "<div class='foundation-ready-rule'><b>Условие возврата в READY:</b> каждое обязательное измерение должно снова иметь PASS от живого источника. Прошлый PASS или сохранённый отчёт не заменяет текущее доказательство.</div>";
   }
 
+  function wireDirectionInspector(pageKey) {
+    var page=document.querySelector('[data-page-panel="'+pageKey+'"]');
+    if(!page||page.getAttribute("data-direction-wired")==="1") return;
+    page.setAttribute("data-direction-wired","1");
+    function roleFor(el){
+      if(el.getAttribute("data-direction-role")) return el.getAttribute("data-direction-role");
+      var h=(el.querySelector("h3,h2,strong,small")||{}).textContent||"";
+      h=String(h).toLowerCase();
+      if(/инвест/.test(h))return "investment";
+      if(/исслед|модел|прогноз/.test(h))return "research";
+      if(/gate|решен|review|подтверж/.test(h))return "decision";
+      if(/свеж|границ|доказ|предохран/.test(h))return "evidence";
+      if(/модул/.test(h))return "modules";
+      return "projection";
+    }
+    function toneFor(el){
+      for(var n=el;n&&n!==page;n=n.parentElement){
+        if(n.classList&&n.classList.contains("tone-return"))return "return";
+        if(n.classList&&n.classList.contains("tone-violet"))return "violet";
+        if(n.classList&&n.classList.contains("tone-critical"))return "critical";
+        if(n.classList&&n.classList.contains("tone-blue"))return "blue";
+        if(n.classList&&n.classList.contains("tone-unknown"))return "unknown";
+        if(n.classList&&n.classList.contains("tone-flow"))return "flow";
+      }
+      return pageKey==="digital-twin"?"violet":"flow";
+    }
+    function boundary(role){
+      var m={
+        canonical:"Это основная безопасная проекция направления. Инспектор не достраивает отсутствующие поля и не повышает статус источника.",
+        investment:"Инвестиционный блок показывает только агрегаты и зафиксированные состояния источника. Незавершённый review не считается инвестиционным решением.",
+        "signal-lab":"Signal Lab — наблюдаемый исследовательский процесс. Он не подменяет каноническое состояние ATLAS.",
+        research:"Исследовательский блок показывает переданное состояние модели или прогноза без повышения доказательного статуса.",
+        decision:"Решения и gates показываются только в том виде, в котором их передал источник. Наличие карточки не означает разрешение на исполнение.",
+        evidence:"Это доказательная или защитная граница. Неизвестное остаётся неизвестным.",
+        modules:"Показаны только явно объявленные модули и их область полномочий.",
+        projection:"Панель показывает текущую серверную проекцию и не выводит скрытое состояние из косвенных признаков."
+      };
+      return m[role]||m.projection;
+    }
+    function show(el){
+      var host=page.querySelector('[data-direction-inspector="'+pageKey+'"]');
+      if(!host||!el)return;
+      page.querySelectorAll(".direction-selected").forEach(function(x){x.classList.remove("direction-selected");});
+      el.classList.add("direction-selected");
+      var role=roleFor(el), tone=toneFor(el);
+      var titleEl=el.querySelector("h3,h2,strong");
+      var title=titleEl?titleEl.textContent.trim():(pageKey==="atlas"?"ATLAS":"DT");
+      var textEls=Array.from(el.querySelectorAll("p,span,small")).filter(function(x){return !x.closest(".live-kv-clean")&&x!==titleEl;});
+      var summary=textEls.map(function(x){return x.textContent.trim();}).filter(Boolean).slice(0,4).join(" · ");
+      if(!summary){
+        var vals=Array.from(el.querySelectorAll(".live-kv-clean")).slice(0,4).map(function(x){return x.textContent.trim().replace(/\s+/g," ");});
+        summary=vals.join(" · ");
+      }
+      var toneLabel={flow:"живое / каноническое",violet:"исследование / модель",return:"решение / review",critical:"конфликт / блокировка",blue:"доказательная граница",unknown:"неизвестное"}[tone]||"проекция";
+      var ctx={
+        kind:"direction_panel",
+        title:title,
+        sub:(pageKey==="atlas"?"ATLAS":"DT")+" · "+toneLabel,
+        layer:role,
+        source:"Founder Panel / "+(pageKey==="atlas"?"ATLAS":"DT"),
+        why:boundary(role),
+        details:summary
+      };
+      var mark=pageKey==="atlas"?"A":"DT";
+      host.style.setProperty("--insp-zone",tone==="return"?"var(--cc-return)":tone==="violet"?"var(--cc-violet)":tone==="critical"?"var(--cc-critical)":tone==="blue"?"#5aa9e6":tone==="unknown"?"var(--cc-unknown)":"var(--cc-flow)");
+      host.innerHTML=
+        '<div class="cc-insp-title">'+(pageKey==="atlas"?"ATLAS":"DT")+' · контекст</div>'+
+        '<div class="cc-insp-head"><span class="direction-insp-mark">'+esc(mark)+'</span><div><h3>'+esc(title)+'</h3><small>'+esc(toneLabel)+'</small></div></div>'+
+        '<div class="cc-insp-sec"><h4>Что здесь показано</h4><p>'+esc(summary||"Источник не передал отдельное текстовое пояснение для этого окна.")+'</p></div>'+
+        '<div class="cc-insp-sec"><h4>Граница чтения</h4><p>'+esc(boundary(role))+'</p></div>'+
+        '<div class="cc-insp-sec"><h4>Что можно спросить</h4><p>Почему это состояние важно сейчас? Что изменилось? С чем связано? Какой следующий подтверждённый переход и кто его владелец?</p></div>'+
+        '<button type="button" class="cc-steward-ask"><b>Спросить Навигатора</b><span>разобрать это окно, связи, историю или следующий шаг</span></button>';
+      var b=host.querySelector(".cc-steward-ask");
+      if(b)b.setAttribute("data-cc-steward-context",JSON.stringify(ctx));
+    }
+    page.addEventListener("click",function(ev){
+      var el=ev.target.closest(".live-item-clean,.metric,.twin-proof-boundary,.atlas-invest-panel,.atlas-siglab-card,.direction-primary-panel");
+      if(!el||!page.contains(el)||el.closest(".direction-inspector"))return;
+      show(el);
+    });
+    page._showDirectionInspector=show;
+  }
+
+  function refreshDirectionInspector(pageKey) {
+    wireDirectionInspector(pageKey);
+    var page=document.querySelector('[data-page-panel="'+pageKey+'"]');
+    if(!page||!page._showDirectionInspector)return;
+    var selected=page.querySelector(".direction-selected");
+    if(selected&&selected.isConnected)return page._showDirectionInspector(selected);
+    var first=page.querySelector(".direction-primary-panel .live-status-box,.direction-primary-panel .metric,.direction-primary-panel .live-item-clean");
+    if(first)page._showDirectionInspector(first);
+  }
+
   function renderAtlasStateClean(data) {
     if (!sourceState.atlasState.ok || !data) return cleanFailure("atlas","Атлас","atlasState");
     var status = data.source_status == null ? null : String(data.source_status);
@@ -2192,7 +2285,7 @@
         "<div class='metric'><small>Revision</small><strong>r"+esc(data.atlas_state_revision==null?"—":data.atlas_state_revision)+"</strong><span>контракт "+esc(data.atlas_state_version||"—")+"</span></div>"+
         "<div class='metric'><small>Активные модули</small><strong>"+esc(modules===null?"—":modules.length)+"</strong><span>только объявленные authority-модули</span></div>"+
         "<div class='metric'><small>Blockers</small><strong>"+esc(blockers===null?"—":blockers.length)+"</strong><span>только current_blockers источника</span></div></div>"+
-        "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Состояние доменов</h3><small>раздельные authority, без сведения в один искусственный health</small></div><div class='live-kv-grid'>"+
+        "<div class='live-item-clean tone-flow' data-direction-role='canonical'><div class='live-item-clean-head'><h3>Состояние доменов</h3><small>раздельные authority, без сведения в один искусственный health</small></div><div class='live-kv-grid'>"+
           kv("Сигнальный контур",(data.signal_pipeline_health&&data.signal_pipeline_health.status)||"—")+
           kv("Исследования",research.status||"—")+
           kv("Инвестиционный контур",investment.status||"—")+
@@ -2200,12 +2293,13 @@
           kv("Замороженные/отключённые ветки",frozen.status?humanCode(frozen.status):"—")+
           kv("Граница проекции",projectionBoundary)+"</div>"+
           ((commercial.status==="UNKNOWN"||frozen.status==="UNKNOWN")?"<div class='live-warning'>Неизвестное сохранено буквально: коммерческий контур — "+esc(reasonRu(commercial.reason))+"; freeze registry — "+esc(reasonRu(frozen.reason))+".</div>":"")+"</div>"+
-        "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Исследовательский контур</h3><small>authority: "+esc(research.authority||"не передан")+"</small></div><div class='live-kv-grid'>"+
+        "<div class='live-item-clean tone-violet' data-direction-role='research'><div class='live-item-clean-head'><h3>Исследовательский контур</h3><small>authority: "+esc(research.authority||"не передан")+"</small></div><div class='live-kv-grid'>"+
           kv("Фаза",projectionTextRu(research.phase||"—"))+kv("Текущий этап",research.current_stage&&research.current_stage.label||research.current_stage&&research.current_stage.name||"—")+kv("Следующий gate",projectionTextRu(research.next_gate||"—"))+kv("Нужно решение Основателя",research.founder_action_required===true?"да":research.founder_action_required===false?"нет":"не передано")+"</div></div>"+
-        (investment.status?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Инвестиционная лаборатория</h3><small>"+esc(humanCode(investment.deployment_mode||investment.status))+"</small></div><div class='live-kv-grid'>"+kv("Состояние",investment.status)+kv("Последнее решение",investment.last_decision||"—")+kv("Зафиксированный цикл",investment.decision_cycle==null?"—":investment.decision_cycle)+kv("Текущий review",investment.decision_watch&&investment.decision_watch.status||"—")+"</div><small>Pending review не считается зафиксированным инвестиционным решением.</small></div>":"")+
-        "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Активные модули</h3></div><div class='agent-contract-list'>"+moduleCards+"</div></div>"+
-        "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Текущие gates и решения</h3></div><div class='agent-contract-list'>"+gateCards+"</div></div>"+
-        "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Смысловая свежесть</h3><small>время HTTP-ответа не используется как замена</small></div><div class='agent-contract-list'>"+(freshnessCards||"<div><b>Freshness не передана</b><span>Доменная свежесть не подтверждена.</span></div>")+"</div></div>";
+        (investment.status?"<div class='live-item-clean tone-return' data-direction-role='investment'><div class='live-item-clean-head'><h3>Инвестиционная лаборатория</h3><small>"+esc(humanCode(investment.deployment_mode||investment.status))+"</small></div><div class='live-kv-grid'>"+kv("Состояние",investment.status)+kv("Последнее решение",investment.last_decision||"—")+kv("Зафиксированный цикл",investment.decision_cycle==null?"—":investment.decision_cycle)+kv("Текущий review",investment.decision_watch&&investment.decision_watch.status||"—")+"</div><small>Pending review не считается зафиксированным инвестиционным решением.</small></div>":"")+
+        "<div class='live-item-clean tone-blue' data-direction-role='modules'><div class='live-item-clean-head'><h3>Активные модули</h3></div><div class='agent-contract-list'>"+moduleCards+"</div></div>"+
+        "<div class='live-item-clean tone-return' data-direction-role='decision'><div class='live-item-clean-head'><h3>Текущие gates и решения</h3></div><div class='agent-contract-list'>"+gateCards+"</div></div>"+
+        "<div class='live-item-clean tone-blue' data-direction-role='evidence'><div class='live-item-clean-head'><h3>Смысловая свежесть</h3><small>время HTTP-ответа не используется как замена</small></div><div class='agent-contract-list'>"+(freshnessCards||"<div><b>Freshness не передана</b><span>Доменная свежесть не подтверждена.</span></div>")+"</div></div>";
+      refreshDirectionInspector("atlas");
       return;
     }
 
@@ -2230,6 +2324,7 @@
       (unavailableFields?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Какие поля сейчас сознательно неизвестны</h3><small>буквальный unavailable_fields[] серверной проекции</small></div>"+
         (unavailableFields.length?"<div class='live-kv-grid' data-atlas-unavailable-fields>"+unavailableFields.map(function(f){return kv(projectionFieldRu(f),"недоступно");}).join("")+"</div>":"<p data-atlas-unavailable-fields>Источник явно передал пустой unavailable_fields[].</p>")+"</div>":"")+
       (nextStep?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Следующий системный шаг</h3></div><p>"+esc(projectionTextRu(nextStep))+"</p></div>":"");
+    refreshDirectionInspector("atlas");
   }
 
   function renderAtlasSignalLab(data) {
@@ -2268,7 +2363,8 @@
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Два живых потока</h3><small>показываются раздельно, чтобы не скрывать различия</small></div><div class='atlas-siglab-streams'>"+
       "<div><small>Контрольный поток</small><b>"+esc(control.observations!=null?control.observations+" наблюдений":"—")+"</b><span>confirmed: "+esc(control.confirmed!=null?control.confirmed:"—")+(control.degraded!=null?" · degraded: "+esc(control.degraded):"")+"</span></div>"+
       "<div><small>Смысловой поток</small><b>"+esc(treatment.observations!=null?treatment.observations+" наблюдений":"—")+"</b><span>confirmed: "+esc(treatment.confirmed!=null?treatment.confirmed:"—")+(treatment.degraded!=null?" · degraded: "+esc(treatment.degraded):"")+"</span></div></div><small>Поля confirmed/degraded показаны как счётчики источника без собственной научной интерпретации Панели.</small></div>"+
-      (Object.keys(review).length?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Последний обзор</h3><small>"+esc(label(review.gate_status))+"</small></div><div class='live-kv-grid'>"+kv("Длительность",review.duration_hours!=null?Number(review.duration_hours).toFixed(1)+" ч":"—")+kv("Кандидатов",review.candidate_count_union!=null?review.candidate_count_union:"—")+kv("Строгих расхождений пары",review.strict_pair_divergences!=null?review.strict_pair_divergences:"—")+kv("Файл обзора",review.file||"—")+"</div></div>":"");
+      (Object.keys(review).length?"<div class='live-item-clean tone-violet' data-direction-role='research'><div class='live-item-clean-head'><h3>Последний обзор</h3><small>"+esc(label(review.gate_status))+"</small></div><div class='live-kv-grid'>"+kv("Длительность",review.duration_hours!=null?Number(review.duration_hours).toFixed(1)+" ч":"—")+kv("Кандидатов",review.candidate_count_union!=null?review.candidate_count_union:"—")+kv("Строгих расхождений пары",review.strict_pair_divergences!=null?review.strict_pair_divergences:"—")+kv("Файл обзора",review.file||"—")+"</div></div>":"");
+    refreshDirectionInspector("atlas");
   }
 
   // Founder-safe prediction-state labels only. Never render clone
@@ -2336,11 +2432,11 @@
       "<div class='metric'><small>Режим</small><strong>" + esc(modeLabel) + "</strong><span>режим выполнения, не оценка качества прогноза</span></div>" +
       "<div class='metric'><small>Активных клонов</small><strong>" + esc(data.clones_active != null ? data.clones_active : "—") + "</strong><span>вычислительные варианты C0–C7</span></div>" +
       "<div class='metric'><small>Оценено проспективных прогнозов</small><strong>" + esc(scoredN == null ? "—" : scoredN) + "</strong><span>исходы, по которым уже можно измерять качество</span></div></div>" +
-      "<div class='twin-proof-boundary'><b>Граница доказанного:</b> текущий source_status — " + esc(status || "не передан") + ". " +
+      "<div class='twin-proof-boundary tone-blue' data-direction-role='evidence'><b>Граница доказанного:</b> текущий source_status — " + esc(status || "не передан") + ". " +
         ((String(status || "").toUpperCase() === "LIVE" || String(status || "").toUpperCase() === "OK") ? "Источник этим статусом сообщает доступность вычислительного контура; это не доказывает точность прогноза. " : "Панель не повышает этот статус до утверждения о доступности или точности вычислительного контура. ") +
         (scoredN == null ? "Число оценённых проспективных исходов источником не передано — вывод о предсказательной способности не делается." :
           (scoredN === 0 ? "Пока оценено 0 проспективных исходов — предсказательная способность и лучший клон не определены." : "Оценённые исходы существуют, но их качество должно читаться из отдельной доказательной проекции.")) + "</div>" +
-      "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Текущее состояние прогноза</h3>" + chip(data.current_prediction || "—") + "</div>" +
+      "<div class='live-item-clean tone-violet' data-direction-role='research'><div class='live-item-clean-head'><h3>Текущее состояние прогноза</h3>" + chip(data.current_prediction || "—") + "</div>" +
       "<div class='live-kv-grid'>" +
       kv("Статус", predLabel) +
       kv("SHA-256 запечатанного обязательства", data.current_commitment ? cut(data.current_commitment, 24) + "…" : "—") +
@@ -2351,9 +2447,10 @@
         "<div class='live-status-box warn' style='margin-top:8px'><strong>Ожидает подтверждения: " + esc(needsConf) + "</strong>" +
         "<p>Исход неоднозначен. Панель только показывает ожидание — подтверждение здесь не выполняется.</p></div>" : "") +
       "</div>" +
-      "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Предохранители эксперимента</h3>" + chip(Object.keys(inv).length ? "ИЗ ИСТОЧНИКА" : "—") + "</div>" +
+      "<div class='live-item-clean tone-blue' data-direction-role='evidence'><div class='live-item-clean-head'><h3>Предохранители эксперимента</h3>" + chip(Object.keys(inv).length ? "ИЗ ИСТОЧНИКА" : "—") + "</div>" +
       "<div class='live-kv-grid'>" + invRows + "</div>" +
       "<small>Граница переноса SS001: " + esc(transferLabel) + ".</small></div>";
+    refreshDirectionInspector("digital-twin");
   }
 
   function HumanFoundationStatus(value) {

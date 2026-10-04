@@ -930,3 +930,14 @@ Current verified state:
 - Normalized-live visibility contract was updated to preserve both ATLAS Signal Lab and Investment ATLAS beneath the canonical ATLAS projection.
 - Static contract passed. Headless Chrome visual checks were completed for ATLAS, DT and Signals at desktop width. Signals layout remains coherent after removing the investment card.
 - Production static files `v2/index.html`, `v2/live.js`, and `v2/command-center.css` were deployed with a pre-change server backup at `/opt/icam/preview/founder-ui-preview/v2.backup-20261004-ui`.
+
+## 2026-10-04 — ATLAS / DT semantic color + Navigator inspector pass
+
+- ATLAS and DT now use the same interaction/composition pattern as Command Center and Timeline: main content column + sticky right inspector.
+- Semantic color zoning added: flow/canonical = teal; research/model = violet; review/decision/investment = amber; evidence/safety/freshness = blue; critical = red; unknown = grey.
+- ATLAS canonical summary KPIs now carry distinct semantic top accents instead of a single green visual field. Domain state, research, investment, modules, gates and semantic freshness are visually separated.
+- DT summary KPIs use the same semantic differentiation; current prediction and experimental-safety blocks are visually separated.
+- Both direction pages expose a contextual inspector. Selecting a status box, KPI or inner card shows what the window contains, the reading/evidence boundary, suggested questions, and a «Спросить Навигатора» action using the existing approved Steward/Navigator interaction channel.
+- The inspector never infers missing state: its detail text is derived from the already-rendered safe projection and fixed page-role boundaries.
+- Headless Chrome visual checks passed for ATLAS and DT at 1680px desktop width. Static contract remains PASS.
+- Production static files were deployed after backup to `/opt/icam/preview/founder-ui-preview/v2.backup-20261004-direction-v2`.
