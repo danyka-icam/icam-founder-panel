@@ -870,3 +870,16 @@ Current verified state:
 - review source `available = true`
 - review freshness = `OK`
 - current Supervisor discrepancies contain no review-authority-unavailable or review-queue-freshness alert.
+
+## 2026-10-04 — Post-review upstream discrepancy pass
+
+- Mac outbox health false-positive repaired in `~/bin/icam-hub-push`. Three old delivery attempts had remained `QUEUED` under their original `local_event_id` although identical immutable SHA objects were later delivered and ACKED under new event IDs. The append-only ledger was not rewritten; the derived summary now treats a stranded QUEUED/SENT attempt as `SUPERSEDED` when the exact same SHA has an ACKED delivery.
+- After rebuilding the Mac summary, `branch_freshness.UNKNOWN` moved from `pending_count=3 / STALE` to `pending_count=0 / CURRENT`.
+- Continuity recovery logic was hardened so `CURRENT` is a healthy recovery state alongside FRESH/HEALTHY/OK/PASS/SYNCED. This lets a prior branch-freshness STALE issue auto-resolve instead of remaining open forever after recovery.
+- A second review-classification ingress gap was found: `/usr/local/bin/icam_hub_ingest.py` can append file-ingested update packets directly to `pending_updates.jsonl` without creating a REV_FLOW classification record. Exact-key baseline v0.2 exposed three fresh false anonymous-review rows immediately.
+- Hub r14 read model now fail-safely runs the deterministic current classifier when a queue row has no persisted classification record. Persisted classification remains authoritative when present; missing-record fallback is marked `DERIVED_READPATH`. The three new `CHAT_UPDATE_*` rows therefore resolve to `OPERATIONAL_EVIDENCE`; verified review state returned to 36 manual / 2 actionable / 34 exact legacy / 0 new anonymous, freshness OK.
+- The remaining `ingress_accepted_but_not_ingested` discrepancy was inspected exactly. Two historical packets are deliberately unresolved:
+  - SHA `4e6de2ec...`: `object_id=PANEL_SYNC_INFRA`, `event_type=INFRASTRUCTURE_DECISION` (outside the closed Continuity event vocabulary).
+  - SHA `8a28240f...`: `event_type=NEW_FILE`, but `object_id` is explicitly empty.
+  No automatic semantic normalization or branch-to-object inference was authorized. Keep this as honest historical owner debt unless a canonical alias/binding is supplied.
+- FND-002 `TERMINAL_CONFLICT` was traced to exact provenance. The fresh next-move field comes from raw event `fe424809-d3c1-4276-bca4-29cdacc16d44`, which is the `last_raw_event_id` of cleared blocker `SECURITY-CREDENTIAL-ROTATION-20260926-001`. The blocker is `CLEARED`, owned by `SYSTEM / Infrastructure Security`; next gate is CLOSED. A Supervisor patch has been prepared locally to classify an exact terminal next-move sourced from a CLEARED blocker as `TERMINAL_CLOSURE` instead of `TERMINAL_CONFLICT`. This uses event provenance, not text interpretation. Deployment was not yet verified at the time of this handoff note because the SSH channel reset during the final provenance read.
