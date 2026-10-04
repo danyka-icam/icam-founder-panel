@@ -805,3 +805,16 @@ Regression proof:
 - Agent Network now renders verified identities, explicit `authority_scope`, verified Lineage edges, registry/lineage revisions, and source-provided gap counters. A non-zero lineage gap degrades the network state but does not make the entire source unavailable.
 - Bootstrap census/registry/edge seed artifacts remain below the live boundary and are never rendered directly.
 - Browser regression passed at 1680 / 1280 / 820 / 390 with no JS errors.
+
+## 2026-10-04 — Gate 2 resolved: canonical ATLAS State connected
+
+- Consumed the ATLAS return package: `dev/atlas_state_payload_gate2.json`, `dev/atlas_state_contract_v1.json`, and `dev/ATLAS_STATE_GATE2_RETURN_2026-10-04.md`.
+- The real live payload passes `node dev/upstream-gate-check.mjs atlas-state` under nvm Node 22; all 13 required fields are present.
+- Canonical authority is `aiclavis-atlas-state` / `ATLAS_STATE_CANON_V1`; contract `aiclavis.atlas-state.v1` v1.0.0; current operating mode is `PARTIAL_DECLARED_STATE`.
+- Gate 2 is now resolved for read-only Founder consumption. Added `FOUNDER_PANEL_UPSTREAM_GATES_CONSUMER_CONTRACT_v0.3.md`.
+- The canonical ATLAS source retains internal evidence locations server-side. Founder projection was hardened in ATLAS State release `v1.0.0-20261004-r3`: internal evidence URLs are replaced by stable logical `evidence_ref_id` values and `projection_boundary=FOUNDER_READ_ONLY_SANITIZED_V1` is explicit.
+- Live same-origin Founder projection contains no localhost/private service coordinates. The browser reads only the approved `/founder-ui-preview/api/atlas-state` projection and never accesses the canonical service route directly.
+- ATLAS renderer now shows canonical authority/revision/operating mode, active modules, domain-specific semantic freshness, research gate, investment review, current blockers/gates, and explicit UNKNOWN commercial/freeze domains.
+- The renderer does not synthesize a global health value from domain status and does not promote pending investment review into a committed decision.
+- Signal state, research state, investment state, commercial state, freeze registry and Founder projections remain distinct authority domains.
+- Browser regression passed at 1680 / 1280 / 820 / 390 with no JS errors.

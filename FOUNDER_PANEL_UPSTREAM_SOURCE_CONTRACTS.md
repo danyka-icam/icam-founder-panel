@@ -2,7 +2,7 @@
 
 Статус: контракт нормализованной read-only проекции для Founder Panel. Документ не создаёт новые канонические сущности, не назначает владельца upstream-смысла и не разрешает Панели выводить состояние из косвенных признаков.
 
-Этот документ является **нижним потребительским слоем** после `FOUNDER_PANEL_UPSTREAM_GATES_CONSUMER_CONTRACT_v0.2.md`:
+Этот документ является **нижним потребительским слоем** после `FOUNDER_PANEL_UPSTREAM_GATES_CONSUMER_CONTRACT_v0.3.md`:
 
 `канонический upstream → серверная нормализованная проекция → Founder Panel`.
 
@@ -69,62 +69,47 @@
 
 ## 2. ATLAS State Source
 
-### Зачем нужен источник
+### Канонический владелец и контракт
 
-Документы `ATLAS_UPDATE_*`, Founder Map, Signal Lab, прогнозные пакеты и research artifacts описывают работу вокруг ATLAS, но не являются текущим каноническим состоянием ATLAS.
+Gate 2 снят. Канонический владелец общего состояния ATLAS: `aiclavis-atlas-state` / `ATLAS_STATE_CANON_V1`. Контракт — `aiclavis.atlas-state.v1`, версия `1.0.0`, read-only.
 
-Панель не должна выводить `current_state`, роль, состояние обучения или повышение статуса из документов.
+Founder Panel получает только очищенную Founder projection; canonical state-service остаётся серверным authority-слоем.
 
 ### Минимальная read-only проекция
 
-Источник считается достаточным для подключения, когда он отдаёт:
+Источник обязан сохранять поля:
 
-- `source_status`
+- `atlas_state_version`
 - `generated_at`
-- `state_revision`
-- `current_state`
-- `material_activity`
-- `object_detail`
-- `epistemic_role`
-- `learning_state`
-- `promotion_state`
-- `freshness_source_timestamp`
+- `source_authority`
+- `operating_mode`
+- `active_modules`
+- `signal_pipeline_health`
+- `research_runs_active`
+- `commercial_runs_active`
+- `frozen_or_disabled_branches`
+- `current_blockers`
+- `current_decisions_or_gates`
+- `evidence_refs`
+- `freshness`
 
-Дополнительные поля, если они существуют в самом источнике:
-
-- `next_action`
-- `blocked_stage`
-- `blocking_reasons[]`
-- `unavailable_fields[]`
-
-### Допустимые модели владения состоянием
-
-Ровно одна из двух:
-
-1. ATLAS становится каноническим объектом Continuity и нужные поля приходят оттуда; или
-2. ATLAS имеет собственный state-service / state-store, а Founder Panel получает только read-only projection.
-
-Обе модели одновременно без явного правила приоритета запрещены.
+Допустимые дополнительные поля текущего v1: `activity_state`, `investment_lab_state`, `atlas_state_revision`, `canonicalized_at`, `projection_boundary`.
 
 ### Жёсткие правила
 
-1. Hub/library документы не повышаются до state source.
-2. Signal Lab не считается состоянием ATLAS.
-3. Founder Map не считается состоянием ATLAS.
-4. Отсутствующие поля остаются неизвестными и могут быть перечислены в `unavailable_fields[]`.
-5. Панель не рассчитывает `promotion_state`, `learning_state` или `epistemic_role` самостоятельно.
-6. До появления источника endpoint продолжает честно возвращать `NO_ATLAS_STATE_SOURCE`.
+1. Signal store остаётся authority только сигнального домена, а не всего ATLAS.
+2. Signal Lab остаётся authority исследовательского runtime, а не всего ATLAS.
+3. Founder Map остаётся производной проекцией.
+4. Commercial и freeze могут честно оставаться `UNKNOWN`/`UNAVAILABLE`; отсутствие активности не превращается в freeze.
+5. Freshness является смысловой свежестью доменного authority; время HTTP-ответа не заменяет её.
+6. Pending investment review не повышается до зафиксированного investment decision.
+7. Founder projection не должна раскрывать внутренние координаты canonical sources; для доказательств допустимы стабильные `evidence_ref_id`.
+8. Панель не рассчитывает общий health ATLAS из состояний отдельных доменов.
+9. Панель не меняет ATLAS state.
 
-### Условие подключения к Founder Panel
+### Текущее состояние подключения
 
-Перед сменой `NO_ATLAS_STATE_SOURCE` на живое состояние должны быть определены:
-
-- владелец канонического состояния;
-- правило изменения `state_revision`;
-- источник времени для `freshness_source_timestamp`;
-- какие переходы меняют `current_state`;
-- какие переходы меняют `learning_state` и `promotion_state`;
-- как различаются `UNAVAILABLE`, `STALE`, `DEGRADED` и живое состояние.
+Read-only Gate 2 активирован. Реальный payload проходит `dev/upstream-gate-check.mjs atlas-state`; все обязательные поля присутствуют. Текущий operating mode — `PARTIAL_DECLARED_STATE`, что означает честное объединение только объявленных доменных authority при сохранении UNKNOWN/null.
 
 ---
 
@@ -138,4 +123,4 @@
 - bootstrap census/registry/edge seeds остаются ниже live boundary и напрямую Панелью не читаются;
 - Authority Observability по-прежнему не является Agent Registry;
 - Atlas Founder Map по-прежнему не является lineage агентов;
-- `/panel/atlas` корректно сообщает `NO_ATLAS_STATE_SOURCE`; Gate 2 остаётся unresolved.
+- ATLAS State Authority live; Gate 2 resolved for read-only Founder consumption; browser projection uses the sanitized boundary and preserves domain UNKNOWN/DEGRADED states.

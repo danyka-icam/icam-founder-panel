@@ -170,7 +170,31 @@ const panelApi = {
     unavailable_fields: ["factual_result"]
   }),
   "panel/foundation": () => ({ source_status: "DEGRADED", dimensions: [], blocking_reasons: ["orphan receipt"] }),
-  "panel/atlas": () => ({ source_status: "UNAVAILABLE", error_class: "NO_ATLAS_STATE_SOURCE", degraded_reason: "ATLAS has no state source: it is not a Continuity object, exposes no service or state store on this host, and exists in the Hub only as documents (ATLAS_UPDATE_* library artifacts). Those documents are not state and are deliberately not parsed as state.", blocked_stage: "BLOCKED_UPSTREAM", unavailable_fields: ["current_state","learning_state","promotion_state"], unblock_requires: "ATLAS must expose its own state -- either as a Continuity object reporting projected fields, or as a service with a state store. Until then the panel should render UNAVAILABLE with this reason and must not infer role, promotion or learning state from library documents." }),
+  "atlas-state": () => ({
+    atlas_state_version: "1.0.0", generated_at: iso(0), source_status: "LIVE", atlas_state_revision: 4, projection_boundary: "FOUNDER_READ_ONLY_SANITIZED_V1",
+    source_authority: { authority_id: "aiclavis-atlas-state", authority_class: "CANONICAL_CROSS_DOMAIN_READ_MODEL", semantic_owner: "ATLAS_STATE_CANON_V1" },
+    operating_mode: "PARTIAL_DECLARED_STATE",
+    active_modules: [
+      { module: "atlas-signals", state: "LIVE", authority_scope: "signal-domain-only", evidence_ref_id: "atlas-evidence-signals" },
+      { module: "signal-lab", state: "RUNNING", authority_scope: "research-runtime-only", evidence_ref_id: "atlas-evidence-research" },
+      { module: "investment-live-lab", state: "LIVE_SHADOW", authority_scope: "investment-lab-only", evidence_ref_id: "atlas-evidence-investment" }
+    ],
+    signal_pipeline_health: { status: "LIVE", flow_activated: true, stored_signals: 110, authority: "atlas-signals" },
+    research_runs_active: { status: "RUNNING", active: true, phase: "GLOBAL_COMPARATIVE_EXPANSION", current_stage: { index: 1, total: 4, name: "FREEZE_GLOBAL_UNIVERSE", label: "Заморозка глобальной сравнительной панели", status: "IN_PROGRESS" }, next_gate: "GLOBAL_UNIVERSE_FREEZE", founder_action_required: false, authority: "signal-lab" },
+    commercial_runs_active: { status: "UNKNOWN", active: null, runs: null, reason: "NO_DECLARED_CANONICAL_SOURCE", authority: null },
+    frozen_or_disabled_branches: { status: "UNKNOWN", items: null, reason: "NO_DECLARED_CANONICAL_SOURCE" },
+    current_blockers: [],
+    current_decisions_or_gates: [
+      { domain: "research", type: "GATE", value: "GLOBAL_UNIVERSE_FREEZE", source: "signal-lab" },
+      { domain: "investment-lab", type: "DECISION_REVIEW", value: "REVIEW_REQUIRED", cycle: 3, source: "investment-live-lab" }
+    ],
+    evidence_refs: [
+      { domain: "signals", authority: "signals", evidence_ref_id: "atlas-evidence-signals" },
+      { domain: "signal_lab", authority: "signal_lab", evidence_ref_id: "atlas-evidence-research" }
+    ],
+    freshness: { policy: "semantic source/domain freshness", domains: { signal_pipeline: { status: "DEGRADED", semantic_at: null }, research: { status: "LIVE", semantic_at: iso(0) }, investment: { status: "LIVE", semantic_at: iso(1) }, commercial: { status: "UNAVAILABLE", semantic_at: null }, freeze_registry: { status: "UNAVAILABLE", semantic_at: null } } },
+    investment_lab_state: { status: "LIVE_SHADOW", deployment_mode: "PROSPECTIVE_SHADOW_DEPLOYMENT", last_decision: "NO_CHANGE", decision_cycle: 2, decision_watch: { status: "REVIEW_REQUIRED", pending_cycle: 3 } }
+  }),
   "panel/twin": () => ({ source_status: "AVAILABLE" }),
   "signals": () => ({ activation_state: "ACTIVATED", signals: [{ signal_id: "s1", entity: "Fund", title: "t" }] }),
   "signals/field-movement": () => ({ axes: [] }),

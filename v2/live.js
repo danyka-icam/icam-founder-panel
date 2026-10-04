@@ -21,7 +21,7 @@
     opsProjection: API + "/panel/operations",
     brazilPortal: API + "/panel/brazilportal",
     foundationAgg: API + "/panel/foundation",
-    atlasState: API + "/panel/atlas",
+    atlasState: API + "/atlas-state",
     twinState: API + "/panel/twin",
     marketSignals: API + "/signals",
     fieldMovement: API + "/signals/field-movement",
@@ -2537,9 +2537,53 @@
   function renderAtlasStateClean(data) {
     if (!sourceState.atlasState.ok || !data) return cleanFailure("atlas","Атлас","atlasState");
     var status = data.source_status == null ? null : String(data.source_status);
-    var body=activateNormalized("atlas",status,
-      "АТЛАС · "+sourceStatusLabel(status));
+    var body=activateNormalized("atlas",status,"АТЛАС · "+sourceStatusLabel(status));
     if(!body)return;
+
+    // Gate-2 v1 canonical Founder projection.
+    if (data.atlas_state_version && data.source_authority) {
+      var authority=data.source_authority||{};
+      var modules=Array.isArray(data.active_modules)?data.active_modules:null;
+      var gates=Array.isArray(data.current_decisions_or_gates)?data.current_decisions_or_gates:null;
+      var blockers=Array.isArray(data.current_blockers)?data.current_blockers:null;
+      var freshness=data.freshness&&data.freshness.domains?data.freshness.domains:{};
+      var research=data.research_runs_active||{};
+      var commercial=data.commercial_runs_active||{};
+      var frozen=data.frozen_or_disabled_branches||{};
+      var investment=data.investment_lab_state||{};
+      function modeRu(v){var m={PARTIAL_DECLARED_STATE:"частично объявленное состояние"};return m[String(v||"")]||humanCode(v||"—");}
+      function domainRu(v){var m={signal_pipeline:"сигнальный контур",research:"исследования",investment:"инвестиционный контур",commercial:"коммерческий контур",freeze_registry:"реестр заморозки","investment-lab":"инвестиционная лаборатория"};return m[String(v||"")]||humanCode(v||"—");}
+      function reasonRu(v){var m={NO_DECLARED_CANONICAL_SOURCE:"канонический источник не объявлен"};return m[String(v||"")]||projectionTextRu(v||"—");}
+      function dt(v){return v?new Date(v).toLocaleString("ru-RU",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"—";}
+      var freshnessCards=Object.keys(freshness).map(function(k){var f=freshness[k]||{};return "<div><b>"+esc(domainRu(k))+" · "+esc(sourceStatusLabel(f.status||"UNKNOWN"))+"</b><span>смысловая метка: "+esc(dt(f.semantic_at))+"</span></div>";}).join("");
+      var moduleCards=modules===null?"<div><b>Модули не переданы</b><span>Поле active_modules отсутствует.</span></div>":(modules.length?modules.map(function(m){return "<div><b>"+esc(m.module||"модуль")+" · "+esc(humanCode(m.state||"—"))+"</b><span>область полномочий: "+esc(humanCode(m.authority_scope||"—"))+(m.evidence_ref_id?" · доказательство: "+esc(m.evidence_ref_id):"")+"</span></div>";}).join(""):"<div><b>Активных модулей нет</b><span>Источник явно передал пустой active_modules[].</span></div>");
+      var gateCards=gates===null?"<div><b>Gates не переданы</b><span>Поле current_decisions_or_gates отсутствует.</span></div>":(gates.length?gates.map(function(g){return "<div><b>"+esc(domainRu(g.domain))+" · "+esc(humanCode(g.type||"—"))+"</b><span>"+esc(projectionTextRu(g.value||"—"))+(g.cycle!=null?" · цикл "+esc(g.cycle):"")+"</span></div>";}).join(""):"<div><b>Текущих gates нет</b><span>Источник явно передал пустой список.</span></div>");
+      var projectionBoundary=data.projection_boundary||"не передана";
+      body.innerHTML=
+        "<div class='live-status-box "+sourceStatusBoxClass(status)+"'><strong>ATLAS — "+esc(sourceStatusLabel(status))+"</strong><p>Каноническое междоменное состояние читается из ATLAS State Authority. Неизвестные домены сохраняются неизвестными и не достраиваются Панелью.</p></div>"+
+        "<div class='live-summary'>"+
+        "<div class='metric'><small>Режим</small><strong>"+esc(modeRu(data.operating_mode))+"</strong><span>source_authority: "+esc(authority.authority_id||"не передан")+"</span></div>"+
+        "<div class='metric'><small>Revision</small><strong>r"+esc(data.atlas_state_revision==null?"—":data.atlas_state_revision)+"</strong><span>контракт "+esc(data.atlas_state_version||"—")+"</span></div>"+
+        "<div class='metric'><small>Активные модули</small><strong>"+esc(modules===null?"—":modules.length)+"</strong><span>только объявленные authority-модули</span></div>"+
+        "<div class='metric'><small>Blockers</small><strong>"+esc(blockers===null?"—":blockers.length)+"</strong><span>только current_blockers источника</span></div></div>"+
+        "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Состояние доменов</h3><small>раздельные authority, без сведения в один искусственный health</small></div><div class='live-kv-grid'>"+
+          kv("Сигнальный контур",(data.signal_pipeline_health&&data.signal_pipeline_health.status)||"—")+
+          kv("Исследования",research.status||"—")+
+          kv("Инвестиционный контур",investment.status||"—")+
+          kv("Коммерческий контур",commercial.status?humanCode(commercial.status):"—")+
+          kv("Замороженные/отключённые ветки",frozen.status?humanCode(frozen.status):"—")+
+          kv("Граница проекции",projectionBoundary)+"</div>"+
+          ((commercial.status==="UNKNOWN"||frozen.status==="UNKNOWN")?"<div class='live-warning'>Неизвестное сохранено буквально: коммерческий контур — "+esc(reasonRu(commercial.reason))+"; freeze registry — "+esc(reasonRu(frozen.reason))+".</div>":"")+"</div>"+
+        "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Исследовательский контур</h3><small>authority: "+esc(research.authority||"не передан")+"</small></div><div class='live-kv-grid'>"+
+          kv("Фаза",projectionTextRu(research.phase||"—"))+kv("Текущий этап",research.current_stage&&research.current_stage.label||research.current_stage&&research.current_stage.name||"—")+kv("Следующий gate",projectionTextRu(research.next_gate||"—"))+kv("Нужно решение Основателя",research.founder_action_required===true?"да":research.founder_action_required===false?"нет":"не передано")+"</div></div>"+
+        (investment.status?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Инвестиционная лаборатория</h3><small>"+esc(humanCode(investment.deployment_mode||investment.status))+"</small></div><div class='live-kv-grid'>"+kv("Состояние",investment.status)+kv("Последнее решение",investment.last_decision||"—")+kv("Зафиксированный цикл",investment.decision_cycle==null?"—":investment.decision_cycle)+kv("Текущий review",investment.decision_watch&&investment.decision_watch.status||"—")+"</div><small>Pending review не считается зафиксированным инвестиционным решением.</small></div>":"")+
+        "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Активные модули</h3></div><div class='agent-contract-list'>"+moduleCards+"</div></div>"+
+        "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Текущие gates и решения</h3></div><div class='agent-contract-list'>"+gateCards+"</div></div>"+
+        "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Смысловая свежесть</h3><small>время HTTP-ответа не используется как замена</small></div><div class='agent-contract-list'>"+(freshnessCards||"<div><b>Freshness не передана</b><span>Доменная свежесть не подтверждена.</span></div>")+"</div></div>";
+      return;
+    }
+
+    // Pre-Gate-2 / degraded compatibility path.
     var reason = data.degraded_reason || data.reason || null;
     var errorClass = data.error_class || null;
     var currentState = data.current_state || data.state || null;
