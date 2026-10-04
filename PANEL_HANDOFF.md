@@ -747,3 +747,10 @@ Regression proof:
 - Known ATLAS no-state / unblock messages are translated into Russian for the Founder UI while the formal error code remains visible.
 - Library documents remain explicitly below the state boundary: `ATLAS_UPDATE_*` artifacts are not parsed or promoted into current state.
 - Agent Network was re-verified separately: no live Agent Registry / Lineage projection endpoint is present; systemd services and the historical static registry scaffold remain non-authoritative and must not populate `#agents`.
+
+## 2026-10-03 — Source-declared unknown fields are visible
+
+- Added a shared Russian field-label mapping for normalized projection `unavailable_fields[]`.
+- ATLAS now renders `current_state`, `learning_state`, `promotion_state`, and related unavailable fields in Russian while preserving the upstream field boundary.
+- Operations and BrazilPortal now render source-declared `unavailable_fields[]`; live `factual_result` absence is shown explicitly instead of looking like zero, omission, or a successful closed outcome.
+- No unavailable field is inferred from missing UI content; these surfaces appear only when the upstream projection provides the array.

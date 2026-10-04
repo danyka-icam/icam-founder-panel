@@ -132,7 +132,7 @@ const panelApi = {
   "testing/summary": () => ({ active: [{ test_id: "TEST-SMOKE-1", request_sha: "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789", owning_branch: "Smoke Research", object_id: "FND-SMOKE", test_type: "METHODOLOGY", status: "NEEDS_ADJUDICATION", current_gate: "U10_HANDOFF", procedure_status: "PROCEDURE_PASS", scientific_outcome: "DOMAIN_ADJUDICATION_REQUIRED", result_path: "/private/testing/TEST-SMOKE-1/result__rev2.json", delivery_state: "PUBLISHED", delivery_revision: 2, evidence_refs: ["TEST-SMOKE-1:A:aaa", "TEST-SMOKE-1:B:bbb"], updated_at: iso(0) }], recent: [] }),
   "testing-health": () => ({}), "testing-runner-health": () => ({}),
   "hub/sync-health": () => ({ objects_on_disk: 853, orphan_receipts: 1, hash_mismatches: 0, coverage: "FULL_END_TO_END", recent_48h: [{ filename: "SMOKE_PACKET_2026-10-03.json", branch: "Smoke branch", outbox: true, server: true, index: true, review: "PENDING", received_at: iso(0) }], review_rows: [{ packet_file: "SMOKE_PACKET_2026-10-03.json", claimed_object_id: "FND-SMOKE", sha256: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", artifact_class: "WORKING_REFERENCE", still_pending: true }, { packet_file: "UNKNOWN_PACKET_2026-10-03.md", claimed_object_id: "UNRESOLVED", sha256: "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789", artifact_class: "UNKNOWN", still_pending: true, classification_reason: "no explicit canonical/operational/working signal found in content", received_at: iso(0) }] }), "continuity-health": () => ({}),
-  "panel/operations": () => ({ source_status: "AVAILABLE", freshness_state: "FRESH", counts: {}, operations: [] }),
+  "panel/operations": () => ({ source_status: "DEGRADED", freshness_state: "STALE", degraded_reason: "no commitment movement within freshness window", unavailable_fields: ["factual_result"], counts: {}, operations: [] }),
   "panel/brazilportal": () => ({
     source_status: "AVAILABLE",
     status_views: {
@@ -146,7 +146,8 @@ const panelApi = {
       relation: "DIFFERENT_NAMESPACES_SAME_SYSTEM",
       canonical_read_key: "BP-OP-SMOKE-42"
     },
-    open_blockers: { count: 2 }
+    open_blockers: { count: 2 },
+    unavailable_fields: ["factual_result"]
   }),
   "panel/foundation": () => ({ source_status: "DEGRADED", dimensions: [], blocking_reasons: ["orphan receipt"] }),
   "panel/atlas": () => ({ source_status: "UNAVAILABLE", error_class: "NO_ATLAS_STATE_SOURCE", degraded_reason: "ATLAS has no state source: it is not a Continuity object, exposes no service or state store on this host, and exists in the Hub only as documents (ATLAS_UPDATE_* library artifacts). Those documents are not state and are deliberately not parsed as state.", blocked_stage: "BLOCKED_UPSTREAM", unavailable_fields: ["current_state","learning_state","promotion_state"], unblock_requires: "ATLAS must expose its own state -- either as a Continuity object reporting projected fields, or as a service with a state store. Until then the panel should render UNAVAILABLE with this reason and must not infer role, promotion or learning state from library documents." }),

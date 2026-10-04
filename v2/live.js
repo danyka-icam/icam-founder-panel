@@ -201,6 +201,21 @@
     return raw;
   }
 
+  function projectionFieldRu(value) {
+    var raw=String(value==null?"":value).trim();
+    var map={
+      current_state:"текущее состояние",
+      material_activity:"материальная активность",
+      object_detail:"детали объекта",
+      epistemic_role:"эпистемическая роль",
+      learning_state:"состояние обучения",
+      promotion_state:"повышение статуса",
+      freshness_source_timestamp:"метка времени свежести источника",
+      factual_result:"фактический результат"
+    };
+    return map[raw]||humanCode(raw);
+  }
+
   function projectionTextRu(value) {
     var raw = String(value == null ? "" : value).trim();
     if (!raw) return raw;
@@ -2415,7 +2430,9 @@
         (owner==="Недоступно"?"<small>Источник: "+esc(projectionTextRu(o.ball_owner_reason||"владелец хода не передан"))+"</small>":"")+
         (objectBlockers.length?"<small>У связанного объекта есть "+esc(objectBlockers.length)+" открытых blocker-записей. Источник прямо запрещает считать их блокерами именно этого обязательства.</small>":(!objectBlockersKnown?"<small>Поле object_level_blockers[] не передано; отсутствие blocker-контекста объекта не подтверждено.</small>":""))+"</div>";
     }).join("");
-    body.innerHTML=summary+"<div class='live-list-clean'>"+rows+"</div>"+(ordered.length>6?"<div class='live-more'>Сначала показаны записи без явного закрывающего статуса. Ещё "+(ordered.length-6)+" записей скрыты из обзора.</div>":"");
+    var unavailableOpsFields=Array.isArray(data.unavailable_fields)?data.unavailable_fields:null;
+    var unavailableOpsHTML=unavailableOpsFields?("<div class='live-item-clean'><div class='live-item-clean-head'><h3>Сознательно неизвестные поля</h3><small>буквальный unavailable_fields[] операционной проекции</small></div>"+(unavailableOpsFields.length?"<div class='live-kv-grid' data-ops-unavailable-fields>"+unavailableOpsFields.map(function(f){return kv(projectionFieldRu(f),"недоступно");}).join("")+"</div>":"<p data-ops-unavailable-fields>Источник явно передал пустой unavailable_fields[].</p>")+"</div>"):"";
+    body.innerHTML=summary+unavailableOpsHTML+"<div class='live-list-clean'>"+rows+"</div>"+(ordered.length>6?"<div class='live-more'>Сначала показаны записи без явного закрывающего статуса. Ещё "+(ordered.length-6)+" записей скрыты из обзора.</div>":"");
   }
 
   function renderBrazilPortalProjection(data) {
@@ -2455,7 +2472,8 @@
       "<div class='bp-identity-proof'><b>"+esc(identityKnown?"Идентичность связана источником.":"Связь идентичности не полностью подтверждена текущей проекцией.")+"</b><span>Компонент "+esc(id.component_id||"—")+" и операционный объект "+esc(id.operational_object_id||"—")+"; отношение: «"+esc(bpCodeRu(id.relation))+"». Ключ чтения Continuity: "+esc(id.canonical_read_key||"—")+".</span></div>"+
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Следующий ход</h3>"+chip(data.source_status)+"</div>"+
       "<div class='live-kv-grid'>"+kv("Владелец",val(data.owner))+kv("Следующий рубеж",bpCodeRu(val(data.next_gate)))+kv("Следующий ход",projectionTextRu(val(data.next_move)))+kv("Открытые blocker-записи объекта",blockersN==null?"—":blockersN)+kv("Открытые обязательства (поле источника)",commitmentsN==null?"—":commitmentsN)+kv("Последнее материальное событие",data.last_material_event&&data.last_material_event.last_event_at?ago(data.last_material_event.last_event_at):"—")+"</div>"+
-      "<small>"+(blockersN==null?"Счётчик open_blockers.count не передан; наличие или отсутствие blocker-записей не подтверждено.":(esc(blockersN)+" blocker-записей "+(id.operational_object_id?"связаны серверной проекцией с операционным объектом "+esc(id.operational_object_id):"переданы серверной проекцией; операционный объект в identity не указан")+". Источник не доказывает test-фильтрацию и не передаёт единую оценку тяжести, поэтому Панель не называет их "+(blockersN===1?"одним препятствием":"одинаково критическими препятствиями")+"."))+"</small></div>";
+      "<small>"+(blockersN==null?"Счётчик open_blockers.count не передан; наличие или отсутствие blocker-записей не подтверждено.":(esc(blockersN)+" blocker-записей "+(id.operational_object_id?"связаны серверной проекцией с операционным объектом "+esc(id.operational_object_id):"переданы серверной проекцией; операционный объект в identity не указан")+". Источник не доказывает test-фильтрацию и не передаёт единую оценку тяжести, поэтому Панель не называет их "+(blockersN===1?"одним препятствием":"одинаково критическими препятствиями")+"."))+"</small></div>"+
+      (Array.isArray(data.unavailable_fields)?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Сознательно неизвестные поля</h3><small>буквальный unavailable_fields[] проекции BrazilPortal</small></div>"+(data.unavailable_fields.length?"<div class='live-kv-grid' data-bp-unavailable-fields>"+data.unavailable_fields.map(function(f){return kv(projectionFieldRu(f),"недоступно");}).join("")+"</div>":"<p data-bp-unavailable-fields>Источник явно передал пустой unavailable_fields[].</p>")+"</div>":"");
   }
 
   function renderFoundationAggregateClean(data) {
@@ -2536,7 +2554,7 @@
       "<div class='metric'><small>Заблокированный этап</small><strong>"+esc(blockedStage?humanCode(blockedStage):"не передан")+"</strong><span>показывается только если источник передал blocked_stage</span></div></div>"+
       (unblock?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Что разблокирует живое состояние ATLAS</h3></div><p data-atlas-unblock>"+esc(projectionTextRu(unblock))+"</p></div>":"")+
       (unavailableFields?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Какие поля сейчас сознательно неизвестны</h3><small>буквальный unavailable_fields[] серверной проекции</small></div>"+
-        (unavailableFields.length?"<div class='live-kv-grid' data-atlas-unavailable-fields>"+unavailableFields.map(function(f){return kv(humanCode(f),"недоступно");}).join("")+"</div>":"<p data-atlas-unavailable-fields>Источник явно передал пустой unavailable_fields[].</p>")+"</div>":"")+
+        (unavailableFields.length?"<div class='live-kv-grid' data-atlas-unavailable-fields>"+unavailableFields.map(function(f){return kv(projectionFieldRu(f),"недоступно");}).join("")+"</div>":"<p data-atlas-unavailable-fields>Источник явно передал пустой unavailable_fields[].</p>")+"</div>":"")+
       (nextStep?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Следующий системный шаг</h3></div><p>"+esc(projectionTextRu(nextStep))+"</p></div>":"");
   }
 
