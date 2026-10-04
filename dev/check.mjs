@@ -109,7 +109,12 @@ for (const w of WIDTHS) {
       const testingEvidence = await page.locator('[data-page-panel="testing"] [data-t="evidence-chain"]').innerText();
       check(/TEST-SMOKE-1/.test(testingLineage) && /U10_HANDOFF/.test(testingLineage) && /result__rev2\.json/.test(testingLineage), "testing lineage uses explicit test/gate/result fields");
       check(/protocol_id \/ run_id/.test(testingLineage) && /не выводит их из путей/.test(testingLineage), "testing lineage states missing protocol/run identity boundary");
-      check(/result__rev2\.json/.test(testingEvidence) && /abcdef012345/.test(testingEvidence) && /Ссылки на доказательства\s+2/.test(testingEvidence), "testing evidence card uses result filename, request SHA and evidence_refs count");
+      const testingEvidenceFields = await page.evaluate(() => {
+        const root=document.querySelector('[data-page-panel="testing"] [data-t="evidence-chain"]');
+        const v=(k)=>root.querySelector(`[data-t-evidence="${k}"]`)?.textContent.trim()||"";
+        return {result:v("result"),requestSha:v("request-sha"),refs:v("refs")};
+      });
+      check(testingEvidenceFields.result==="result__rev2.json" && /^abcdef012345/.test(testingEvidenceFields.requestSha) && testingEvidenceFields.refs==="2", `testing evidence card uses source fields (${JSON.stringify(testingEvidenceFields)})`);
       check(!/\/private\/testing/.test(testingLineage+testingEvidence), "testing lineage never exposes internal server paths");
       const diagErrors = await page.locator('[data-page-panel="diagnostics"] [data-x-cycle-errors]').innerText();
       const diagReads = await page.locator('[data-page-panel="diagnostics"] [data-x-read-times]').innerText();

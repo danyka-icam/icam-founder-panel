@@ -1312,9 +1312,9 @@
         else {
           var ers=Array.isArray(lineageTest.evidence_refs)?lineageTest.evidence_refs:[];
           evidenceChain.innerHTML="<div class='testing-evidence-grid'>"+
-            "<div><small>Файл результата</small><strong>"+esc(fileNameOnly(lineageTest.result_path))+"</strong><span>только имя файла из result_path; путь на сервере не показывается</span></div>"+
-            "<div><small>SHA запроса</small><strong>"+esc(lineageTest.request_sha?String(lineageTest.request_sha).slice(0,12)+"…":"—")+"</strong><span>request_sha из Testing summary</span></div>"+
-            "<div><small>Ссылки на доказательства</small><strong>"+esc(Array.isArray(lineageTest.evidence_refs)?ers.length:"—")+"</strong><span>количество evidence_refs; содержание не повышается до принятого вывода</span></div></div>";
+            "<div><small>Файл результата</small><strong data-t-evidence='result'>"+esc(fileNameOnly(lineageTest.result_path))+"</strong><span>только имя файла из result_path; путь на сервере не показывается</span></div>"+
+            "<div><small>SHA запроса</small><strong data-t-evidence='request-sha'>"+esc(lineageTest.request_sha?String(lineageTest.request_sha).slice(0,12)+"…":"—")+"</strong><span>request_sha из Testing summary</span></div>"+
+            "<div><small>Ссылки на доказательства</small><strong data-t-evidence='refs'>"+esc(Array.isArray(lineageTest.evidence_refs)?ers.length:"—")+"</strong><span>количество evidence_refs; содержание не повышается до принятого вывода</span></div></div>";
         }
       }
 
