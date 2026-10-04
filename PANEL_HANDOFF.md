@@ -739,3 +739,11 @@ Regression proof:
 - Missing fields are distinguished from explicit empty/false values. In particular, a missing Founder flag renders `поле не передано`, while explicit true renders `да`.
 - Selection persists across panel refreshes only by exact `object_id` while that object remains in the displayed source list; otherwise the newest displayed object becomes selected.
 - Canonical object relationships remain unrendered because the current Continuity objects contract does not provide them.
+
+## 2026-10-03 — ATLAS no-state boundary made actionable
+
+- Verified live `/panel/atlas` remains `UNAVAILABLE` with `error_class=NO_ATLAS_STATE_SOURCE`; no authoritative ATLAS state service / Continuity state object currently exists.
+- The ATLAS page now renders the source-provided `degraded_reason`, `blocked_stage`, `unblock_requires`, and literal `unavailable_fields[]` instead of reducing the condition to a generic unavailable message.
+- Known ATLAS no-state / unblock messages are translated into Russian for the Founder UI while the formal error code remains visible.
+- Library documents remain explicitly below the state boundary: `ATLAS_UPDATE_*` artifacts are not parsed or promoted into current state.
+- Agent Network was re-verified separately: no live Agent Registry / Lineage projection endpoint is present; systemd services and the historical static registry scaffold remain non-authoritative and must not populate `#agents`.

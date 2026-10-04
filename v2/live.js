@@ -211,7 +211,9 @@
       "Confirm commit 98d16f8, Aug-16 DB snapshot/hash lineage, pre-migration configs, Reels-Lab-0.14.0.0, and list the seven media-backed Reel project IDs plus existing artifact filenames/hashes. Modify nothing until inventory matches.": "Подтвердить commit 98d16f8, происхождение снимка БД и хэшей от 16 августа, конфигурации до миграции, Reels-Lab-0.14.0.0 и перечень семи Reel-проектов с медиа вместе с существующими именами файлов и хэшами. Ничего не менять, пока инвентаризация не совпадёт.",
       "Founder decision: restore the clean pre-server Content Factory and approved historical Reels; no funnels, Router attribution, or later hardening in the restored production path.": "Решение Основателя: восстановить чистую досерверную Content Factory и одобренные исторические Reels; не переносить в восстановленный production-контур воронки, атрибуцию Router и более позднее усиление.",
       "Source does not populate owner for this commitment.": "Источник не заполняет владельца хода для этого обязательства.",
-      "Continuity has no factual-result field on commitments; closed_at records closure time only, not an outcome.": "В обязательствах Continuity нет поля фактического результата; closed_at фиксирует только время закрытия записи, а не результат."
+      "Continuity has no factual-result field on commitments; closed_at records closure time only, not an outcome.": "В обязательствах Continuity нет поля фактического результата; closed_at фиксирует только время закрытия записи, а не результат.",
+      "ATLAS has no state source: it is not a Continuity object, exposes no service or state store on this host, and exists in the Hub only as documents (ATLAS_UPDATE_* library artifacts). Those documents are not state and are deliberately not parsed as state.": "У ATLAS сейчас нет собственного источника состояния: он не представлен как объект Continuity и не отдаёт отдельный сервис или хранилище состояния. В Hub доступны только документы ATLAS_UPDATE_*, но документы не считаются текущим состоянием и намеренно не разбираются как состояние.",
+      "ATLAS must expose its own state -- either as a Continuity object reporting projected fields, or as a service with a state store. Until then the panel should render UNAVAILABLE with this reason and must not infer role, promotion or learning state from library documents.": "Чтобы разблокировать живое состояние ATLAS, сам ATLAS должен начать отдавать состояние: либо как объект Continuity с нужными полями проекции, либо через отдельный сервис с хранилищем состояния. До этого Панель должна оставаться в состоянии «недоступно» и не выводить роль, повышение статуса или состояние обучения из документов библиотеки."
     };
     if (exact[raw]) return exact[raw];
     if (raw.indexOf("no projected-field or material event movement within freshness window") === 0) return "В окне свежести не было движения по спроецированным полям или материальным событиям; каноническая связь статуса остаётся неразрешённой.";
@@ -2521,14 +2523,21 @@
     var currentState = data.current_state || data.state || null;
     var nextStep = data.next_action || data.next_step || null;
     var noStateSource = String(errorClass || "").toUpperCase() === "NO_ATLAS_STATE_SOURCE";
+    var unavailableFields = Array.isArray(data.unavailable_fields) ? data.unavailable_fields : null;
+    var unblock = data.unblock_requires || null;
+    var blockedStage = data.blocked_stage || null;
     body.innerHTML=
       "<div class='live-status-box "+sourceStatusBoxClass(status)+"'><strong>Атлас — "+esc(sourceStatusLabel(status))+"</strong>"+
-      "<p>"+esc(reason || (errorClass ? "Класс состояния: "+errorClass+"." : "Панель показывает только серверную проекцию и не достраивает каноническое состояние ATLAS по документам или косвенным признакам."))+"</p></div>"+
+      "<p>"+esc(reason ? projectionTextRu(reason) : (errorClass ? "Класс состояния: "+errorClass+"." : "Панель показывает только серверную проекцию и не достраивает каноническое состояние ATLAS по документам или косвенным признакам."))+"</p></div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Проекция чтения Панели</small><strong>Прочитана</strong><span>endpoint ответил в текущем цикле</span></div>"+
       "<div class='metric'><small>Канонический источник состояния</small><strong>"+esc(noStateSource?"Источник сообщает отсутствие":"не определяется Панелью")+"</strong><span>"+esc(errorClass?"формальный код: "+errorClass:"отдельный статус источника не передан")+"</span></div>"+
       "<div class='metric'><small>Текущее состояние</small><strong>"+esc(currentState?humanCode(currentState):"не передано")+"</strong><span>не выводится локально из документов</span></div>"+
-      "<div class='metric'><small>Следующий системный шаг</small><strong>"+esc(nextStep?projectionTextRu(nextStep):"не передан")+"</strong><span>Панель не создаёт следующий шаг сама</span></div></div>";
+      "<div class='metric'><small>Заблокированный этап</small><strong>"+esc(blockedStage?humanCode(blockedStage):"не передан")+"</strong><span>показывается только если источник передал blocked_stage</span></div></div>"+
+      (unblock?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Что разблокирует живое состояние ATLAS</h3></div><p data-atlas-unblock>"+esc(projectionTextRu(unblock))+"</p></div>":"")+
+      (unavailableFields?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Какие поля сейчас сознательно неизвестны</h3><small>буквальный unavailable_fields[] серверной проекции</small></div>"+
+        (unavailableFields.length?"<div class='live-kv-grid' data-atlas-unavailable-fields>"+unavailableFields.map(function(f){return kv(humanCode(f),"недоступно");}).join("")+"</div>":"<p data-atlas-unavailable-fields>Источник явно передал пустой unavailable_fields[].</p>")+"</div>":"")+
+      (nextStep?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Следующий системный шаг</h3></div><p>"+esc(projectionTextRu(nextStep))+"</p></div>":"");
   }
 
   function renderAtlasSignalLab(data) {

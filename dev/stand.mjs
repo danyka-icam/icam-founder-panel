@@ -149,7 +149,7 @@ const panelApi = {
     open_blockers: { count: 2 }
   }),
   "panel/foundation": () => ({ source_status: "DEGRADED", dimensions: [], blocking_reasons: ["orphan receipt"] }),
-  "panel/atlas": () => ({ source_status: "UNAVAILABLE" }),
+  "panel/atlas": () => ({ source_status: "UNAVAILABLE", error_class: "NO_ATLAS_STATE_SOURCE", degraded_reason: "ATLAS has no state source: it is not a Continuity object, exposes no service or state store on this host, and exists in the Hub only as documents (ATLAS_UPDATE_* library artifacts). Those documents are not state and are deliberately not parsed as state.", blocked_stage: "BLOCKED_UPSTREAM", unavailable_fields: ["current_state","learning_state","promotion_state"], unblock_requires: "ATLAS must expose its own state -- either as a Continuity object reporting projected fields, or as a service with a state store. Until then the panel should render UNAVAILABLE with this reason and must not infer role, promotion or learning state from library documents." }),
   "panel/twin": () => ({ source_status: "AVAILABLE" }),
   "signals": () => ({ activation_state: "ACTIVATED", signals: [{ signal_id: "s1", entity: "Fund", title: "t" }] }),
   "signals/field-movement": () => ({ axes: [] }),

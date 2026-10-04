@@ -76,6 +76,9 @@ for (const w of WIDTHS) {
       }
       const atlasLive = await page.locator('[data-normalized-live="atlas"] .panel-body').innerText();
       check(/Атлас/.test(atlasLive) && /источник сообщает|источник состояния|не передано/i.test(atlasLive), "ATLAS keeps explicit unavailable/no-state semantics instead of fabricating state");
+      check(/У ATLAS сейчас нет собственного источника состояния/.test(atlasLive) && /NO_ATLAS_STATE_SOURCE/.test(atlasLive), "ATLAS renders the authoritative no-state reason in Russian while preserving the formal error code");
+      check(/Что разблокирует живое состояние ATLAS/.test(atlasLive) && /сам ATLAS должен начать отдавать состояние/.test(atlasLive), "ATLAS renders source-provided unblock requirements without inventing a next action");
+      check(/текущее состояние/.test(atlasLive) && /состояние обучения/.test(atlasLive) && /повышение статуса/.test(atlasLive), "ATLAS exposes the literal unavailable_fields boundary");
       const agentsText = await page.locator('[data-page-panel="agents"]').innerText();
       check(/Живой источник ещё не подключён/.test(agentsText) && /не считает сервисы/.test(agentsText), "Agent Network remains explicitly unavailable without Registry/Lineage projection");
       await page.evaluate(() => { location.hash = "registry"; });
