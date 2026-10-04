@@ -6,13 +6,15 @@ const MODES = new Set(["agent-record", "lineage-edge", "atlas-state"]);
 const REQUIRED = {
   "agent-record": [
     "agent_id", "name", "kind", "owner_branch", "runtime_identity",
-    "service_or_runtime", "status", "authority_class",
+    "service_or_runtime", "status", "version_release", "authority_class",
     "canonical_write_scope", "approval_requirement", "input_channels",
-    "output_channels", "evidence_contract", "parent_lineage_sources",
-    "downstream_consumers"
+    "output_channels", "authority_scope", "evidence_contract",
+    "downstream_consumers", "verification_state", "verified_at",
+    "record_revision", "last_transition_at"
   ],
   "lineage-edge": [
-    "source_id", "target_id", "relation", "gate_or_evidence", "observed_at"
+    "edge_id", "source_id", "target_id", "relation", "evidence_refs",
+    "verification_state", "asserted_at", "edge_revision", "last_transition_at"
   ],
   "atlas-state": [
     "atlas_state_version", "generated_at", "source_authority", "operating_mode",
@@ -37,37 +39,23 @@ function validate(mode, payload) {
     if (!own(payload, key)) errors.push(`missing required field: ${key}`);
   }
 
-  if (mode === "agent-record") {
-    if (!own(payload, "version") && !own(payload, "release")) {
-      errors.push("missing required version/release field");
-    }
-    if (!own(payload, "health") && !own(payload, "last_execution")) {
-      errors.push("missing required health/last_execution field");
-    }
-  }
-
-  if (mode === "lineage-edge") {
-    if (!own(payload, "version") && !own(payload, "source")) {
-      errors.push("missing required version/source field");
-    }
-  }
 
   return errors;
 }
 
 function selfTest() {
   const completeAgent = {
-    agent_id: "AGENT-1", name: "Example", kind: "reasoning", owner_branch: "branch",
+    agent_id: "AGENT-1", name: "Example", kind: "reasoning", owner_branch: null,
     runtime_identity: "runtime", service_or_runtime: "service", status: "ACTIVE",
-    release: "v1", authority_class: "READ_ONLY", canonical_write_scope: [],
-    approval_requirement: "NONE", input_channels: [], output_channels: [],
-    evidence_contract: {}, parent_lineage_sources: [], downstream_consumers: [],
-    health: "HEALTHY"
+    version_release: "v1", authority_class: "READ_ONLY", canonical_write_scope: [],
+    approval_requirement: false, input_channels: [], output_channels: [], authority_scope: [],
+    evidence_contract: ["evidence:1"], downstream_consumers: [], verification_state: "VERIFIED",
+    verified_at: "2026-10-04T00:00:00Z", record_revision: 1, last_transition_at: "2026-10-04T00:00:00Z"
   };
   const completeEdge = {
-    source_id: "AGENT-1", target_id: "PROJ-1", relation: "PRODUCES",
-    gate_or_evidence: "explicit", observed_at: "2026-10-03T00:00:00Z",
-    version: "v1"
+    edge_id: "AGENT-1::PRODUCES::PROJ-1", source_id: "AGENT-1", target_id: "PROJ-1", relation: "PRODUCES",
+    evidence_refs: ["evidence:edge:1"], verification_state: "VERIFIED", asserted_at: "2026-10-04T00:00:00Z",
+    edge_revision: 1, last_transition_at: "2026-10-04T00:00:00Z"
   };
   const completeAtlas = Object.fromEntries(REQUIRED["atlas-state"].map((k) => [k, null]));
 

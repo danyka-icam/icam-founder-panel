@@ -30,6 +30,8 @@
     organizationalIntelligence: API + "/organizational-intelligence",
     stewardReconciliation: API + "/steward-reconciliation",
     signalLabStatus: API + "/signal-lab-status",
+    agentProjection: API + "/agent-registry",
+    agentLineage: API + "/agent-lineage",
     // Founder Universe read-only backend (separate service, same origin).
     temporalUniverse: "/founder-star-view/api/temporal-universe",
     portfolioAdmission: "/founder-star-view/api/portfolio-admission",
@@ -71,6 +73,8 @@
     organizationalIntelligence: { ok: false, at: null, error: null },
     stewardReconciliation: { ok: false, at: null, error: null },
     signalLabStatus: { ok: false, at: null, error: null },
+    agentProjection: { ok: false, at: null, error: null },
+    agentLineage: { ok: false, at: null, error: null },
     temporalUniverse: { ok: false, at: null, error: null },
     portfolioAdmission: { ok: false, at: null, error: null },
     radar: { ok: false, at: null, error: null }
@@ -2692,6 +2696,60 @@
     return humanCode(value);
   }
 
+  function renderAgentNetwork(projection, lineage) {
+    var page = document.querySelector('[data-page-panel="agents"]');
+    if (!page) return;
+    var stamp = page.querySelector('[data-agent-stamp]');
+    function setKpi(k,v,note){var e=page.querySelector('[data-a="'+k+'"]');if(e)e.textContent=String(v);var n=page.querySelector('[data-a-note="'+k+'"]');if(n)n.textContent=note||"";}
+    var stateBox=page.querySelector('[data-agent-state]');
+    var listBox=page.querySelector('[data-agent-list]');
+    var authBox=page.querySelector('[data-agent-authority]');
+    var linBox=page.querySelector('[data-agent-lineage]');
+    var alertBox=page.querySelector('[data-agent-alerts]');
+    if (!sourceState.agentProjection.ok || !projection) {
+      if(stamp)stamp.innerHTML="<span class='cc-pulse'></span><span>Agent Registry недоступен</span>";
+      ["total","active","gaps","revisions"].forEach(function(k){setKpi(k,"Недоступно","текущее чтение не подтверждено");});
+      if(stateBox)stateBox.innerHTML=unavailableHTML("Agent Registry недоступен","Панель не восстанавливает сеть из systemd, процессов или прошлых данных.");
+      if(listBox)listBox.innerHTML=unavailableHTML("Реестр агентов недоступен","Нет подтверждённой Founder projection.");
+      if(authBox)authBox.innerHTML=unavailableHTML("Полномочия недоступны","authority_scope не восстанавливается из поведения.");
+      if(linBox)linBox.innerHTML=unavailableHTML("Lineage недоступен","Связи происхождения не выводятся без verified source.");
+      if(alertBox)alertBox.innerHTML="<span>Системные разрывы не проверены</span>";
+      return;
+    }
+    var agentsKnown=Array.isArray(projection.agents), agents=agentsKnown?projection.agents:[];
+    var counts=projection.counts&&typeof projection.counts==="object"?projection.counts:{};
+    var rr=projection.registry_revision, lr=projection.lineage_revision;
+    if(stamp)stamp.innerHTML="<span class='cc-pulse'></span><span>"+esc(projection.source_status||"SOURCE")+" · Registry r"+esc(rr==null?"—":rr)+" · Lineage r"+esc(lr==null?"—":lr)+"</span>";
+    setKpi("total",counts.total_agents!=null?counts.total_agents:(agentsKnown?"≥ "+agents.length:"—"),counts.total_agents!=null?"подтверждённые агенты":"нижняя граница по agents[]");
+    setKpi("active",counts.active_agents!=null?counts.active_agents:"—","только source-provided active_agents");
+    setKpi("gaps",counts.lineage_gaps!=null?counts.lineage_gaps:"—","происхождение "+(counts.lineage_gaps==null?"—":counts.lineage_gaps)+" · полномочия "+(counts.authority_conflicts==null?"—":counts.authority_conflicts)+" · доказательства "+(counts.decisions_without_evidence==null?"—":counts.decisions_without_evidence));
+    setKpi("revisions","r"+(rr==null?"—":rr)+" / r"+(lr==null?"—":lr),"Registry / Lineage");
+    if(stateBox)stateBox.innerHTML="<div class='agent-contract-list'>"+
+      "<div><b>Статус источника</b><span>"+esc(projection.source_status||"не передан")+"</span></div>"+
+      "<div><b>Registry revision</b><span>"+esc(rr==null?"не передана":rr)+"</span></div>"+
+      "<div><b>Lineage revision</b><span>"+esc(lr==null?"не передана":lr)+"</span></div>"+
+      "<div><b>Деградировано / зависло / вне реестра</b><span>"+esc(counts.degraded_agents==null?"—":counts.degraded_agents)+" / "+esc(counts.stalled_agents==null?"—":counts.stalled_agents)+" / "+esc(counts.unregistered_agents==null?"—":counts.unregistered_agents)+"</span></div></div>";
+    if(listBox){
+      if(!agentsKnown)listBox.innerHTML=unavailableHTML("agents[] не передан","Источник ответил, но коллекция агентов не подтверждена.");
+      else listBox.innerHTML=agents.length?agents.map(function(a){return "<div><b>"+esc(a.agent_id||"не передан")+"</b><span>"+esc(a.role||"роль не передана")+" · "+esc(a.state||"состояние не передано")+" · evidence: "+esc(a.evidence_status||"не передано")+"</span></div>";}).join(""):"<div><b>Реестр пуст</b><span>Источник явно передал пустой agents[].</span></div>";
+    }
+    if(authBox){
+      if(!agentsKnown)authBox.innerHTML=unavailableHTML("authority_scope не проверен","agents[] не передан.");
+      else {var aa=agents.filter(function(a){return Array.isArray(a.authority_scope)&&a.authority_scope.length;});authBox.innerHTML="<div class='agent-contract-list'>"+(aa.length?aa.map(function(a){return "<div><b>"+esc(a.agent_id||"агент")+"</b><span>"+a.authority_scope.map(esc).join(" · ")+"</span></div>";}).join(""):"<div><b>Явные полномочия не переданы</b><span>Панель не восстанавливает их из поведения.</span></div>")+"</div>";}
+    }
+    if(linBox){
+      if(!sourceState.agentLineage.ok || !lineage)linBox.innerHTML=unavailableHTML("Lineage временно недоступен","Agent Registry остаётся видимым; связи не реконструируются.");
+      else if(!Array.isArray(lineage.edges))linBox.innerHTML=unavailableHTML("edges[] не передан","Lineage source ответил без коллекции рёбер.");
+      else {var edges=lineage.edges.filter(function(e){return e.verification_state==="VERIFIED";});linBox.innerHTML="<div class='agent-contract-list'>"+(edges.length?edges.map(function(e){return "<div><b>"+esc(e.source_id||"—")+" → "+esc(e.target_id||"—")+"</b><span>"+esc(e.relation||"relation не передан")+" · rev "+esc(e.edge_revision==null?"—":e.edge_revision)+"</span></div>";}).join(""):"<div><b>Verified-рёбер нет</b><span>Пустая коллекция не заменяется предположениями.</span></div>")+"</div>";}
+    }
+    if(alertBox){
+      var alerts=[];
+      function add(v,label){if(v!=null&&Number(v)>0)alerts.push("<span>"+esc(label)+": "+esc(v)+"</span>");}
+      add(counts.authority_conflicts,"конфликты полномочий"); add(counts.unregistered_agents,"агенты вне реестра"); add(counts.decisions_without_evidence,"решения без доказательств"); add(counts.lineage_gaps,"разрывы происхождения"); add(counts.stalled_agents,"зависшие агенты"); add(counts.degraded_agents,"деградированные агенты");
+      alertBox.innerHTML=alerts.length?alerts.join(""):"<span>По переданным счётчикам системных разрывов не заявлено</span>";
+    }
+  }
+
   function renderDiagnostics(foundationAgg, scannerDiagnostics, hubHealth) {
     var page = document.querySelector('[data-page-panel="diagnostics"]');
     if (!page) return;
@@ -2792,7 +2850,7 @@
       twinState:"Digital Twin", marketSignals:"Market Scanner · сигналы", fieldMovement:"Движение поля",
       scannerDiagnostics:"Диагностика Scanner", founderProjection:"Founder Projection",
       organizationalIntelligence:"Организационные наблюдения", stewardReconciliation:"Системная сверка",
-      signalLabStatus:"ATLAS Signal Lab", temporalUniverse:"Temporal Universe", portfolioAdmission:"Portfolio Admission",
+      signalLabStatus:"ATLAS Signal Lab", agentProjection:"Agent Registry", agentLineage:"Agent Lineage", temporalUniverse:"Temporal Universe", portfolioAdmission:"Portfolio Admission",
       radar:"Founder Radar"
     };
     function sourceName(k){return sourceNames[k]||humanCode(k);}
@@ -2842,6 +2900,8 @@
       fetchJSON("organizationalIntelligence", ENDPOINTS.organizationalIntelligence, UNIVERSE_TIMEOUT_MS),
       fetchJSON("stewardReconciliation", ENDPOINTS.stewardReconciliation, UNIVERSE_TIMEOUT_MS),
       fetchJSON("signalLabStatus", ENDPOINTS.signalLabStatus, UNIVERSE_TIMEOUT_MS),
+      fetchJSON("agentProjection", ENDPOINTS.agentProjection, UNIVERSE_TIMEOUT_MS),
+      fetchJSON("agentLineage", ENDPOINTS.agentLineage, UNIVERSE_TIMEOUT_MS),
       fetchJSON("temporalUniverse", ENDPOINTS.temporalUniverse, UNIVERSE_TIMEOUT_MS),
       fetchJSON("portfolioAdmission", ENDPOINTS.portfolioAdmission, UNIVERSE_TIMEOUT_MS),
       fetchJSON("radar", ENDPOINTS.radar, UNIVERSE_TIMEOUT_MS)
@@ -2869,9 +2929,11 @@
       var organizationalIntelligence = res[20];
       var stewardReconciliation = res[21];
       var signalLabStatus = res[22];
-      var temporalUniverse = res[23];
-      var portfolioAdmission = res[24];
-      var radar = res[25];
+      var agentProjection = res[23];
+      var agentLineage = res[24];
+      var temporalUniverse = res[25];
+      var portfolioAdmission = res[26];
+      var radar = res[27];
 
       var routesKnown = !!(routesJSON && Array.isArray(routesJSON.routes));
       var routes = routesKnown ? routesJSON.routes : [];
@@ -2887,7 +2949,7 @@
         foundationAgg: foundationAgg, atlasState: atlasState, twinState: twinState,
         marketSignals: marketSignals, fieldMovement: fieldMovement, scannerDiagnostics: scannerDiagnostics,
         founderProjection: founderProjection, organizationalIntelligence: organizationalIntelligence,
-        stewardReconciliation: stewardReconciliation, signalLabStatus: signalLabStatus, temporalUniverse: temporalUniverse,
+        stewardReconciliation: stewardReconciliation, signalLabStatus: signalLabStatus, agentProjection: agentProjection, agentLineage: agentLineage, temporalUniverse: temporalUniverse,
         portfolioAdmission: portfolioAdmission, radar: radar, rd1: {},
         collections: { routes: routesKnown }
       };
@@ -2920,6 +2982,7 @@
       renderFoundationAggregateClean(foundationAgg);
       renderAtlasStateClean(atlasState);
       renderAtlasSignalLab(signalLabStatus);
+      renderAgentNetwork(agentProjection, agentLineage);
       renderTwinStateClean(twinState);
       renderDiagnostics(foundationAgg, scannerDiagnostics, hubHealth);
 

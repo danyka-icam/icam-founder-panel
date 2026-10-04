@@ -793,3 +793,15 @@ Regression proof:
 - Added `ACTIVITY_EVENT_PRODUCER_CONTRACT_v0.2.md` and the corresponding server-side local publisher. It requires stable producer/event identity, evidence refs, materiality class and source-backed `valid_at`; telemetry/readback/polling events are rejected.
 - Live idempotency check passed: publishing the same producer/source_event pair twice with changed wording added exactly one Activity Inbox record.
 - The Research/Commercial ledger activation itself was published as a material company-map event and appeared on the 2026-10-04 Timeline.
+
+## 2026-10-04 — Gate 1 resolved: live Agent Registry / Lineage connected
+
+- Upstream selected the canonical owner: AICLAVIS Agent Registry Authority. Lineage is a separate logical authority in the same v1 service package.
+- Live verification: Agent Registry revision 18 contains 18/18 VERIFIED agents; Lineage revision 14 contains 14/14 VERIFIED edges.
+- Founder projection is LIVE and exposes separate `registry_revision`, `lineage_revision`, verified `agents[]`, and source-backed counts. Current live counts include `lineage_gaps=3`, `authority_conflicts=0`, `unregistered_agents=0`, `decisions_without_evidence=0`.
+- Real canonical agent-record and lineage-edge payloads both pass the updated `dev/upstream-gate-check.mjs` v0.2 shape validator.
+- Added `FOUNDER_PANEL_UPSTREAM_GATES_CONSUMER_CONTRACT_v0.2.md`; Gate 1 is now resolved for read-only Founder consumption while Gate 2 / ATLAS remains `NO_ATLAS_STATE_SOURCE`.
+- Founder Panel reads only the upstream-approved same-origin GET projections `agent-registry` and `agent-lineage`; browser code does not access canonical service coordinates or `/api/v1/*` directly.
+- Agent Network now renders verified identities, explicit `authority_scope`, verified Lineage edges, registry/lineage revisions, and source-provided gap counters. A non-zero lineage gap degrades the network state but does not make the entire source unavailable.
+- Bootstrap census/registry/edge seed artifacts remain below the live boundary and are never rendered directly.
+- Browser regression passed at 1680 / 1280 / 820 / 390 with no JS errors.

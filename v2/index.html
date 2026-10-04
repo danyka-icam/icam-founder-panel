@@ -2968,28 +2968,26 @@
 <section class="page cc-page agent-network-page" data-page-panel="agents">
 <header class="cc-top">
 <div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Сеть агентов</h1><p>состояние агентской сети, полномочия, цепочки происхождения и системные разрывы — без управления сетью из панели</p></div></div>
-<div class="cc-stamp"><span class="cc-pulse"></span><span>Источник сети ещё не подключён</span></div>
+<div class="cc-stamp" data-agent-stamp><span class="cc-pulse"></span><span>Читаем Agent Registry…</span></div>
 </header>
 <div class="cc-body agent-network-body">
 <section class="radar-summary agent-network-kpis">
-<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">A</span><span class="cc-kpi-body"><small>Агентов</small><strong>—</strong><em>ждём Agent Registry</em></span></div>
-<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">✓</span><span class="cc-kpi-body"><small>Активны</small><strong>—</strong><em>не выводим из systemd-процессов</em></span></div>
-<div class="cc-kpi radar-kpi risk"><span class="cc-kpi-icon">!</span><span class="cc-kpi-body"><small>Разрывы</small><strong>—</strong><em>полномочия / происхождение / доказательства</em></span></div>
-<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">↗</span><span class="cc-kpi-body"><small>Изменения сети</small><strong>—</strong><em>ждём нормализованную проекцию</em></span></div>
+<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">A</span><span class="cc-kpi-body"><small>Агентов</small><strong data-a="total">—</strong><em data-a-note="total">читаем Agent Registry</em></span></div>
+<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">✓</span><span class="cc-kpi-body"><small>Активны</small><strong data-a="active">—</strong><em data-a-note="active">только Registry state</em></span></div>
+<div class="cc-kpi radar-kpi risk"><span class="cc-kpi-icon">!</span><span class="cc-kpi-body"><small>Разрывы</small><strong data-a="gaps">—</strong><em data-a-note="gaps">только подтверждённые счётчики</em></span></div>
+<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">↗</span><span class="cc-kpi-body"><small>Изменения сети</small><strong data-a="revisions">—</strong><em data-a-note="revisions">Registry / Lineage</em></span></div>
 </section>
 <div class="agent-network-grid">
 <article class="cc-panel"><header><h2>Состояние сети</h2><small>только подтверждённые агрегаты</small></header>
-<div class="cc-unavailable"><b>Живой источник ещё не подключён</b><span>Панель не считает сервисы на сервере «агентами» и не строит сеть по именам процессов.</span></div></article>
+<div data-agent-state><div class="cc-loading">Читаем состояние сети…</div></div></article>
 <article class="cc-panel"><header><h2>Реестр агентов</h2><small>идентичность, роль, владелец и текущий жизненный цикл</small></header>
-<div class="agent-contract-list"><div><b>agent_id</b><span>стабильная идентичность агента</span></div><div><b>role</b><span>что агент делает</span></div><div><b>state</b><span>активен / остановлен / деградирован — только от Registry</span></div></div></article>
+<div class="agent-contract-list" data-agent-list><div><b>agent_id</b><span>ждём verified Founder projection</span></div></div></article>
 <article class="cc-panel"><header><h2>Полномочия</h2><small>что агент может делать и где заканчиваются его права</small></header>
-<div class="cc-unavailable"><b>Проекция полномочий не подключена</b><span>Панель не выводит полномочия из поведения агента. Нужна явно заданная область полномочий (authority scope).</span></div></article>
+<div data-agent-authority><div class="cc-loading">Читаем authority_scope…</div></div></article>
 <article class="cc-panel"><header><h2>Цепочка происхождения</h2><small>кто породил действие, решение, сигнал или дочернего агента</small></header>
-<div class="cc-unavailable"><b>Граф происхождения (Lineage Graph) ещё не подключён</b><span>Сходство названий и совместная работа не считаются доказанной родословной.</span></div></article>
+<div data-agent-lineage><div class="cc-loading">Читаем доказанные связи Lineage…</div></div></article>
 <article class="cc-panel agent-network-wide"><header><h2>Что будет подниматься Основателю</h2><small>только системные состояния, действительно требующие видимости</small></header>
-<div class="agent-network-alerts">
-<span>конфликт полномочий</span><span>агент без Registry</span><span>решение без доказательств</span><span>разрыв цепочки происхождения</span><span>зависший агент</span><span>изменение состава сети</span>
-</div></article>
+<div class="agent-network-alerts" data-agent-alerts><span>Читаем системные состояния…</span></div></article>
 </div>
 <div class="agent-network-rule"><b>Граница:</b> эта страница — проекция только для чтения. Создание агентов, выдача полномочий, отзыв прав, делегирование и изменение цепочки происхождения (lineage) здесь невозможны.</div>
 </div>

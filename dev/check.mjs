@@ -85,7 +85,9 @@ for (const w of WIDTHS) {
       check(/Сознательно неизвестные поля/.test(operationsLive) && /фактический результат/.test(operationsLive), "Operations exposes source-declared unavailable fields instead of treating them as zero");
       check(/Сознательно неизвестные поля/.test(brazilLive) && /фактический результат/.test(brazilLive), "BrazilPortal exposes source-declared unavailable fields instead of treating them as zero");
       const agentsText = await page.locator('[data-page-panel="agents"]').innerText();
-      check(/Живой источник ещё не подключён/.test(agentsText) && /не считает сервисы/.test(agentsText), "Agent Network remains explicitly unavailable without Registry/Lineage projection");
+      check(/LIVE · Registry r3 · Lineage r2/.test(agentsText) && /founder/.test(agentsText) && /dispatcher/.test(agentsText) && /klim-runtime/.test(agentsText), "Agent Network renders verified Founder projection identities");
+      check(/разрывы происхождения: 1/.test(agentsText) && /происхождение 1 · полномочия 0 · доказательства 0/.test(agentsText), "Agent Network exposes live lineage gaps without marking the whole source unavailable");
+      check(/founder → dispatcher/.test(agentsText) && /dispatcher → klim-runtime/.test(agentsText) && /approves_or_rejects/.test(agentsText), "Agent Network renders only explicit verified Lineage edges");
       await page.evaluate(() => { location.hash = "registry"; });
       await page.waitForTimeout(100);
       const registryRows = page.locator('[data-page-panel="registry"] [data-g="objects"] [data-g-select-index]');

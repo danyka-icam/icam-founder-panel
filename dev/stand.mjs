@@ -105,11 +105,31 @@ const stewardReconciliation = {
   hard_rules: ["System reconciliation gaps never become Founder tasks by default."]
 };
 
+
+const agentProjection = {
+  source_status: "LIVE", generated_at: new Date().toISOString(), registry_revision: 3, lineage_revision: 2,
+  counts: { total_agents: 3, active_agents: 3, degraded_agents: 0, stalled_agents: 0, unregistered_agents: 0, authority_conflicts: 0, lineage_gaps: 1, decisions_without_evidence: 0 },
+  agents: [
+    { agent_id: "founder", role: "human_authority", state: "ACTIVE", authority_scope: ["approve/reject bounded actions"], parent_agent_id: null, lineage_id: null, evidence_status: "VERIFIED", last_transition_at: iso(0) },
+    { agent_id: "dispatcher", role: "execution_router", state: "ACTIVE", authority_scope: ["claim work and invoke runtime"], parent_agent_id: null, lineage_id: null, evidence_status: "VERIFIED", last_transition_at: iso(0) },
+    { agent_id: "klim-runtime", role: "model_executor", state: "ACTIVE", authority_scope: ["execute bounded model/tool task"], parent_agent_id: null, lineage_id: null, evidence_status: "VERIFIED", last_transition_at: iso(0) }
+  ]
+};
+const agentLineage = {
+  source_status: "LIVE", generated_at: new Date().toISOString(), lineage_revision: 2,
+  edges: [
+    { edge_id: "founder::approves::dispatcher", source_id: "founder", target_id: "dispatcher", relation: "approves_or_rejects", verification_state: "VERIFIED", edge_revision: 1, asserted_at: iso(0) },
+    { edge_id: "dispatcher::invokes::klim-runtime", source_id: "dispatcher", target_id: "klim-runtime", relation: "invokes_executor", verification_state: "VERIFIED", edge_revision: 1, asserted_at: iso(0) }
+  ]
+};
+
 const panelApi = {
   "founder-projection": () => founderProjection,
   "radar": () => founderRadar,
   "organizational-intelligence": () => organizationalIntelligence,
   "steward-reconciliation": () => stewardReconciliation,
+  "agent-registry": () => agentProjection,
+  "agent-lineage": () => agentLineage,
   "observer/routes": () => ROUTES === "down" ? null : { routes },
   "observer/summary": () => ({ summary: { routes_active: 7 } }),
   "observer/metrics": () => ({ metrics: { operational: { stale_routes_7d: { value: 2 } } } }),

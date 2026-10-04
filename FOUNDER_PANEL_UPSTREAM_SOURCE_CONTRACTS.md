@@ -2,7 +2,7 @@
 
 Статус: контракт нормализованной read-only проекции для Founder Panel. Документ не создаёт новые канонические сущности, не назначает владельца upstream-смысла и не разрешает Панели выводить состояние из косвенных признаков.
 
-Этот документ является **нижним потребительским слоем** после `FOUNDER_PANEL_UPSTREAM_GATES_CONSUMER_CONTRACT_v0.1.md`:
+Этот документ является **нижним потребительским слоем** после `FOUNDER_PANEL_UPSTREAM_GATES_CONSUMER_CONTRACT_v0.2.md`:
 
 `канонический upstream → серверная нормализованная проекция → Founder Panel`.
 
@@ -52,7 +52,7 @@
 3. `authority_scope` не восстанавливается из истории действий.
 4. Отсутствующее поле остаётся неизвестным.
 5. Панель только читает snapshot и никогда не меняет Registry, authority или lineage.
-6. До появления этого источника страница `#agents` остаётся `UNAVAILABLE`.
+6. Если Founder projection недоступна, страница `#agents` остаётся `UNAVAILABLE`; частичная недоступность Lineage деградирует только lineage-блок.
 
 ### Условие подключения к Founder Panel
 
@@ -128,12 +128,14 @@
 
 ---
 
-## 3. Что уже проверено
+## 3. Текущее проверенное состояние
 
-На момент фиксации v0.1:
+На 2026-10-04:
 
-- отдельного живого Agent Registry / Lineage projection на сервере не обнаружено;
-- Authority Observability индексирует события Founder authority, но не владеет `agent_id` и не является Agent Registry;
-- Atlas Founder Map содержит ветки, evidence ceiling и Founder-gate, но не является lineage агентов;
-- `/panel/atlas` корректно сообщает `NO_ATLAS_STATE_SOURCE`;
-- Founder Panel не должна устранять эти два пробела локальными эвристиками.
+- Agent Registry / Lineage live source развёрнут; canonical owner — AICLAVIS Agent Registry Authority;
+- Founder projection отдаёт verified agents, отдельные `registry_revision` / `lineage_revision` и source-backed counts;
+- Lineage projection отдаёт verified edges отдельно от Registry identity;
+- bootstrap census/registry/edge seeds остаются ниже live boundary и напрямую Панелью не читаются;
+- Authority Observability по-прежнему не является Agent Registry;
+- Atlas Founder Map по-прежнему не является lineage агентов;
+- `/panel/atlas` корректно сообщает `NO_ATLAS_STATE_SOURCE`; Gate 2 остаётся unresolved.
