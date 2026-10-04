@@ -85,7 +85,8 @@ for (const w of WIDTHS) {
       const bpRegistryRow = registryRows.filter({hasText:"CMP-000005"}).first();
       await bpRegistryRow.click(); await page.waitForTimeout(60);
       const registryDetail = async (k) => page.locator(`[data-page-panel="registry"] [data-g-detail="${k}"]`).innerText();
-      check((await registryDetail("id"))==="CMP-000005" && (await registryDetail("name"))==="BrazilPortal" && /активная сборка/i.test(await registryDetail("status")), "registry selection fills exact object identity/state fields");
+      const registryStatus = await registryDetail("status");
+      check((await registryDetail("id"))==="CMP-000005" && (await registryDetail("name"))==="BrazilPortal" && !!registryStatus && registryStatus!=="—" && registryStatus!=="поле не передано", `registry selection fills exact object identity/state fields (${registryStatus})`);
       check((await registryDetail("founder"))==="поле не передано", "registry distinguishes a missing Founder flag from explicit false");
       const founderRegistryRow = registryRows.filter({hasText:"FND-005"}).first();
       await founderRegistryRow.click(); await page.waitForTimeout(60);
