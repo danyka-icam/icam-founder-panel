@@ -929,7 +929,7 @@
     .artifact-provenance-chain span{display:block;margin-top:5px;color:#858e89;font-size:8.5px;line-height:1.35}
     .artifact-provenance-chain>i{font-style:normal;color:#727b76}
     .documents-note{margin-top:10px!important;color:#858e89!important;font-size:9.3px!important}
-    .documents-durability-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+    .documents-durability-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
     .documents-durability-grid>div{
       padding:12px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(18,24,26,.13)
     }
@@ -3227,9 +3227,10 @@
 </div>
 <div class="panel-body">
 <div class="documents-durability-grid">
-<div><small>Сохранено</small><strong>—</strong><span>положительный результат durable write</span></div>
-<div><small>Обратное чтение</small><strong>—</strong><span>можно ли подтвердить сохранённые байты</span></div>
-<div><small>Несоответствия</small><strong>—</strong><span>только реальные ошибки проверки</span></div>
+<div><small>Объекты на диске</small><strong data-d="durability-disk">—</strong><span>буквальный счётчик Hub</span></div>
+<div><small>Осиротевшие расписки</small><strong data-d="durability-orphans">—</strong><span>STORED без подтверждённого объекта на диске</span></div>
+<div><small>Расхождения хэшей</small><strong data-d="durability-hash">—</strong><span>буквальный счётчик проверки целостности</span></div>
+<div><small>Покрытие проверки</small><strong data-d="durability-coverage">—</strong><span>область, которую заявляет сам Hub</span></div>
 </div>
 </div>
 </article>

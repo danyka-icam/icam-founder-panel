@@ -83,6 +83,9 @@ for (const w of WIDTHS) {
       check(/FND-SMOKE/.test(documentsRecent) && /SHA-256 0123456789ab/.test(documentsRecent), "documents enriches a recent Hub arrival only from exact filename provenance");
       check(/filename = packet_file/.test(documentsRecent) && /не заполняется по сходству/.test(documentsRecent), "documents states the exact-match provenance boundary");
       check(/не доказывает публикацию/.test(documentsRecent), "documents keeps recent Hub arrivals below semantic artifact-change ceiling");
+      const documentsPage = await page.locator('[data-page-panel="documents"]').innerText();
+      check(/Объекты на диске\s+853/.test(documentsPage) && /Осиротевшие расписки\s+1/.test(documentsPage) && /Расхождения хэшей\s+0/.test(documentsPage), "documents durability card renders literal Hub integrity counters");
+      check(/Покрытие проверки\s+full end to end/i.test(documentsPage), "documents durability card renders Hub-declared coverage without inventing scope");
       const diagErrors = await page.locator('[data-page-panel="diagnostics"] [data-x-cycle-errors]').innerText();
       const diagReads = await page.locator('[data-page-panel="diagnostics"] [data-x-read-times]').innerText();
       check(!/Журнал ошибок не подключён|Читаем текущий цикл/.test(diagErrors) && /Ошибок чтения в текущем цикле нет|чтение недоступно|частичное чтение/.test(diagErrors), "diagnostics derives current-cycle read errors instead of showing an unconnected journal placeholder");

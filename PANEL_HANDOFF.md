@@ -730,3 +730,5 @@ Regression proof:
 - Added a synthetic Hub arrival fixture and browser checks for both the rendered transport facts and the evidence ceiling.
 
 - Recent Hub provenance enrichment: `recent_48h[]` rows are enriched from `review_rows[]` only when `filename === packet_file` exactly. Exact matches may show `claimed_object_id`, `artifact_class` and a shortened SHA-256; unmatched arrivals remain explicitly unbound. No fuzzy filename matching is allowed.
+
+- Documents durability lower card no longer shows static dashes. It renders only literal Hub counters: `objects_on_disk`, `orphan_receipts`, `hash_mismatches`, and Hub-declared `coverage`. Labels were changed away from unsupported claims such as a generic successful durable write/readback result.

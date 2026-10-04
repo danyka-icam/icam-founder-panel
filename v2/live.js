@@ -999,6 +999,7 @@
       unknown: rq.unknown_classification == null ? "—" : rq.unknown_classification
     };
     Object.keys(vals).forEach(function (k) { var e = page.querySelector('[data-d="' + k + '"]'); if (e) e.textContent = vals[k]; });
+    [["durability-disk",health.objects_on_disk],["durability-orphans",health.orphan_receipts],["durability-hash",health.hash_mismatches],["durability-coverage",health.coverage]].forEach(function(kv){var e=page.querySelector('[data-d="'+kv[0]+'"]');if(e)e.textContent=kv[1]==null?"—":humanCode(kv[1]);});
     var durableNote = page.querySelector('[data-d="durable-note"]');
     if (durableNote) {
       var indexed = health.indexed_ok;
