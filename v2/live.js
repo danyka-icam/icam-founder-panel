@@ -1095,14 +1095,19 @@
       } else if (!recent.length) {
         recentBox.innerHTML = "<div class='documents-empty compact'><strong>За последние 48 часов поступлений нет</strong><span>Hub явно передал пустой recent_48h[]. Это говорит только о приёме пакетов в этом окне.</span></div>";
       } else {
+        var reviewRows = Array.isArray(health.review_rows) ? health.review_rows : [];
+        var reviewByFile = {};
+        reviewRows.forEach(function(x){var k=String(x&&x.packet_file||"");if(k&&!reviewByFile[k])reviewByFile[k]=x;});
         recentBox.innerHTML = recent.slice(0,8).map(function(r){
           var transport=[];
           if(r.server===true)transport.push("на сервере"); else if(r.server===false)transport.push("нет на сервере");
           if(r.index===true)transport.push("в индексе"); else if(r.index===false)transport.push("не в индексе");
           if(r.outbox===true)transport.push("виден в исходящей очереди");
           var review = r.review==null || r.review==="" ? "разбор не передан" : humanCode(r.review);
-          return "<div class='document-live-row'><b>"+esc(r.filename||"файл без имени")+"</b><span>"+esc(r.branch||"ветка не указана")+"</span><span>"+esc((transport.length?transport.join(" · ")+" · ":"")+review)+"</span><small>"+esc(r.received_at?ago(r.received_at):"время не передано")+"</small></div>";
-        }).join("")+"<p class='documents-note'>Это факты приёма и технического состояния Hub. Они не доказывают публикацию, заморозку, замену версии или изменение канонической роли артефакта.</p>";
+          var prov = reviewByFile[String(r.filename||"")] || null;
+          var provText = prov ? ((prov.claimed_object_id||"Object ID не передан") + (prov.artifact_class?" · "+humanCode(prov.artifact_class):"") + (prov.sha256?" · SHA-256 "+String(prov.sha256).slice(0,12)+"…":"")) : "строка происхождения по точному имени файла не найдена";
+          return "<div class='document-live-row'><b>"+esc(r.filename||"файл без имени")+"<small>"+esc(provText)+"</small></b><span>"+esc(r.branch||"ветка не указана")+"</span><span>"+esc((transport.length?transport.join(" · ")+" · ":"")+review)+"</span><small>"+esc(r.received_at?ago(r.received_at):"время не передано")+"</small></div>";
+        }).join("")+"<p class='documents-note'>Происхождение добавляется только по точному совпадению filename = packet_file в review_rows[]. Отсутствие совпадения не заполняется по сходству названий. Поступление в Hub не доказывает публикацию, заморозку, замену версии или изменение канонической роли артефакта.</p>";
       }
     }
 

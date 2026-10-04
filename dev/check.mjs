@@ -80,7 +80,9 @@ for (const w of WIDTHS) {
       check(/Живой источник ещё не подключён/.test(agentsText) && /не считает сервисы/.test(agentsText), "Agent Network remains explicitly unavailable without Registry/Lineage projection");
       const documentsRecent = await page.locator('[data-page-panel="documents"] [data-d="recent"]').innerText();
       check(/SMOKE_PACKET_2026-10-03\.json/.test(documentsRecent) && /на сервере/.test(documentsRecent) && /в индексе/.test(documentsRecent), "documents renders recent Hub arrivals as transport/index facts");
-      check(/не доказывают публикацию/.test(documentsRecent), "documents keeps recent Hub arrivals below semantic artifact-change ceiling");
+      check(/FND-SMOKE/.test(documentsRecent) && /SHA-256 0123456789ab/.test(documentsRecent), "documents enriches a recent Hub arrival only from exact filename provenance");
+      check(/filename = packet_file/.test(documentsRecent) && /не заполняется по сходству/.test(documentsRecent), "documents states the exact-match provenance boundary");
+      check(/не доказывает публикацию/.test(documentsRecent), "documents keeps recent Hub arrivals below semantic artifact-change ceiling");
       const diagErrors = await page.locator('[data-page-panel="diagnostics"] [data-x-cycle-errors]').innerText();
       const diagReads = await page.locator('[data-page-panel="diagnostics"] [data-x-read-times]').innerText();
       check(!/Журнал ошибок не подключён|Читаем текущий цикл/.test(diagErrors) && /Ошибок чтения в текущем цикле нет|чтение недоступно|частичное чтение/.test(diagErrors), "diagnostics derives current-cycle read errors instead of showing an unconnected journal placeholder");

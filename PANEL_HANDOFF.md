@@ -728,3 +728,5 @@ Regression proof:
 - The page now shows filename, branch, server/index/outbox transport facts, review state and received time for recent Hub arrivals.
 - This block deliberately does not claim publication, freezing, version replacement, recovery or canonical-role change; those semantic artifact transitions still require a dedicated source.
 - Added a synthetic Hub arrival fixture and browser checks for both the rendered transport facts and the evidence ceiling.
+
+- Recent Hub provenance enrichment: `recent_48h[]` rows are enriched from `review_rows[]` only when `filename === packet_file` exactly. Exact matches may show `claimed_object_id`, `artifact_class` and a shortened SHA-256; unmatched arrivals remain explicitly unbound. No fuzzy filename matching is allowed.
