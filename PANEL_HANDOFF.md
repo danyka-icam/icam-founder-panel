@@ -763,3 +763,10 @@ Regression proof:
 - Required layering is now explicit: canonical upstream → normalized server projection → Founder Panel.
 - Added static regression gates that fail if browser code bypasses Agent Registry/Lineage ownership via a direct endpoint, or if the ATLAS canonical renderer starts promoting adjacent Signals / Signal Lab / Founder Map / Hub data into overall ATLAS state.
 - Existing audit/schema artifacts remain below the live-state boundary; they are useful as design seeds only.
+
+## 2026-10-03 — Upstream gate acceptance validator
+
+- Added `dev/upstream-gate-check.mjs` as a payload-shape acceptance validator for future canonical Agent Registry records, Lineage edges, and ATLAS-state payloads.
+- The validator checks required field presence only. Explicit unknown/null values remain unknown; the validator does not invent or reinterpret them.
+- Passing the validator does not prove ownership, authority, freshness, semantics, or readiness to connect. Gate removal still requires the versioned ownership/semantic contract.
+- Added validator self-tests to the existing Panel v2 CI static stage; no new workflow or notification stream was introduced.

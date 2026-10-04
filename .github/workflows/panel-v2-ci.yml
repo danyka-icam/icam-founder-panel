@@ -33,7 +33,9 @@ jobs:
           node --check v2/command-center.js
           node --check dev/stand.mjs
           node --check dev/check.mjs
+          node --check dev/upstream-gate-check.mjs
           node dev/static-contract-check.mjs
+          node dev/upstream-gate-check.mjs --self-test
 
       - name: Browser regression matrix
         shell: bash
