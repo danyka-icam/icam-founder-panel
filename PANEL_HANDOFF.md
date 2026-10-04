@@ -917,3 +917,5 @@ Current verified state:
   - Market Scanner runs every 6h;
   - market-signal ingest every 15min, enrichment every 20min.
 - Important boundary: ordinary chat activity is not itself a canonical branch-state update. `com.klim.conversations-sync` archives conversations every 120s, but does not create Continuity state events. A branch appears current only after it emits a structured update/event into the canonical transport. Transport is automatic; event creation is not yet universal across branches.
+
+- GVF-002A execution follow-through check: no GVF-specific decision consumer/runner was found on the server, and the generic aiclavis execution dispatcher contains no GVF/Founder-decision binding. Therefore the Panel APPROVE currently records governance truth and resolves the decision lifecycle, but does not itself execute the 120-call forecast run. A separate exact decision-to-owning-branch handoff/dispatch contract is still required before Founder decisions can cause downstream work.
