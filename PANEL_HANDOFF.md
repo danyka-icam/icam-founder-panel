@@ -847,3 +847,26 @@ Regression proof:
 - Updated integrated Pass 5 to verify Radar field signal → card → inspector → exact bounded Steward context, explicit empty/unavailable behavior, Scanner/Field Movement diagnostic reads, and the closed ingest/write boundary.
 - Updated integrated smoke passes 41/41. Standard browser regression matrix also passes for normal, Temporal-down, Admission-down and large-Founder-inbox scenarios across 1680 / 1280 / 820 / 390.
 - Current Agent Registry/Lineage authority after network hardening: Registry revision 42 with 36 verified agents; Lineage revision 43 with 39 active VERIFIED edges. Authority history contains 41 distinct verified edge identities, 2 later retracted. Current source counters report lineage_gaps=0 and authority_conflicts=0.
+
+
+## 2026-10-04 — Review authority pipeline repair
+
+- Founder Panel review-queue follow-up traced the apparent `93 manual_review_required / 93 unassigned` state to two separate classes: a frozen 34-row legacy quarantine plus 59 post-baseline rows.
+- 57 of the 59 post-baseline rows were false review surfaces caused by classifier format gaps: `CHAT_UPDATE_*` filenames were not recognized as Chat Update transport, and two Money Book status packets used `Branch:` rather than `Source Branch:`. They were reclassified append-only as `OPERATIONAL_EVIDENCE`; no queue history or artifact bytes were rewritten.
+- The remaining two rows are real `CANONICAL_REVIEW` results: `ATLAS-RCH-RV1-20260930-BLIND-v0.1` and `ATLAS-RCH-RV2N1-20261002-BLIND-v0.2-R1`. Their frozen requests explicitly assign scientific adjudication to `ATLAS / Forecast Core / REACHABILITY-01`. Exact append-only authority repairs now expose `OWNING_BRANCH / PACKET_EXPLICIT`; Hub reports both as `ACTIONABLE_REVIEW`.
+- Testing dispatcher was hardened for future results: an owning-branch authority tuple is emitted only when the frozen request explicitly states that the owning branch performs scientific adjudication. `source_branch` alone never grants authority; negative control `INFRA-ZC-001` remains unassigned.
+- Legacy review quarantine baseline upgraded from count-only v0.1 to exact-key `AICLAVIS_REVIEW_QUARANTINE_BASELINE_v0.2`: 34 immutable legacy classification keys. Hub now distinguishes `legacy_unassigned_quarantine` from `new_unassigned_quarantine`.
+- Review freshness now tracks actionable review + Founder-gated review + new unassigned review, not frozen legacy quarantine. Historical authority repair age starts when explicit authority is assigned rather than retroactively at original ingest time.
+- Continuity Hub credential was rotated after the old read token began returning 401. `research-hub-sync-health` is healthy again and its sanitized semantic snapshot preserves the review-authority counters.
+- Supervisor now prefers the exact `new_unassigned_quarantine` value, with the old count-delta rule retained only as backward-compatible fallback.
+
+Current verified state:
+- `manual_review_required = 36`
+- `actionable_review = 2`
+- `unassigned_review_quarantine = 34`
+- `legacy_unassigned_quarantine = 34`
+- `new_unassigned_quarantine = 0`
+- `review_new_authority_debt = 0`
+- review source `available = true`
+- review freshness = `OK`
+- current Supervisor discrepancies contain no review-authority-unavailable or review-queue-freshness alert.
