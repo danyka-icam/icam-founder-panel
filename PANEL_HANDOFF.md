@@ -780,3 +780,16 @@ Regression proof:
 - Activity Inbox remains the branch event interface and is not backfilled from Continuity or read-model snapshots.
 - Testing return bridge was verified healthy; immutable GATE_RESULT events already flow to Continuity. Testing snapshot `updated_at` is not promoted into historical fact.
 - Browser regression passed at 1680 / 1280 / 820 / 390 with no JS errors.
+
+## 2026-10-04 — Prospective Research/Commercial ledgers + branch event producer contract
+
+- Added a new read-only Company Event Ledger service with separate Research and Commercial domains over stable Company Memory `memory_id` identities.
+- First observation is baseline-only: no historical events are created from current snapshots.
+- Future events are append-only observations of changes to `state`, `evidence_status`, or `owning_branch`.
+- Event time is explicitly observation time; it is not promoted to reconstructed occurrence time.
+- Research baseline currently covers 80 RESEARCH/FORECAST/TEST/PUBLICATION objects; Commercial baseline covers 9 COMMERCIAL objects.
+- `Company Event Export v0.2` now consumes both ledgers and marks them `PROSPECTIVE_FROM_BASELINE`; both remain `coverage_complete=false`.
+- Temporal Universe coverage now distinguishes `missing_historical_sources[]` from `prospective_only_sources[]`.
+- Added `ACTIVITY_EVENT_PRODUCER_CONTRACT_v0.2.md` and the corresponding server-side local publisher. It requires stable producer/event identity, evidence refs, materiality class and source-backed `valid_at`; telemetry/readback/polling events are rejected.
+- Live idempotency check passed: publishing the same producer/source_event pair twice with changed wording added exactly one Activity Inbox record.
+- The Research/Commercial ledger activation itself was published as a material company-map event and appeared on the 2026-10-04 Timeline.

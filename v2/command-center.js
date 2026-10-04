@@ -1615,10 +1615,12 @@
     if(!c || c.coverage_complete!==false) return "";
     var names={"Research Ledger":"журнал исследований","Commercial Ledger":"коммерческий журнал"};
     var missing=A(c.missing_historical_sources).map(function(x){return names[x]||human(x);});
+    var prospective=A(c.prospective_only_sources).map(function(x){return names[x]||human(x);});
     var activity=c.activity_inbox&&typeof c.activity_inbox==="object"?c.activity_inbox:{};
     var last=activity.last_received_at?dateLabel(activity.last_received_at):"не передано";
     var parts=[];
     if(missing.length) parts.push("Не подключены: "+missing.join(", ")+".");
+    if(prospective.length) parts.push("Подключены только с текущего baseline: "+prospective.join(", ")+"; более ранняя история ими не покрывается.");
     if(activity.available===true) parts.push("Последнее принятое событие ветки в Activity Inbox: "+last+".");
     else if(activity.available===false) parts.push("Activity Inbox сейчас недоступен.");
     parts.push("Пустой день означает пробел наблюдаемости, а не доказанное отсутствие работы.");

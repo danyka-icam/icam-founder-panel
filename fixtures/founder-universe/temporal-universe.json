@@ -12,7 +12,11 @@
    "count": 15,
    "last_received_at": "2026-09-29T00:43:29.060774+00:00"
   },
-  "missing_historical_sources": ["Research Ledger", "Commercial Ledger"]
+  "missing_historical_sources": [],
+  "prospective_only_sources": [
+   "Research Ledger",
+   "Commercial Ledger"
+  ]
  },
  "company_history": [
   {

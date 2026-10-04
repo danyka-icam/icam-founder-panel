@@ -34,7 +34,7 @@ for (const w of WIDTHS) {
     const tl = await txt("timeline"), pl = await txt("placement"), cc = await txt("command"), ln = await txt("links"), bp = await txt("brazilportal");
     if (EXPECT === "ok") {
       check(/Temporal Universe/.test(tl) && !/Реконструкция/.test(tl), "timeline uses Temporal Universe, no reconstruction banner");
-      check(/Историческое покрытие неполное/.test(tl) && /журнал исследований/.test(tl) && /коммерческий журнал/.test(tl) && /Пустой день означает пробел наблюдаемости/.test(tl), "timeline exposes temporal coverage gaps instead of implying inactivity");
+      check(/Историческое покрытие неполное/.test(tl) && /Подключены только с текущего baseline/.test(tl) && /журнал исследований/.test(tl) && /коммерческий журнал/.test(tl) && /Пустой день означает пробел наблюдаемости/.test(tl), "timeline exposes prospective-only historical coverage instead of implying complete history or inactivity");
       check(/Непривязанные события/.test(tl) && /unresolved_history/.test(tl), "timeline shows unresolved_history as a shorter human label");
       check(/113/.test(pl) && /Кандидаты на точную связь/.test(pl) && /на Founder Map (он|они) не появ/.test(pl), "placement driven by Portfolio Admission; exact-owner candidates are not stars");
       check(/Активная очередь сверки/.test(pl) && /из 78 по источнику/.test(pl), "placement reconciles source total with active queue");
