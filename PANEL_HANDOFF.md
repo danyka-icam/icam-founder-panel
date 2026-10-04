@@ -411,8 +411,8 @@ Repairs:
 - Research Hub sync-health uses a normalized health-state projection instead of raw queue-count changes for semantic identity.
 - RD1 Research Watch must distinguish channel silence from company inactivity and SYSTEM ACTION from OWNER ACTION.
 - Exact external POST route exists for read-only Steward Navigator while the general Founder Panel route remains GET-only.
-- Server change-set: /srv/context-steward/changes/20261003-event-integrity
-- Founder Map release: /opt/aiclavis-atlas-founder-map/releases/0.1-20261003-r4
+- Server-side event-integrity change-set: `20261003-event-integrity`.
+- Founder Map release: `0.1-20261003-r4`.
 
 Temporal coverage:
 - Historical Activity Inbox remains a reconstruction source and is not mutated by Continuity.
@@ -445,7 +445,7 @@ Required behavior:
 - Twin live context may explain only fields actually present in the current Twin projection (for example sealed prediction, no recorded outcome, active clone count). Missing outcome or deadline remains unknown.
 
 Regression suite:
-- /opt/aiclavis-steward-navigator/releases/20261003-1020/regression.py
+- Steward Navigator release `20261003-1020` carries the grounding regression suite.
 - BLT must resolve only to its own Market Scanner signal and never to Eliva/Human AI artifacts.
 - A generic sealed Twin point with no exact run record must return no foreign evidence and must not invent a result/deadline.
 
@@ -453,30 +453,22 @@ Current limitation:
 - No local LLM runtime is installed on the server. Navigator currently uses deterministic contextual retrieval and structured response logic. Do not silently add a paid/external language-model dependency.
 ## 2026-10-03 — Founder decision controls boundary
 
-Founder Panel may eventually expose direct decision controls for READY Founder Decision Presentation cards:
-- Одобрить / APPROVE
-- Отклонить / REJECT
-- Отложить / DEFER
+The earlier identity-bridge gate is now resolved. Direct Founder decision controls are implemented only for READY presentations with exact lifecycle identity.
 
-Current backend facts:
-- context-steward-actions is the only approved write-capable Panel service.
-- Its approve/reject path requires exact action_id + confirmed_hash and Founder authority.
-- Founder Decision Lifecycle is read-only and currently exposes stable lifecycle identity.
-- Founder Decision Presentation v0.2 renders the decision but does not expose a write-safe identity join to the Action ledger.
+Current boundary:
+- `APPROVE`, `REJECT`, and `DEFER` are proposed through the existing mediated Founder Actions path;
+- the browser never writes `DECISION` directly to Continuity and never receives Founder credentials;
+- proposal and confirmation are separate; stale identity/hash/presentation checks fail closed;
+- `APPROVE` / `REJECT` resolve the exact lifecycle; `DEFER` records the decision and leaves it open;
+- cards without exact `lifecycle_id` remain read-only.
 
-Therefore:
-- Do NOT wire decision buttons by matching question text, title similarity, branch names or object labels.
-- Do NOT place Founder credentials/tokens in browser JavaScript.
-- Do NOT create a second write path that writes DECISION directly to Continuity.
-- Direct controls remain unimplemented until an exact identity bridge exists between the presented lifecycle and the canonical pending action, with stale-view protection.
-- Approve/reject must close the same lifecycle through the existing canonical decision path; DEFER must leave the lifecycle open.
+See the later **Direct Founder Decision controls** section for the current tested implementation contract.
 
-Meanwhile the Steward may explain a formal decision from its structured Presentation context and must tell the Founder that searching for a chat/branch is not required to understand the choice.
 ## 2026-10-03 — Steward Agent Runtime
 
-Steward Navigator is now split into two layers:
-- Navigator retrieval layer on 127.0.0.1:8833: indexes working memory and returns evidence; keeps deterministic fallback.
-- Steward Agent reasoning layer on 127.0.0.1:8834: reasons over selected panel context, retrieved evidence and live read-only system projections.
+Steward Navigator is now split into two server-side layers:
+- Navigator retrieval layer: indexes working memory and returns evidence; keeps deterministic fallback.
+- Steward Agent reasoning layer: reasons over selected panel context, retrieved evidence and live read-only system projections.
 
 Agent contract:
 - Model: gpt-5.6-sol through OpenAI Responses API.
@@ -494,17 +486,16 @@ Agent contract:
 
 Credential boundary:
 - Browser never receives any OpenAI credential.
-- OpenAI credential is stored on server only as RSA-encrypted ciphertext.
-- Runtime decrypts it into process memory with a local 4096-bit RSA private key; no plaintext API key is written to disk.
-- /etc/aiclavis-steward-agent is root:contextsteward 0750; encrypted credential and wrapping key are 0640.
-- API usage metadata only (timestamp/model/token counts) is written to /var/lib/aiclavis-steward-agent/usage.jsonl; prompt/answer text is not logged there.
+- The credential remains encrypted in restricted server-side service storage and is decrypted only into process memory; no plaintext API key is written to disk.
+- Only API usage metadata is retained by the service; prompt/answer text is not written to that usage log.
+- Filesystem locations, permission details and key material are intentionally excluded from this public handoff.
 
 Fallback:
 - If Steward Agent/OpenAI is unavailable, Navigator keeps the previous grounded retrieval response rather than inventing an answer.
 
-Current releases:
-- /opt/aiclavis-steward-agent/releases/20261003-1435
-- /opt/aiclavis-steward-navigator/releases/20261003-1420
+Current release identifiers:
+- Steward Agent `20261003-1435`
+- Steward Navigator `20261003-1420`
 - Panel commit 76764cd routes all Steward questions to the server agent; browser-side template interception was removed.
 
 ## 2026-10-03 — Founder Radar v0.2 and automatic branch synchronization
@@ -512,11 +503,11 @@ Current releases:
 Founder Radar replaces the old internal Signals-page model with a read-only Founder attention projection.
 
 Runtime:
-- service: aiclavis-founder-radar
-- localhost: 127.0.0.1:8843
-- endpoint: /api/v1/founder-radar
-- current release: /opt/aiclavis-founder-radar/releases/20261003-1800
-- public Founder Panel read route: /founder-ui-preview/api/radar
+- service: `aiclavis-founder-radar`
+- service API contract: `/api/v1/founder-radar`
+- current release identifier: `20261003-1800`
+- public Founder Panel read route: `/founder-ui-preview/api/radar`
+- internal host/port and filesystem release coordinates are intentionally excluded from this public handoff
 - browser access remains Founder Panel authenticated and GET-only.
 
 Radar sections:
