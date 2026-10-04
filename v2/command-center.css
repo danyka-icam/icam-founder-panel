@@ -1218,3 +1218,74 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .cc-decision-recorded{padding:10px;border:1px solid rgba(63,207,166,.28);border-radius:9px;background:rgba(63,207,166,.06);display:flex;flex-direction:column;gap:4px}
 .cc-decision-recorded b{color:#c8ece2;font-size:11px}
 .cc-decision-recorded span,.cc-decision-recorded small{font-size:9.5px;color:var(--muted)}
+
+/* 2026-10-04 — ATLAS / DT visual alignment with Command Center + Radar */
+.direction-page{--c:var(--cc-flow)}
+.direction-page .direction-top{margin-bottom:14px}
+.direction-page .direction-title{display:flex;align-items:center;gap:14px;min-width:0}
+.direction-page .direction-title h1{margin:0;font:400 34px/1.05 var(--cc-serif);letter-spacing:-.3px;color:#f0f7f4}
+.direction-page .direction-title p{margin:6px 0 0;color:var(--muted);font-size:13px}
+.direction-page .direction-bridge{margin-bottom:14px}
+.direction-page .direction-primary-panel,
+.direction-page .direction-secondary-panel{
+  border:1px solid var(--line);border-top:2px solid var(--c);border-radius:var(--radius);
+  background:linear-gradient(180deg,rgba(120,210,200,.045),rgba(120,210,200,0) 38%),rgba(9,21,26,.82);
+  box-shadow:var(--shadow);margin-bottom:14px
+}
+.direction-page .direction-primary-panel{--c:var(--cc-flow)}
+.direction-page .direction-secondary-panel{--c:var(--cc-violet)}
+.direction-page .direction-primary-panel>.panel-head,
+.direction-page .direction-secondary-panel>.panel-head{
+  padding:14px 16px 0;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap
+}
+.direction-page .direction-primary-panel>.panel-head .head-title h2,
+.direction-page .direction-secondary-panel>.panel-head .head-title h2{
+  margin:0;font:400 19px var(--cc-serif);color:#eef6f3
+}
+.direction-page .direction-primary-panel>.panel-head .head-title small,
+.direction-page .direction-secondary-panel>.panel-head .head-title small{
+  color:var(--muted-2);font-size:11px
+}
+.direction-page .normalized-live-root .panel-body,
+.direction-page .atlas-siglab-card .panel-body{padding:14px 16px 16px}
+.direction-page .live-status-box{
+  border-left:3px solid var(--cc-flow);border-radius:11px;
+  background:linear-gradient(90deg,rgba(63,207,166,.065),rgba(9,21,26,.28) 50%)
+}
+.direction-page .live-status-box.warn{border-left-color:var(--cc-return)}
+.direction-page .live-status-box.bad{border-left-color:var(--cc-critical)}
+.direction-page .live-summary{gap:12px}
+.direction-page .live-summary .metric{
+  min-height:96px;padding:14px;border:1px solid var(--line);border-radius:13px;
+  background:linear-gradient(160deg,rgba(63,207,166,.055),rgba(9,21,26,.78) 58%);
+  box-shadow:var(--shadow)
+}
+.direction-page .live-summary .metric strong{font:400 19px/1.2 var(--cc-serif);color:#eff6f3}
+.direction-page .live-item-clean{
+  border:1px solid var(--line);border-left:2px solid rgba(126,214,195,.32);border-radius:12px;
+  background:rgba(8,20,25,.58);padding:13px 14px;margin-top:10px
+}
+.direction-page .live-item-clean-head h3{font:400 16px var(--cc-serif);color:#eef6f3}
+.direction-page .live-kv-clean{padding:9px 0;border-top:1px solid rgba(138,162,179,.12)}
+.direction-page .agent-contract-list>div,
+.direction-page .atlas-siglab-streams>div{
+  border:1px solid var(--line);background:rgba(7,19,24,.58);border-radius:10px
+}
+.atlas-focus{--c:var(--cc-flow)}
+.twin-focus{--c:var(--cc-violet)}
+.twin-focus .cc-title-mark{border-color:var(--cc-violet);box-shadow:0 0 16px rgba(159,140,226,.34),inset 0 0 10px rgba(159,140,226,.24)}
+.twin-focus .cc-title-mark:after{background:var(--cc-violet);box-shadow:0 0 10px var(--cc-violet)}
+.twin-focus .direction-primary-panel{--c:var(--cc-violet)}
+.twin-focus .live-status-box{border-left-color:var(--cc-violet);background:linear-gradient(90deg,rgba(159,140,226,.065),rgba(9,21,26,.28) 50%)}
+.atlas-invest-panel{--c:var(--cc-return);border-top-color:var(--cc-return)!important}
+.atlas-invest-panel>header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.atlas-invest-panel>header h2{margin:0;font:400 19px var(--cc-serif);color:#eef6f3}
+.atlas-invest-panel>header small{color:var(--muted-2);font-size:11px}
+.atlas-invest-panel .radar-invest-grid>div{
+  background:linear-gradient(160deg,rgba(214,187,120,.055),rgba(9,21,26,.72));
+  border-color:rgba(214,187,120,.16)
+}
+@media(max-width:820px){
+  .direction-page .direction-title h1{font-size:30px}
+  .direction-page .direction-title{align-items:flex-start}
+}

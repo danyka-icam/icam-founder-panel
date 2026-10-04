@@ -1757,7 +1757,7 @@
     var page=document.querySelector('[data-page-panel="signals"]');
     if(!page)return;
     function arr(k){return radar&&Array.isArray(radar[k])?radar[k]:[];}
-    function box(k){return page.querySelector('[data-radar="'+k+'"]');}
+    function box(k){return k==="investment"?document.querySelector('[data-radar="investment"]'):page.querySelector('[data-radar="'+k+'"]');}
     function dateRu(v){if(!v)return "";var d=new Date(String(v).length===10?v+"T12:00:00":v);return isNaN(d)?String(v):d.toLocaleDateString("ru-RU",{day:"2-digit",month:"short",year:"numeric"});}
     function money(v){if(v==null)return "—";return "$"+Number(v).toLocaleString("en-US",{maximumFractionDigits:0});}
     function pct(v){return v==null?"недостаточно данных":Number(v).toLocaleString("ru-RU",{maximumFractionDigits:2})+"%";}

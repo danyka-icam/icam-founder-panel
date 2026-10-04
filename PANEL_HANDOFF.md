@@ -919,3 +919,14 @@ Current verified state:
 - Important boundary: ordinary chat activity is not itself a canonical branch-state update. `com.klim.conversations-sync` archives conversations every 120s, but does not create Continuity state events. A branch appears current only after it emits a structured update/event into the canonical transport. Transport is automatic; event creation is not yet universal across branches.
 
 - GVF-002A execution follow-through check: no GVF-specific decision consumer/runner was found on the server, and the generic aiclavis execution dispatcher contains no GVF/Founder-decision binding. Therefore the Panel APPROVE currently records governance truth and resolves the decision lifecycle, but does not itself execute the 120-call forecast run. A separate exact decision-to-owning-branch handoff/dispatch contract is still required before Founder decisions can cause downstream work.
+
+## 2026-10-04 — ATLAS / DT visual alignment + Investment ATLAS relocation
+
+- ATLAS and DT direction pages were aligned with the Command Center / Founder Radar visual system without changing their upstream data contracts: shared title marker, accented primary panel, KPI-card treatment, highlighted state boundary, and stronger nested card hierarchy.
+- ATLAS keeps the canonical ATLAS State Authority projection as the primary surface. DT keeps the Personal Twin safe projection as its primary surface. No semantic state was inferred or promoted by the visual redesign.
+- Investment ATLAS was removed from the Signals page and relocated into the main ATLAS page immediately after canonical ATLAS state and before Signal Lab.
+- The investment block still consumes the same Founder Radar aggregate; only presentation ownership/location changed. Signals now contains external opportunities/waiting/predictions/field/learning/reputation only.
+- Radar renderer now resolves the investment target globally so the aggregate can render on the ATLAS page while the Signals page remains the Radar inspector host.
+- Normalized-live visibility contract was updated to preserve both ATLAS Signal Lab and Investment ATLAS beneath the canonical ATLAS projection.
+- Static contract passed. Headless Chrome visual checks were completed for ATLAS, DT and Signals at desktop width. Signals layout remains coherent after removing the investment card.
+- Production static files `v2/index.html`, `v2/live.js`, and `v2/command-center.css` were deployed with a pre-change server backup at `/opt/icam/preview/founder-ui-preview/v2.backup-20261004-ui`.
