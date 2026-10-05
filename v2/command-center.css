@@ -1471,3 +1471,11 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .commercial-focus .com-item.direction-selected,
 .commercial-focus .com-queue-row.direction-selected{background:rgba(63,207,166,.035)}
 @media(max-width:760px){.commercial-focus .commercial-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+
+/* Commercial evidence provenance */
+.com-provenance{margin-top:6px;font-size:8px;line-height:1.3;letter-spacing:.045em;text-transform:uppercase;color:var(--cc-dim)}
+.com-provenance.live{color:var(--cc-flow)}
+.com-provenance.imported{color:var(--cc-wait)}
+.com-provenance.unknown{color:var(--cc-dim)}
+.com-provenance{text-transform:none;letter-spacing:.02em;font-size:8px;opacity:.78}
+.com-provenance.imported{color:#6ea9c9}
