@@ -396,9 +396,13 @@
   function toneOf(l) {
     if (l.closed) return "closed";
     var routeBlockers = l.risk.blockers;
-    if (l.r.ball_owner && H.isFounderOwner(l.r.ball_owner) && (routeBlockers || l.state !== "flow")) return "act";
     if (routeBlockers) return "blocked";
     if (l.waiting) return "wait";
+    if (l.r.ball_owner && H.isFounderOwner(l.r.ball_owner)) {
+      if (l.risk.stale == null) return "unknown";
+      if (l.risk.stale >= H.STALE_DAYS) return "stale";
+      return "act";
+    }
     if (!l.risk.blockersKnown) return "unknown";
     if (l.risk.stale == null) return "unknown";
     if (l.risk.stale >= H.STALE_DAYS) return "stale";
@@ -1060,7 +1064,7 @@
   }
 
   function renderHero() {
-    var decisions = [], assigned = [];
+    var decisions = [], assigned = [], assignedOld = [];
     function decisionState(v) {
       var s = String(v || "").toUpperCase();
       if (s === "READY") return "готово к решению";
@@ -1078,35 +1082,40 @@
         attr: sel("decision", d.key)
       });
     });
-    // ball_owner=ME proves assignment, not urgency. Keep these routes visible,
-    // but never promote all of them into "actions required now".
+    // ball_owner=ME proves assignment, not urgency. A stale assignment remains
+    // visible, but is separated from current founder work instead of being
+    // promoted as a fresh action.
     M.active.filter(function (l) { return l.r.ball_owner && H.isFounderOwner(l.r.ball_owner); }).forEach(function (l) {
       var priority = l.r.priority ? "приоритет источника: " + l.r.priority : "приоритет источником не передан";
-      assigned.push({
+      var item = {
         kind: "route", title: humanActionText(l.next || "Следующий ход не передан"),
         why: routeDisplayTitle(l.title) + " · маршрут назначен вам · " + priority +
           (l.risk.blockers ? " · блокеров маршрута " + l.risk.blockers : "") +
           (l.objBlockers.length ? " · у объекта blocker-записей " + l.objBlockers.length + " (не доказаны как блокеры маршрута)" : "") +
-          (l.risk.stale != null && l.risk.stale >= H.STALE_DAYS ? " · последнее движение " + l.risk.stale + " дн. назад" : ""),
+          (l.risk.stale != null ? " · последнее движение " + l.risk.stale + " дн. назад" : " · дата последнего движения не передана"),
         ref: l.objId || (l.sourceObjectId ? l.sourceObjectId + " · связь с объектом не подтверждена" : "локальный маршрут"), age: l.r.last_movement_at,
         attr: sel("line", l.key)
-      });
+      };
+      if (l.risk.stale == null || l.risk.stale >= H.STALE_DAYS) assignedOld.push(item);
+      else assigned.push(item);
     });
     decisions = byDateDesc(decisions);
     assigned = byDateDesc(assigned);
-    var nd = decisions.length, na = assigned.length, total = nd + na;
+    assignedOld = byDateDesc(assignedOld);
+    var nd = decisions.length, na = assigned.length, no = assignedOld.length, total = nd + na + no;
     var decisionsOk = M.fp.ok && M.FP.decisionsKnown;
     var anyOk = decisionsOk || routeDataOk();
     var head = "<div class='cc-hero-head'><span class='cc-hero-mark'>!</span><div><h2>Требует вашего решения</h2>" +
-      "<small>здесь считаются только формальные решения из проекции Основателя; назначенный вам маршрут сам по себе не означает срочность</small></div>" +
+      "<small>формальные решения и только свежие назначения отделены от старых маршрутов, которые источник всё ещё держит ACTIVE</small></div>" +
       "<div class='cc-hero-counts'><strong class='cc-hero-count'>" + (decisionsOk ? nd : "—") + "</strong>" +
       "<span><b>" + (decisionsOk ? nd : "—") + "</b> " + (decisionsOk ? plural(nd, "формальное решение", "формальных решения", "формальных решений") : "формальных решений") +
-      " · <b>" + (routeDataOk() ? na : "—") + "</b> маршрутов на вашей стороне</span></div></div>";
+      " · <b>" + (routeDataOk() ? na : "—") + "</b> свежих назначений · <b>" + (routeDataOk() ? no : "—") + "</b> старых маршрутов на сверку</span></div></div>";
     if (!anyOk) return head + unavailable("Контур внимания не проверен", (M.fp.ok ? "Founder Projection ответил, но today.founder_decisions[] не передан" : "Проекция решений Основателя недоступна") + "; " + routeGapText() + ". Состояние внимания не подтверждено.");
     if (!total && decisionsOk && routeDataOk()) return head + "<div class='cc-hero-calm'>Формальных решений и назначенных вам маршрутов сейчас нет.</div>";
     var shownD = ui.heroAll ? nd : Math.min(nd, HERO_LIMIT);
-    var shownA = ui.heroAll ? na : Math.min(na, HERO_LIMIT - shownD);
-    var hidden = total - shownD - shownA;
+    var shownA = ui.heroAll ? na : Math.min(na, Math.max(0, HERO_LIMIT - shownD));
+    var shownO = ui.heroAll ? no : Math.min(no, Math.max(0, HERO_LIMIT - shownD - shownA));
+    var hidden = total - shownD - shownA - shownO;
     function card(it) {
       return "<div class='cc-hero-item " + it.kind + "'" + it.attr + " tabindex='0'>" +
         "<b>" + E(H.cut(it.title, 90)) + "</b><small>" + E(H.cut(it.why, 150)) + "</small>" +
@@ -1122,11 +1131,12 @@
     }
     return head +
       group("decide", "Нужно решить", "только формальные решения Основателя", decisions, shownD, decisionsOk, M.fp.ok ? "Founder Projection ответил, но today.founder_decisions[] не передан" : "Проекция решений Основателя недоступна") +
-      group("move", "Маршруты на вашей стороне", "владелец следующего хода — вы; это назначение, а не оценка срочности", assigned, shownA, routeDataOk(), routeGapText()) +
+      group("move", "Свежие маршруты на вашей стороне", "владелец следующего хода — вы, и движение было менее " + H.STALE_DAYS + " дней назад", assigned, shownA, routeDataOk(), routeGapText()) +
+      group("stale", "Старые назначения — нужна сверка", "источник всё ещё держит маршрут активным, но свежего движения нет; панель не считает это текущей задачей автоматически", assignedOld, shownO, routeDataOk(), routeGapText()) +
       (hidden > 0 ? "<button class='cc-hero-more' data-cc-hero-more>Показать ещё " + hidden + "</button>" :
         (ui.heroAll && total > HERO_LIMIT ? "<button class='cc-hero-more' data-cc-hero-more>Свернуть</button>" : "")) +
       (inboxDataOk() && M.inboxItems.length ? "<div class='cc-foot-note'>Входящие Основателя: " + M.inboxItems.length + " запрос(ов) на участие. Они не становятся формальными решениями без проекции решений Основателя.</div>" : "") +
-      "<div class='cc-foot-note'>Панель не повышает срочность по давности, владельцу хода или локальной оценке. Приоритет показывается только таким, каким его отдал источник.</div>";
+      "<div class='cc-foot-note'>Старый ACTIVE не закрывается автоматически: он остаётся видимым как запись источника, но после " + H.STALE_DAYS + " дней без движения выводится на сверку, а не как сегодняшняя задача. Приоритет показывается только таким, каким его отдал источник.</div>";
   }
 
   function renderMeta() {
@@ -2485,7 +2495,7 @@
 
   var LINE_FILTERS = [
     { id: "all", label: "Без явного закрывающего статуса", test: function (l) { return !l.closed; } },
-    { id: "act", label: "Ход у вас", test: function (l) { return l.tone === "act"; } },
+    { id: "act", label: "Свежий ход у вас", test: function (l) { return l.tone === "act"; } },
     { id: "blocked", label: "Блокеры", test: function (l) { return l.tone === "blocked"; } },
     { id: "waiting", label: "Ход не у вас", test: function (l) { return l.tone === "wait"; } },
     { id: "stale", label: "Давно без движения", test: function (l) { return l.tone === "stale"; } },

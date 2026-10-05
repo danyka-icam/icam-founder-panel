@@ -1479,3 +1479,9 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .com-provenance.unknown{color:var(--cc-dim)}
 .com-provenance{text-transform:none;letter-spacing:.02em;font-size:8px;opacity:.78}
 .com-provenance.imported{color:#6ea9c9}
+
+/* Command-center assignment freshness */
+.cc-hero-group.stale .cc-hero-kind{background:none;color:var(--cc-wait);border:1px solid rgba(90,169,230,.34)}
+.cc-hero-group.stale .cc-hero-item{background:rgba(10,18,22,.42);border-color:rgba(90,169,230,.16)}
+.cc-hero-group.stale .cc-hero-item small{color:#a8b8b4}
+.cc-hero-group.stale .cc-hero-item em{color:#7f9792}
