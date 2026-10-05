@@ -1,0 +1,1016 @@
+{
+ "schema_id": "atlas-temporal-universe.v0.1",
+ "window": {
+  "from": "2026-07-02T00:00:00Z",
+  "to": "2026-09-30T00:00:00Z",
+  "days": 90
+ },
+ "coverage": {
+  "coverage_complete": false,
+  "activity_inbox": {
+   "available": true,
+   "count": 15,
+   "last_received_at": "2026-09-29T00:43:29.060774+00:00"
+  },
+  "missing_historical_sources": [],
+  "prospective_only_sources": [
+   "Research Ledger",
+   "Commercial Ledger"
+  ]
+ },
+ "company_history": [
+  {
+   "event_id": "E-C1",
+   "change": "Запущен портфель Founder Universe",
+   "transition": "ADVANCED",
+   "subject": null,
+   "line": null,
+   "world": null,
+   "evidence_count": 1,
+   "truth_status": "VERIFIED",
+   "why_it_matters": "Все линии получили единое каноническое пространство",
+   "next_milestone": "Первые размещённые звёзды",
+   "source_branch": null,
+   "scope": "COMPANY",
+   "binding_class": "EXACT_OBJECT",
+   "target": null,
+   "date": "2026-07-08"
+  },
+  {
+   "event_id": "E-C2",
+   "change": "RD1 принят в read-only режиме",
+   "transition": "ADVANCED",
+   "subject": null,
+   "line": null,
+   "world": null,
+   "evidence_count": 1,
+   "truth_status": "VERIFIED",
+   "why_it_matters": "Исследования читаются без права записи",
+   "next_milestone": "RD1 operation",
+   "source_branch": null,
+   "scope": "COMPANY",
+   "binding_class": "EXACT_OBJECT",
+   "target": null,
+   "date": "2026-07-21"
+  },
+  {
+   "event_id": "E-C3",
+   "change": "Market Scanner прошёл QA",
+   "transition": "ADVANCED",
+   "subject": null,
+   "line": null,
+   "world": null,
+   "evidence_count": 1,
+   "truth_status": "VERIFIED",
+   "why_it_matters": "Внешние сигналы можно показывать Основателю",
+   "next_milestone": "Активация потока сигналов",
+   "source_branch": null,
+   "scope": "COMPANY",
+   "binding_class": "EXACT_OBJECT",
+   "target": null,
+   "date": "2026-08-04"
+  },
+  {
+   "event_id": "E-C4",
+   "change": "BrazilPortal объявлен приоритетным направлением",
+   "transition": "PRIORITIZED",
+   "subject": null,
+   "line": null,
+   "world": null,
+   "evidence_count": 1,
+   "truth_status": "VERIFIED",
+   "why_it_matters": "Ресурсы смещаются в продукт для инвесторов",
+   "next_milestone": "Раздел «Инвесторам»",
+   "source_branch": null,
+   "scope": "COMPANY",
+   "binding_class": "EXACT_OBJECT",
+   "target": null,
+   "date": "2026-08-18"
+  },
+  {
+   "event_id": "E-C5",
+   "change": "Панель v2 принята как кандидат интеграции",
+   "transition": "ADVANCED",
+   "subject": null,
+   "line": null,
+   "world": null,
+   "evidence_count": 1,
+   "truth_status": "VERIFIED",
+   "why_it_matters": "Основатель видит компанию в одном месте",
+   "next_milestone": "Founder review",
+   "source_branch": null,
+   "scope": "COMPANY",
+   "binding_class": "EXACT_OBJECT",
+   "target": null,
+   "date": "2026-09-03"
+  },
+  {
+   "event_id": "E-C6",
+   "change": "Personal Twin: safe read projection",
+   "transition": "ADVANCED",
+   "subject": null,
+   "line": null,
+   "world": null,
+   "evidence_count": 1,
+   "truth_status": "VERIFIED",
+   "why_it_matters": "Twin доступен без раскрытия предсказаний",
+   "next_milestone": "Оценка эпизодов",
+   "source_branch": null,
+   "scope": "COMPANY",
+   "binding_class": "EXACT_OBJECT",
+   "target": null,
+   "date": "2026-09-12"
+  },
+  {
+   "event_id": "E-C7",
+   "change": "Foundation перешёл в финальный soak",
+   "transition": "ADVANCED",
+   "subject": null,
+   "line": null,
+   "world": null,
+   "evidence_count": 1,
+   "truth_status": "PENDING_RECONCILIATION",
+   "why_it_matters": "Последний шаг перед readiness",
+   "next_milestone": "Readiness aggregate PASS",
+   "source_branch": null,
+   "scope": "COMPANY",
+   "binding_class": "EXACT_OBJECT",
+   "target": null,
+   "date": "2026-09-25"
+  }
+ ],
+ "worlds": [
+  {
+   "id": "W-FOUNDATION",
+   "title": "Фундамент и инфраструктура",
+   "lines": [
+    {
+     "id": "N-5a1025",
+     "title": "Финальная стабилизация Foundation",
+     "branches": [
+      {
+       "id": "N-5a1025-B1",
+       "title": "Foundation",
+       "canonical_title": "Foundation core",
+       "memory_id": "FND-001",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": "Финальная стабилизация",
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [
+         {
+          "id": "W-0",
+          "title": "Закрытие orphan receipt",
+          "time_class": "CURRENT_STATE",
+          "valid_from": null,
+          "recorded_at": null
+         }
+        ],
+        "next_transition": [
+         {
+          "id": "T-0",
+          "title": "Readiness aggregate PASS",
+          "time_class": "FUTURE_CONDITION",
+          "valid_from": null,
+          "recorded_at": null
+         }
+        ],
+        "history": [
+         {
+          "event_id": "E-S1",
+          "change": "Foundation перешёл в финальный soak",
+          "transition": "ADVANCED",
+          "subject": "FND-001",
+          "line": null,
+          "world": null,
+          "evidence_count": 1,
+          "truth_status": "VERIFIED",
+          "why_it_matters": "Последний шаг перед readiness",
+          "next_milestone": "Readiness aggregate PASS",
+          "source_branch": null,
+          "scope": "LINE",
+          "binding_class": "EXACT_OBJECT",
+          "target": null,
+          "date": "2026-09-25"
+         }
+        ]
+       }
+      },
+      {
+       "id": "N-5a1025-B2",
+       "title": "Readback контур",
+       "canonical_title": "Artifact readback",
+       "memory_id": "FND-002",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [],
+     "recent_history": [
+      {
+       "event_id": "E-L1",
+       "change": "Soak выявил orphan receipt",
+       "transition": "BLOCKED",
+       "subject": "FND-001",
+       "line": "Финальная стабилизация Foundation",
+       "world": "Фундамент и инфраструктура",
+       "evidence_count": 1,
+       "truth_status": "VERIFIED",
+       "why_it_matters": "Без закрытия receipt readiness не может стать PASS",
+       "next_milestone": "Закрыть orphan receipt",
+       "source_branch": "Foundation",
+       "scope": "LINE",
+       "binding_class": "EXACT_OBJECT",
+       "target": null,
+       "date": "2026-09-26"
+      }
+     ]
+    },
+    {
+     "id": "N-5a104a",
+     "title": "Путь полномочий",
+     "branches": [
+      {
+       "id": "N-5a104a-B1",
+       "title": "Authority envelope",
+       "canonical_title": "Authority action path",
+       "memory_id": "FND-003",
+       "verified": false,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [],
+     "recent_history": []
+    },
+    {
+     "id": "N-5a106f",
+     "title": "Документный хаб",
+     "branches": [
+      {
+       "id": "N-5a106f-B1",
+       "title": "Hub sync",
+       "canonical_title": "Hub durability",
+       "memory_id": "FND-004",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      },
+      {
+       "id": "N-5a106f-B2",
+       "title": "Manual review queue",
+       "canonical_title": "Hub review queue",
+       "memory_id": "FND-006",
+       "verified": false,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [],
+     "recent_history": []
+    },
+    {
+     "id": "N-5a1094",
+     "title": "Контур тестирования",
+     "branches": [
+      {
+       "id": "N-5a1094-B1",
+       "title": "Testing runner",
+       "canonical_title": "Testing execution",
+       "memory_id": "FND-008",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [],
+     "recent_history": []
+    },
+    {
+     "id": "N-5a10b9",
+     "title": "Диагностика источников",
+     "branches": [
+      {
+       "id": "N-5a10b9-B1",
+       "title": "Source diagnostics",
+       "canonical_title": "Panel diagnostics",
+       "memory_id": "FND-010",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [],
+     "recent_history": []
+    }
+   ]
+  },
+  {
+   "id": "W-PRODUCTS",
+   "title": "Продукты и порталы",
+   "lines": [
+    {
+     "id": "N-5a10de",
+     "title": "BrazilPortal",
+     "branches": [
+      {
+       "id": "N-5a10de-B1",
+       "title": "BrazilPortal",
+       "canonical_title": "BrazilPortal component",
+       "memory_id": "CMP-000005",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": "Активная сборка",
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [
+         {
+          "id": "W-0",
+          "title": "Комментарии юриста",
+          "time_class": "CURRENT_STATE",
+          "valid_from": null,
+          "recorded_at": null
+         }
+        ],
+        "next_transition": [
+         {
+          "id": "T-0",
+          "title": "Публикация раздела «Инвесторам»",
+          "time_class": "FUTURE_CONDITION",
+          "valid_from": null,
+          "recorded_at": null
+         }
+        ],
+        "history": []
+       }
+      },
+      {
+       "id": "N-5a10de-B2",
+       "title": "Раздел «Инвесторам»",
+       "canonical_title": "Investor section",
+       "memory_id": "CMP-000006",
+       "verified": false,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [
+      {
+       "id": "N-c0a001",
+       "title": "Verifiable public research records and DOI-backed artifacts"
+      },
+      {
+       "id": "N-c0a002",
+       "title": "Company semantic state stack"
+      }
+     ],
+     "recent_history": []
+    },
+    {
+     "id": "N-5a1103",
+     "title": "Юридический контур BrazilPortal",
+     "branches": [
+      {
+       "id": "N-5a1103-B1",
+       "title": "Юр. проверка контента",
+       "canonical_title": "Legal review",
+       "memory_id": "CMP-000007",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [],
+     "recent_history": [
+      {
+       "event_id": "E-L3",
+       "change": "Начата юр. проверка раздела «Инвесторам»",
+       "transition": "ADVANCED",
+       "subject": "CMP-000007",
+       "line": "Юридический контур BrazilPortal",
+       "world": "Продукты и порталы",
+       "evidence_count": 1,
+       "truth_status": "PENDING_RECONCILIATION",
+       "why_it_matters": "Раздел нельзя публиковать без юридического согласования",
+       "next_milestone": "Комментарии юриста",
+       "source_branch": "BrazilPortal",
+       "scope": "LINE",
+       "binding_class": "PENDING_EXACT_OBJECT_PROOF",
+       "target": null,
+       "date": "2026-09-28"
+      }
+     ]
+    },
+    {
+     "id": "N-5a1128",
+     "title": "Atlas advisory",
+     "branches": [
+      {
+       "id": "N-5a1128-B1",
+       "title": "Atlas advisory",
+       "canonical_title": "Atlas advisory RC1",
+       "memory_id": "RD1-ATL",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      },
+      {
+       "id": "N-5a1128-B2",
+       "title": "Atlas data model v1.2",
+       "canonical_title": "Atlas data model",
+       "memory_id": "RD1-ATL-2",
+       "verified": false,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [],
+     "recent_history": [
+      {
+       "event_id": "E-L2",
+       "change": "RC1 принят в read-only",
+       "transition": "ADVANCED",
+       "subject": "RD1-ATL",
+       "line": "Atlas advisory",
+       "world": "Продукты и порталы",
+       "evidence_count": 1,
+       "truth_status": "VERIFIED",
+       "why_it_matters": "Atlas может отдавать советы без права записи",
+       "next_milestone": "Модель данных Atlas v1.2",
+       "source_branch": "Atlas",
+       "scope": "LINE",
+       "binding_class": "EXACT_OBJECT",
+       "target": null,
+       "date": "2026-09-29"
+      }
+     ]
+    },
+    {
+     "id": "N-5a114d",
+     "title": "Market Scanner",
+     "branches": [
+      {
+       "id": "N-5a114d-B1",
+       "title": "Scanner bridge",
+       "canonical_title": "Market scanner bridge",
+       "memory_id": "OPS-015",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      },
+      {
+       "id": "N-5a114d-B2",
+       "title": "Field movement",
+       "canonical_title": "Field movement axes",
+       "memory_id": "OPS-016",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [],
+     "recent_history": []
+    },
+    {
+     "id": "N-5a1172",
+     "title": "Personal Twin",
+     "branches": [
+      {
+       "id": "N-5a1172-B1",
+       "title": "Personal Twin",
+       "canonical_title": "Personal Twin FND-005",
+       "memory_id": "FND-005",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": "Проспективное обучение",
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [
+         {
+          "id": "W-0",
+          "title": "Оценка эпизодов",
+          "time_class": "CURRENT_STATE",
+          "valid_from": null,
+          "recorded_at": null
+         }
+        ],
+        "next_transition": [
+         {
+          "id": "T-0",
+          "title": "Выбор эпизода для пилота",
+          "time_class": "FUTURE_CONDITION",
+          "valid_from": null,
+          "recorded_at": null
+         }
+        ],
+        "history": [
+         {
+          "event_id": "E-S2",
+          "change": "PTC-R0 отложен до стабилизации",
+          "transition": "DEFERRED",
+          "subject": "FND-005",
+          "line": null,
+          "world": null,
+          "evidence_count": 1,
+          "truth_status": "VERIFIED",
+          "why_it_matters": "Без протокола нельзя начинать проспективное обучение",
+          "next_milestone": "Оценка эпизодов",
+          "source_branch": null,
+          "scope": "LINE",
+          "binding_class": "EXACT_OBJECT",
+          "target": null,
+          "date": "2026-09-12"
+         }
+        ]
+       }
+      },
+      {
+       "id": "N-5a1172-B2",
+       "title": "PTC-R0 протокол",
+       "canonical_title": "PTC-R0",
+       "memory_id": "FND-005-P",
+       "verified": false,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [],
+     "recent_history": []
+    },
+    {
+     "id": "N-5a1197",
+     "title": "Операционные обязательства",
+     "branches": [
+      {
+       "id": "N-5a1197-B1",
+       "title": "Commitments ledger",
+       "canonical_title": "Commitments",
+       "memory_id": "OPS-021",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      },
+      {
+       "id": "N-5a1197-B2",
+       "title": "Ball owner registry",
+       "canonical_title": "Ball owner",
+       "memory_id": "OPS-022",
+       "verified": false,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [],
+     "recent_history": []
+    }
+   ]
+  },
+  {
+   "id": "W-RESEARCH",
+   "title": "Исследования и партнёрства",
+   "lines": [
+    {
+     "id": "N-5a11bc",
+     "title": "Health Security Alliance",
+     "branches": [
+      {
+       "id": "N-5a11bc-B1",
+       "title": "Health Security Alliance",
+       "canonical_title": "HSA partnership",
+       "memory_id": "RD1-HSA",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": "Подготовка",
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [
+         {
+          "id": "W-0",
+          "title": "Встреча с партнёром",
+          "time_class": "CURRENT_STATE",
+          "valid_from": null,
+          "recorded_at": null
+         }
+        ],
+        "next_transition": [
+         {
+          "id": "T-0",
+          "title": "Подписание MoU",
+          "time_class": "FUTURE_CONDITION",
+          "valid_from": null,
+          "recorded_at": null
+         }
+        ],
+        "history": []
+       }
+      },
+      {
+       "id": "N-5a11bc-B2",
+       "title": "MoU с партнёром",
+       "canonical_title": "HSA MoU",
+       "memory_id": "RD1-HSA-MOU",
+       "verified": false,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [],
+     "recent_history": [
+      {
+       "event_id": "E-L4",
+       "change": "Партнёр прислал черновик MoU",
+       "transition": "ADVANCED",
+       "subject": "RD1-HSA",
+       "line": "Health Security Alliance",
+       "world": "Исследования и партнёрства",
+       "evidence_count": 1,
+       "truth_status": "VERIFIED",
+       "why_it_matters": "Открывает путь к совместной программе",
+       "next_milestone": "Встреча с партнёром",
+       "source_branch": "Research",
+       "scope": "LINE",
+       "binding_class": "EXACT_OBJECT",
+       "target": null,
+       "date": "2026-09-21"
+      }
+     ]
+    },
+    {
+     "id": "N-5a11e1",
+     "title": "RD1 read-only операция",
+     "branches": [
+      {
+       "id": "N-5a11e1-B1",
+       "title": "RD1 operation",
+       "canonical_title": "RD1 read-only",
+       "memory_id": "RD1-OPS",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [],
+     "recent_history": []
+    },
+    {
+     "id": "N-5a1206",
+     "title": "Корпоративный венчурный контур",
+     "branches": [
+      {
+       "id": "N-5a1206-B1",
+       "title": "CVC оценка стартапов",
+       "canonical_title": "CVC evaluation",
+       "memory_id": "RD1-CVC",
+       "verified": false,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      },
+      {
+       "id": "N-5a1206-B2",
+       "title": "Пилот CVC",
+       "canonical_title": "CVC pilot",
+       "memory_id": "RD1-CVC-P",
+       "verified": false,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [
+      {
+       "id": "N-c0a003",
+       "title": "Pilot budget envelope (CVC)"
+      }
+     ],
+     "recent_history": []
+    },
+    {
+     "id": "N-5a122b",
+     "title": "Construction voice research",
+     "branches": [
+      {
+       "id": "N-5a122b-B1",
+       "title": "Voice corpus",
+       "canonical_title": "Construction voice",
+       "memory_id": "RD1-VOICE",
+       "verified": true,
+       "temporal": {
+        "now": {
+         "state": null,
+         "truth": null,
+         "valid_from": null,
+         "recorded_at": null
+        },
+        "waiting": [],
+        "next_transition": [],
+        "history": []
+       }
+      }
+     ],
+     "capital": [],
+     "recent_history": []
+    },
+    {
+     "id": "N-5a1250",
+     "title": "Акселерация health-tech",
+     "branches": [],
+     "capital": [],
+     "recent_history": []
+    }
+   ]
+  }
+ ],
+ "strategic_trajectories": [
+  {
+   "id": "ST-1",
+   "title": "Платформа для инвесторов",
+   "status": "ACTIVE",
+   "horizon": "2026-Q4",
+   "north_star": "Инвестор видит проверяемое состояние компании без посредников",
+   "path": [
+    "Atlas advisory",
+    "Единая модель данных",
+    "Раздел «Инвесторам»",
+    "Публичный запуск"
+   ],
+   "publication_contour": "Investor portal",
+   "evidence_basis": [
+    "RC1 read-only",
+    "Юр. проверка начата"
+   ]
+  },
+  {
+   "id": "ST-2",
+   "title": "Доверенный фундамент",
+   "status": "ACTIVE",
+   "horizon": "2026-Q4",
+   "north_star": "Каждое утверждение панели доказуемо источником",
+   "path": [
+    "Финальный soak",
+    "Readback byte-for-byte",
+    "Readiness PASS"
+   ],
+   "rule": "Никакой зелёный статус без доказательства",
+   "feeds_back_to": [
+    "Платформа для инвесторов"
+   ]
+  },
+  {
+   "id": "ST-3",
+   "title": "Health-tech партнёрства",
+   "status": "FORMING",
+   "horizon": "2027",
+   "north_star": "Совместные программы с партнёрами по безопасности здоровья",
+   "path": [
+    "MoU с партнёром",
+    "Пилотная программа",
+    "Акселерация"
+   ],
+   "growth_programs": [
+    "Акселерация health-tech"
+   ]
+  }
+ ],
+ "unresolved_history": [
+  {
+   "event_id": "E-U1",
+   "change": "Встреча с фондом из Сингапура",
+   "transition": "OBSERVED",
+   "subject": "Singapore fund",
+   "line": null,
+   "world": null,
+   "evidence_count": 1,
+   "truth_status": "PENDING_RECONCILIATION",
+   "why_it_matters": "Возможный внешний партнёр для портала",
+   "next_milestone": "Решение о следующей встрече",
+   "source_branch": null,
+   "scope": "PENDING_BINDING",
+   "binding_class": "PENDING_EXACT_OBJECT_PROOF",
+   "target": null,
+   "date": "2026-09-10"
+  },
+  {
+   "event_id": "E-U2",
+   "change": "Черновик тезисов для инвестора",
+   "transition": "CREATED",
+   "subject": null,
+   "line": null,
+   "world": null,
+   "evidence_count": 1,
+   "truth_status": "PENDING_RECONCILIATION",
+   "why_it_matters": "Нужен владелец, чтобы тезисы попали в линию",
+   "next_milestone": "Назначить владельца",
+   "source_branch": null,
+   "scope": "PENDING_BINDING",
+   "binding_class": "PENDING_EXACT_OBJECT_PROOF",
+   "target": null,
+   "date": "2026-08-27"
+  },
+  {
+   "event_id": "E-U3",
+   "change": "Идея: программа акселерации",
+   "transition": "PROPOSED",
+   "subject": null,
+   "line": null,
+   "world": null,
+   "evidence_count": 0,
+   "truth_status": "UNVERIFIED",
+   "why_it_matters": "Может стать отдельной линией health-tech",
+   "next_milestone": "Решение о размещении",
+   "source_branch": null,
+   "scope": "PENDING_BINDING",
+   "binding_class": "PENDING_EXACT_OBJECT_PROOF",
+   "target": null,
+   "date": "2026-08-02"
+  }
+ ],
+ "rules": [
+  "Мир и линия берутся только из канонической Founder Universe",
+  "unresolved_history не привязывается к объектам по сходству",
+  "Звезда видна на карте только после размещения"
+ ]
+}

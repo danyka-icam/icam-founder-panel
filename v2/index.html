@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>ICAM — Панель Основателя v2</title>
+<title>ICAM — Командный центр Основателя</title>
 <style>
     :root{
       --bg-0:#222a30;
@@ -138,13 +138,6 @@
       margin:0;font:400 18px Georgia,"Times New Roman",serif
     }
     .head-title small{display:block;margin-top:3px;color:#929a95;font-size:11px}
-    .top-corner-arrow{
-      width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
-      border:1px solid rgba(225,229,225,.12);background:rgba(20,26,29,.24);
-      color:#cfd5cf;font-size:15px;cursor:pointer
-    }
-    .top-corner-arrow:hover{color:var(--sage);border-color:rgba(169,196,127,.25)}
-
     .state{
       display:inline-flex;align-items:center;gap:7px;padding:5px 8px;border-radius:999px;
       border:1px solid var(--line);font-size:10.5px;color:#c4cac5;background:rgba(20,25,27,.18)
@@ -269,28 +262,6 @@
       padding:9px;border:1px solid var(--line-soft);border-radius:9px;background:rgba(22,28,30,.18)
     }
     .gate b{font-size:10.5px}.gate span{display:block;margin-top:4px;color:#8f9792;font-size:9.5px}
-
-    .migration{
-      min-height:360px;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px
-    }
-    .migration h2{margin:0;font:400 23px Georgia,"Times New Roman",serif}
-    .migration p{max-width:580px;margin:9px auto 0;color:#9fa7a2;font-size:13px;line-height:1.6}
-
-    .drawer{
-      position:fixed;top:0;right:0;width:min(440px,92vw);height:100vh;z-index:40;
-      background:linear-gradient(180deg,rgba(42,51,56,.98),rgba(31,39,43,.99));
-      border-left:1px solid var(--line);box-shadow:-24px 0 48px rgba(4,7,8,.24);
-      transform:translateX(105%);transition:transform .2s ease;padding:22px;overflow:auto
-    }
-    .drawer.open{transform:translateX(0)}
-    .drawer button{
-      border:1px solid var(--line);border-radius:16px;background:rgba(20,26,29,.24);
-      color:#c9cec9;padding:7px 10px;cursor:pointer
-    }
-    .drawer h2{font:400 25px Georgia,"Times New Roman",serif;margin:22px 0 8px}
-    .drawer p{color:#9fa7a2;font-size:12px;line-height:1.6}
-    .drawer dl{display:grid;grid-template-columns:120px 1fr;gap:9px 12px;font-size:11px}
-    .drawer dt{color:#818a85}.drawer dd{margin:0;color:#d5d9d4}
 
     .footer-note{
       margin-top:14px;color:#707a75;font-size:9.5px;text-align:right;letter-spacing:.03em
@@ -958,7 +929,7 @@
     .artifact-provenance-chain span{display:block;margin-top:5px;color:#858e89;font-size:8.5px;line-height:1.35}
     .artifact-provenance-chain>i{font-style:normal;color:#727b76}
     .documents-note{margin-top:10px!important;color:#858e89!important;font-size:9.3px!important}
-    .documents-durability-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+    .documents-durability-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
     .documents-durability-grid>div{
       padding:12px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(18,24,26,.13)
     }
@@ -1205,6 +1176,7 @@
     .diagnostic-principles span{display:block;margin-top:4px;color:#8f9792;font-size:9.5px;line-height:1.45}
     .runtime-kv{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line-soft);font-size:9.5px}
     .runtime-kv:first-child{border-top:0}.runtime-kv span{color:#858e89}.runtime-kv b{font-weight:500;color:#cfd3ce}
+    .runtime-kv span b{display:block}.runtime-kv span small{display:block;margin-top:3px;color:#858e89;font-size:8.5px}
     .diagnostics-note{margin-top:10px!important;color:#858e89!important;font-size:9.3px!important}
     .diagnostics-source-head,.diagnostics-source-list>div{
       display:grid;grid-template-columns:1fr 1.25fr .75fr .65fr 1.35fr;gap:10px;align-items:center
@@ -1288,6 +1260,9 @@
     .registry-live-row:first-child{border-top:0}
     .registry-live-row b{font:400 12px Georgia,"Times New Roman",serif}
     .registry-live-row span,.registry-live-row small{color:#929a95;line-height:1.35}
+    button.registry-live-row{width:100%;border-left:0;border-right:0;border-bottom:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
+    button.registry-live-row:hover,button.registry-live-row.selected{background:rgba(169,196,127,.055)}
+    button.registry-live-row.selected{box-shadow:inset 2px 0 0 rgba(169,196,127,.45)}
     .registry-mini-list{display:flex;flex-direction:column;gap:7px}
     .registry-mini-item{padding:8px 0;border-top:1px solid var(--line-soft)}
     .registry-mini-item:first-child{border-top:0}
@@ -1372,7 +1347,7 @@
 /* G21 — normalized live surfaces */
 .normalized-live-root{margin:0 0 12px}
 .normalized-live-root .panel-body{padding:16px}
-.normalized-page.normalized-live-active > .normalized-live-root ~ *{display:none!important}
+.normalized-page.normalized-live-active .direction-body > .normalized-live-root ~ *:not(.atlas-siglab-card):not(.atlas-invest-panel){display:none!important}
 
 .live-summary{
   display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 12px
@@ -1498,148 +1473,154 @@
 .progress-row em{font-size:10px}
 
 </style>
+<link rel="stylesheet" href="command-center.css"/>
 </head>
 <body>
 <div class="app-shell">
 <aside class="sidebar">
-<div class="side-head"><strong>ICAM <span>/ ЛАБОРАТОРИЯ</span></strong></div>
+<div class="side-head"><span class="brand-hex" aria-hidden="true"></span><strong>ICAM <small>FOUNDER PANEL v2</small></strong></div>
 <nav class="nav" id="nav">
-<a data-page="home" href="#home"><span class="dot">01</span><span>Главная</span></a>
-<a data-page="orchestrator" href="#orchestrator"><span class="dot">02</span><span>Оркестратор</span></a>
-<a data-page="foundation" href="#foundation"><span class="dot">03</span><span>Фундамент</span></a>
-<a data-page="research" href="#research"><span class="dot">04</span><span>Исследования</span></a>
-<a data-page="atlas" href="#atlas"><span class="dot">05</span><span>Атлас</span></a>
-<a data-page="digital-twin" href="#digital-twin"><span class="dot">06</span><span>DT</span></a>
-<a data-page="brazilportal" href="#brazilportal"><span class="dot">07</span><span>BrazilPortal</span></a>
-<a data-page="operations" href="#operations"><span class="dot">08</span><span>Операции</span></a>
-<a data-page="registry" href="#registry"><span class="dot">09</span><span>Реестр</span></a>
-<a data-page="signals" href="#signals"><span class="dot">10</span><span>Сигналы</span></a>
-<a data-page="documents" href="#documents"><span class="dot">11</span><span>Документы</span></a>
-<a data-page="testing" href="#testing"><span class="dot">12</span><span>Тестирование</span></a>
-<a data-page="diagnostics" href="#diagnostics"><span class="dot">13</span><span>Диагностика</span></a>
+<div class="nav-group">Режимы</div>
+<a data-page="command" href="#command"><span class="dot">◈</span><span>Командный центр</span></a>
+<a data-page="timeline" href="#timeline"><span class="dot">◷</span><span>Во времени</span></a>
+<a data-page="links" href="#links"><span class="dot">⇄</span><span>Связи и стратегии</span></a>
+<a data-page="lines" href="#lines"><span class="dot">▤</span><span>Линии и объекты</span></a>
+<a data-page="placement" href="#placement"><span class="dot">⌖</span><span>Размещение</span><em class="nav-count" data-cc-nav-count="placement"></em></a>
+<a data-page="signals" href="#signals"><span class="dot">◉</span><span>Сигналы</span></a>
+<div class="nav-group">Направления</div>
+<a data-page="research" href="#research"><span class="dot">R</span><span>Исследования</span></a>
+<a data-page="atlas" href="#atlas"><span class="dot">A</span><span>ATLAS</span></a>
+<a data-page="digital-twin" href="#digital-twin"><span class="dot">DT</span><span>DT</span></a>
+<div class="nav-peripheral"><span>Периферия</span><a data-page="brazilportal" href="#brazilportal">BrazilPortal</a></div>
+<details class="nav-tools" id="systemTools">
+<summary><span>Инструменты системы</span><em>7</em></summary>
+<div class="nav-tools-links">
+<a data-page="foundation" href="#foundation"><span class="dot">F</span><span>Фундамент</span></a>
+<a data-page="operations" href="#operations"><span class="dot">O</span><span>Операции</span></a>
+<a data-page="registry" href="#registry"><span class="dot">R</span><span>Реестр объектов</span></a>
+<a data-page="agents" href="#agents"><span class="dot">AN</span><span>Сеть агентов</span></a>
+<a data-page="documents" href="#documents"><span class="dot">D</span><span>Документы</span></a>
+<a data-page="testing" href="#testing"><span class="dot">T</span><span>Тестирование</span></a>
+<a data-page="diagnostics" href="#diagnostics"><span class="dot">⚙</span><span>Доверие и диагностика</span></a>
+</div>
+</details>
 </nav>
 <div class="side-note">«Сильная система не требует героя. Она умеет держать форму сама.»</div>
 </aside>
 <main class="main">
-<section class="page" data-page-panel="home">
-<header class="topbar">
-<div><h1>ICAM — Панель Основателя</h1><p>единая управляющая среда</p></div>
-<div class="top-actions">
-<button class="search-pill" disabled=""><span>Спросите что-нибудь о системе...</span><span>⌕</span></button>
-<span class="quiet-pill">v2 · кандидат</span>
-<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
-</div>
+<section class="page cc-page" data-page-panel="command">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Командный центр</h1><p>Компания как живая система: линии, переходы, связи и то, что требует внимания</p></div></div>
+<div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
 </header>
-<section class="strip">
-<article class="card"><small>Маршруты</small><strong>Источник не подключён</strong><span>Оркестратор станет владельцем порядка действий.</span></article>
-<article class="card"><small>Внимание Основателя</small><strong>Источник не подключён</strong><span>Только решения, действительно требующие Основателя.</span></article>
-<article class="card"><small>Тестирование</small><strong>Источник не подключён</strong><span>Непройденные и перезапущенные тесты попадут в риск после подключения.</span></article>
-<article class="card"><small>Актуальность</small><strong>Источник не подключён</strong><span>Никаких подставных значений текущего состояния.</span></article>
-</section>
-<section class="home-grid">
-<article class="card home-panel now">
-<div class="panel-head"><div class="head-title"><h2>1. СЕЙЧАС</h2><small>Что действительно двигаем</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="body"><div class="empty-copy"><strong>Маршруты ещё не подключены</strong><span>Здесь будет объяснимый порядок Оркестратора: <b>следующий ход → почему сейчас → у кого мяч</b>.</span></div></div>
-</article>
-<article class="card home-panel need">
-<div class="panel-head"><div class="head-title"><h2>2. НУЖНО ОТ МЕНЯ</h2><small>Только решения Основателя</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="body"><div class="empty-copy"><strong>Источник внимания ещё не подключён</strong><span>Здесь не будет общих системных задач — только то, что нельзя решить без Основателя.</span></div></div>
-</article>
-<article class="card home-panel changed">
-<div class="panel-head"><div class="head-title"><h2>3. ЧТО ИЗМЕНИЛОСЬ</h2><small>С прошлого захода</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="body"><div class="empty-copy"><strong>Сводка существенных изменений ещё не подключена</strong><span>Статус, этап, проверка, смена владельца хода, решение, важный результат — без шума технических событий.</span></div></div>
-</article>
-<article class="card home-panel risk">
-<div class="panel-head"><div class="head-title"><h2>4. ЗАСТОЙ / РИСК</h2><small>Где система теряет движение</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="body"><div class="empty-copy"><strong>Риски ещё не подключены</strong><span>Здесь сойдутся застоявшиеся маршруты, блокеры и непройденные или перезапущенные тесты.</span></div></div>
-</article>
-<article class="card health">
-<div class="panel-head"><div class="head-title"><h2>СОСТОЯНИЕ СИСТЕМЫ</h2><small>Компактно, без второй Главной внутри Главной</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p>После подключения здесь останется только короткая полоса состояния ключевых контуров и актуальности данных. Глубокая диагностика живёт отдельно.</p></div>
-</article>
-</section>
-</section>
-<section class="page" data-page-panel="orchestrator">
-<header class="topbar">
-<div>
-<h1>Оркестратор</h1>
-<p>маршруты, отдельные задачи, зависимости и возврат внимания в нужную линию</p>
+<div class="cc-page-grid">
+<div class="cc-body" data-cc-body>
+<section class="cc-hero" data-cc="hero"><div class="cc-loading">Читаем источники…</div></section>
+<section class="cc-pulsebar" data-cc="kpis"></section>
+<div class="cc-metas" data-cc="meta"></div>
+<section data-cc="universe"></section>
+<section class="cc-deep-links" data-cc="deep-links"></section>
+<section class="cc-siglab" data-cc="signal-lab"><div class="cc-loading">Читаем состояние ATLAS Signal Lab…</div></section>
+<div class="cc-grid-main">
+<article class="cc-panel cc-lines-panel"><header><h2>Маршруты в работе</h2><small>состояние → следующий переход → условие движения → блокеры → связи</small></header><div data-cc="lines"><div class="cc-loading">Читаем источники…</div></div></article>
+<div class="cc-side-stack">
+<article class="cc-panel "><header><h2>Шкала внимания</h2><small>где маршрут ждёт вашего хода, блокера или внешнего события</small></header><div data-cc="attention"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Что изменилось</h2><small>последние датированные события</small></header><div data-cc="changes"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel cc-recent-decisions-panel"><header><h2>Последние решения</h2><small>решение → куда передано → что ждём дальше</small></header><div data-cc="recent-decisions"><div class="cc-loading">Читаем историю решений…</div></div></article>
+<article class="cc-panel cc-org-panel"><header><h2>Организационные наблюдения</h2><small>структурные сигналы без автоматической оценки риска</small></header><div data-cc="org-intel"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel cc-system-panel"><header><h2>Система разбирает сама</h2><small>системные разрывы не становятся задачами Основателя по умолчанию</small></header><div data-cc="system-reconciliation"><div class="cc-loading">Читаем источники…</div></div></article>
 </div>
-<div class="top-actions">
-<span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
-<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
+<div class="cc-grid-map2">
+<article class="cc-panel cc-lanes-panel"><header><h2>Траектории во времени</h2><small>прошлое → сейчас → ожидание; только реальные отметки времени</small></header><div data-cc="lanes"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Карта связей и зависимостей</h2><small>операционные зависимости отдельно от пересечений через общий капитал</small></header><div data-cc="graph"><div class="cc-loading">Читаем источники…</div></div></article>
+</div>
+<section class="cc-system-health" data-cc="system-health"><div class="cc-loading">Читаем техническое состояние…</div></section>
+</div>
+<aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
+</div>
+</section>
+<section class="page cc-page" data-page-panel="timeline">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Во времени</h1><p>Компания → мир → линия → звезда: прошлое, настоящее, ожидание и следующий переход</p></div></div>
+<div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
 </header>
-<div class="workspace-switcher">
-<button class="active" disabled="" title="Текущий обзор">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Маршруты</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Отдельные задачи</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Рекомендации</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Решения</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Журнал</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Деньги</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Закрыто</button>
+<div class="cc-page-grid">
+<div class="cc-body" data-cc-body>
+<div class="cc-sources" data-cc="source"></div>
+<article class="cc-panel cc-wide"><header><h2>Временное поле</h2><small>события во времени и линии, ожидающие перехода</small></header><div data-cc="swim"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel cc-wide cc-time-structure"><header><h2>Структура во времени</h2><small>история → сейчас → ждём → следующий шаг</small></header><div data-cc="tree"><div class="cc-loading">Читаем источники…</div></div></article>
+<div class="cc-time-secondary">
+<article class="cc-panel"><header><h2 data-cc="unplaced-title">Непривязанные события</h2><small data-cc="unplaced-sub"></small></header><div data-cc="unplaced"><div class="cc-loading">Читаем источники…</div></div></article>
+<div data-cc="bounds" class="cc-time-bounds"><div class="cc-loading">Читаем источники…</div></div>
 </div>
-<section class="strip">
-<article class="card"><small>Активные маршруты</small><strong>Источник не подключён</strong><span>Линии с этапом, следующим ходом и владельцем.</span></article>
-<article class="card"><small>Отдельные задачи</small><strong>Источник не подключён</strong><span>Разовые и промежуточные задачи без обязательной привязки к маршруту.</span></article>
-<article class="card"><small>Риск отставания</small><strong>Источник не подключён</strong><span>Линии, которые давно не двигались или тормозят зависимые ветки.</span></article>
-<article class="card"><small>Узлы зависимости</small><strong>Источник не подключён</strong><span>Что от чего зависит и где образовалось бутылочное горлышко.</span></article>
-</section>
-<section class="orchestrator-grid">
-<article class="card mine">
-<div class="panel-head"><div class="head-title"><h2>МАРШРУТЫ</h2><small>по каким линиям мы движемся</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><div class="empty-copy"><strong>Маршруты ещё не подключены</strong><span>После подключения здесь появится: этап → следующий ход → у кого ход → блокеры → условие пересмотра → сколько времени без движения.</span></div></div>
-</article>
-<article class="card recommendations">
-<div class="panel-head"><div class="head-title"><h2>ОТДЕЛЬНЫЕ ЗАДАЧИ</h2><small>не обязаны принадлежать маршруту</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><div class="empty-copy"><strong>Задачи пока не подключены</strong><span>Здесь будут разовые задачи, промежуточные шаги, напоминания, входящие и идеи. Связь с маршрутом — только по желанию.</span></div></div>
-</article>
-<article class="card waiting">
-<div class="panel-head"><div class="head-title"><h2>ЖДЁМ</h2><small>внешний владелец или условие</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p>Кого или чего ждём → с какого момента → что вернёт линию в работу → когда пересмотреть.</p></div>
-</article>
-<article class="card orch-risk">
-<div class="panel-head"><div class="head-title"><h2>ЗАСТОЙ / РИСК</h2><small>где система теряет движение</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body"><p>Без движения, отсутствует следующий шаг, блокер, зависимые линии, сработавший триггер пересмотра.</p></div>
-</article>
-<article class="card capture">
-<div class="panel-head"><div class="head-title"><h2>＋ ДОБАВИТЬ ЗАДАЧУ</h2><small>самостоятельно, без маршрута</small></div></div>
-<div class="panel-body">
-<div class="step-form">
-<input disabled="" value="Что нужно сделать?"/>
-<select disabled=""><option>Тип задачи</option></select>
-<select disabled=""><option>Приоритет</option></select>
-<button disabled="">Добавить</button>
 </div>
-<div class="micro-note">Привязка к маршруту будет необязательной. Запись включим после отдельной безопасной проверки, без второго хранилища истины.</div>
-</div>
-</article>
-</section>
-<div class="section-title">
-<div><h2>Карта прогресса и зависимостей</h2><p>визуальный слой: где линия находится, сколько она стоит и кого задерживает</p></div>
-<span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
-</div>
-<section class="card dependency-card">
-<div class="panel-head"><div class="head-title"><h2>ЛИНИИ И ЗАВИСИМОСТИ</h2><small>визуализация строится только по реальным маршрутам и явным зависимостям</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
-<div class="panel-body">
-<div class="dependency-layout">
-<div class="progress-board"><div class="empty-copy"><strong>Маршрутные данные ещё не загружены</strong><span>После успешного чтения здесь появится визуальная шкала давности движения. Она не является процентом готовности.</span></div></div>
-<div class="dependency-graph"><div class="empty-copy"><strong>Граф зависимостей недоступен</strong><span>Стрелки будут строиться только из явных dependency-полей источника. Связи по догадке запрещены.</span></div></div>
-<aside class="attention-scale"><h3>ШКАЛА ВНИМАНИЯ</h3><div class="empty-copy"><strong>Нет подтверждённых маршрутных данных</strong><span>После подключения шкала покажет диагностические признаки давности и блокеров, но не будет выдавать их за канонический приоритет.</span></div></aside>
-</div>
+<aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
 </div>
 </section>
-<div class="section-title"><div><h2>Рекомендации</h2><p>что система предлагает вернуть в фокус и почему</p></div></div>
-<article class="card">
-<div class="panel-body"><div class="empty-copy"><strong>Рекомендации ещё не подключены</strong><span>Когда источник появится, Оркестратор сможет объяснить: какая линия отстала → какие ветки она тормозит → какой минимальный шаг вернёт поток.</span></div></div>
-</article>
+<section class="page cc-page" data-page-panel="links">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Связи и стратегии</h1><p>Какие связи доказаны источниками, где проходят траектории и что задержит остановка</p></div></div>
+<div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
+</header>
+<div class="cc-page-grid">
+<div class="cc-body" data-cc-body>
+<div class="cc-sources" data-cc="source"></div>
+<article class="cc-panel cc-wide"><header><h2>Карта связей</h2><small>миры → линии → звёзды; рисуются только доказанные связи</small></header><div data-cc="linkmap"><div class="cc-loading">Читаем источники…</div></div></article>
+<div class="cc-grid-3">
+<article class="cc-panel "><header><h2>Доказанные и недоказанные связи</h2><small>каждый тип связи и его источник</small></header><div data-cc="proven"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Влияние остановки</h2><small>только явные зависимости маршрутов</small></header><div data-cc="impact"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel cc-strategies"><header><h2>Стратегические траектории</h2><small>strategic_trajectories из Temporal Universe</small></header><div data-cc="strategy"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel "><header><h2>Капитал и ресурсы</h2><small>допущенный капитал и подтверждённые пересечения из Founder Projection</small></header><div data-cc="resources"><div class="cc-loading">Читаем источники…</div></div></article>
+</div>
+</div>
+<aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
+</div>
 </section>
-<section class="page normalized-page" data-page-panel="atlas">
-<header class="topbar">
-<div><h1>Атлас</h1><p>Наблюдатель мира / Навигатор</p></div>
-<div class="top-actions"><span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div></div>
-</header><section class="card normalized-live-root" data-normalized-live="atlas"><div class="panel-head"><div class="head-title"><h2>Состояние Атласа</h2><small>доступность реального upstream-состояния</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
+<section class="page cc-page" data-page-panel="lines">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Линии и объекты</h1><p>Маршруты Оркестратора, канонические линии Founder Universe и объекты реестра</p></div></div>
+<div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
+</header>
+<div class="cc-page-grid">
+<div class="cc-body" data-cc-body>
+<div class="cc-chips" data-cc="line-filters"></div>
+<article class="cc-panel cc-wide"><header><h2>Маршруты</h2><small>порядок Оркестратора</small></header><div data-cc="line-grid"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel cc-wide"><header><h2>Линии Founder Universe</h2><small>канонические линии по мирам — структура из Temporal Universe, состояние и капитал из Founder Projection</small></header><div data-cc="ulines"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel cc-wide"><header><h2>Объекты по мирам</h2><small>мир — только через звезду Founder Universe; owning_branch — происхождение</small></header><div data-cc="objects"><div class="cc-loading">Читаем источники…</div></div></article>
+</div>
+<aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
+</div>
+</section>
+<section class="page cc-page" data-page-panel="placement">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Размещение</h1><p>Принадлежность к линии и видимость на Founder Map — разные вещи</p></div></div>
+<div data-cc="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем источники…</span></div></div>
+</header>
+<div class="cc-page-grid">
+<div class="cc-body" data-cc-body>
+<div class="cc-sources" data-cc="source"></div>
+<div data-cc="placement-sum"></div>
+<article class="cc-panel cc-wide"><header><h2>Текущая Founder Map</h2><small>мир → линия → звезда; что видно на карте сейчас</small></header><div data-cc="pl-map"><div class="cc-loading">Читаем источники…</div></div></article>
+<div class="cc-pl-grid">
+<article class="cc-panel pl-col pl-candidate"><header><h2>Кандидаты на точную связь</h2><small>точный владелец найден источником — ещё не звёзды и не решение о размещении</small></header><div data-cc="pl-cand"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel pl-col pl-review"><header><h2>Активная очередь сверки</h2><small>элементы без архивного состояния — то, что реально ждёт разбора</small></header><div data-cc="pl-queue"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel pl-col pl-conflict"><header><h2>Конфликт владельцев</h2><small>одно происхождение указывает на несколько линий — решается вручную</small></header><div data-cc="pl-conflict"><div class="cc-loading">Читаем источники…</div></div></article>
+</div>
+<details class="cc-panel cc-archive"><summary><h2>Архив и история</h2><small>архивные и исторические элементы допуска · <b data-cc="pl-archive-n">—</b></small></summary><div data-cc="pl-archive"></div></details>
+<article class="cc-panel cc-wide"><header><h2>Доверенная карта владельцев</h2><small>trusted_owner_map: происхождение (owning_branch) → точное название линии</small></header><div data-cc="placement-trusted"><div class="cc-loading">Читаем источники…</div></div></article>
+<article class="cc-panel cc-wide"><header><h2>Правила допуска</h2><small>rules из Portfolio Admission и границы панели</small></header><div data-cc="placement-rules"><div class="cc-loading">Читаем источники…</div></div></article>
+</div>
+<aside class="cc-inspector" data-cc-inspector><div class="cc-insp-idle"><b>Инспектор</b><span>Данные ещё загружаются.</span></div></aside>
+</div>
+</section>
+<section class="page normalized-page cc-page direction-page atlas-focus" data-page-panel="atlas">
+<header class="topbar cc-top direction-top">
+<div class="direction-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Атлас</h1><p>Наблюдатель мира / Навигатор</p></div></div>
+<div class="top-actions"><span class="state unavailable">ЧИТАЕМ ПРОЕКЦИЮ…</span><div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div></div>
+</header><div class="direction-bridge"><div><small>Место в канонической системе</small><b>Исследовательский ATLAS</b><span>отдельная проекция направления; канонические линии и связи — в общих режимах</span></div><nav><a href="#links">Связи и стратегии →</a><a href="#timeline">Во времени →</a><a href="#lines">Линии и объекты →</a></nav></div><div class="cc-page-grid direction-page-grid"><div class="cc-body direction-body"><section class="card cc-panel direction-primary-panel normalized-live-root direction-selectable tone-flow" data-direction-role="canonical" data-normalized-live="atlas"><div class="panel-head"><div class="head-title"><h2>Каноническое состояние ATLAS</h2><small>отдельный источник состояния; документы не подменяют его</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
+<section class="cc-panel atlas-invest-panel direction-secondary-panel direction-selectable tone-return" data-direction-role="investment"><header><h2>Инвестиционный ATLAS</h2><small>капитал, решения и качество инвестиционной лаборатории</small></header><div data-radar="investment"><div class="cc-loading">Читаем инвестиционный контур…</div></div></section>
+<section class="card cc-panel atlas-siglab-card direction-secondary-panel direction-selectable tone-violet" data-direction-role="signal-lab" data-atlas-siglab><div class="panel-head"><div class="head-title"><h2>Живой исследовательский контур</h2><small>ATLAS Signal Lab · наблюдаемый процесс, не каноническая модель ATLAS</small></div><span class="state" data-atlas-siglab-state>ЗАГРУЗКА</span></div><div class="panel-body"><div class="empty-copy"><strong>Читаем Signal Lab…</strong></div></div></section>
 <div class="flow">
 <div><b>ЧТО Я НАБЛЮДАЮ</b><span>Атлас сейчас / Миры</span></div>
 <div><b>ЧТО Я СЧИТАЮ ПРОИСХОДЯЩИМ</b><span>Текущая модель</span></div>
@@ -1650,46 +1631,47 @@
 </div>
 <section class="atlas-grid">
 <article class="card atlas-now">
-<div class="panel-head"><div class="head-title"><h2>Атлас сейчас</h2><small>3–8 активных линий внимания, не поток новостей</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>Атлас сейчас</h2><small>3–8 активных линий внимания, не поток новостей</small></div></div>
 <div class="panel-body"><div class="empty-copy"><strong>Нормализованный источник Атласа ещё не подключён</strong><span>До появления нормализованного источника здесь не будет выдуманных миров, версий или линий внимания.</span></div></div>
 </article>
 <article class="card worlds">
-<div class="panel-head"><div class="head-title"><h2>МИРЫ</h2><small>Динамические модели участков мира</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>МИРЫ</h2><small>Динамические модели участков мира</small></div></div>
 <div class="panel-body"><p>Состояние · уверенность · активные гипотезы · существенное изменение · последнее противоречие · актуальность.</p></div>
 </article>
 <article class="card model">
-<div class="panel-head"><div class="head-title"><h2>ТЕКУЩАЯ МОДЕЛЬ</h2><small>Что Атлас считает происходящим</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>ТЕКУЩАЯ МОДЕЛЬ</h2><small>Что Атлас считает происходящим</small></div></div>
 <div class="panel-body"><p>НОВАЯ / УСИЛИВАЕТСЯ / СТАБИЛЬНА / ОСЛАБЕВАЕТ / ОСПАРИВАЕТСЯ / НЕ РАЗРЕШЕНА / ОТКЛОНЕНА.</p></div>
 </article>
 <article class="card forecasts">
-<div class="panel-head"><div class="head-title"><h2>ПРОГНОЗЫ</h2><small>ОТКРЫТЫЕ / ЗАВЕРШЁННЫЕ</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>ПРОГНОЗЫ</h2><small>ОТКРЫТЫЕ / ЗАВЕРШЁННЫЕ</small></div></div>
 <div class="panel-body"><div class="rows"><div class="row"><div><strong>Исходный прогноз неизменяем</strong><small>Вероятность · горизонт · версия модели · исход · оценка</small></div><span class="state unavailable">НЕДОСТУПНО</span></div></div></div>
 </article>
 <article class="card performance">
-<div class="panel-head"><div class="head-title"><h2>КАЧЕСТВО</h2><small>Как развивается Наблюдатель</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>КАЧЕСТВО</h2><small>Как развивается Наблюдатель</small></div></div>
 <div class="panel-body"><p>Калибровка · оценка Брайера · улучшение прогнозов · время до признания противоречия · кандидат против канона.</p></div>
 </article>
 <article class="card surprises">
-<div class="panel-head"><div class="head-title"><h2>НЕОЖИДАННОСТИ</h2><small>Где реальность сильно нарушила ожидания</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>НЕОЖИДАННОСТИ</h2><small>Где реальность сильно нарушила ожидания</small></div></div>
 <div class="panel-body"><p>Не каждая ошибка — только существенная неожиданность.</p></div>
 </article>
 <article class="card changing">
-<div class="panel-head"><div class="head-title"><h2>КАК МЕНЯЕТСЯ АТЛАС</h2><small>История изменений модели</small></div><button class="top-corner-arrow" data-drawer="">→</button></div>
+<div class="panel-head"><div class="head-title"><h2>КАК МЕНЯЕТСЯ АТЛАС</h2><small>История изменений модели</small></div></div>
 <div class="panel-body"><p>ПРЕДЛОЖЕНО / ТЕСТИРУЕТСЯ / ПРОЙДЕНО / НЕ ПРОЙДЕНО / ОТКЛОНЕНО / ПРИНЯТО. Отклонённые изменения остаются видимыми.</p></div>
 </article>
 </section>
+</div><aside class="cc-inspector direction-inspector" data-direction-inspector="atlas"><div class="cc-insp-idle"><b>ATLAS · Инспектор</b><span>Выберите окно слева — здесь появятся смысл, граница данных и вопрос Навигатору.</span></div></aside></div>
 </section>
-<section class="page normalized-page" data-page-panel="digital-twin">
-<header class="topbar">
-<div>
+<section class="page normalized-page cc-page direction-page twin-focus" data-page-panel="digital-twin">
+<header class="topbar cc-top direction-top">
+<div class="direction-title"><span class="cc-title-mark" aria-hidden="true"></span><div>
 <h1>DT</h1>
 <p>личная модель → люди → популяция → живой мир → эксперименты</p>
-</div>
+</div></div>
 <div class="top-actions">
 <span class="state lab">ИНЖЕНЕРНЫЙ КАНДИДАТ</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header><section class="card normalized-live-root" data-normalized-live="digital-twin"><div class="panel-head"><div class="head-title"><h2>Состояние DT</h2><small>готовность Personal Twin и текущий gate</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
+</header><div class="direction-bridge"><div><small>Место в канонической системе</small><b>ICAM / Наука → Двойники и синтетические миры</b><span>страница DT — специализированная проекция; каноническое место задаёт Founder Universe</span></div><nav><a href="#links">Связи и стратегии →</a><a href="#timeline">Во времени →</a><a href="#lines">Линии и объекты →</a></nav></div><div class="cc-page-grid direction-page-grid"><div class="cc-body direction-body"><section class="card cc-panel direction-primary-panel normalized-live-root direction-selectable tone-violet" data-direction-role="canonical" data-normalized-live="digital-twin"><div class="panel-head"><div class="head-title"><h2>Состояние DT</h2><small>готовность Personal Twin и текущая контрольная проверка</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
 <div class="workspace-switcher">
 <button class="active" disabled="" title="Текущий обзор">Мой двойник</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Люди</button>
@@ -1701,19 +1683,19 @@
 <article class="card dt-overview">
 <div class="panel-head">
 <div class="head-title"><h2>КАК Я УЧУСЬ</h2><small>что изменилось после последнего оценённого исхода</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="empty-copy">
 <strong>История обучения ещё не подключена</strong>
-<span>Здесь будет краткая Founder-facing сводка: что подтвердилось, что ослабло, что модель пересмотрела — без раскрытия текущего скрытого прогноза.</span>
+<span>Здесь будет краткая сводка для Основателя: что подтвердилось, что ослабло, что модель пересмотрела — без раскрытия текущего скрытого прогноза.</span>
 </div>
 </div>
 </article>
 <article class="card dt-gates">
 <div class="panel-head">
 <div class="head-title"><h2>МОЙ ДВОЙНИК И БАЗОВАЯ МОДЕЛЬ</h2><small>сравнение только после достаточного числа исходов</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="twin-compare">
@@ -1727,7 +1709,7 @@
 <article class="card humans">
 <div class="panel-head">
 <div class="head-title"><h2>УВЕРЕННОСТЬ ЯДРА</h2><small>что в Personal Core уже устойчиво, а что ещё гипотеза</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="core-confidence">
@@ -1740,13 +1722,13 @@
 </article>
 <article class="card population">
 <div class="panel-head">
-<div class="head-title"><h2>ТРЕБУЕТ ПОДТВЕРЖДЕНИЯ</h2><small>только если реальный Founder-outcome неоднозначен</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+<div class="head-title"><h2>ТРЕБУЕТ ПОДТВЕРЖДЕНИЯ</h2><small>только если реальный исход, подтверждаемый Основателем, неоднозначен</small></div>
+
 </div>
 <div class="panel-body">
 <div class="empty-copy compact">
 <strong>Сейчас ничего подтверждать не нужно</strong>
-<span>После серверной интеграции здесь появится компактный one-click control только для статуса «требует подтверждения». До подтверждения такой исход не обучает модель.</span>
+<span>После серверной интеграции здесь появится компактная кнопка подтверждения только для статуса «требует подтверждения». До подтверждения такой исход не обучает модель.</span>
 </div>
 <button class="twin-confirm" disabled="">Подтвердить исход</button>
 </div>
@@ -1761,7 +1743,7 @@
 <div><b>Люди</b><span>отдельные синтетические люди и кандидаты цифровых двойников</span></div>
 <div><b>Популяция</b><span>производная макродинамика, не свойство каждого человека</span></div>
 <div><b>Живой мир</b><span>события и контрольные точки только из реального потока данных</span></div>
-<div><b>Эксперименты</b><span>H0 → H8.1 без автоматического повышения synthetic PASS до empirical PASS</span></div>
+<div><b>Эксперименты</b><span>H0 → H8.1 без автоматического повышения статуса PASS на синтетических данных до PASS на эмпирических данных</span></div>
 </div>
 </div>
 </article>
@@ -1777,7 +1759,7 @@
 <div class="panel-body">
 <h3>МОЖНО ПОКАЗЫВАТЬ</h3>
 <div class="twin-rule-list safe">
-<span>состояние runtime и свежесть</span>
+<span>состояние работы сервиса и свежесть</span>
 <span>стадию обучения</span>
 <span>количество уже оценённых решений</span>
 <span>факт наличия активного seal и его возраст</span>
@@ -1798,8 +1780,9 @@
 </div>
 </article>
 </section>
+</div><aside class="cc-inspector direction-inspector" data-direction-inspector="digital-twin"><div class="cc-insp-idle"><b>DT · Инспектор</b><span>Выберите окно слева — здесь появятся смысл, доказательная граница и вопрос Навигатору.</span></div></aside></div>
 </section>
-<section class="page normalized-page" data-page-panel="foundation">
+<section class="page normalized-page cc-page direction-page foundation-focus" data-page-panel="foundation">
 <header class="topbar">
 <div>
 <h1>Фундамент</h1>
@@ -1809,7 +1792,7 @@
 <span class="state unavailable">СОСТОЯНИЕ НЕ ПОДКЛЮЧЕНО</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header><section class="card normalized-live-root" data-normalized-live="foundation"><div class="panel-head"><div class="head-title"><h2>Готовность основания</h2><small>единая серверная проекция готовности</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
+</header><div class="direction-bridge tool-bridge"><div><small>Инструмент системы</small><b>Системный фундамент</b><span>готовность основания и несущих контуров</span></div><nav><a href="#command">Командный центр →</a><a href="#diagnostics">Доверие и диагностика →</a><a href="#testing">Тестирование →</a></nav></div><div class="cc-page-grid direction-page-grid normalized-primary-grid"><div class="cc-body direction-body"><section class="card cc-panel direction-primary-panel direction-selectable normalized-live-root" data-direction-role="evidence" data-normalized-live="foundation"><div class="panel-head"><div class="head-title"><h2>Готовность основания</h2><small>единая серверная проекция готовности</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section></div><aside class="cc-inspector direction-inspector" data-direction-inspector="foundation"><div class="cc-insp-idle"><b>Фундамент · Инспектор</b><span>Выберите окно слева — здесь появятся смысл, граница данных и вопрос Навигатору.</span></div></aside></div>
 <div class="workspace-switcher foundation-switcher">
 <button class="active" disabled="" title="Текущий обзор">Обзор</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Контуры</button>
@@ -1844,9 +1827,9 @@
 <div class="panel-head">
 <div class="head-title">
 <h2>МОЖНО ЛИ БЕЗОПАСНО СТРОИТЬ ДАЛЬШЕ?</h2>
-<small>один Founder-facing ответ вместо набора технических метрик</small>
+<small>один ответ для Основателя вместо набора технических метрик</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-fnd="readiness-card">
 <div class="foundation-readiness-body">
@@ -1882,7 +1865,7 @@
 <h2>ЧТО НАРУШАЕТ ОСНОВАНИЕ</h2>
 <small>только системные проблемы, а не очередь всех проектов</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-fnd="attention">
 <div class="foundation-empty compact">
@@ -1976,7 +1959,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ВОССТАНОВЛЕНИЕ</h2><small>что произойдёт, если один из несущих слоёв упадёт</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="recovery-path">
@@ -1988,13 +1971,13 @@
 <i>→</i>
 <div><span>4</span><b>Проверить</b><small>подтвердить целостность после возврата</small></div>
 </div>
-<div class="foundation-live-slot">Текущий статус восстановления появится после подключения реального health/readback-контура.</div>
+<div class="foundation-live-slot">Текущий статус восстановления появится после подключения реального контура проверки состояния и обратного чтения.</div>
 </div>
 </article>
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ЦЕПОЧКА ИСТИНЫ</h2><small>как состояние доходит до Основателя</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="truth-chain">
@@ -2014,7 +1997,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ДОЛГОВЕЧНОСТЬ</h2><small>файл существует не тогда, когда его название видно в интерфейсе</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-fnd="durability-detail">
 <div class="durability-grid">
@@ -2027,7 +2010,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПОСЛЕДНЕЕ ИЗМЕНЕНИЕ ФУНДАМЕНТА</h2><small>только существенное изменение основания</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-fnd="last-change">
 <div class="foundation-empty compact">
@@ -2048,17 +2031,19 @@
 <article class="card"><div class="panel-body"><b>В Диагностике</b><span>конкретные источники, запросы, ошибки браузера, задержки, технические коды и подробные журналы.</span></div></article>
 </section>
 </section>
-<section class="page" data-page-panel="research">
+<section class="page cc-page direction-page research-focus" data-page-panel="research">
 <header class="topbar">
 <div>
 <h1>Исследования</h1>
 <p>портфель гипотез, доказательств, проверок и переходов между этапами</p>
 </div>
 <div class="top-actions">
-<span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
+<span class="state unavailable">ЧИТАЕМ ПРОЕКЦИЮ…</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
 </header>
+<div class="direction-bridge"><div><small>Место в канонической системе</small><b>Исследовательский портфель компании</b><span>объекты могут принадлежать разным мирам; панель не назначает им один мир по тематике</span></div><nav><a href="#links">Связи и стратегии →</a><a href="#timeline">Во времени →</a><a href="#lines">Линии и объекты →</a></nav></div>
+<div class="cc-page-grid direction-page-grid research-page-grid"><div class="cc-body direction-body">
 <div class="workspace-switcher research-switcher">
 <button class="active" disabled="" title="Текущий обзор">Обзор</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Активные линии</button>
@@ -2068,26 +2053,27 @@
 </div>
 <section class="strip research-kpis-v2">
 <article class="card">
-<small>Активные линии</small>
+<small>Объявлены активными</small>
 <strong data-r="active-count">—</strong>
-<span>исследования, которые сейчас реально движутся</span>
+<span>объекты с declared_status ACTIVE*; это не доказательство фактического движения</span>
 </article>
 <article class="card">
-<small>Требует моего решения</small>
+<small>Участие Основателя</small>
 <strong data-r="founder-count">—</strong>
-<span>только то, что невозможно продолжить без Основателя</span>
+<span data-r="founder-note">привязанные к линиям события / формальные решения без объектной связи</span>
 </article>
 <article class="card">
-<small>Ждём / на паузе</small>
+<small>Явно ждём / на паузе</small>
 <strong data-r="waiting-count">—</strong>
-<span>внешний ответ, данные, условие возврата или сознательный парк</span>
+<span>только явные PARKED / WAITING / AWAITING или владелец EXTERNAL; отсутствие такого поля не считается ожиданием</span>
 </article>
 <article class="card">
-<small>Проблемы идентичности</small>
+<small>Без отметки смысловой свежести</small>
 <strong data-r="identity-count">—</strong>
-<span>объект или исследовательская линия требуют уточнения идентичности</span>
+<span>RD1 не передал semantic_freshness; это не считается проблемой идентичности</span>
 </article>
 </section>
+<section class="research-system-bridge" data-r="system-bridge"><div class="research-empty compact"><strong>Собираем исследовательский пульс…</strong><span>RD1, независимые проверки и общесистемный доказательный контур читаются раздельно.</span></div></section>
 <section class="research-overview-grid">
 <article class="card research-landscape">
 <div class="panel-head">
@@ -2095,7 +2081,7 @@
 <h2>КАРТА ИССЛЕДОВАТЕЛЬСКИХ ЛИНИЙ</h2>
 <small>одним взглядом: что проверяем, где находимся и какой следующий переход</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="research-column-head">
@@ -2107,8 +2093,8 @@
 </div>
 <div class="research-lines" data-r="lines">
 <div class="research-empty">
-<strong>Исследовательский портфель ещё не подключён</strong>
-<span>После интеграции каждая строка будет строиться только из канонического объекта и RD1-проекции: ID → статус → этап → владелец хода → следующий шаг → следующая проверка → свежесть.</span>
+<strong>Читаем исследовательский портфель…</strong>
+<span>Строки строятся только из канонического объекта и RD1-проекции; прошлое значение не показывается как текущее.</span>
 </div>
 </div>
 </div>
@@ -2119,11 +2105,11 @@
 <h2>ГДЕ НУЖНА Я</h2>
 <small>решение, подтверждение или исследовательский выбор</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-r="attention">
 <div class="research-empty compact">
-<strong>Источник внимания не подключён</strong>
+<strong>Читаем события участия Основателя…</strong>
 <span>Здесь будут только реальные Founder-attention события. Общие задачи и технический шум сюда не попадают.</span>
 </div>
 </div>
@@ -2134,11 +2120,11 @@
 <h2>ЖДЁМ / ВЕРНУТЬСЯ ПО УСЛОВИЮ</h2>
 <small>не всё, что стоит, является проблемой</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-r="waiting">
 <div class="research-empty compact">
-<strong>Условия возврата ещё не подключены</strong>
+<strong>Читаем условия ожидания и возврата…</strong>
 <span>Для каждой линии будет видно: чего ждём → кто держит ход → когда пересмотреть → что именно вернёт исследование в работу.</span>
 </div>
 </div>
@@ -2201,7 +2187,7 @@
 <h2>ПОСЛЕДНИЙ СУЩЕСТВЕННЫЙ РЕЗУЛЬТАТ</h2>
 <small>не последнее техническое событие, а изменение исследовательского смысла</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-r="result">
 <div class="research-result-placeholder">
@@ -2216,7 +2202,7 @@
 <h2>ДОКАЗАТЕЛЬСТВА</h2>
 <small>что действительно поддерживает текущий вывод</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="research-evidence-model">
@@ -2224,7 +2210,7 @@
 <div><span>Независимая проверка</span><b>—</b><small>ссылка на Тестирование, а не собственный процент доверия</small></div>
 <div><span>Внешний ответ</span><b>—</b><small>если он реально изменил исследовательский маршрут</small></div>
 </div>
-<p class="research-rule">Панель не придумывает «процент доказанности». Сила доказательства следует из реальных тестов, артефактов, provenance и gate-результатов.</p>
+<p class="research-rule">Панель не придумывает «процент доказанности». Сила доказательства следует из реальных тестов, артефактов, происхождения данных и результатов контрольных проверок.</p>
 </div>
 </article>
 <article class="card">
@@ -2233,7 +2219,7 @@
 <h2>СЛЕДУЮЩАЯ ПРОВЕРКА</h2>
 <small>какой факт способен сдвинуть линию дальше</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-r="next-gates">
 <div class="research-empty compact">
@@ -2248,7 +2234,7 @@
 <h2>ЧТО ИЗМЕНИЛОСЬ</h2>
 <small>материальные изменения по исследовательским линиям</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-r="changes">
 <div class="research-empty compact">
@@ -2290,6 +2276,7 @@
 </div>
 </article>
 </section>
+</div><aside class="cc-inspector direction-inspector" data-direction-inspector="research"><div class="cc-insp-idle"><b>Исследования · Инспектор</b><span>Выберите окно слева — здесь появятся смысл, граница данных и вопрос Навигатору.</span></div></aside></div>
 </section>
 <section class="page normalized-page" data-page-panel="brazilportal">
 <header class="topbar">
@@ -2298,10 +2285,10 @@
 <p>коммерческий и миграционный продукт: что происходит, что работает и какой следующий ход</p>
 </div>
 <div class="top-actions">
-<span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
+<span class="state unavailable">ЧИТАЕМ ПРОЕКЦИЮ…</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header><section class="card normalized-live-root" data-normalized-live="brazilportal"><div class="panel-head"><div class="head-title"><h2>Состояние BrazilPortal</h2><small>объявленное и спроецированное состояние — раздельно</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
+</header><div class="direction-bridge"><div><small>Место в канонической системе</small><b>Коммерческий ATLAS → BrazilPortal</b><span>продуктовая проекция остаётся отдельной; связи и временной путь читаются из общей карты</span></div><nav><a href="#links">Связи и стратегии →</a><a href="#timeline">Во времени →</a><a href="#lines">Линии и объекты →</a></nav></div><section class="card normalized-live-root" data-normalized-live="brazilportal"><div class="panel-head"><div class="head-title"><h2>Состояние BrazilPortal</h2><small>объявленное и спроецированное состояние — раздельно</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
 <div class="workspace-switcher bp-switcher-v2">
 <button class="active" disabled="" title="Текущий обзор">Обзор</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Продукт</button>
@@ -2330,7 +2317,7 @@
 <article class="card">
 <small>Открытые препятствия</small>
 <strong data-bp="blockers">—</strong>
-<span>только незакрытые нетестовые блокеры BrazilPortal</span>
+<span>только нетестовые записи блокеров, явно отмеченные источником как открытые, для BrazilPortal</span>
 </article>
 </section>
 <section class="bp-hero-grid-v2">
@@ -2340,7 +2327,7 @@
 <h2>ЧТО СЕЙЧАС ПРОИСХОДИТ</h2>
 <small>каноническое состояние → последний подтверждённый результат → следующий ход</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-now-layout">
@@ -2382,7 +2369,7 @@
 <h2>ЧТО МЕШАЕТ</h2>
 <small>только реальные препятствия этого объекта</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-empty compact">
@@ -2443,7 +2430,7 @@
 <h2>ПРОДУКТ И ПОВЕРХНОСТИ</h2>
 <small>что реально доступно пользователю сейчас</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-product-layers">
@@ -2460,12 +2447,12 @@
 <div>
 <span>03</span>
 <b>Карта / навигация</b>
-<small>отдельная продуктовая поверхность, если подключена как реальный live-модуль</small>
+<small>отдельная продуктовая поверхность, если подключена как реальный рабочий модуль</small>
 </div>
 <div>
 <span>04</span>
 <b>Коммерческий слой</b>
-<small>оплата, заявка, продажа и delivery — только по реальным событиям</small>
+<small>оплата, заявка, продажа и исполнение — только по реальным событиям</small>
 </div>
 </div>
 </div>
@@ -2476,7 +2463,7 @@
 <h2>ДОКАЗАТЕЛЬСТВО ДВИЖЕНИЯ</h2>
 <small>что подтверждает, что продукт не просто существует, а используется</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-evidence-grid">
@@ -2493,7 +2480,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПОСЛЕДНЕЕ МАТЕРИАЛЬНОЕ ИЗМЕНЕНИЕ</h2><small>что действительно поменялось в продукте или коммерческом контуре</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-empty compact">
@@ -2505,7 +2492,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>СЛЕДУЮЩИЙ ЭКСПЕРИМЕНТ</h2><small>что именно мы проверяем дальше и какой факт изменит решение</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-empty compact">
@@ -2517,7 +2504,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ТРЕБУЕТ ОСНОВАТЕЛЯ</h2><small>только решение, которое действительно нельзя делегировать</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-empty compact">
@@ -2529,7 +2516,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ВНЕШНЯЯ СРЕДА</h2><small>регуляторные, рыночные и партнёрские события — только если есть источник</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="bp-empty compact">
@@ -2546,14 +2533,14 @@
 </div>
 </div>
 <section class="bp-noise-grid">
-<article class="card"><div class="panel-body"><b>Нет fake Radar</b><span>«18 сигналов / +4 за сутки» не существует без реального сигнального источника.</span></div></article>
-<article class="card"><div class="panel-body"><b>Нет fake Funnel Router</b><span>Количество «маршрутов» не выводится из архитектурного названия модуля.</span></div></article>
-<article class="card"><div class="panel-body"><b>Нет fake Content Factory</b><span>Единицы контента и brief→publish считаются только по реальным артефактам/событиям.</span></div></article>
+<article class="card"><div class="panel-body"><b>Нет выдуманного радара</b><span>«18 сигналов / +4 за сутки» не существует без реального сигнального источника.</span></div></article>
+<article class="card"><div class="panel-body"><b>Нет выдуманного Funnel Router</b><span>Количество «маршрутов» не выводится из архитектурного названия модуля.</span></div></article>
+<article class="card"><div class="panel-body"><b>Нет выдуманной Content Factory</b><span>Единицы контента и переход «черновик → публикация» считаются только по реальным артефактам и событиям.</span></div></article>
 <article class="card"><div class="panel-body"><b>Нет выдуманной конверсии</b><span>Relocation / Residency / Property / Business не получают проценты без реальной событийной модели.</span></div></article>
 </section>
 <div class="bp-source-note">
-<b>Проверенный текущий read-контракт старой панели:</b>
-    Continuity capsule + state projection + blockers для BrazilPortal. Legacy-код обращается к `FND-007`; при интеграции v2 Клим должен сверить этот операционный идентификатор с каноническим Registry/Continuity и не переносить hard-code вслепую.
+<b>Граница идентичности:</b>
+    компонент, операционный объект и ключ чтения BrazilPortal принимаются только из серверной проекции <code>panel/brazilportal.identity</code>. Клиент не фиксирует и не восстанавливает операционный идентификатор самостоятельно.
   </div>
 </section>
 <section class="page normalized-page" data-page-panel="operations">
@@ -2563,18 +2550,11 @@
 <p>исполнение утверждённых ходов, обязательства, владельцы и фактическое движение</p>
 </div>
 <div class="top-actions">
-<span class="state unavailable">ОПЕРАЦИОННЫЙ ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
+<span class="state unavailable">ЧИТАЕМ ОПЕРАЦИОННУЮ ПРОЕКЦИЮ…</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header><section class="card normalized-live-root" data-normalized-live="operations"><div class="panel-head"><div class="head-title"><h2>Операционная картина</h2><small>реальные обязательства и состояние исполнения</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
-<div class="workspace-switcher operations-switcher">
-<button class="active" disabled="" title="Текущий обзор">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">В исполнении</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Обязательства</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Препятствия</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Движение</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">История</button>
-</div>
+</header><div class="direction-bridge tool-bridge"><div><small>Инструмент системы</small><b>Операционный слой</b><span>исполнение, обязательства и текущий владелец хода</span></div><nav><a href="#command">Командный центр →</a><a href="#timeline">Во времени →</a><a href="#lines">Линии и объекты →</a></nav></div><section class="card normalized-live-root" data-normalized-live="operations"><div class="panel-head"><div class="head-title"><h2>Операционная картина</h2><small>реальные обязательства и состояние исполнения</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
+<div class="tool-scope-note"><b>Детальный обзор</b><span>дополнительные разрезы появятся только после подключения поддерживающего источника</span></div>
 <section class="strip operations-kpis-v2">
 <article class="card">
 <small>В исполнении</small>
@@ -2604,7 +2584,7 @@
 <h2>ЧТО РЕАЛЬНО ИСПОЛНЯЕТСЯ СЕЙЧАС</h2>
 <small>не весь портфель маршрутов, а только действия, уже перешедшие из решения в исполнение</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="operations-table-head">
@@ -2617,7 +2597,7 @@
 <div class="operations-execution-list" data-o="execution">
 <div class="operations-empty">
 <strong>Исполнительный поток ещё не подключён</strong>
-<span>После интеграции здесь будут только реальные действия или commitments, у которых есть источник, Object ID, владелец, фактическое состояние исполнения и время последнего движения.</span>
+<span>После интеграции здесь будут только реальные действия или обязательства, у которых есть источник, Object ID, владелец, фактическое состояние исполнения и время последнего движения.</span>
 </div>
 </div>
 </div>
@@ -2628,7 +2608,7 @@
 <h2>У КОГО ХОД</h2>
 <small>исполнение должно иметь конкретного владельца</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="owner-compass">
@@ -2688,7 +2668,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ОТКРЫТЫЕ ОБЯЗАТЕЛЬСТВА</h2><small>что было обещано или принято на себя и ещё не закрыто</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="operations-empty compact">
@@ -2700,19 +2680,19 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПРЕПЯТСТВИЯ И ОСТАНОВКИ</h2><small>что мешает уже утверждённому действию двигаться</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="operations-empty compact">
 <strong>Операционные блокеры ещё не подключены</strong>
-<span>Здесь не создаётся собственный риск-балл. Показываем реальный blocker, источник, Object ID, владельца и условие снятия.</span>
+<span>Здесь не создаётся собственный риск-балл. Показываем реальный блокер, источник, Object ID, владельца и условие снятия.</span>
 </div>
 </div>
 </article>
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПОСЛЕДНЕЕ ДВИЖЕНИЕ</h2><small>что действительно произошло, а не что было запланировано</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="movement-timeline">
@@ -2727,7 +2707,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ЖДЁМ ВНЕШНИЙ ХОД</h2><small>активное ожидание не должно выглядеть как внутренний застой</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="operations-empty compact">
@@ -2759,14 +2739,14 @@
 <article class="card">
 <div class="panel-body">
 <b>Continuity</b>
-<span>хранит канонические события, владельцев хода, commitments, blockers и фактическое движение. Панель читает эту проекцию.</span>
+<span>хранит канонические события, владельцев хода, обязательства, блокеры и фактическое движение. Панель читает эту проекцию.</span>
 </div>
 </article>
 </section>
 <div class="section-title">
 <div>
 <h2>Что не переносим из старой страницы</h2>
-<p>правдоподобные operational-метрики без источника больше не выдаются за живое состояние</p>
+<p>правдоподобные операционные метрики без источника больше не выдаются за живое состояние</p>
 </div>
 </div>
 <section class="operations-noise-grid">
@@ -2778,14 +2758,14 @@
 </article>
 <article class="card">
 <div class="panel-body">
-<b>Нет фиктивных gates</b>
-<span>Количество gates не выводится из маршрутов и не считается Панелью самостоятельно.</span>
+<b>Нет фиктивных контрольных проверок</b>
+<span>Количество контрольных проверок не выводится из маршрутов и не считается Панелью самостоятельно.</span>
 </div>
 </article>
 <article class="card">
 <div class="panel-body">
-<b>Нет fake throughput</b>
-<span>«39 ходов за сутки» и median cycle не существуют без поддерживающего источника.</span>
+<b>Нет выдуманной пропускной способности</b>
+<span>«39 ходов за сутки» и медианное время цикла не существуют без поддерживающего источника.</span>
 </div>
 </article>
 <article class="card">
@@ -2807,37 +2787,31 @@
 <p>идентичность объектов, владение и каноническое место каждой линии в ICAM</p>
 </div>
 <div class="top-actions">
-<span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
+<span class="state unavailable">ЧИТАЕМ ПРОЕКЦИЮ…</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header>
-<div class="workspace-switcher registry-switcher">
-<button class="active" disabled="" title="Текущий обзор">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Объекты</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Идентичность</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Владение</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">История</button>
-</div>
+</header><div class="direction-bridge tool-bridge"><div><small>Инструмент системы</small><b>Реестр объектов</b><span>зарегистрированные объекты и доступная событийная история</span></div><nav><a href="#lines">Линии и объекты →</a><a href="#placement">Размещение →</a><a href="#timeline">Во времени →</a></nav></div>
+<div class="tool-scope-note"><b>Детальный обзор</b><span>дополнительные разрезы появятся только после подключения поддерживающего источника</span></div>
 <section class="strip registry-kpis-v2">
 <article class="card">
 <small>Объекты</small>
 <strong data-g="count">—</strong>
-<span>зарегистрированные канонические объекты</span>
+<span>зарегистрированные объекты в текущей проекции Continuity</span>
 </article>
 <article class="card">
-<small>Активные</small>
+<small>Объявлены активными</small>
 <strong data-g="active">—</strong>
-<span>объекты с активным объявленным состоянием</span>
+<span>declared_status начинается с ACTIVE; при непереданном статусе показана нижняя граница; это не доказательство фактического движения</span>
 </article>
 <article class="card">
-<small>Идентичность не подтверждена</small>
+<small>Без событийной истории</small>
 <strong data-g="unresolved">—</strong>
-<span>нет достаточного подтверждения событийной историей</span>
+<span>явно передан пустой last_event_at; если поле отсутствует целиком, показана нижняя граница</span>
 </article>
 <article class="card">
-<small>Требует Основателя</small>
+<small>Помечены для Основателя</small>
 <strong data-g="founder">—</strong>
-<span>каноническое решение нельзя завершить без Основателя</span>
+<span>источник передал needs_founder / needs_nika; причина читается отдельно, если она есть</span>
 </article>
 </section>
 <section class="registry-hero-grid">
@@ -2845,9 +2819,9 @@
 <div class="panel-head">
 <div class="head-title">
 <h2>ЧТО СУЩЕСТВУЕТ В СИСТЕМЕ</h2>
-<small>не красивые названия проектов, а зарегистрированные объекты с устойчивой идентичностью</small>
+<small>зарегистрированные объекты с object_id; отдельный вердикт устойчивости идентичности этот контракт не передаёт</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="registry-table-head">
@@ -2859,8 +2833,8 @@
 </div>
 <div class="registry-object-list" data-g="objects">
 <div class="registry-empty">
-<strong>Объекты ещё не подключены</strong>
-<span>После интеграции каждая строка будет строиться только из Continuity objects и покажет настоящий Object ID, название, объявленное состояние, владеющую ветку и свежесть последнего события.</span>
+<strong>Читаем реестр объектов…</strong>
+<span>Строки строятся только из объектов Continuity и показывают настоящий Object ID, состояние, владеющую ветку и событийную историю.</span>
 </div>
 </div>
 </div>
@@ -2868,21 +2842,21 @@
 <article class="card registry-identity-card">
 <div class="panel-head">
 <div class="head-title">
-<h2>ДОЛГ ИДЕНТИЧНОСТИ</h2>
-<small>где название или работа уже есть, а каноническая идентичность ещё не закреплена</small>
+<h2>ГРАНИЦА ИДЕНТИЧНОСТИ</h2>
+<small>что текущий контракт объектов может и не может доказать об идентичности</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="identity-orbit">
 <div class="identity-core">
-<small>НЕ ПОДТВЕРЖДЕНО</small>
+<small>БЕЗ СОБЫТИЙНОЙ ИСТОРИИ</small>
 <strong data-g="identity-core">—</strong>
-<span>объектов</span>
+<span>объектов; это не долг идентичности</span>
 </div>
 <div class="identity-ring"></div>
 </div>
-<p class="registry-note">Панель не придумывает ID для удобства. Если идентичность неизвестна, состояние остаётся unresolved до решения Реестра.</p>
+<p class="registry-note">Текущий /continuity/objects подтверждает наличие записи и Object ID, но не отдаёт отдельного статуса идентичности или сопоставления. Поэтому Панель не вычисляет «долг идентичности» из отсутствия last_event_at: отсутствие события означает только отсутствие подтверждённой событийной истории.</p>
 </div>
 </article>
 </section>
@@ -2895,12 +2869,12 @@
 <section class="card registry-object-card">
 <div class="panel-body">
 <div class="registry-fact-grid">
-<div><small>ID объекта</small><strong>—</strong><span>неизменяемая ссылка на объект</span></div>
-<div><small>Название</small><strong>—</strong><span>читаемое имя, не заменяет ID</span></div>
-<div><small>Владеющая ветка</small><strong>—</strong><span>кто отвечает за смысл и решения</span></div>
-<div><small>Объявленное состояние</small><strong>—</strong><span>текущее каноническое состояние объекта</span></div>
-<div><small>Последнее событие</small><strong>—</strong><span>когда идентичность подтверждалась движением</span></div>
-<div><small>Требует Основателя</small><strong>—</strong><span>есть ли незавершённое решение уровня Основателя</span></div>
+<div><small>ID объекта</small><strong data-g-detail="id">—</strong><span>неизменяемая ссылка на объект</span></div>
+<div><small>Название</small><strong data-g-detail="name">—</strong><span>читаемое имя, не заменяет ID</span></div>
+<div><small>Владеющая ветка</small><strong data-g-detail="owner">—</strong><span>кто отвечает за смысл и решения</span></div>
+<div><small>Объявленное состояние</small><strong data-g-detail="status">—</strong><span>текущее состояние из Continuity</span></div>
+<div><small>Последнее событие</small><strong data-g-detail="event">—</strong><span>дата последнего события, если поле передано</span></div>
+<div><small>Требует Основателя</small><strong data-g-detail="founder">—</strong><span>буквальный needs_founder / needs_nika, если поле передано</span></div>
 </div>
 <div class="registry-card-rule">
         Следующий ход, контрольная проверка и рабочие блокеры могут отображаться в Инспекторе, но Реестр не превращается в второй Оркестратор или страницу Исследований.
@@ -2910,32 +2884,32 @@
 <section class="registry-lower-grid">
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>ТРЕБУЕТ РЕШЕНИЯ ВЛАДЕЛЬЦА</h2><small>объекты, чья каноническая неопределённость не может закрыться автоматически</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+<div class="head-title"><h2>ТРЕБУЕТ РУЧНОГО УЧАСТИЯ</h2><small>объекты, которые источник пометил как требующие Основателя; это не формальный Decision Lifecycle</small></div>
+
 </div>
 <div class="panel-body" data-g="founder-list">
 <div class="registry-empty compact">
 <strong>Источник решений ещё не подключён</strong>
-<span>Сюда попадут только реальные объекты с needs_founder / каноническим owner decision, а не общая очередь задач.</span>
+<span>Сюда попадают только объекты с needs_founder / needs_nika. Формальным решением они считаются только при наличии отдельного Decision Lifecycle.</span>
 </div>
 </div>
 </article>
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>ОБЪЕКТЫ С ПРЕПЯТСТВИЯМИ</h2><small>канонические объекты, которым мешает открытый системный или веточный блокер</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+<div class="head-title"><h2>BLOCKER-ЗАПИСИ ПО ОБЪЕКТАМ</h2><small>явный OPEN показывается как OPEN; неизвестный lifecycle сохраняется как неизвестный; CLEARED не выводится</small></div>
+
 </div>
 <div class="panel-body" data-g="blockers-list">
 <div class="registry-empty compact">
 <strong>Блокеры ещё не подключены</strong>
-<span>Показываем только незакрытые нетестовые блокеры из Continuity и всегда сохраняем связь с Object ID.</span>
+<span>Показываем нетестовые записи без явного CLEARED и всегда сохраняем их фактический status и связь с Object ID.</span>
 </div>
 </div>
 </article>
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПОСЛЕДНИЕ КАНОНИЧЕСКИЕ ИЗМЕНЕНИЯ</h2><small>какие объекты действительно менялись, а не просто перерисовались в интерфейсе</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-g="recent-list">
 <div class="registry-empty compact">
@@ -2947,7 +2921,7 @@
 <article class="card registry-relations-card">
 <div class="panel-head">
 <div class="head-title"><h2>СВЯЗИ МЕЖДУ ОБЪЕКТАМИ</h2><small>только если источник действительно отдаёт канонические отношения</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="registry-relations-empty">
@@ -2997,317 +2971,56 @@
     если Object ID неизвестен — показываем «не определён», а не выбираем ближайший похожий ID. Это особенно важно для Testing Department и Path Legibility.
   </div>
 </section>
-<section class="page" data-page-panel="signals">
-<header class="topbar">
-<div>
-<h1>Сигналы</h1>
-<p>только изменения, которые заслуживают внимания и могут изменить следующий ход</p>
-</div>
-<div class="top-actions">
-<span class="state unavailable">ИСТОЧНИКИ НЕ ПОДКЛЮЧЕНЫ</span>
-<div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
-</div>
+<section class="page cc-page agent-network-page" data-page-panel="agents">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Сеть агентов</h1><p>состояние агентской сети, полномочия, цепочки происхождения и системные разрывы — без управления сетью из панели</p></div></div>
+<div class="cc-stamp" data-agent-stamp><span class="cc-pulse"></span><span>Читаем Agent Registry…</span></div>
 </header>
-<div class="workspace-switcher signals-switcher">
-<button class="active" disabled="" title="Текущий обзор">Обзор</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Требует меня</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Изменения</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Риски</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Возможности</button>
-<button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">История</button>
-</div>
-<section class="strip signals-kpis-v2">
-<article class="card">
-<small>Требует меня</small>
-<strong data-s="founder">—</strong>
-<span>сигналы с явным запросом решения Основателя</span>
-</article>
-<article class="card">
-<small>Материальные изменения</small>
-<strong data-s="changes">—</strong>
-<span>события, которые реально меняют состояние линии</span>
-</article>
-<article class="card">
-<small>Риск / отклонение</small>
-<strong data-s="risks">—</strong>
-<span>подтверждённые проблемы из источников, а не вычисленный страх</span>
-</article>
-<article class="card">
-<small>Возможности</small>
-<strong data-s="opportunities">—</strong>
-<span>только подтверждённые внешние или портфельные возможности</span>
-</article>
+<div class="cc-body agent-network-body">
+<section class="radar-summary agent-network-kpis">
+<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">A</span><span class="cc-kpi-body"><small>Агентов</small><strong data-a="total">—</strong><em data-a-note="total">читаем Agent Registry</em></span></div>
+<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">✓</span><span class="cc-kpi-body"><small>Активны</small><strong data-a="active">—</strong><em data-a-note="active">только Registry state</em></span></div>
+<div class="cc-kpi radar-kpi risk"><span class="cc-kpi-icon">!</span><span class="cc-kpi-body"><small>Разрывы</small><strong data-a="gaps">—</strong><em data-a-note="gaps">только подтверждённые счётчики</em></span></div>
+<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">↗</span><span class="cc-kpi-body"><small>Изменения сети</small><strong data-a="revisions">—</strong><em data-a-note="revisions">Registry / Lineage</em></span></div>
 </section>
-<section class="signals-hero-grid">
-<article class="card signals-now-card">
-<div class="panel-head">
-<div class="head-title">
-<h2>ЧТО ЗАСЛУЖИВАЕТ ВНИМАНИЯ СЕЙЧАС</h2>
-<small>сигнал появляется здесь только если источник подтверждает изменение или необходимость реакции</small>
+<div class="agent-network-grid">
+<article class="cc-panel"><header><h2>Состояние сети</h2><small>только подтверждённые агрегаты</small></header>
+<div data-agent-state><div class="cc-loading">Читаем состояние сети…</div></div></article>
+<article class="cc-panel"><header><h2>Реестр агентов</h2><small>идентичность, роль, владелец и текущий жизненный цикл</small></header>
+<div class="agent-contract-list" data-agent-list><div><b>agent_id</b><span>ждём verified Founder projection</span></div></div></article>
+<article class="cc-panel"><header><h2>Полномочия</h2><small>что агент может делать и где заканчиваются его права</small></header>
+<div data-agent-authority><div class="cc-loading">Читаем authority_scope…</div></div></article>
+<article class="cc-panel"><header><h2>Цепочка происхождения</h2><small>кто породил действие, решение, сигнал или дочернего агента</small></header>
+<div data-agent-lineage><div class="cc-loading">Читаем доказанные связи Lineage…</div></div></article>
+<article class="cc-panel agent-network-wide"><header><h2>Что будет подниматься Основателю</h2><small>только системные состояния, действительно требующие видимости</small></header>
+<div class="agent-network-alerts" data-agent-alerts><span>Читаем системные состояния…</span></div></article>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body" data-s="hero">
-<div class="signals-empty hero">
-<div class="signal-pulse">
-<span></span><i></i><b></b>
-</div>
-<strong>Сигнальный слой ещё не подключён</strong>
-<p>Панель не показывает демонстрационные «возможности», корреляции или угрозы. После интеграции здесь будут только реальные внимание Основателя события, существенные изменения, подтверждённые риски и внешние сигналы из разрешённых источников.</p>
-</div>
-</div>
-</article>
-<article class="card signals-founder-card">
-<div class="panel-head">
-<div class="head-title">
-<h2>ТРЕБУЕТ МЕНЯ</h2>
-<small>что нельзя закрыть без решения Основателя</small>
-</div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body" data-s="founder-list">
-<div class="signals-empty compact">
-<strong>Входящие Основателя не подключены</strong>
-<span>Когда источник будет подключён, сюда попадут только реальные `needs_founder`, а не все уведомления системы.</span>
-</div>
-</div>
-</article>
-</section>
-<div class="section-title">
-<div>
-<h2>Типы сигналов</h2>
-<p>разные причины внимания не смешиваем в одну красную ленту</p>
-</div>
-</div>
-<section class="signal-type-grid">
-<article class="card signal-type-card change">
-<div class="panel-body">
-<span class="signal-type-mark">Δ</span>
-<small>ИЗМЕНЕНИЕ</small>
-<h3>Что-то реально стало другим</h3>
-<p>Смена статуса или этапа, новый результат проверки, внешний ответ, новый файл с каноническим значением, изменение владельца хода или другого материального поля.</p>
-<em>не каждое событие</em>
-</div>
-</article>
-<article class="card signal-type-card risk">
-<div class="panel-body">
-<span class="signal-type-mark">!</span>
-<small>РИСК / ОТКЛОНЕНИЕ</small>
-<h3>Источник сообщает о проблеме</h3>
-<p>Открытый блокер, деградация, просрочка, неудачный тест, нарушение целостности или другой подтверждённый источник риска.</p>
-<em>без собственных домыслов панели</em>
-</div>
-</article>
-<article class="card signal-type-card opportunity">
-<div class="panel-body">
-<span class="signal-type-mark">↗</span>
-<small>ВОЗМОЖНОСТЬ</small>
-<h3>Появилось окно для действия</h3>
-<p>Внешний ответ, рыночное изменение, новый контакт, грант, партнёрство или другой шанс — только если его факт действительно пришёл из подключённого источника.</p>
-<em>не прогноз без данных</em>
-</div>
-</article>
-<article class="card signal-type-card watch">
-<div class="panel-body">
-<span class="signal-type-mark">○</span>
-<small>НАБЛЮДАТЬ</small>
-<h3>Решение пока не требуется</h3>
-<p>Изменение важно помнить, но оно ещё не требует действия. Такой сигнал не должен попадать на Главную как срочная задача.</p>
-<em>контекст, не тревога</em>
-</div>
-</article>
-</section>
-<div class="section-title">
-<div>
-<h2>Путь сигнала</h2>
-<p>Панель не создаёт факты — она только отбирает и объясняет то, что уже существует в источниках</p>
-</div>
-</div>
-<section class="card signal-flow-card">
-<div class="panel-body">
-<div class="signal-flow">
-<div>
-<span>01</span>
-<b>Событие</b>
-<small>реальное событие в Continuity, Testing, Orchestrator, Atlas или другом разрешённом источнике</small>
-</div>
-<i>→</i>
-<div>
-<span>02</span>
-<b>Материальность</b>
-<small>изменяет ли оно состояние, решение, риск, возможность или следующий ход</small>
-</div>
-<i>→</i>
-<div>
-<span>03</span>
-<b>Сигнал</b>
-<small>читаемая проекция с источником, объектом, временем и причиной внимания</small>
-</div>
-<i>→</i>
-<div>
-<span>04</span>
-<b>Маршрут</b>
-<small>если требуется действие — оно уходит в Оркестратор или внимание Основателя, а не живёт второй задачей здесь</small>
-</div>
-</div>
-<div class="signal-flow-note">
-        «Сигналы» — это слой внимания, а не второй хранилище событий и не второй список задач.
-      </div>
+<div class="agent-network-rule"><b>Граница:</b> эта страница — проекция только для чтения. Создание агентов, выдача полномочий, отзыв прав, делегирование и изменение цепочки происхождения (lineage) здесь невозможны.</div>
 </div>
 </section>
-<section class="signals-lower-grid">
-<article class="card">
-<div class="panel-head">
-<div class="head-title"><h2>ПОСЛЕДНИЕ МАТЕРИАЛЬНЫЕ ИЗМЕНЕНИЯ</h2><small>что изменилось в системе или внешней среде</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body" data-s="changes-list">
-<div class="signals-empty compact">
-<strong>История изменений ещё не подключена</strong>
-<span>Показываем событие, объект, источник, время и человеческое объяснение «было → стало → почему важно».</span>
-</div>
-</div>
-</article>
-<article class="card">
-<div class="panel-head">
-<div class="head-title"><h2>РИСКИ И ОТКЛОНЕНИЯ</h2><small>только подтверждённые проблемы</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body" data-s="risks-list">
-<div class="signals-empty compact">
-<strong>Источник рисков ещё не подключён</strong>
-<span>Приоритет или severity берётся из источника. Если источник не оценил тяжесть, Панель показывает «без оценки», а не рассчитывает собственный красный балл.</span>
+
+<section class="page cc-page radar-page" data-page-panel="signals">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Сигналы</h1><p>Внешние окна, ожидания, прогнозные точки и изменения поля, которые могут изменить следующий ход</p></div></div>
+<div data-radar-stamp><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем радар…</span></div></div>
+</header>
+<div class="cc-page-grid">
+<div class="cc-body radar-body" data-cc-body>
+<section class="radar-summary" data-radar-summary></section>
+<div class="radar-signal-grid">
+<article class="cc-panel radar-panel"><header><h2>Возможности</h2><small>подтверждённые внешние окна для действия</small></header><div data-radar="opportunities"><div class="cc-loading">Читаем…</div></div></article>
+<article class="cc-panel radar-panel"><header><h2>Ждём</h2><small>внешние ответы, исходы и решения программ</small></header><div data-radar="waiting"><div class="cc-loading">Читаем…</div></div></article>
+<article class="cc-panel radar-panel"><header><h2>Предсказания и даты раскрытия</h2><small>запечатано → исход → раскрытие → результат → следующий прогноз</small></header><div data-radar="predictions"><div class="cc-loading">Читаем…</div></div></article>
+<article class="cc-panel radar-panel"><header><h2>Поле и рынок</h2><small>отобранные изменения внешней среды</small></header><div data-radar="field"><div class="cc-loading">Читаем…</div></div></article>
+<article class="cc-panel radar-panel"><header><h2>ATLAS учится</h2><small>текущие проверки, результаты и следующий рубеж</small></header><div data-radar="learning"><div class="cc-loading">Читаем…</div></div></article>
+<article class="cc-panel radar-panel"><header><h2>Репутация и присутствие</h2><small>публикации, научные и институциональные внешние следы</small></header><div data-radar="reputation"><div class="cc-loading">Читаем…</div></div></article>
+
 </div>
 </div>
-</article>
-<article class="card">
-<div class="panel-head">
-<div class="head-title"><h2>ВНЕШНИЕ ВОЗМОЖНОСТИ</h2><small>факт возможности, а не декоративный бизнес-радар</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+<aside class="cc-inspector radar-inspector" data-radar-inspector>
+<div class="cc-insp-idle"><b>Сигнальный радар</b><span>Выберите сигнал слева. Здесь появятся источник, дата, контекст и причина, почему он находится на радаре.</span></div>
+</aside>
 </div>
-<div class="panel-body" data-s="opportunities-list">
-<div class="signals-empty compact">
-<strong>Внешний поток ещё не подключён</strong>
-<span>Позже сюда могут приходить подтверждённые сигналы от внешних исследовательских, рыночных и продуктовых источников. До подключения блок остаётся пустым.</span>
-</div>
-</div>
-</article>
-<article class="card">
-<div class="panel-head">
-<div class="head-title"><h2>НАБЛЮДАТЬ</h2><small>важно помнить, но сейчас ничего не делать</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body" data-s="watch-list">
-<div class="signals-empty compact">
-<strong>Наблюдаемых сигналов пока нет в проекции</strong>
-<span>Это отдельная полка, чтобы несрочный контекст не превращался в ложное «Требует меня».</span>
-</div>
-</div>
-</article>
-</section>
-<div class="section-title scanner-section-title">
-<div>
-<h2>Движение поля · 7 дней</h2>
-<p>ATLAS Market Scanner: где внешнее поле сдвинулось по архитектурным осям и почему это важно ATLAS / Twin</p>
-</div>
-<span class="state unavailable" data-fm="badge">ИСТОЧНИК ОЖИДАЕТ ПОДКЛЮЧЕНИЯ</span>
-</div><section class="card field-movement-card">
-<div class="panel-body">
-<div class="field-movement-grid">
-<div><small>World models</small><strong data-fm="world-model">—</strong><span data-fm-note="world-model">к предыдущим 7 дням</span></div>
-<div><small>Decision intelligence</small><strong data-fm="decision-intelligence">—</strong><span data-fm-note="decision-intelligence">к предыдущим 7 дням</span></div>
-<div><small>Simulation</small><strong data-fm="simulation">—</strong><span data-fm-note="simulation">к предыдущим 7 дням</span></div>
-<div><small>External sensing</small><strong data-fm="external-sensing">—</strong><span data-fm-note="external-sensing">к предыдущим 7 дням</span></div>
-<div><small>Epistemics</small><strong data-fm="epistemics">—</strong><span data-fm-note="epistemics">к предыдущим 7 дням</span></div>
-<div><small>Agents</small><strong data-fm="agents">—</strong><span data-fm-note="agents">к предыдущим 7 дням</span></div>
-</div>
-<div class="field-movement-note" data-fm="footnote">
-      После подключения показываем только агрегат weighted relevance за 7 дней: → / ↑ / ↑↑ / ↑↑↑. Первый scanner-run создаёт baseline и не должен превращаться в поток старых новостей.
-    </div>
-</div>
-</section><section class="card scanner-card-contract">
-<div class="panel-head">
-<div class="head-title">
-<h2>КАРТОЧКА СИГНАЛА</h2>
-<small>поля, которые Панель обязана сохранить без потери provenance</small>
-</div>
-<button class="top-corner-arrow" data-drawer="">→</button>
-</div>
-<div class="panel-body">
-<div class="scanner-contract-fields">
-<span>entity</span><span>type</span><span>relevance 0–100</span><span>title</span>
-<span>summary_ru</span><span>why_it_matters_ru</span><span>axes</span><span>evidence count</span>
-<span>source</span><span>observed_at</span><span>status</span>
-</div>
-<div class="scanner-status-model">
-<div><b>90–100</b><span>STRATEGIC · наверх</span></div>
-<div><b>70–89</b><span>IMPORTANT · основная лента</span></div>
-<div><b>50–69</b><span>WATCH · фильтр / дайджест</span></div>
-<div><b>&lt;50</b><span>ARCHIVE</span></div>
-</div>
-<p class="scanner-rule">Изменение веб-страницы само по себе не является рыночным сигналом. Карточка появляется только при deterministic semantic evidence.</p>
-</div>
-</section><section class="scanner-bridge-grid">
-<article class="card">
-<div class="panel-body">
-<b>Signals Bridge → Панель</b>
-<span>Браузер не выполняет ingest. Scanner / bridge отправляет `POST /api/signals/ingest`; Панель читает `GET /api/signals`.</span>
-</div>
-</article>
-<article class="card">
-<div class="panel-body">
-<b>Статус сигнала</b>
-<span>Позже Панель может менять только `status` через PATCH. До согласования auth/authority эта возможность остаётся отключённой.</span>
-</div>
-</article>
-<article class="card">
-<div class="panel-body">
-<b>LLM enrichment</b>
-<span>После QA — только для candidate signal и только поверх deterministic evidence. LLM не создаёт событие самостоятельно.</span>
-</div>
-</article>
-<article class="card">
-<div class="panel-body">
-<b>Customer worlds</b>
-<span>Scanner относится к Meta/Founder world и не меняет TMK/Graza causal graph автоматически. Promotion — отдельное ручное решение.</span>
-</div>
-</article>
-</section><div class="section-title">
-<div>
-<h2>Что здесь специально не делаем</h2>
-<p>убираем шум, который в старой панели выглядел убедительно, но не имел источника</p>
-</div>
-</div>
-<section class="signals-noise-grid">
-<article class="card">
-<div class="panel-body">
-<b>Не считаем «активные сигналы» сами</b>
-<span>Нет канонического сигнального store — нет красивой цифры 26 или «+5 за сутки».</span>
-</div>
-</article>
-<article class="card">
-<div class="panel-body">
-<b>Не рисуем корреляции</b>
-<span>Совпадение по времени не становится причинной связью или кластером без явного источника.</span>
-</div>
-</article>
-<article class="card">
-<div class="panel-body">
-<b>Не создаём свой рейтинг</b>
-<span>Панель не объявляет сигнал №1, если источник не даёт явного приоритета или severity.</span>
-</div>
-</article>
-<article class="card">
-<div class="panel-body">
-<b>Не дублируем задачи</b>
-<span>Если сигнал требует действия, действием управляет Оркестратор или внимание Основателя. Здесь остаётся источник и смысл сигнала.</span>
-</div>
-</article>
-</section>
-<div class="signals-boundary-note">
-<b>Граница:</b>
-    Главная отвечает «что мне делать сейчас», Оркестратор — «как движутся маршруты и действия», Тестирование — «что показала проверка», а Сигналы — «какое изменение заслуживает внимания и почему».
-  </div>
 </section>
 <section class="page" data-page-panel="documents">
 <header class="topbar">
@@ -3316,10 +3029,10 @@
 <p>артефакты, долговечность, происхождение и переходы к замороженному, отправленному и публичному состоянию</p>
 </div>
 <div class="top-actions">
-<span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
+<span class="state unavailable">ЧИТАЕМ ПРОЕКЦИЮ…</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header>
+</header><div class="direction-bridge tool-bridge"><div><small>Инструмент системы</small><b>Документальный контур</b><span>получение, сохранность, проверка и связь документов</span></div><nav><a href="#lines">Линии и объекты →</a><a href="#signals">Сигналы →</a><a href="#diagnostics">Доверие и диагностика →</a></nav></div>
 <div class="workspace-switcher documents-switcher">
 <button class="active" disabled="" title="Текущий обзор">Обзор</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Требует разбора</button>
@@ -3330,14 +3043,14 @@
 </div>
 <section class="strip documents-kpis-v2">
 <article class="card">
-<small>Долговечно сохранено</small>
+<small>Объекты на диске</small>
 <strong data-d="durable">—</strong>
-<span>артефакты, подтверждённые durable/indexed слоем</span>
+<span data-d="durable-note">поле objects_on_disk из Hub; само наличие на диске не доказывает индексацию и полное обратное чтение</span>
 </article>
 <article class="card">
 <small>Требует ручного разбора</small>
 <strong data-d="review">—</strong>
-<span>только CANONICAL_REVIEW и UNKNOWN</span>
+<span>только «канонический разбор» и «не определено»</span>
 </article>
 <article class="card">
 <small>Самый старый разбор</small>
@@ -3350,6 +3063,7 @@
 <span>артефакты, тип которых не удалось определить</span>
 </article>
 </section>
+<section class="card documents-evidence-overview"><div class="panel-head"><div class="head-title"><h2>ДОКАЗАТЕЛЬНЫЙ КОНТУР</h2><small>роль артефакта → необходимость разбора → связь с проверкой; только поля Hub и Testing</small></div><a class="top-corner-link" href="#testing">Тестирование →</a></div><div class="panel-body" data-d="evidence-overview"><div class="documents-empty compact"><strong>Читаем доказательный контур…</strong></div></div></section>
 <section class="documents-hero-grid">
 <article class="card documents-review-card">
 <div class="panel-head">
@@ -3357,7 +3071,7 @@
 <h2>ЧТО ДЕЙСТВИТЕЛЬНО ТРЕБУЕТ РАЗБОРА</h2>
 <small>не все сохранённые файлы, а только очередь, которую нельзя принять автоматически</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="document-queue-head">
@@ -3368,8 +3082,8 @@
 </div>
 <div class="document-review-queue" data-d="queue">
 <div class="documents-empty">
-<strong>Очередь разбора ещё не подключена</strong>
-<span>После интеграции здесь будут только реальные элементы `review_queue.oldest_5`: имя файла или inline-событие, заявленный Object ID, класс артефакта, причина классификации и время ожидания.</span>
+<strong>Читаем очередь ручного разбора…</strong>
+<span>Здесь показываются только реальные элементы review_queue.oldest_5: артефакт, заявленный Object ID, класс, причина классификации и время ожидания.</span>
 </div>
 </div>
 </div>
@@ -3380,7 +3094,7 @@
 <h2>ПОЧЕМУ ФАЙЛ ПОПАЛ СЮДА</h2>
 <small>классификация определяет маршрут, а не внешний вид файла</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="artifact-class-list">
@@ -3416,7 +3130,7 @@
 <span class="artifact-integrity-number">01</span>
 <h3>ПОЛУЧЕН</h3>
 <strong>Артефакт вошёл в систему</strong>
-<p>Зафиксировано имя или inline-событие, время получения, заявленный объект и исходный контекст.</p>
+<p>Зафиксировано имя или встроенное событие, время получения, заявленный объект и исходный контекст.</p>
 </div>
 </article>
 <i>→</i>
@@ -3489,7 +3203,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПРОИСХОЖДЕНИЕ</h2><small>откуда появился артефакт и какой объект его породил</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="artifact-provenance-chain">
@@ -3501,44 +3215,39 @@
 <i>→</i>
 <div><b>Роль</b><span>рабочий, замороженный, отправленный или публичный</span></div>
 </div>
-<p class="documents-note">Если один из участков не подтверждён, Панель не дорисовывает lineage сама.</p>
+<p class="documents-note">Если один из участков не подтверждён, Панель не дорисовывает цепочку происхождения сама.</p>
 </div>
 </article>
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>ПОСЛЕДНИЕ ИЗМЕНЕНИЯ АРТЕФАКТОВ</h2><small>не «последние документы» из демонстрационного списка, а реальные материальные события</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+<div class="head-title"><h2>НЕДАВНИЕ ПОСТУПЛЕНИЯ В HUB</h2><small>факт приёма и транспортно-индексное состояние; не семантическое изменение артефакта</small></div>
+
 </div>
-<div class="panel-body">
-<div class="documents-empty compact">
-<strong>История артефактов ещё не подключена</strong>
-<span>Здесь будут события сохранения, заморозки, отправки, публикации, замены версии, восстановления и изменения канонической роли — с реальным временем и Object ID.</span>
-</div>
+<div class="panel-body" data-d="recent">
+<div class="documents-empty compact"><strong>Читаем недавние поступления…</strong><span>Панель покажет только факты, которые передал Hub.</span></div>
 </div>
 </article>
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ДОЛГОВЕЧНОСТЬ И ПРОВЕРКА</h2><small>состояние Artifact Durability, а не размер файловой библиотеки</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="documents-durability-grid">
-<div><small>Сохранено</small><strong>—</strong><span>положительный результат durable write</span></div>
-<div><small>Обратное чтение</small><strong>—</strong><span>можно ли подтвердить сохранённые байты</span></div>
-<div><small>Несоответствия</small><strong>—</strong><span>только реальные ошибки проверки</span></div>
+<div><small>Объекты на диске</small><strong data-d="durability-disk">—</strong><span>буквальный счётчик Hub</span></div>
+<div><small>Осиротевшие расписки</small><strong data-d="durability-orphans">—</strong><span>STORED без подтверждённого объекта на диске</span></div>
+<div><small>Расхождения хэшей</small><strong data-d="durability-hash">—</strong><span>буквальный счётчик проверки целостности</span></div>
+<div><small>Покрытие проверки</small><strong data-d="durability-coverage">—</strong><span>область, которую заявляет сам Hub</span></div>
 </div>
 </div>
 </article>
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>НЕОПРЕДЕЛЁННАЯ СВЯЗЬ</h2><small>артефакт есть, но объект или роль ещё не доказаны</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
-<div class="panel-body">
-<div class="documents-empty compact">
-<strong>Нет подключённого списка</strong>
-<span>Такие случаи остаются unresolved. Ни Панель, ни имя файла не назначают Object ID или каноническую роль автоматически.</span>
-</div>
+<div class="panel-body" data-d="unresolved">
+<div class="documents-empty compact"><strong>Читаем неопределённые связи…</strong><span>Ни Панель, ни имя файла не назначают Object ID или каноническую роль автоматически.</span></div>
 </div>
 </article>
 </section>
@@ -3586,10 +3295,10 @@
 <p>независимые проверки, результаты, повторные прогоны и происхождение доказательств</p>
 </div>
 <div class="top-actions">
-<span class="state unavailable">ИСТОЧНИК НЕ ПОДКЛЮЧЁН</span>
+<span class="state unavailable">ЧИТАЕМ ПРОЕКЦИЮ…</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header>
+</header><div class="direction-bridge tool-bridge"><div><small>Инструмент системы</small><b>Контур проверок</b><span>процедура, исход и решение владеющей ветки</span></div><nav><a href="#signals">Сигналы →</a><a href="#timeline">Во времени →</a><a href="#lines">Линии и объекты →</a></nav></div>
 <div class="workspace-switcher testing-switcher">
 <button class="active" disabled="" title="Текущий обзор">Обзор</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Очередь</button>
@@ -3605,9 +3314,9 @@
 <span>запрошены или готовы к независимому прогону</span>
 </article>
 <article class="card">
-<small>В работе</small>
+<small>Открытые состояния</small>
 <strong data-t="active">—</strong>
-<span>проверки, которые сейчас исполняются</span>
+<span>элементы active[] сервиса; это не означает, что они прямо сейчас исполняются</span>
 </article>
 <article class="card">
 <small>Нужен разбор</small>
@@ -3627,15 +3336,15 @@
 <h2>ЧТО СЕЙЧАС ВАЖНО</h2>
 <small>не вся очередь, а только проверки, которые меняют решение или блокируют движение</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="testing-attention-board" data-t="attention">
 <div class="testing-attention-main">
 <span class="testing-signal-ring">?</span>
 <div>
-<strong>Состояние тестов ещё не подключено</strong>
-<p>После интеграции здесь будет одна короткая очередь: нужен разбор результата → нужен повтор → тест заблокирован → проверка завершена и меняет следующий ход.</p>
+<strong>Читаем состояния проверок…</strong>
+<p>Здесь собирается короткая очередь: нужен разбор результата → нужен повтор → тест заблокирован; техническое завершение не повышается до научного вывода.</p>
 </div>
 </div>
 <div class="testing-attention-rule">
@@ -3648,21 +3357,22 @@
 <div class="panel-head">
 <div class="head-title">
 <h2>ИСПОЛНИТЕЛЬ ТЕСТОВ</h2>
-<small>готова ли инфраструктура выполнить следующую проверку</small>
+<small>отвечает ли локальный раннер и какая конфигурация ему доступна</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="runner-state">
 <span class="runner-orb"></span>
-<div><small>Состояние</small><strong data-t="runner-state">—</strong><em data-t="runner-note">источник не подключён</em></div>
+<div><small>Состояние</small><strong data-t="runner-state">—</strong><em data-t="runner-note">читаем состояние раннера…</em></div>
 </div>
-<div class="runner-kv"><span>Доступные провайдеры</span><b data-t="runner-providers">—</b></div>
+<div class="runner-kv"><span>Сконфигурировано провайдеров</span><b data-t="runner-providers">—</b></div>
 <div class="runner-kv"><span>Последняя проверка здоровья</span><b data-t="runner-health-at">—</b></div>
-<p class="testing-note">Список провайдеров не должен быть зашит в интерфейсе: он читается из реального состояния раннера.</p>
+<p class="testing-note">Количество читается из конфигурации раннера. Это не проверка фактической доступности внешних провайдеров.</p>
 </div>
 </article>
 </section>
+<section class="testing-adjudication-focus" data-t="focus"><div class="testing-empty compact"><strong>Проверяем результаты, требующие содержательного разбора…</strong><span>Процедурный исход и научный вывод читаются раздельно.</span></div></section>
 <div class="section-title">
 <div>
 <h2>Очередь проверок</h2>
@@ -3672,10 +3382,10 @@
 <section class="card testing-queue-card">
 <div class="panel-head">
 <div class="head-title">
-<h2>ТЕКУЩИЕ ПРОГОНЫ</h2>
-<small>запрос → исполнение → результат → разбор → при необходимости повтор</small>
+<h2>СОСТОЯНИЯ ПРОВЕРОК</h2>
+<small>запрос → исполнение → результат → разбор → при необходимости повтор; строки не означают одновременное исполнение</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="testing-table-head">
@@ -3687,8 +3397,8 @@
 </div>
 <div class="testing-queue" data-t="queue">
 <div class="testing-empty">
-<strong>Очередь ещё не подключена</strong>
-<span>В рабочем состоянии строки будут строиться из Testing summary/tests и показывать настоящий test ID, object ID, тип теста, состояние, время обновления и следующий ход.</span>
+<strong>Читаем состояния проверок…</strong>
+<span>Строки строятся из Testing summary и показывают настоящий test ID, object ID, тип проверки, состояние, время обновления и следующий ход.</span>
 </div>
 </div>
 </div>
@@ -3734,7 +3444,7 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ПОСЛЕДНИЕ РЕЗУЛЬТАТЫ</h2><small>что реально завершилось и какой научный исход зафиксирован</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body" data-t="recent">
 <div class="testing-empty compact">
@@ -3746,9 +3456,9 @@
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ТРЕБУЕТ РАЗБОРА</h2><small>дефект, неоднозначность или вывод, который должна принять владеющая ветка</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
-<div class="panel-body" data-t="adjudication">
+<div class="panel-body" data-t="adjudication-list">
 <div class="testing-empty compact">
 <strong>Нет подключённого списка</strong>
 <span>Сюда попадут только состояния, которые действительно требуют разбора, а не все завершённые тесты.</span>
@@ -3757,35 +3467,20 @@
 </article>
 <article class="card testing-lineage-card">
 <div class="panel-head">
-<div class="head-title"><h2>ПРОИСХОЖДЕНИЕ РЕЗУЛЬТАТА</h2><small>какой именно прогон породил текущий результат</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+<div class="head-title"><h2>ДОКАЗУЕМАЯ ЦЕПОЧКА РЕЗУЛЬТАТА</h2><small>только идентификаторы и переходы, которые передал Testing summary</small></div>
+
 </div>
-<div class="panel-body">
-<div class="lineage-chain">
-<div><span>1</span><b>Запрос</b><small>исходный test ID и владеющая ветка</small></div>
-<i>→</i>
-<div><span>2</span><b>Протокол</b><small>зафиксированные условия проверки</small></div>
-<i>→</i>
-<div><span>3</span><b>Прогон</b><small>конкретное исполнение и среда</small></div>
-<i>→</i>
-<div><span>4</span><b>Результат</b><small>артефакт и его контрольная сумма</small></div>
-<i>→</i>
-<div><span>5</span><b>Ревизия</b><small>текущая или заменённая версия результата</small></div>
-</div>
-<p class="testing-note">Предыдущая ревизия не исчезает при повторе. Панель показывает, какая версия текущая, какая заменена и почему.</p>
+<div class="panel-body" data-t="lineage">
+<div class="testing-empty compact"><strong>Читаем происхождение результата…</strong><span>Отсутствующие ID протокола и прогона не реконструируются из путей или названий.</span></div>
 </div>
 </article>
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ДОКАЗАТЕЛЬСТВА ПРОГОНА</h2><small>что можно проверить независимо от красивого статуса</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
-<div class="panel-body">
-<div class="testing-evidence-grid">
-<div><small>Результат</small><strong>—</strong><span>сохранённый артефакт результата</span></div>
-<div><small>Контрольная сумма</small><strong>—</strong><span>если контракт теста её предусматривает</span></div>
-<div><small>Версия</small><strong>—</strong><span>какая ревизия является текущей</span></div>
-</div>
+<div class="panel-body" data-t="evidence-chain">
+<div class="testing-empty compact"><strong>Читаем доказательства выбранного результата…</strong><span>Показываются только поля Testing summary; отсутствие поля не заполняется догадкой.</span></div>
 </div>
 </article>
 </section>
@@ -3812,10 +3507,10 @@
 <p>почему Панель доверяет или не доверяет данным: источники, свежесть, ошибки и восстановление</p>
 </div>
 <div class="top-actions">
-<span class="state unavailable">ДИАГНОСТИЧЕСКИЙ READ-MODEL НЕ ПОДКЛЮЧЁН</span>
+<span class="state unavailable">ПРОЕКЦИИ ЧТЕНИЯ ЕЩЁ НЕ ПРОЧИТАНЫ</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header>
+</header><div class="direction-bridge tool-bridge"><div><small>Инструмент системы</small><b>Контур доверия</b><span>почему текущим данным можно или нельзя доверять</span></div><nav><a href="#command">Командный центр →</a><a href="#signals">Сигналы →</a><a href="#placement">Размещение →</a></nav></div>
 <div class="workspace-switcher diagnostics-switcher">
 <button class="active" disabled="" title="Текущий обзор">Обзор</button>
 <button disabled="" title="Подраздел будет включён после подключения соответствующей проекции чтения">Источники</button>
@@ -3837,9 +3532,9 @@
 <span>источники, от которых сейчас нет подтверждённого ответа</span>
 </article>
 <article class="card">
-<small>Свежесть не подтверждена</small>
-<strong data-x="stale">—</strong>
-<span>источники без отдельного freshness-контракта не считаются свежими по догадке</span>
+<small>Свежесть</small>
+<strong data-x="stale">раздельно</strong>
+<span>каждый источник оценивается по собственному контракту; единого счётчика свежести нет</span>
 </article>
 <article class="card">
 <small>Ошибки чтения</small>
@@ -3854,26 +3549,9 @@
 <h2>ПОЧЕМУ ЭТОМУ ЭКРАНУ МОЖНО / НЕЛЬЗЯ ВЕРИТЬ</h2>
 <small>итоговое доверие зависит от всей цепочки данных, а не от цвета карточки</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
-<div class="panel-body">
-<div class="diagnostic-trust-layout">
-<div class="diagnostic-trust-orbit">
-<div class="diag-ring one"></div><div class="diag-ring two"></div>
-<div class="diag-core"><small>TRUST</small><strong>—</strong><span>нет проекция чтения</span></div>
-<span class="diag-node api">API</span>
-<span class="diag-node source">Источник</span>
-<span class="diag-node age">Свежесть</span>
-<span class="diag-node render">Отображение</span>
-</div>
-<div class="diagnostic-principles">
-<div><b>Нет ответа</b><span>не превращается в ноль, PASS или «всё спокойно».</span></div>
-<div><b>Есть последнее хорошее</b><span>можно показать его только вместе с возрастом и явным stale/degraded.</span></div>
-<div><b>Источник восстановился</b><span>RECOVERY появляется только после нового успешного чтения.</span></div>
-<div><b>Экран не доказал текущее состояние</b><span>правдоподобная заглушка должна быть перезаписана состоянием «недоступно».</span></div>
-</div>
-</div>
-</div>
+<div class="panel-body" data-x="trust-chain"><div class="diagnostics-empty compact"><strong>Читаем границы доверия…</strong><span>Единый рейтинг доверия не вычисляется.</span></div></div>
 </article>
 <article class="card diagnostic-runtime-card">
 <div class="panel-head">
@@ -3881,7 +3559,7 @@
 <h2>БРАУЗЕР / СЕССИЯ</h2>
 <small>технический слой текущей сессии Панели</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="runtime-kv"><span>модуль чтения v2</span><b data-x-runtime="module">—</b></div>
@@ -3896,18 +3574,18 @@
 <div class="panel-head">
 <div class="head-title">
 <h2>MARKET SCANNER</h2>
-<small>свежесть, покрытие источников, ingest/enrichment</small>
+<small>свежесть, покрытие источников, приём и обогащение</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="runtime-kv"><span>Свежесть последнего цикла</span><b data-scan="freshness">—</b></div>
 <div class="runtime-kv"><span>Последний цикл</span><b data-scan="last-run">—</b></div>
 <div class="runtime-kv"><span>Покрытие источников</span><b data-scan="coverage">—</b></div>
-<div class="runtime-kv"><span>Enrichment (Stage 2)</span><b data-scan="enrichment">—</b></div>
-<div class="runtime-kv"><span>Ingest key</span><b data-scan="ingest">—</b></div>
+<div class="runtime-kv"><span>Обогащение (этап 2)</span><b data-scan="enrichment">—</b></div>
+<div class="runtime-kv"><span>Ключ приёма</span><b data-scan="ingest">—</b></div>
 <div data-scan="failing-list"></div>
-<p class="diagnostics-note">Источник: scanner run ledger + signals store, читается напрямую, не переизобретается Панелью.</p>
+<p class="diagnostics-note">Источник: журнал запусков сканера и хранилище сигналов; читается напрямую и не переизобретается Панелью.</p>
 </div>
 </article>
 </section>
@@ -3923,25 +3601,28 @@
 <h2>КАРТА ИСТОЧНИКОВ ЧТЕНИЯ</h2>
 <small>на этом экране можно быть техническими; на рабочих страницах — только результат</small>
 </div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="diagnostics-source-head">
-<span>Источник</span><span>Что даёт</span><span>Состояние</span><span>Свежесть</span><span>Влияние</span>
+<span>Источник</span><span>Что даёт</span><span>Доступность чтения</span><span>Последнее чтение</span><span>Влияние</span>
 </div>
 <div class="diagnostics-source-list">
-<div data-x-source="continuity"><b>Continuity</b><span>объекты / inbox / health</span><em>—</em><em>—</em><small>Главная, Реестр, Фундамент, BrazilPortal</small></div><div data-x-source="research-rd1">
+<div data-x-source="continuity"><b>Continuity</b><span>объекты / запросы на участие / health</span><em>—</em><em>—</em><small>Командный центр, Реестр объектов, Исследования</small></div><div data-x-source="research-rd1">
 <b>Research / RD1</b>
 <span>объектные RD1-проекции</span>
 <em>—</em>
 <em>—</em>
-<small>Исследования</small>
+<small>Исследования, инспекторы</small>
 </div>
-<div data-x-source="orchestrator"><b>Orchestrator</b><span>routes / summary / metrics</span><em>—</em><em>—</em><small>Оркестратор и часть Главной</small></div>
-<div data-x-source="testing"><b>Testing</b><span>summary / tests / lineage / runner health</span><em>—</em><em>—</em><small>Тестирование</small></div>
-<div data-x-source="hub"><b>Hub / Durability</b><span>sync health / review queue</span><em>—</em><em>—</em><small>Документы и Фундамент</small></div>
-<div data-x-source="scanner"><b>ATLAS Market Scanner</b><span>market signals / field movement</span><em>НЕ ПОДКЛЮЧЁН</em><em>—</em><small>Сигналы после QA</small></div>
-<div data-x-source="atlas-twin"><b>ATLAS / Twin</b><span>safe проекция чтенияs</span><em>—</em><em>—</em><small>собственные экраны после подключения</small></div>
+<div data-x-source="orchestrator"><b>Orchestrator</b><span>маршруты / сводка / метрики</span><em>—</em><em>—</em><small>Командный центр, Линии и объекты</small></div>
+<div data-x-source="testing"><b>Testing</b><span>сводка тестов / происхождение / состояние исполнителя</span><em>—</em><em>—</em><small>Тестирование, Сигналы</small></div>
+<div data-x-source="hub"><b>Hub / Durability</b><span>синхронизация / очередь проверки документов</span><em>—</em><em>—</em><small>Документы, Фундамент</small></div>
+<div data-x-source="scanner"><b>ATLAS Market Scanner</b><span>рыночные сигналы / движение поля / диагностика</span><em>—</em><em>—</em><small>Сигналы</small></div>
+<div data-x-source="founder-universe"><b>Founder Universe</b><span>Temporal Universe / Portfolio Admission</span><em>—</em><em>—</em><small>Во времени, Размещение, Связи и стратегии</small></div>
+<div data-x-source="founder-command"><b>Founder Command</b><span>Founder Projection / организационные наблюдения / системная сверка</span><em>—</em><em>—</em><small>Командный центр, Связи, Сигналы</small></div>
+<div data-x-source="radar"><b>Founder Radar</b><span>ожидания / внешние сигналы / прогнозные даты / обучение ATLAS / инвестиционный агрегат</span><em>—</em><em>—</em><small>Сигналы · ATLAS</small></div>
+<div data-x-source="specialized"><b>Специализированные проекции</b><span>Фундамент / Операции / ATLAS / DT / BrazilPortal / Signal Lab</span><em>—</em><em>—</em><small>отдельные страницы направлений и инструментов</small></div>
 </div>
 </div>
 </section>
@@ -3959,13 +3640,13 @@
 <div class="panel-body"><small>DEGRADED</small><b>Деградация</b><span>Часть контура доступна, часть — нет. Сохраняем границы достоверного.</span></div>
 </article>
 <article class="card diag-state stale">
-<div class="panel-body"><small>STALE</small><b>Устарело</b><span>Есть последнее хорошее значение, но оно больше не считается current без оговорки.</span></div>
+<div class="panel-body"><small>STALE</small><b>Устарело</b><span>Есть последнее хорошее значение, но оно больше не считается текущим без оговорки.</span></div>
 </article>
 <article class="card diag-state unavailable">
 <div class="panel-body"><small>UNAVAILABLE</small><b>Недоступно</b><span>Нет подтверждённого текущего ответа. Ничего не дорисовываем.</span></div>
 </article>
 <article class="card diag-state error">
-<div class="panel-body"><small>ERROR</small><b>Ошибка</b><span>Подтверждена потеря функции, нарушение контракта или иной hard failure.</span></div>
+<div class="panel-body"><small>ERROR</small><b>Ошибка</b><span>Подтверждена потеря функции, нарушение контракта или иной критический отказ.</span></div>
 </article>
 <article class="card diag-state recovery">
 <div class="panel-body"><small>RECOVERY</small><b>Восстановлено</b><span>После ошибки получено новое успешное чтение и проверена свежесть.</span></div>
@@ -3977,32 +3658,26 @@
 <section class="diagnostics-lower-grid">
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>ПОСЛЕДНИЕ ОШИБКИ</h2><small>что именно сломалось, когда и на каком участке</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+<div class="head-title"><h2>ОШИБКИ ТЕКУЩЕГО ЦИКЛА ЧТЕНИЯ</h2><small>какие проекции не ответили панели в последнем цикле</small></div>
+
 </div>
-<div class="panel-body">
-<div class="diagnostics-empty compact">
-<strong>Журнал ошибок не подключён</strong>
-<span>Нужны source, operation, timestamp, error class, affected surface и последнее хорошее чтение. Без секретов и credential values.</span>
-</div>
+<div class="panel-body" data-x-cycle-errors>
+<div class="diagnostics-empty compact"><strong>Читаем текущий цикл…</strong><span>Исторический журнал ошибок здесь не подменяется состоянием браузера.</span></div>
 </div>
 </article>
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>СВЕЖЕСТЬ</h2><small>возраст каждого проекция чтения против его собственного контракта</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+<div class="head-title"><h2>ПОСЛЕДНЕЕ ЧТЕНИЕ ПРОЕКЦИЙ</h2><small>время ответа панели; не доказательство свежести самих данных</small></div>
+
 </div>
-<div class="panel-body">
-<div class="diagnostics-empty compact">
-<strong>Freshness-проекция чтения не подключён</strong>
-<span>Порог свежести задаётся источником/контрактом. Панель не придумывает универсальные «15 минут» для всех систем.</span>
-</div>
+<div class="panel-body" data-x-read-times>
+<div class="diagnostics-empty compact"><strong>Читаем метки времени…</strong><span>Порог свежести задаётся каждым источником отдельно; универсальный порог панель не придумывает.</span></div>
 </div>
 </article>
 <article class="card">
 <div class="panel-head">
 <div class="head-title"><h2>ВОССТАНОВЛЕНИЕ</h2><small>ошибка → безопасная деградация → новое чтение → возврат текущее состояние</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+
 </div>
 <div class="panel-body">
 <div class="diagnostic-recovery-flow">
@@ -4016,14 +3691,14 @@
 </article>
 <article class="card">
 <div class="panel-head">
-<div class="head-title"><h2>ИНТЕГРАЦИИ, КОТОРЫЕ ЕЩЁ НЕ ГОТОВЫ</h2><small>видим контракт, но не выдаём его за подключённый источник</small></div>
-<button class="top-corner-arrow" data-drawer="">→</button>
+<div class="head-title"><h2>СПЕЦИАЛИЗИРОВАННЫЕ КОНТУРЫ: ЧТО ДОКАЗАНО СЕЙЧАС</h2><small>подключённость проекции, здоровье внешнего источника и качество результата — разные уровни</small></div>
+
 </div>
 <div class="panel-body">
 <div class="integration-pending">
-<div><b>ATLAS Market Scanner → Signals</b><span>подключать только после QA scanner/bridge; ingest не выполняется браузером</span></div>
-<div><b>Personal Twin</b><span>до PTC-R0 prospective longitudinal остаётся OFF; read API пока не hard-wire</span></div>
-<div><b>ATLAS safe проекция чтения</b><span>подключить после утверждения реального источника; LAB ≠ canonical</span></div>
+<div><b>ATLAS Market Scanner → Сигналы</b><span>проекция чтения подключена; текущее покрытие и свежесть берутся только из живой диагностики Scanner. Сохранённые сигналы сами по себе не доказывают доступность внешних источников сейчас.</span></div>
+<div><b>Personal Twin</b><span>безопасная read-проекция подключена; текущий режим, число оценённых исходов и состояние подтверждений должны читаться из серверной проекции, а не из статического HTML.</span></div>
+<div><b>ATLAS — каноническое состояние</b><span>endpoint Панели подключён; доступность и состояние канонического источника определяются только его текущей серверной проекцией. Документы Hub не превращаются в канонический state.</span></div>
 </div>
 </div>
 </article>
@@ -4035,9 +3710,9 @@
 </div>
 </div>
 <section class="diagnostics-boundary-grid">
-<article class="card"><div class="panel-body"><b>Не меняет настройки источников</b><span>конфигурация runtime и deployment остаётся у владеющего сервиса / Клима.</span></div></article>
-<article class="card"><div class="panel-body"><b>Не перезапускает сервисы</b><span>можно показать рекомендуемый recovery path, но не давать скрытую write-authority.</span></div></article>
-<article class="card"><div class="panel-body"><b>Не хранит секреты</b><span>никаких токенов, ключей, credential values или приватных инфраструктурных деталей.</span></div></article>
+<article class="card"><div class="panel-body"><b>Не меняет настройки источников</b><span>конфигурация работы и развёртывания остаётся у владеющего сервиса / Клима.</span></div></article>
+<article class="card"><div class="panel-body"><b>Не перезапускает сервисы</b><span>можно показать рекомендуемый путь восстановления, но не давать скрытые полномочия на запись.</span></div></article>
+<article class="card"><div class="panel-body"><b>Не хранит секреты</b><span>никаких токенов, ключей, значений учётных данных или приватных инфраструктурных деталей.</span></div></article>
 <article class="card"><div class="panel-body"><b>Не скрывает отказ</b><span>любая потеря источника должна быть видна на затронутой странице, а не только здесь.</span></div></article>
 </section>
 <div class="diagnostics-truth-note">
@@ -4045,59 +3720,31 @@
     Диагностика объясняет причину деградации. Она не имеет права делать остальные экраны «зелёными» при отсутствии доказанного текущее состояние.
   </div>
 </section>
-<div class="footer-note">Панель Основателя v2 · кандидат интеграции · проекция только для чтения · production ещё не переключён</div>
+<div class="footer-note">Панель Основателя v2 · живая рабочая поверхность · данные читаются из авторитетных проекций · запись возможна только через отдельное подтверждённое действие Основателя</div>
 </main>
 </div>
-<aside class="drawer" id="drawer">
-<button id="drawerClose">← Закрыть</button>
-<h2>Инспектор</h2>
-<p id="drawerContext">Выберите карточку, чтобы увидеть её контекст и технические поля.</p>
-<dl>
-<dt>ID объекта</dt><dd>—</dd>
-<dt>Ветка-владелец</dt><dd>—</dd>
-<dt>Источник</dt><dd>—</dd>
-<dt>Актуальность</dt><dd>—</dd>
-<dt>Следующий ход</dt><dd>—</dd>
-<dt>Проверка</dt><dd>—</dd>
-<dt>Блокеры</dt><dd>—</dd>
-</dl>
-</aside>
 <script>
 (function(){
   "use strict";
 
   function route(){
-    let key=(location.hash||"#home").slice(1);
+    let key=(location.hash||"#command").slice(1);
+    if(key==="home"||key==="orchestrator")key="command";
     let panel=document.querySelector('[data-page-panel="'+key+'"]');
-    if(!panel){key="home";panel=document.querySelector('[data-page-panel="home"]')}
+    if(!panel){key="command";panel=document.querySelector('[data-page-panel="command"]')}
     document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
     panel.classList.add("active");
     document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("active",a.dataset.page===key));
+    const tools=document.getElementById("systemTools");
+    if(tools&&["foundation","operations","registry","agents","documents","testing","diagnostics"].includes(key)) tools.open=true;
     window.scrollTo(0,0);
   }
-
-  const drawer=document.getElementById("drawer");
-  const drawerTitle=drawer.querySelector("h2");
-  const drawerContext=document.getElementById("drawerContext");
-  document.addEventListener("click",e=>{
-    const trigger=e.target.closest("[data-drawer]");
-    if(!trigger)return;
-    const card=trigger.closest(".card");
-    const page=trigger.closest(".page");
-    const cardTitle=card&&card.querySelector(".head-title h2");
-    const pageTitle=page&&page.querySelector(".topbar h1");
-    drawerTitle.textContent=cardTitle?cardTitle.textContent.trim():"Инспектор";
-    if(drawerContext){
-      drawerContext.textContent=(pageTitle?pageTitle.textContent.trim()+" · ":"")+"подробности появятся из того же read-model, что и карточка; Панель не создаёт отдельную истину.";
-    }
-    drawer.classList.add("open");
-  });
-  document.getElementById("drawerClose").addEventListener("click",()=>drawer.classList.remove("open"));
 
   window.addEventListener("hashchange",route);
   route();
 })();
 </script>
 <script src="live.js"></script>
+<script src="command-center.js"></script>
 </body>
 </html>
