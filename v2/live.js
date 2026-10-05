@@ -2064,6 +2064,26 @@
     body.innerHTML=summary+unavailableOpsHTML+"<div class='live-list-clean'>"+rows+"</div>"+(ordered.length>6?"<div class='live-more'>Сначала показаны записи без явного закрывающего статуса. Ещё "+(ordered.length-6)+" записей скрыты из обзора.</div>":"");
   }
 
+  function renderLatestBranchActivity(a, pageKey) {
+    if (!a || !a.event_type) return "";
+    var type=String(a.event_type||"").toUpperCase();
+    var blocked=/BLOCKED|BLOCKER/.test(type);
+    var tone=blocked?"tone-critical":"tone-return";
+    var title=blocked?"Последняя проверка ветки · есть blocker":"Последняя проверка ветки";
+    var when=a.received_at||a.valid_at;
+    return "<div class='live-item-clean branch-activity "+tone+"' data-direction-role='"+(blocked?"decision":"evidence")+"'>"+
+      "<div class='live-item-clean-head'><h3>"+esc(title)+"</h3>"+chip(type)+"</div>"+
+      "<p>"+esc(a.human_change||"Ветка опубликовала материальное наблюдение.")+"</p>"+
+      (a.blocker_explicit?"<div class='live-warning'><b>Blocker:</b> "+esc(a.blocker_explicit)+"</div>":"")+
+      "<div class='live-kv-grid'>"+
+      kv("Ветка",a.source_branch||"—")+
+      kv("Наблюдение",a.why_it_matters||"—")+
+      kv("Следующий подтверждённый шаг",a.next_milestone||"—")+
+      kv("Когда поступило",when?ago(when):"—")+
+      "</div>"+
+      "<small>"+esc(a.evidence_ceiling||"Это отдельное наблюдение ветки; оно не заменяет каноническое состояние объекта.")+"</small></div>";
+  }
+
   function renderBrazilPortalProjection(data) {
     if (!sourceState.brazilPortal.ok || !data) return cleanFailure("brazilportal","BrazilPortal","brazilPortal");
     var sv=data.status_views||{}, id=data.identity||{};
@@ -2102,7 +2122,8 @@
       "<div class='live-item-clean'><div class='live-item-clean-head'><h3>Следующий ход</h3>"+chip(data.source_status)+"</div>"+
       "<div class='live-kv-grid'>"+kv("Владелец",val(data.owner))+kv("Следующий рубеж",bpCodeRu(val(data.next_gate)))+kv("Следующий ход",projectionTextRu(val(data.next_move)))+kv("Открытые blocker-записи объекта",blockersN==null?"—":blockersN)+kv("Открытые обязательства (поле источника)",commitmentsN==null?"—":commitmentsN)+kv("Последнее материальное событие",data.last_material_event&&data.last_material_event.last_event_at?ago(data.last_material_event.last_event_at):"—")+"</div>"+
       "<small>"+(blockersN==null?"Счётчик open_blockers.count не передан; наличие или отсутствие blocker-записей не подтверждено.":(esc(blockersN)+" blocker-записей "+(id.operational_object_id?"связаны серверной проекцией с операционным объектом "+esc(id.operational_object_id):"переданы серверной проекцией; операционный объект в identity не указан")+". Источник не доказывает test-фильтрацию и не передаёт единую оценку тяжести, поэтому Панель не называет их "+(blockersN===1?"одним препятствием":"одинаково критическими препятствиями")+"."))+"</small></div>"+
-      (Array.isArray(data.unavailable_fields)?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Сознательно неизвестные поля</h3><small>буквальный unavailable_fields[] проекции BrazilPortal</small></div>"+(data.unavailable_fields.length?"<div class='live-kv-grid' data-bp-unavailable-fields>"+data.unavailable_fields.map(function(f){return kv(projectionFieldRu(f),"недоступно");}).join("")+"</div>":"<p data-bp-unavailable-fields>Источник явно передал пустой unavailable_fields[].</p>")+"</div>":"");
+      (Array.isArray(data.unavailable_fields)?"<div class='live-item-clean'><div class='live-item-clean-head'><h3>Сознательно неизвестные поля</h3><small>буквальный unavailable_fields[] проекции BrazilPortal</small></div>"+(data.unavailable_fields.length?"<div class='live-kv-grid' data-bp-unavailable-fields>"+data.unavailable_fields.map(function(f){return kv(projectionFieldRu(f),"недоступно");}).join("")+"</div>":"<p data-bp-unavailable-fields>Источник явно передал пустой unavailable_fields[].</p>")+"</div>":"")+
+      renderLatestBranchActivity(data.latest_branch_activity,"brazilportal");
   }
 
   function renderFoundationAggregateClean(data) {
@@ -2437,6 +2458,7 @@
         ((String(status || "").toUpperCase() === "LIVE" || String(status || "").toUpperCase() === "OK") ? "Источник этим статусом сообщает доступность вычислительного контура; это не доказывает точность прогноза. " : "Панель не повышает этот статус до утверждения о доступности или точности вычислительного контура. ") +
         (scoredN == null ? "Число оценённых проспективных исходов источником не передано — вывод о предсказательной способности не делается." :
           (scoredN === 0 ? "Пока оценено 0 проспективных исходов — предсказательная способность и лучший клон не определены." : "Оценённые исходы существуют, но их качество должно читаться из отдельной доказательной проекции.")) + "</div>" +
+      renderLatestBranchActivity(data.latest_branch_activity,"digital-twin") +
       "<div class='live-item-clean tone-violet' data-direction-role='research'><div class='live-item-clean-head'><h3>Текущее состояние прогноза</h3>" + chip(data.current_prediction || "—") + "</div>" +
       "<div class='live-kv-grid'>" +
       kv("Статус", predLabel) +

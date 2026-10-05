@@ -974,3 +974,14 @@ Current verified state:
 - Founder Radar now collapses append-only opportunity history to the latest event per opportunity_key, excludes closed/expired records, and keeps opportunity events out of Field/Market research signal cards.
 - Current Radar verified: 9 opportunities. Nearest dated windows include RHAE IA (2026-10-09), Finep Digital Technologies (2026-10-14), Finep Semiconductors (2026-11-25), CNPq MAI/DAI (2026-12-11).
 - Signals inspector explicitly shows eligibility/status and states that aiclavis eligibility is not yet checked. Radar Navigator label aligned to `Спросить Навигатора`.
+
+## 2026-10-05 — Branch activity synchronization hardening
+
+- Audited Activity Inbox producer coverage after prospective CHAT_UPDATE bridge activation. The bridge contract is branch-agnostic, but only Founder Panel had emitted a new post-activation structured CHAT_UPDATE. Most other branches were represented only by older pre-activation imports.
+- Recovered the exact FND-005 Personal Twin audit artifact from ICAM_SYNC_OUTBOX / Hub. The file was ACKED by Hub after prospective bridge activation but was not named CHAT_UPDATE, so filename-only discovery skipped it.
+- Chat Activity Bridge release `0.4-20261005-r1` now supports strict content-signature discovery for post-activation material audit artifacts. Non-CHAT_UPDATE files are considered only when received after the activation boundary and only when they explicitly carry Object ID, Source Branch, Event type, Status, a Blocker section and a Boundary / next move section. Old artifacts are never retro-promoted.
+- Exact FND-005 audit was published prospectively as Activity event `AE-1d56b19a2a58e0b658a6`, source branch `Synthetic Business World Lab — Digital Twin / Counterfactual Worlds`, event type BLOCKED, object_id FND-005. Explicit blocker: `NO_RESOLVED_FOUNDER_OUTCOME_STREAM`.
+- The audit explicitly states that live runtime itself remains online/healthy, Generation-0 is preserved, no server mutation was performed, outcomes=0, scores=0 and the twins have not learned from prediction error. Activity BLOCKED therefore represents the branch-level learning-loop blocker, not a claim that the runtime is down.
+- Context Steward Face now exposes `latest_branch_activity` as supplementary exact-object provenance for DT (FND-005) and BrazilPortal (FND-007). This field never changes canonical status/freshness.
+- Current DT projection verifies the separation: source_status=LIVE, runtime_health=OK, latest_branch_activity.event_type=BLOCKED with the exact FND-005 blocker. BrazilPortal remains DEGRADED/STALE and currently has no recent exact branch activity; no activity is invented.
+- Founder Panel renders latest branch activity as a separate card. A blocker can therefore be visible alongside a healthy runtime without collapsing the two evidence layers into one status.
