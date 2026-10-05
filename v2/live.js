@@ -2181,7 +2181,7 @@
       renderLatestBranchActivity(data.latest_branch_activity,"brazilportal");
   }
 
-  function renderFoundationAggregateClean(data) {
+  function renderFoundationAggregateClean(data, inbox) {
     if (!sourceState.foundationAgg.ok || !data) return cleanFailure("foundation","Фундамент","foundationAgg");
     var body=activateNormalized("foundation",data.source_status,
       "ФУНДАМЕНТ · "+sourceStatusLabel(data.source_status));
@@ -2224,6 +2224,21 @@
     }).join("");
     var blockingProvided=Array.isArray(data.blocking_reasons);
     var blocking=blockingProvided?data.blocking_reasons:[];
+    var systemItemsKnown=!!(sourceState.inbox.ok&&inbox&&Array.isArray(inbox.system_attention));
+    var systemItems=systemItemsKnown?inbox.system_attention:[];
+    function sysAge(x){return daysSince(x&&x.last_seen_at);}
+    function sysFixture(x){var s=[x&&x.source_system,x&&x.title,x&&x.reason,x&&x.issue_key].filter(Boolean).join(" ");return /(?:TEST|FIXTURE|NONEXISTENT_OBJECT)/i.test(s);}
+    var systemBlock="";
+    if(systemItemsKnown){
+      var recentSystem=systemItems.filter(function(x){var a=sysAge(x);return a!=null&&a<STALE_DAYS;}).length;
+      var oldSystem=systemItems.filter(function(x){var a=sysAge(x);return a!=null&&a>=STALE_DAYS;}).length;
+      var fixtureSystem=systemItems.filter(sysFixture).length;
+      var byType={};systemItems.forEach(function(x){var k=String(x.issue_type||"UNKNOWN");byType[k]=(byType[k]||0)+1;});
+      var rows=[["SYNC_HEALTH_DEGRADED","свежесть / синхронизация"],["MEANING_ASSESSMENT_REJECTED","отклонённые смысловые записи"],["INGRESS_PACKET_NOT_INGESTED","пакеты ingress без полного контракта"],["PROJECTION_REJECTED","отклонённые проекции"]].filter(function(x){return byType[x[0]];}).map(function(x){return "<span><small>"+esc(x[1])+"</small><b>"+esc(byType[x[0]])+"</b></span>";}).join("");
+      systemBlock="<div class='live-item-clean direction-selectable tone-return' data-direction-role='evidence' data-direction-title='Системное внимание' data-direction-summary='"+attr(systemItems.length+" SYSTEM-записей: "+recentSystem+" видели менее "+STALE_DAYS+" дней назад; "+oldSystem+" старых; "+fixtureSystem+" имеют явные TEST/FIXTURE-маркеры. Ни одна запись не скрыта автоматически.")+"'><div class='live-item-clean-head'><h3>Системное внимание</h3>"+chip(systemItems.length)+"</div><div class='foundation-proof-grid'>"+rows+"</div><small>"+esc(recentSystem+" видели менее "+STALE_DAYS+" дней назад · "+oldSystem+" старых · "+fixtureSystem+" с явным TEST/FIXTURE-происхождением. Тестовое происхождение не означает автоматического игнорирования.")+"</small></div>";
+    } else if(sourceState.inbox.ok){
+      systemBlock="<div class='live-item-clean'><div class='live-item-clean-head'><h3>Системное внимание</h3>"+chip("—")+"</div><small>Founder inbox ответил, но system_attention[] не передан; состав системной очереди не подтверждён.</small></div>";
+    }
     body.innerHTML=
       "<div class='live-status-box "+sourceStatusBoxClass(data.source_status)+"'><strong>Состояние основания — "+esc(sourceStatusLabel(data.source_status))+"</strong>"+
       "<p>"+(blockingProvided?(blocking.length?"Есть подтверждённый блокирующий дефект. Зелёный READY не показывается.":"Источник явно передал пустой blocking_reasons[]. Готовность определяется агрегированным source_status, а не этим нулём отдельно."):"Поле blocking_reasons не передано; отсутствие блокирующих причин не подтверждено.")+"</p></div>"+
@@ -2233,6 +2248,7 @@
       "<div class='metric'><small>PASS</small><strong>"+esc(passBase.length?passCount+" / "+passBase.length:"—")+"</strong><span>"+esc(mandatoryKnown?"обязательные измерения":"переданные dimensions; mandatory не полностью указан")+"</span></div>"+
       "<div class='metric'><small>Блокирующие причины</small><strong>"+esc(blockingProvided?blocking.length:"—")+"</strong><span>"+esc(blockingProvided?"по явному blocking_reasons[]":"поле не передано")+"</span></div></div>"+
       (blocking.length?"<div class='live-warning'>"+blocking.map(function(x){return esc(projectionTextRu(x));}).join("<br>")+"</div>":"")+
+      systemBlock +
       "<div class='live-list-clean'>"+(dimensionsKnown?(cards||"<div class='live-item-clean'><small>Источник явно передал пустой dimensions[].</small></div>"):"<div class='live-item-clean'><small>Поле dimensions[] не передано; состав измерений основания не подтверждён.</small></div>")+"</div>" +
       "<div class='foundation-ready-rule'><b>Условие возврата в READY:</b> каждое обязательное измерение должно снова иметь PASS от живого источника. Прошлый PASS или сохранённый отчёт не заменяет текущее доказательство.</div>";
     refreshDirectionInspector("foundation");
@@ -2905,7 +2921,7 @@
       renderScannerDiagnostics(scannerDiagnostics);
       renderOperationsProjection(opsProjection);
       renderBrazilPortalProjection(brazilPortal);
-      renderFoundationAggregateClean(foundationAgg);
+      renderFoundationAggregateClean(foundationAgg, inbox);
       renderAtlasStateClean(atlasState);
       renderAtlasSignalLab(signalLabStatus);
       renderAgentNetwork(agentProjection, agentLineage);
