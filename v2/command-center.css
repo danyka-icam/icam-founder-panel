@@ -1422,3 +1422,36 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .commercial-queue-panel .com-queue-row>*{min-width:0;overflow-wrap:anywhere}
 .com-date-note{display:block;margin-top:3px;color:#91aaa4!important;font-size:9px!important;line-height:1.3}
 @media(max-width:1200px){.com-manual-row,.com-feedback-row{grid-template-columns:minmax(0,1fr) minmax(96px,.45fr)}.com-manual-row>small:last-child,.com-feedback-row>small:last-child{grid-column:1/-1}.commercial-queue-panel .com-queue-row,.com-queue-head{grid-template-columns:minmax(160px,1fr) minmax(120px,.7fr) minmax(82px,.45fr)}.commercial-queue-panel .com-queue-row>small:last-child,.com-queue-head>span:last-child{grid-column:1/-1}}
+
+/* Commercial direction normalization 2026-10-05 */
+.commercial-focus{--c:var(--cc-flow)}
+.commercial-focus .cc-title-mark{border-color:var(--cc-flow);box-shadow:0 0 16px rgba(63,207,166,.26),inset 0 0 10px rgba(63,207,166,.18)}
+.commercial-focus .cc-title-mark:after{background:var(--cc-flow);box-shadow:0 0 10px var(--cc-flow)}
+.commercial-page-grid{align-items:start}
+.commercial-sourcebar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border:1px solid rgba(90,169,230,.18);border-left:2px solid #5aa9e6;border-radius:12px;overflow:hidden;background:rgba(8,20,25,.62);box-shadow:var(--shadow)}
+.commercial-source-item{min-width:0;padding:11px 13px;background:linear-gradient(160deg,rgba(90,169,230,.045),rgba(8,20,25,.56))}
+.commercial-source-item small{display:block;font-size:8.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--cc-dim)}
+.commercial-source-item b{display:block;margin-top:4px;font:400 14px/1.25 var(--cc-serif);color:#e8f3f1;overflow-wrap:anywhere}
+.commercial-source-item span{display:block;margin-top:3px;font-size:9px;line-height:1.35;color:var(--muted-2);overflow-wrap:anywhere}
+.commercial-focus .commercial-hero{margin-bottom:0;border-top:2px solid var(--cc-flow)}
+.commercial-focus .commercial-kpis{gap:10px;margin:0}
+.commercial-focus .commercial-kpis .cc-kpi{min-height:94px}
+.commercial-products{align-items:stretch}
+.com-product{height:100%;display:flex;flex-direction:column;border-top:2px solid var(--product)}
+.com-product-list{flex:1}
+.com-product .com-item{min-height:61px}
+.commercial-action-grid{align-items:stretch;grid-template-columns:minmax(0,1.12fr) minmax(300px,.88fr)}
+.commercial-action-grid>.cc-panel,.commercial-action-grid>.cc-side-stack{min-height:100%}
+.commercial-action-grid .cc-side-stack{display:grid;grid-template-rows:1fr 1fr;gap:14px}
+.commercial-action-grid .cc-side-stack>.cc-panel{height:100%;min-height:0}
+.commercial-manual-panel>header,.commercial-stage-panel>header,.commercial-queue-panel>header,.commercial-action-grid .cc-side-stack>.cc-panel>header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.commercial-manual-panel>header h2,.commercial-stage-panel>header h2,.commercial-queue-panel>header h2,.commercial-action-grid .cc-side-stack>.cc-panel>header h2{margin:0;font:400 18px var(--cc-serif);color:#eef6f3}
+.commercial-manual-panel>header small,.commercial-stage-panel>header small,.commercial-queue-panel>header small,.commercial-action-grid .cc-side-stack>.cc-panel>header small{color:var(--muted-2);font-size:10px}
+.commercial-manual-panel{border-top:2px solid var(--cc-return)!important}
+.commercial-stage-panel{border-top:2px solid var(--cc-violet)!important}
+.commercial-queue-panel{border-top:2px solid var(--cc-flow)!important}
+.commercial-inspector{--c:var(--cc-flow);min-height:360px}
+.commercial-inspector .cc-insp-idle{min-height:220px}
+.commercial-focus .direction-selected{transform:none}
+@media(max-width:1300px){.commercial-products{grid-template-columns:repeat(3,minmax(0,1fr))}.commercial-action-grid{grid-template-columns:1fr}.commercial-action-grid .cc-side-stack{grid-template-columns:1fr 1fr;grid-template-rows:auto}}
+@media(max-width:1120px){.commercial-products{grid-template-columns:1fr}.commercial-sourcebar{grid-template-columns:1fr}.commercial-action-grid .cc-side-stack{grid-template-columns:1fr}.commercial-page-grid{grid-template-columns:1fr}.commercial-inspector{position:relative;top:0;max-height:none}}
