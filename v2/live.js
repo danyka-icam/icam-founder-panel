@@ -35,7 +35,9 @@
     // Founder Universe read-only backend (separate service, same origin).
     temporalUniverse: "/founder-star-view/api/temporal-universe",
     portfolioAdmission: "/founder-star-view/api/portfolio-admission",
-    radar: API + "/radar"
+    radar: API + "/radar",
+    manualCommercial: "/founder-ui-preview/commercial/manual-actions.json",
+    commercialDashboard: "/founder-ui-preview/commercial/dashboard.json"
   };
   // Only the Founder Universe reads get a client timeout, so a hung service
   // degrades to "unavailable" instead of stalling the whole read cycle.
@@ -77,7 +79,9 @@
     agentLineage: { ok: false, at: null, error: null },
     temporalUniverse: { ok: false, at: null, error: null },
     portfolioAdmission: { ok: false, at: null, error: null },
-    radar: { ok: false, at: null, error: null }
+    radar: { ok: false, at: null, error: null },
+    manualCommercial: { ok: false, at: null, error: null },
+    commercialDashboard: { ok: false, at: null, error: null }
   };
 
   function esc(value) {
@@ -905,7 +909,7 @@
       (testComplete ? "в полном active[] + recent[] таких тестов нет" : "общий ноль не подтверждён: active[] или recent[] не передан");
   }
 
-  function renderRegistry(objectsResp, blockersResp) {
+  function renderRegistry(objectsResp, blockersResp, portfolioAdmission) {
     var page = document.querySelector('[data-page-panel="registry"]');
     if (!page) return;
     if (!sourceState.objects.ok || !objectsResp) {
@@ -930,6 +934,17 @@
     var founder = items.filter(function (o) { return founderFlagState(o).value; });
     var founderUnknown = items.filter(function (o) { return !founderFlagState(o).known; }).length;
 
+    var memoryScope=page.querySelector('[data-g="memory-scope"]');
+    if(memoryScope){
+      var paOk=!!(sourceState.portfolioAdmission.ok && portfolioAdmission && portfolioAdmission.counts);
+      if(paOk){
+        var pc=portfolioAdmission.counts||{};
+        memoryScope.innerHTML="<b>Два слоя реестра</b><span>Continuity: "+esc(itemsKnown?items.length:"—")+" канонических объектов · Company Memory: "+esc(pc.memory==null?"—":pc.memory)+" записей · на Founder Map: "+esc(pc.placed==null?"—":pc.placed)+" · точных кандидатов владельца: "+esc(pc.exact_owner_candidates==null?"—":pc.exact_owner_candidates)+" · требуют сверки: "+esc(pc.review_required==null?"—":pc.review_required)+" · конфликтов владельца: "+esc(pc.owner_conflicts==null?"—":pc.owner_conflicts)+". Это разные уровни доказательности; Панель их не сливает. <a href='#placement'>Открыть размещение →</a></span>";
+      }else{
+        memoryScope.innerHTML="<b>Два слоя реестра</b><span>Continuity читается отдельно. Company Memory / Portfolio Admission сейчас не подтверждены; более широкий контур не достраивается по косвенным данным.</span>";
+      }
+    }
+
     function put(k, v) { var e = page.querySelector('[data-g="' + k + '"]'); if (e) e.textContent = String(v); }
     put("count", itemsKnown ? items.length : "—"); put("active", itemsKnown ? (statusUnknown ? "≥ " + active.length : active.length) : "—"); put("unresolved", itemsKnown ? (eventHistoryUnknown ? "≥ " + noEventHistory.length : noEventHistory.length) : "—"); put("founder", itemsKnown ? (founderUnknown ? "≥ " + founder.length : founder.length) : "—");
     var core = page.querySelector('[data-g="identity-core"]'); if (core) core.textContent = String(itemsKnown ? (eventHistoryUnknown ? "≥ " + noEventHistory.length : noEventHistory.length) : "—");
@@ -945,6 +960,10 @@
       else if (!o.last_event_at) detail("event","дата события не передана");
       else { var dt=new Date(o.last_event_at); detail("event", isNaN(dt)?String(o.last_event_at):dt.toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})); }
       var ff=founderFlagState(o); detail("founder", ff.known ? (ff.value?"да":"нет") : "поле не передано");
+      var ctx=page.querySelector('[data-g="identity-context"]');
+      if(ctx)ctx.textContent=(o.name||o.object_id||"Объект")+" · "+(o.object_id||"ID не передан")+" · источник Continuity";
+      var ask=page.querySelector('[data-g="ask-navigator"]');
+      if(ask)ask.setAttribute("data-cc-steward-context",JSON.stringify({kind:"registry_object",title:o.name||o.object_id||"Объект",sub:o.object_id||"ID не передан",layer:"registry",source:"Continuity / continuity/objects",why:"Показаны только факты текущего объекта, переданные проекцией. Company Memory и размещение не повышают статус этого Object ID автоматически.",details:"Владеющая ветка: "+(o.owning_branch||o.owner||"не передана")+" · состояние: "+(o.declared_status||"не передано")+" · последнее событие: "+(o.last_event_at||"не передано")}));
     }
 
     var list = page.querySelector('[data-g="objects"]');
@@ -2093,6 +2112,7 @@
     var unavailableOpsFields=Array.isArray(data.unavailable_fields)?data.unavailable_fields:null;
     var unavailableOpsHTML=unavailableOpsFields?("<div class='live-item-clean'><div class='live-item-clean-head'><h3>Сознательно неизвестные поля</h3><small>буквальный unavailable_fields[] операционной проекции</small></div>"+(unavailableOpsFields.length?"<div class='live-kv-grid' data-ops-unavailable-fields>"+unavailableOpsFields.map(function(f){return kv(projectionFieldRu(f),"недоступно");}).join("")+"</div>":"<p data-ops-unavailable-fields>Источник явно передал пустой unavailable_fields[].</p>")+"</div>"):"";
     body.innerHTML=summary+unavailableOpsHTML+"<div class='live-list-clean'>"+rows+"</div>"+(ordered.length>6?"<div class='live-more'>Сначала показаны записи без явного закрывающего статуса. Ещё "+(ordered.length-6)+" записей скрыты из обзора.</div>":"");
+    refreshDirectionInspector("operations");
   }
 
   function renderLatestBranchActivity(a, pageKey) {
@@ -2219,7 +2239,8 @@
       atlas:{label:"ATLAS",mark:"A",source:"ATLAS",tone:"flow"},
       "digital-twin":{label:"DT",mark:"DT",source:"DT",tone:"violet"},
       foundation:{label:"Фундамент",mark:"F",source:"Foundation",tone:"flow"},
-      research:{label:"Исследования",mark:"R",source:"Research",tone:"flow"}
+      research:{label:"Исследования",mark:"R",source:"Research",tone:"flow"},
+      operations:{label:"Операции",mark:"O",source:"Operations",tone:"return"}
     };
     var meta=metaMap[pageKey]||{label:pageKey,mark:"•",source:pageKey,tone:"flow"};
     var page=document.querySelector('[data-page-panel="'+pageKey+'"]');
@@ -2702,8 +2723,61 @@
     pageBadge("diagnostics", failed ? (ok ? "warn" : "unavailable") : "live", failed ? (ok ? "ПРОЕКЦИИ ЧТЕНИЯ ЧАСТИЧНО" : "ПРОЕКЦИИ ЧТЕНИЯ НЕДОСТУПНЫ") : "ПРОЕКЦИИ ЧТЕНИЯ ДОСТУПНЫ");
   }
 
+
+
+  function renderCommercial(data) {
+    var page=document.querySelector('[data-page-panel="commercial"]'); if(!page)return;
+    function box(name){return page.querySelector('[data-commercial="'+name+'"]');}
+    function safe(v){return esc(v==null?"":v);} function n(v){return Number(v||0);}
+    function ruStage(v){var m={DISCOVERY:"поиск",SCREENING:"отсев",RESEARCH:"исследование",HOLD:"удержание",READY:"готово",FOUNDER:"требует Нику",WAITING:"ожидание",WATCH:"наблюдение",SUBMITTED:"подано",REPLIED:"ответ",CONVERSATION:"разговор",PROPOSAL:"КП / предложение",PAID:"оплачено",CLOSED:"закрыто",OTHER:"прочее"};return m[v]||v||"—";}
+    function productClass(p){return (p&&p.color_key)||"teal";}
+    function stagePriority(s){var m={FOUNDER:1,REPLIED:2,CONVERSATION:3,PROPOSAL:4,SUBMITTED:5,READY:6,WAITING:7,WATCH:8,RESEARCH:9,SCREENING:10,DISCOVERY:11,HOLD:12,CLOSED:20,OTHER:21};return m[s]||50;}
+    if(!sourceState.commercialDashboard.ok||!data){
+      ["hero","manual","feedback","proposals","stages","queue"].forEach(function(k){var el=box(k);if(el)el.innerHTML=unavailableHTML("Коммерческий контур недоступен","Read-only projection не отвечает.");});
+      var ps=box("products");if(ps)ps.innerHTML=unavailableHTML("Продукты недоступны","Проекция не отвечает.");
+      var st=box("stamp");if(st)st.innerHTML='<div class="cc-stamp"><span class="cc-pulse bad"></span><span>Коммерческий контур недоступен</span></div>'; return;
+    }
+    var t=data.totals||{}, products=Array.isArray(data.products)?data.products:[], manual=Array.isArray(data.manual_queue)?data.manual_queue:[];
+    var stamp=box("stamp");if(stamp)stamp.innerHTML='<div class="cc-stamp"><span class="cc-pulse ok"></span><span>Коммерция · '+safe((data.generated_at||"").replace("T"," ").slice(0,16))+'</span></div>';
+    var nav=document.querySelector("[data-commercial-nav-count]");if(nav)nav.textContent=n(t.founder)?String(n(t.founder)):"";
+    var hero=box("hero");if(hero)hero.innerHTML='<div class="com-hero-row"><div class="com-hero-copy"><small>COMMERCIAL CORE</small><h2>'+products.length+' продукта · '+n(t.active)+' активных объекта</h2><p>Общий журнал контактов, защита от дублей и исполнительный контур едины. Поиск, доказательные gates и продуктовая логика остаются раздельными.</p></div><div class="com-hero-state"><span><small>ждём рынок</small><b>'+n(t.waiting)+'</b></span><span><small>требует Нику</small><b>'+n(t.founder)+'</b></span><span><small>подано</small><b>'+n(t.submitted)+'</b></span><span><small>оплачено</small><b>'+n(t.paid)+'</b></span></div></div>';
+    var k=box("kpis");if(k){var cells=[["Активно",t.active,"в работе сейчас","◈",""],["Ждём ответа",t.waiting,"внешний ход","○","wait"],["Ручная отправка",t.manual_send,"форма / портал / скрытый канал","↗","risk"],["Проверить отправку",t.verify_sent,"не допустить дубль","?","wait"],["Ответили",t.replied,"подтверждённые ответы","↩",""],["КП / предложения",t.proposal,"после разговора","▤",""]];k.innerHTML=cells.map(function(c){return '<div class="cc-kpi '+c[4]+'"><span class="cc-kpi-icon">'+c[3]+'</span><span class="cc-kpi-body"><small>'+safe(c[0])+'</small><strong>'+n(c[1])+'</strong><em>'+safe(c[2])+'</em></span></div>';}).join("");}
+    var prod=box("products");if(prod)prod.innerHTML=products.map(function(p){var counts=p.stage_counts||{},items=(p.items||[]).slice().sort(function(a,b){return stagePriority(a.stage)-stagePriority(b.stage);});var chips=["RESEARCH","FOUNDER","WAITING","SUBMITTED","REPLIED","PROPOSAL","PAID"].filter(function(x){return n(counts[x])>0;}).map(function(x){return '<span class="com-stage-chip">'+safe(ruStage(x))+' <b>'+n(counts[x])+'</b></span>';}).join("");var rows=items.filter(function(x){return x.stage!=="CLOSED";}).slice(0,6).map(function(x){return '<div class="com-item"><div class="com-item-top"><b>'+safe(x.company||x.id)+'</b><em>'+safe(ruStage(x.stage))+'</em></div><small>'+safe(x.next||x.signal_class||x.class_name||x.route||"")+'</small></div>';}).join("");return '<article class="com-product '+safe(productClass(p))+'"><div class="com-product-head"><div><h2>'+safe(p.name)+'</h2><small>'+safe(p.goal||"")+'</small></div><span class="com-product-badge">'+n(p.active_items)+'</span></div><div class="com-stage-strip">'+chips+'</div><div class="com-product-list">'+(rows||'<div class="com-empty">Нет активных объектов.</div>')+'</div></article>';}).join("");
+    var man=box("manual");if(man)man.innerHTML=manual.length?manual.map(function(x){var verify=x.kind==="VERIFY_SENT";return '<div class="com-manual-row"><div><b>'+safe(x.company||x.item_id)+'</b><small>'+safe(x.product_name||x.product_id)+'</small></div><span class="com-action-tag '+(verify?'verify':'')+'">'+safe(verify?"проверить статус":"отправить вручную")+'</span><small>'+safe(x.reason||x.next||x.route||"")+'</small></div>';}).join(""):'<div class="com-empty">Сейчас ручных действий нет. Автоматические стадии продолжаются сами.</div>';
+    var feedback=[];products.forEach(function(p){(p.items||[]).forEach(function(x){if(x.reply_status||x.reply_summary||["REPLIED","CONVERSATION"].includes(x.stage))feedback.push(x);});});var fb=box("feedback");if(fb)fb.innerHTML=feedback.length?feedback.slice(0,8).map(function(x){return '<div class="com-feedback-row"><div><b>'+safe(x.company||x.id)+'</b><small>'+safe(x.reply_status||ruStage(x.stage))+'</small></div><span></span><small>'+safe(x.reply_summary||"Ответ подтверждён; содержание ещё не занесено.")+'</small></div>';}).join(""):'<div class="com-empty">Подтверждённой обратной связи пока нет. Это не означает отсутствие ответов — только отсутствие занесённого события.</div>';
+    var prop=[];products.forEach(function(p){(p.items||[]).forEach(function(x){if(["SUBMITTED","PROPOSAL","PAID"].includes(x.stage)||x.proposal_status)prop.push(x);});});var pr=box("proposals");if(pr)pr.innerHTML=prop.length?prop.slice(0,10).map(function(x){return '<div class="com-feedback-row"><div><b>'+safe(x.company||x.id)+'</b><small>'+safe(ruStage(x.stage))+'</small></div><span></span><small>'+safe(x.proposal_feedback||x.next||x.proposal_status||"")+'</small></div>';}).join(""):'<div class="com-empty">Подтверждённых КП / формальных подач пока нет.</div>';
+    var stages=["DISCOVERY","SCREENING","RESEARCH","HOLD","READY","FOUNDER","WAITING","WATCH","SUBMITTED","REPLIED","CONVERSATION","PROPOSAL","PAID","CLOSED"];var sm=box("stages");if(sm){var heads='<div class="head">Стадия</div>'+products.map(function(p){return '<div class="head">'+safe(p.name)+'</div>';}).join("");var rows=stages.map(function(x){return '<div class="stage-name">'+safe(ruStage(x))+'</div>'+products.map(function(p){var cls=productClass(p),c=n((p.stage_counts||{})[x]);return '<div class="n '+safe(cls)+'-n">'+c+'</div>';}).join("");}).join("");sm.innerHTML='<div class="com-stage-matrix">'+heads+rows+'</div>';}
+    var all=[];products.forEach(function(p){(p.items||[]).forEach(function(x){var y=Object.assign({},x,{_product:p});if(x.stage!=="CLOSED")all.push(y);});});all.sort(function(a,b){return stagePriority(a.stage)-stagePriority(b.stage);});var q=box("queue");if(q)q.innerHTML='<div class="com-queue-head"><span>Компания / объект</span><span>Продукт</span><span>Стадия</span><span>Следующий ход</span></div>'+(all.length?all.slice(0,24).map(function(x){return '<div class="com-queue-row"><div><b>'+safe(x.company||x.id)+'</b><small>'+safe(x.id||"")+'</small></div><small>'+safe(x._product.name)+'</small><small>'+safe(ruStage(x.stage))+'</small><small>'+safe(x.next||x.route||"—")+'</small></div>';}).join(""):'<div class="com-empty">Очередь пуста.</div>');
+    var ins=box("inspector");if(ins)ins.innerHTML='<div class="cc-insp-idle"><b>Коммерческий контур</b><span>'+safe(data.truth_note||"")+'</span></div><div class="cc-insp-sec"><h4>Продукты</h4><div class="com-legend"><div class="com-legend-row"><i class="amber"></i><span>Закупки / тендеры / партнёрства</span></div><div class="com-legend-row"><i class="violet"></i><span>Agent Governance Review</span></div><div class="com-legend-row"><i class="teal"></i><span>Atlas Structural Audit</span></div></div></div><div class="cc-insp-sec"><h4>Founder gate</h4><p>Ручная отправка, неподтверждённый старый send, первый репутационный outreach, scope/price/proposal и необратимые обязательства остаются у Ники.</p></div>';
+  }
+
+  function renderManualCommercial(data) {
+    var page=document.querySelector('[data-page-panel="signals"]');
+    if(!page)return;
+    var box=page.querySelector('[data-radar="manual-commercial"]');
+    if(!box)return;
+    if(!sourceState.manualCommercial.ok || !data){
+      box.innerHTML='<div class="cc-empty"><b>Очередь недоступна</b><span>Коммерческая проекция чтения сейчас не отвечает.</span></div>';
+      return;
+    }
+    var items=Array.isArray(data.items)?data.items:[];
+    if(!items.length){
+      box.innerHTML='<div class="cc-empty"><b>Ничего не ждёт ручного действия</b><span>Автоматические контуры продолжают работу сами.</span></div>';
+      return;
+    }
+    function safe(v){return esc(v==null?"":v);}
+    box.innerHTML='<div class="radar-card-list">'+items.slice(0,8).map(function(x){
+      var meta=[x.channel,x.action_kind,x.deadline?("до "+x.deadline):""].filter(Boolean).join(" · ");
+      return '<div class="radar-signal-card"><div class="radar-signal-head"><span class="radar-mini-hex">!</span><div><b>'+safe(x.company||x.case_id||"Коммерческий кейс")+'</b><small>'+safe(meta)+'</small></div></div>'+
+        '<p>'+safe(x.reason||"Требуется ручное действие")+'</p>'+
+        (x.person_name?'<small>'+safe(x.person_name)+(x.person_role?' · '+safe(x.person_role):'')+'</small>':'')+
+        '</div>';
+    }).join("")+'</div>';
+  }
+
   function boot() {
     injectLiveStyles();
+    fetchJSON("commercialDashboard", ENDPOINTS.commercialDashboard, UNIVERSE_TIMEOUT_MS).then(function(d){renderCommercial(d);});
 
     Promise.all([
       fetchJSON("routes", ENDPOINTS.routes),
@@ -2733,7 +2807,8 @@
       fetchJSON("agentLineage", ENDPOINTS.agentLineage, UNIVERSE_TIMEOUT_MS),
       fetchJSON("temporalUniverse", ENDPOINTS.temporalUniverse, UNIVERSE_TIMEOUT_MS),
       fetchJSON("portfolioAdmission", ENDPOINTS.portfolioAdmission, UNIVERSE_TIMEOUT_MS),
-      fetchJSON("radar", ENDPOINTS.radar, UNIVERSE_TIMEOUT_MS)
+      fetchJSON("radar", ENDPOINTS.radar, UNIVERSE_TIMEOUT_MS),
+      fetchJSON("manualCommercial", ENDPOINTS.manualCommercial, UNIVERSE_TIMEOUT_MS)
     ]).then(function (res) {
       var routesJSON = res[0];
       var summaryJSON = res[1];
@@ -2763,6 +2838,7 @@
       var temporalUniverse = res[25];
       var portfolioAdmission = res[26];
       var radar = res[27];
+      var manualCommercial = res[28];
 
       var routesKnown = !!(routesJSON && Array.isArray(routesJSON.routes));
       var routes = routesKnown ? routesJSON.routes : [];
@@ -2779,7 +2855,7 @@
         marketSignals: marketSignals, fieldMovement: fieldMovement, scannerDiagnostics: scannerDiagnostics,
         founderProjection: founderProjection, organizationalIntelligence: organizationalIntelligence,
         stewardReconciliation: stewardReconciliation, signalLabStatus: signalLabStatus, agentProjection: agentProjection, agentLineage: agentLineage, temporalUniverse: temporalUniverse,
-        portfolioAdmission: portfolioAdmission, radar: radar, rd1: {},
+        portfolioAdmission: portfolioAdmission, radar: radar, manualCommercial: manualCommercial, rd1: {},
         collections: { routes: routesKnown }
       };
 
@@ -2800,10 +2876,11 @@
       if (sourceState.inbox.ok) renderHomeNeeds(inbox);
       else renderInboxUnavailable();
 
-      renderRegistry(objects, blockers);
+      renderRegistry(objects, blockers, portfolioAdmission);
       renderDocuments(hubHealth, testingSummary);
       renderTesting(testingSummary, testingRunner);
       renderFounderRadar(radar);
+      renderManualCommercial(manualCommercial);
       renderScannerDiagnostics(scannerDiagnostics);
       renderOperationsProjection(opsProjection);
       renderBrazilPortalProjection(brazilPortal);

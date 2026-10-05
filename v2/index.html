@@ -1488,6 +1488,7 @@
 <a data-page="placement" href="#placement"><span class="dot">⌖</span><span>Размещение</span><em class="nav-count" data-cc-nav-count="placement"></em></a>
 <a data-page="signals" href="#signals"><span class="dot">◉</span><span>Сигналы</span></a>
 <div class="nav-group">Направления</div>
+<a data-page="commercial" href="#commercial"><span class="dot">C</span><span>Коммерция</span><em class="nav-count" data-commercial-nav-count></em></a>
 <a data-page="research" href="#research"><span class="dot">R</span><span>Исследования</span></a>
 <a data-page="atlas" href="#atlas"><span class="dot">A</span><span>ATLAS</span></a>
 <a data-page="digital-twin" href="#digital-twin"><span class="dot">DT</span><span>DT</span></a>
@@ -2031,6 +2032,45 @@
 <article class="card"><div class="panel-body"><b>В Диагностике</b><span>конкретные источники, запросы, ошибки браузера, задержки, технические коды и подробные журналы.</span></div></article>
 </section>
 </section>
+
+<section class="page cc-page commercial-page" data-page-panel="commercial">
+<header class="cc-top">
+<div class="cc-title"><span class="cc-title-mark" aria-hidden="true"></span><div><h1>Коммерческая автоматизация</h1><p>Продукты, стадии, касания, ответы, предложения и ручные действия — в одном живом контуре</p></div></div>
+<div data-commercial="stamp"><div class="cc-stamp"><span class="cc-pulse"></span><span>Читаем коммерческий контур…</span></div></div>
+</header>
+<div class="cc-page-grid">
+<div class="cc-body" data-cc-body>
+<section class="commercial-hero" data-commercial="hero"><div class="cc-loading">Читаем коммерческий контур…</div></section>
+<section class="cc-kpis commercial-kpis" data-commercial="kpis"></section>
+<section class="commercial-products" data-commercial="products"><div class="cc-loading">Читаем продукты…</div></section>
+
+<div class="cc-grid-main commercial-action-grid">
+<article class="cc-panel commercial-manual-panel">
+<header><h2>Ручная работа Ники</h2><small>формы, порталы, ручная отправка и обязательная проверка старого статуса</small></header>
+<div data-commercial="manual"><div class="cc-loading">Читаем очередь…</div></div>
+</article>
+<div class="cc-side-stack">
+<article class="cc-panel"><header><h2>Ответы и обратная связь</h2><small>что рынок вернул после касаний и КП</small></header><div data-commercial="feedback"><div class="cc-loading">Читаем ответы…</div></div></article>
+<article class="cc-panel"><header><h2>Предложения и поданные заявки</h2><small>после разговора / market engagement / formal submission</small></header><div data-commercial="proposals"><div class="cc-loading">Читаем стадии…</div></div></article>
+</div>
+</div>
+
+<article class="cc-panel cc-wide commercial-stage-panel">
+<header><h2>Все стадии по продуктам</h2><small>каждый продукт сохраняет собственную машину состояний, но стадия видна в общей системе</small></header>
+<div data-commercial="stages"><div class="cc-loading">Читаем стадии…</div></div>
+</article>
+
+<article class="cc-panel cc-wide commercial-queue-panel">
+<header><h2>Текущая коммерческая очередь</h2><small>приоритетно: требует действия → ответ → предложение → ожидание → исследование</small></header>
+<div data-commercial="queue"><div class="cc-loading">Читаем очередь…</div></div>
+</article>
+</div>
+<aside class="cc-inspector commercial-inspector" data-commercial="inspector">
+<div class="cc-insp-idle"><b>Коммерческий контур</b><span>Три продукта используют общую дисциплину контактов, но не смешивают продуктовую логику.</span></div>
+</aside>
+</div>
+</section>
+
 <section class="page cc-page direction-page research-focus" data-page-panel="research">
 <header class="topbar">
 <div>
@@ -2543,7 +2583,7 @@
     компонент, операционный объект и ключ чтения BrazilPortal принимаются только из серверной проекции <code>panel/brazilportal.identity</code>. Клиент не фиксирует и не восстанавливает операционный идентификатор самостоятельно.
   </div>
 </section>
-<section class="page normalized-page" data-page-panel="operations">
+<section class="page normalized-page cc-page direction-page operations-focus" data-page-panel="operations">
 <header class="topbar">
 <div>
 <h1>Операции</h1>
@@ -2553,7 +2593,7 @@
 <span class="state unavailable">ЧИТАЕМ ОПЕРАЦИОННУЮ ПРОЕКЦИЮ…</span>
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
-</header><div class="direction-bridge tool-bridge"><div><small>Инструмент системы</small><b>Операционный слой</b><span>исполнение, обязательства и текущий владелец хода</span></div><nav><a href="#command">Командный центр →</a><a href="#timeline">Во времени →</a><a href="#lines">Линии и объекты →</a></nav></div><section class="card normalized-live-root" data-normalized-live="operations"><div class="panel-head"><div class="head-title"><h2>Операционная картина</h2><small>реальные обязательства и состояние исполнения</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section>
+</header><div class="direction-bridge tool-bridge"><div><small>Инструмент системы</small><b>Операционный слой</b><span>исполнение, обязательства и текущий владелец хода</span></div><nav><a href="#command">Командный центр →</a><a href="#timeline">Во времени →</a><a href="#lines">Линии и объекты →</a></nav></div><div class="cc-page-grid direction-page-grid normalized-primary-grid"><div class="cc-body direction-body"><section class="card cc-panel direction-primary-panel direction-selectable normalized-live-root" data-direction-role="projection" data-normalized-live="operations"><div class="panel-head"><div class="head-title"><h2>Операционная картина</h2><small>реальные обязательства и состояние исполнения</small></div></div><div class="panel-body"><div class="empty-copy"><strong>Загрузка…</strong></div></div></section></div><aside class="cc-inspector direction-inspector" data-direction-inspector="operations"><div class="cc-insp-idle"><b>Операции · Инспектор</b><span>Выберите окно слева — здесь появятся смысл, граница данных и вопрос Навигатору.</span></div></aside></div>
 <div class="tool-scope-note"><b>Детальный обзор</b><span>дополнительные разрезы появятся только после подключения поддерживающего источника</span></div>
 <section class="strip operations-kpis-v2">
 <article class="card">
@@ -2791,7 +2831,7 @@
 <div class="profile"><span class="avatar">Н</span><span class="profile-text"><strong>Ника</strong><small>Основатель</small></span></div>
 </div>
 </header><div class="direction-bridge tool-bridge"><div><small>Инструмент системы</small><b>Реестр объектов</b><span>зарегистрированные объекты и доступная событийная история</span></div><nav><a href="#lines">Линии и объекты →</a><a href="#placement">Размещение →</a><a href="#timeline">Во времени →</a></nav></div>
-<div class="tool-scope-note"><b>Детальный обзор</b><span>дополнительные разрезы появятся только после подключения поддерживающего источника</span></div>
+<div class="tool-scope-note registry-memory-scope" data-g="memory-scope"><b>Два слоя реестра</b><span>Continuity подтверждает канонические Object ID; Company Memory показывает более широкий контур памяти и сверки. Слои не смешиваются.</span></div>
 <section class="strip registry-kpis-v2">
 <article class="card">
 <small>Объекты</small>
@@ -2842,8 +2882,8 @@
 <article class="card registry-identity-card">
 <div class="panel-head">
 <div class="head-title">
-<h2>ГРАНИЦА ИДЕНТИЧНОСТИ</h2>
-<small>что текущий контракт объектов может и не может доказать об идентичности</small>
+<h2>КОНТЕКСТ ОБЪЕКТА</h2>
+<small data-g="identity-context">что текущий контракт объектов может и не может доказать об идентичности</small>
 </div>
 
 </div>
@@ -2857,6 +2897,7 @@
 <div class="identity-ring"></div>
 </div>
 <p class="registry-note">Текущий /continuity/objects подтверждает наличие записи и Object ID, но не отдаёт отдельного статуса идентичности или сопоставления. Поэтому Панель не вычисляет «долг идентичности» из отсутствия last_event_at: отсутствие события означает только отсутствие подтверждённой событийной истории.</p>
+<button type="button" class="cc-steward-ask registry-steward-ask" data-g="ask-navigator"><b>Спросить Навигатора</b><span>разобрать объект, его место, историю или следующий подтверждённый переход</span></button>
 </div>
 </article>
 </section>
@@ -3014,6 +3055,7 @@
 <article class="cc-panel radar-panel"><header><h2>Поле и рынок</h2><small>отобранные изменения внешней среды</small></header><div data-radar="field"><div class="cc-loading">Читаем…</div></div></article>
 <article class="cc-panel radar-panel"><header><h2>ATLAS учится</h2><small>текущие проверки, результаты и следующий рубеж</small></header><div data-radar="learning"><div class="cc-loading">Читаем…</div></div></article>
 <article class="cc-panel radar-panel"><header><h2>Репутация и присутствие</h2><small>публикации, научные и институциональные внешние следы</small></header><div data-radar="reputation"><div class="cc-loading">Читаем…</div></div></article>
+<article class="cc-panel radar-panel"><header><h2>Ручная коммерческая работа</h2><small>формы, порталы, скрытые контакты и действия, которые нельзя выполнить автоматически</small></header><div data-radar="manual-commercial"><div class="cc-loading">Читаем…</div></div></article>
 
 </div>
 </div>
