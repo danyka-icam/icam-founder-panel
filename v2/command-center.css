@@ -1340,3 +1340,10 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .direction-inspector .cc-steward-ask b{display:block;color:var(--cc-text);font-size:11px;margin-bottom:3px}
 .direction-inspector .cc-steward-ask span{display:block;color:var(--cc-flow);font-size:10px}
 @media(max-width:1100px){.direction-page-grid{grid-template-columns:1fr}.direction-inspector{position:relative;top:0;max-height:none}}
+
+/* Founder decision follow-through */
+.cc-recent-decisions-panel{border-top:2px solid var(--cc-return)}
+.cc-recent-decisions .cc-feed-item.decision-history{border-left:2px solid rgba(227,165,72,.55);background:linear-gradient(90deg,rgba(227,165,72,.065),rgba(8,20,25,.48) 38%)}
+.cc-recent-decisions .cc-feed-item.decision-history>i{background:var(--cc-return);box-shadow:0 0 8px rgba(227,165,72,.55)}
+.cc-recent-decisions .cc-feed-item.decision-history em{display:block;margin-top:3px;font-style:normal;font-size:9px;color:var(--cc-dim)}
+.cc-recent-decisions .cc-feed-item.decision-history:hover{border-color:rgba(227,165,72,.42);box-shadow:0 0 15px rgba(227,165,72,.08)}

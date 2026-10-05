@@ -941,3 +941,15 @@ Current verified state:
 - The inspector never infers missing state: its detail text is derived from the already-rendered safe projection and fixed page-role boundaries.
 - Headless Chrome visual checks passed for ATLAS and DT at 1680px desktop width. Static contract remains PASS.
 - Production static files were deployed after backup to `/opt/icam/preview/founder-ui-preview/v2.backup-20261004-direction-v2`.
+
+## 2026-10-04 — Founder decision follow-through + visible recent decision history
+
+- Added fail-closed Founder decision follow-through service. It matches a native Founder DECISION to exactly one prior Founder gate using decision_id plus decision_packet_sha256 when present, and routes a HANDOFF_CREATED back to the exact requesting source_branch_id. No branch/title similarity is used.
+- The follow-through handoff explicitly carries execution_authorized=false and execution_dispatched=false. Its role is delivery/acknowledgement, not execution.
+- Real GVF-002A decision now has handoff FDH-2874f0e57e84922292666b58 to `GVF-002A / Resume Radar`, status PENDING_BRANCH_ACK. The frozen forecast run was not started by this mechanism.
+- Founder Decision Lifecycle now preserves followthrough/followthrough_history on the resolved lifecycle.
+- Founder Decision Presentation now exposes recent_resolved[] separately from open founder_visible decisions. Founder Projection carries this as today.recent_founder_decisions[].
+- Command Center now includes a `Последние решения` panel: decision -> target branch -> follow-through status -> execution state. Resolved decisions do not reappear in the open `Нужно решить` queue.
+- Recent decisions are selectable and have a dedicated inspector showing decision effect, target handoff, branch acknowledgement status, execution status and evidence boundaries.
+- Live production DOM verified GVF-002A as `APPROVE -> GVF-002A / Resume Radar -> pending branch ack -> execution not started`.
+- Rotated and deduplicated Continuity bridge credential: `/etc/aiclavis-internal/continuity-bridge.env` is now the single service credential source; Context Steward no longer keeps a second CONTINUITY_BRIDGE_TOKEN in its local .env. Context Steward and Context Steward Actions were restarted successfully.

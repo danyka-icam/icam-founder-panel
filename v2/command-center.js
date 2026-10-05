@@ -624,11 +624,13 @@
 
   function buildFounderProjection(j, U) {
     var decisionsKnown = !!(j.today && Array.isArray(j.today.founder_decisions));
+    var recentDecisionsKnown = !!(j.today && Array.isArray(j.today.recent_founder_decisions));
     var movementsKnown = !!(j.today && Array.isArray(j.today.company_movements));
     var capitalKnown = !!(j.company_capital && Array.isArray(j.company_capital.items));
     var FP = {
       raw: j, compiledAt: j.compiled_at || null, coverage: j.coverage || {},
       lines: [], byTitle: {}, decisions: [], decisionByKey: {}, decisionsKnown: decisionsKnown,
+      recentDecisions: [], recentDecisionByKey: {}, recentDecisionsKnown: recentDecisionsKnown,
       movements: [], movementByKey: {}, movementsKnown: movementsKnown,
       capital: capitalKnown ? j.company_capital.items : [], capitalKnown: capitalKnown,
       hardRules: A(j.hard_rules), intersections: [],
@@ -678,6 +680,12 @@
       var it = { kind: "decision", key: key, raw: row, title: row.question || "Решение Основателя" };
       FP.decisions.push(it);
       FP.decisionByKey[key] = it;
+    });
+    (recentDecisionsKnown ? j.today.recent_founder_decisions : []).forEach(function (row, i) {
+      var key = String(row.lifecycle_id || row.decision_source_event_id || "recentdecision|" + i);
+      var it = { kind: "recentdecision", key: key, raw: row, title: row.question || "Решение Основателя" };
+      FP.recentDecisions.push(it);
+      FP.recentDecisionByKey[key] = it;
     });
     (movementsKnown ? j.today.company_movements : []).forEach(function (row, i) {
       var key = String(row.movement_id || "movement|" + i);
@@ -1294,6 +1302,24 @@
     }).join("") + "</div><div class='cc-foot-note'>Реконструкция из доступных объектных/маршрутных событий; " + (changesComplete ? "все контуры изменений прочитаны." : "часть контуров изменений не проверена полностью.") + "</div>";
   }
 
+  function renderRecentDecisions(limit) {
+    if (!M.fp.ok || !M.FP.recentDecisionsKnown) {
+      return unavailable("История решений не проверена", M.fp.ok ? "Founder Projection не передал today.recent_founder_decisions[]." : "Founder Projection недоступен.");
+    }
+    var xs=M.FP.recentDecisions.slice().sort(function(a,b){
+      return String((b.raw||{}).closed_at||"").localeCompare(String((a.raw||{}).closed_at||""));
+    }).slice(0,limit||5);
+    if (!xs.length) return empty("Недавних закрытых решений нет", "Источник явно передал пустой recent_founder_decisions[].");
+    return "<div class='cc-feed cc-recent-decisions'>" + xs.map(function(d){
+      var r=d.raw||{}, f=r.followthrough||{}, effect=human(r.decision_effect||"решение");
+      var route=f.target_branch_id ? " → "+f.target_branch_id : "";
+      var status=f.status ? human(f.status) : "маршрут передачи не передан";
+      return "<div class='cc-feed-item decision-history'"+sel("recentdecision",d.key)+"><i></i><div><b>"+E(H.cut(d.title,82))+"</b><small>"+
+        E(effect+route)+"</small><em>"+E(status)+(f.execution_dispatched===false?" · исполнение не запускалось":"")+"</em></div><span>"+
+        E(r.closed_at?dateLabel(r.closed_at):"без даты")+"</span></div>";
+    }).join("") + "</div><div class='cc-foot-note'>Решение и передача — разные этапы. APPROVE фиксирует волю Основателя; выполнение начинается только через отдельный разрешённый контракт ветки.</div>";
+  }
+
   function renderLanes(lines) {
     if (!lines.length) return empty("Нет маршрутов без явного закрывающего статуса", "");
     var scaleNote = "<div class='cc-lane-axis'><span>−" + LANE_DAYS + " дн.</span><span>−30</span><span>−15</span><span class='now'>сейчас</span><span class='wait'>→ ожидание</span></div>";
@@ -1589,6 +1615,7 @@
           "<div class='cc-foot-note'>На главном экране — первые 10 маршрутов в исходном порядке Оркестратора; полный список раскрывается здесь или доступен в «Линии и объекты». Мир и каноническая линия — только по точному ID объекта.</div>";
       })() : empty("Оркестратор не передал маршрутов без явного закрывающего статуса", ""));
     page.querySelector("[data-cc='changes']").innerHTML = renderRecentChanges(6);
+    page.querySelector("[data-cc='recent-decisions']").innerHTML = renderRecentDecisions(5);
     page.querySelector("[data-cc='org-intel']").innerHTML = renderOrgIntel();
     page.querySelector("[data-cc='system-reconciliation']").innerHTML = renderSystemReconciliation();
     page.querySelector("[data-cc='lanes']").innerHTML = routesOk ? renderLanes(lines.slice(0, 10)) : unavailable("Нет маршрутов", "Траектории не строятся.");
@@ -3117,6 +3144,39 @@
     });
   }
 
+  function inspectRecentDecision(d) {
+    var r=d.raw||{}, f=r.followthrough||{};
+    var routed=!!f.target_branch_id;
+    var executed=f.execution_dispatched===true;
+    var authorized=f.execution_authorized===true;
+    return inspector({
+      badge:"<span class='cc-obj-badge strategy'>✓</span>",
+      title:d.title,
+      sub:"Закрытое решение Основателя · "+human(r.decision_effect||"решение"),
+      what:para(r.question||d.title),
+      where:crumbs([{t:"ICAM"},{t:"Решения Основателя"},{t:"история",cur:true}]),
+      now:"<div class='cc-insp-state'><small>Решение</small><em>"+E(human(r.decision_effect||"не передано"))+"</em></div>"+
+        "<div class='cc-insp-state'><small>Передача</small><em>"+E(routed?(f.target_branch_id+" · "+human(f.status||"статус не передан")):"handoff не передан")+"</em></div>"+
+        "<div class='cc-insp-state'><small>Исполнение</small><em>"+E(executed?"запущено":(f.execution_dispatched===false?"не запускалось":"статус не передан"))+"</em></div>",
+      history:"<ul class='cc-hist'><li><b>решение</b>"+E(r.closed_at?dateLabel(r.closed_at):"дата не передана")+"</li>"+
+        (f.occurred_at?"<li><b>handoff</b>"+E(dateLabel(f.occurred_at))+"</li>":"")+
+        (f.handoff_id?"<li><b>handoff id</b>"+E(f.handoff_id)+"</li>":"")+"</ul>",
+      waiting:f.status==="PENDING_BRANCH_ACK"?para("Ждём подтверждения от ветки «"+f.target_branch_id+"». Ветка должна сама опубликовать следующий материальный переход."): "",
+      next:f.status==="PENDING_BRANCH_ACK"?para("Следующий доказуемый этап — acknowledgement владеющей/запросившей ветки, не автоматический запуск."): "",
+      links:r.object_refs&&r.object_refs.length ? refsBlock("Объект",r.object_refs.map(function(x){
+        var id=String(x.id||""); return id&&M.objByKey[id] ? "<button class='cc-ref'"+sel("object",id)+">"+E(H.cut(M.objByKey[id].title,28))+"</button>" : (id?"<span class='cc-ref dim'>"+E(id)+"</span>":"");
+      }).join("")) : "",
+      ceiling:[
+        ceilingRow("ok","Решение — Founder Decision Lifecycle / Presentation"),
+        routed?ceilingRow("ok","Получатель handoff определён по точному исходному gate и decision identity"):ceilingRow("warn","Подтверждённый получатель handoff не передан"),
+        ceilingRow(executed?"warn":"ok",executed?"Источник сообщает execution_dispatched=true":"Handoff не является запуском исполнения"),
+        authorized?ceilingRow("warn","Источник сообщает execution_authorized=true"):ceilingRow("info","Отдельное разрешение исполнения этим handoff не выдавалось")
+      ],
+      stewardContext:{kind:"resolved_founder_decision",lifecycle_id:r.lifecycle_id||"",question:r.question||d.title,decision_effect:r.decision_effect||"",target_branch_id:f.target_branch_id||"",followthrough_status:f.status||"",execution_authorized:f.execution_authorized,execution_dispatched:f.execution_dispatched},
+      nav:"<a href='#command'>Командный центр →</a>"
+    });
+  }
+
   function inspectMovement(m) {
     var r = m.raw || {}, id = r.source_object_id ? String(r.source_object_id) : "";
     var obj = id && M.objByKey[id] ? "<button class='cc-ref'" + sel("object", id) + ">" + E(H.cut(M.objByKey[id].title, 28)) + "</button>" :
@@ -3225,6 +3285,7 @@
     timeevent: { label: "Инспектор точки времени", get: function (k) { return timelineInspectorEvents[k]; }, render: inspectTimeEvent },
     strategy: { label: "Инспектор стратегии", get: function (k) { return M.U && M.U.trajByKey[k]; }, render: inspectStrategy },
     decision: { label: "Инспектор решения", get: function (k) { return M.FP && M.FP.decisionByKey[k]; }, render: inspectDecision },
+    recentdecision: { label: "История решения", get: function (k) { return M.FP && M.FP.recentDecisionByKey[k]; }, render: inspectRecentDecision },
     movement: { label: "Инспектор движения", get: function (k) { return M.FP && M.FP.movementByKey[k]; }, render: inspectMovement },
     org: { label: "Инспектор наблюдения", get: function (k) { return M.OI && M.OI.byKey[k]; }, render: inspectOrg },
     sysrec: { label: "Инспектор системной сверки", get: function (k) { return M.SR && M.SR.byKey[k]; }, render: inspectSystemReconciliation },
