@@ -953,3 +953,24 @@ Current verified state:
 - Recent decisions are selectable and have a dedicated inspector showing decision effect, target handoff, branch acknowledgement status, execution status and evidence boundaries.
 - Live production DOM verified GVF-002A as `APPROVE -> GVF-002A / Resume Radar -> pending branch ack -> execution not started`.
 - Rotated and deduplicated Continuity bridge credential: `/etc/aiclavis-internal/continuity-bridge.env` is now the single service credential source; Context Steward no longer keeps a second CONTINUITY_BRIDGE_TOKEN in its local .env. Context Steward and Context Steward Actions were restarted successfully.
+
+## 2026-10-05 — Official Opportunity Scanner activated
+
+- Added a separate deterministic Opportunity Scanner instead of promoting research-watch signals into Opportunities.
+- Official source set v0.1:
+  - CNPq open calls;
+  - FAPESC Chamadas Abertas;
+  - Finep public structured opportunities API;
+  - Grants.gov public API filtered to commercial/small-business eligibility (22|23) and strict architecture/technology title relevance.
+- Opportunity truth rule: an item becomes an `opportunity-candidate` only from an official open/posted source and a deterministic relevance rule. `eligibility_status=UNCHECKED` until a separate eligibility pass is performed. The scanner never claims that aiclavis is eligible merely because an official call exists.
+- Brazilian date parsing is source-localized (DD/MM/YYYY); Grants.gov uses MM/DD/YYYY. This fixed RHAE IA, whose 09/10/2026 deadline had initially been misread as September 10 in dry-run.
+- Stateful append-only semantics:
+  - stable `opportunity_key`;
+  - semantic signal ID changes when deadline/status materially changes;
+  - disappearing/expired opportunities emit a closure event;
+  - source failure never counts as evidence that an opportunity closed.
+- Production scanner runs every 4h; opportunity-signal ingest runs every 15min.
+- First production run: CNPq=2, FAPESC=4, Finep=4, Grants.gov=0 under strict filter; 9 deduplicated open candidates emitted and ingested; ATLAS Signals accepted 9/9, rejected 0.
+- Founder Radar now collapses append-only opportunity history to the latest event per opportunity_key, excludes closed/expired records, and keeps opportunity events out of Field/Market research signal cards.
+- Current Radar verified: 9 opportunities. Nearest dated windows include RHAE IA (2026-10-09), Finep Digital Technologies (2026-10-14), Finep Semiconductors (2026-11-25), CNPq MAI/DAI (2026-12-11).
+- Signals inspector explicitly shows eligibility/status and states that aiclavis eligibility is not yet checked. Radar Navigator label aligned to `Спросить Навигатора`.

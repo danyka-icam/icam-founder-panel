@@ -1847,11 +1847,12 @@
         '<div class="cc-insp-head"><span class="radar-insp-mark '+(imp?'important':'')+'">'+(imp?'!':'•')+'</span><div><h3>'+esc(textRu(x.title||"Сигнал"))+'</h3><small>'+esc(imp?"важно сейчас":"наблюдаем")+'</small></div></div>'+
         '<div class="cc-insp-sec"><h4>Почему на радаре</h4><p>'+esc(textRu(why))+'</p></div>'+
         (x.date?'<div class="cc-insp-sec"><h4>Дата</h4><p>'+esc(dateRu(x.date))+'</p></div>':'')+
+        (kind==="opportunities"?'<div class="cc-insp-sec"><h4>Допуск и статус</h4><p>'+esc((x.eligibility_status==="UNCHECKED"?"Допуск aiclavis ещё не проверен":humanCode(x.eligibility_status||"не передан"))+(x.program_type?" · "+x.program_type:"")+(x.official_status?" · источник: "+humanCode(x.official_status):""))+'</p></div>':'')+
         (ctxLine.length?'<div class="cc-insp-sec"><h4>Контекст</h4><div class="cc-crumbs">'+ctxLine.map(function(v){return '<span>'+esc(v)+'</span>';}).join('<i>→</i>')+'</div></div>':'')+
         '<div class="cc-insp-sec"><h4>Источник</h4><p>'+esc(source)+'</p>'+(evidence?'<small>'+esc(evidence)+'</small>':'')+'</div>'+
         (x.status?'<div class="cc-insp-sec"><h4>Состояние источника</h4><p>'+esc(humanCode(x.status))+'</p></div>':'')+
         '<div class="cc-insp-sec"><h4>Граница</h4><p>Панель показывает запись источника и не повышает её до действия, решения или причинной связи без отдельного подтверждения.</p></div>'+
-        '<button type="button" class="cc-steward-ask"><b>Спросить Стюарда</b><span>объяснить сигнал, источник, связь или следующий шаг</span></button>';
+        '<button type="button" class="cc-steward-ask"><b>Спросить Навигатора</b><span>объяснить сигнал, источник, связь или следующий шаг</span></button>';
       var stewardBtn=host.querySelector(".cc-steward-ask");
       if(stewardBtn)stewardBtn.setAttribute("data-cc-steward-context",JSON.stringify(stewardCtx));
       page.querySelectorAll("[data-radar-select]").forEach(function(b){b.classList.toggle("selected",b.getAttribute("data-radar-select")===key);});
