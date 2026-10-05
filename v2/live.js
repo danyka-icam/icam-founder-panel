@@ -1606,6 +1606,7 @@
         sourceState.researchRD1.ok ? (researchComplete ? "live" : "warn") : "unavailable",
         sourceState.researchRD1.ok ? (researchComplete ? "ИССЛЕДОВАТЕЛЬСКИЙ КОНТУР ПОЛОН" : "ИССЛЕДОВАТЕЛЬСКИЕ ДАННЫЕ ЧАСТИЧНЫ") : "RD1-ПРОЕКЦИЯ НЕДОСТУПНА"
       );
+      refreshDirectionInspector("research");
     });
   }
 
@@ -1828,6 +1829,19 @@
       var ctxLine=[ctx.world,ctx.line,ctx.branch].filter(Boolean);
       var evidence="";
       if(Array.isArray(x.evidence)&&x.evidence.length)evidence=x.evidence.length+" свидетельств";
+      function eligibilityLabel(v){
+        var k=String(v||"").toUpperCase();
+        if(k==="UNCHECKED")return "допуск ещё не проверен";
+        if(k==="NEEDS_CALL_DOCUMENT_REVIEW")return "нужно разобрать полный документ конкурса";
+        if(k==="NEEDS_COMPANY_FACTS")return "нужны подтверждённые факты компании";
+        if(k==="ELIGIBLE")return "источник проверки сообщает: допустимо";
+        if(k==="NOT_ELIGIBLE")return "источник проверки сообщает: не допускается";
+        return humanCode(v||"не передан");
+      }
+      var eligReq=Array.isArray(x.eligibility_requirements)?x.eligibility_requirements:[];
+      var eligMissing=Array.isArray(x.eligibility_missing_facts)?x.eligibility_missing_facts:[];
+      var eligSources=Array.isArray(x.eligibility_review_sources)?x.eligibility_review_sources:[];
+      var eligConflicts=Array.isArray(x.eligibility_source_conflicts)?x.eligibility_source_conflicts:[];
       var stewardCtx={
         kind:"radar_signal",
         title:textRu(x.title||"Сигнал"),
@@ -1840,6 +1854,12 @@
         radar_id:x.radar_id||"",
         source_ref:ref,
         context:ctx,
+        eligibility_status:x.eligibility_status||"",
+        eligibility_requirements:eligReq,
+        eligibility_missing_facts:eligMissing,
+        eligibility_next_check:x.eligibility_next_check||"",
+        eligibility_review_sources:eligSources,
+        eligibility_source_conflicts:eligConflicts,
         details:[ctx.world,ctx.line,ctx.branch].filter(Boolean).join(" → ")
       };
       host.innerHTML=
@@ -1847,7 +1867,13 @@
         '<div class="cc-insp-head"><span class="radar-insp-mark '+(imp?'important':'')+'">'+(imp?'!':'•')+'</span><div><h3>'+esc(textRu(x.title||"Сигнал"))+'</h3><small>'+esc(imp?"важно сейчас":"наблюдаем")+'</small></div></div>'+
         '<div class="cc-insp-sec"><h4>Почему на радаре</h4><p>'+esc(textRu(why))+'</p></div>'+
         (x.date?'<div class="cc-insp-sec"><h4>Дата</h4><p>'+esc(dateRu(x.date))+'</p></div>':'')+
-        (kind==="opportunities"?'<div class="cc-insp-sec"><h4>Допуск и статус</h4><p>'+esc((x.eligibility_status==="UNCHECKED"?"Допуск aiclavis ещё не проверен":humanCode(x.eligibility_status||"не передан"))+(x.program_type?" · "+x.program_type:"")+(x.official_status?" · источник: "+humanCode(x.official_status):""))+'</p></div>':'')+
+        (kind==="opportunities"?'<div class="cc-insp-sec"><h4>Допуск и статус</h4><p>'+esc(eligibilityLabel(x.eligibility_status)+(x.program_type?" · "+x.program_type:"")+(x.official_status?" · источник: "+humanCode(x.official_status):""))+'</p>'+
+          (eligReq.length?'<small class="radar-elig-head">Что уже известно из источника</small><ul class="radar-elig-list">'+eligReq.map(function(v){return "<li>"+esc(v)+"</li>";}).join("")+"</ul>":"")+
+          (eligMissing.length?'<small class="radar-elig-head">Чего не хватает для решения</small><ul class="radar-elig-list missing">'+eligMissing.map(function(v){return "<li>"+esc(v)+"</li>";}).join("")+"</ul>":"")+
+          (eligConflicts.length?'<div class="radar-elig-conflict"><b>Расхождение источников</b>'+eligConflicts.map(function(v){return "<span>"+esc(v)+"</span>";}).join("")+'</div>':'')+
+          (eligSources.length?'<small class="radar-elig-reviewed">Критерии сверены по официальным документам: '+esc(eligSources.length)+'</small>':'')+
+          (x.eligibility_next_check?'<div class="radar-elig-next"><b>Следующая проверка</b><span>'+esc(x.eligibility_next_check)+'</span></div>':'')+
+          '</div>':'')+
         (ctxLine.length?'<div class="cc-insp-sec"><h4>Контекст</h4><div class="cc-crumbs">'+ctxLine.map(function(v){return '<span>'+esc(v)+'</span>';}).join('<i>→</i>')+'</div></div>':'')+
         '<div class="cc-insp-sec"><h4>Источник</h4><p>'+esc(source)+'</p>'+(evidence?'<small>'+esc(evidence)+'</small>':'')+'</div>'+
         (x.status?'<div class="cc-insp-sec"><h4>Состояние источника</h4><p>'+esc(humanCode(x.status))+'</p></div>':'')+
@@ -1988,6 +2014,11 @@
     // Reaching this renderer already proves the projection was read. A semantic
     // BLOCKED/FAIL/UNKNOWN state must not be relabeled as source unavailability.
     pageBadge(pageKey, sourceStatusBadgeMode(sourceStatus), badgeText);
+    var root=page.querySelector('[data-normalized-live="'+pageKey+'"]');
+    if(root){
+      ["tone-flow","tone-return","tone-critical","tone-blue","tone-unknown"].forEach(function(k){root.classList.remove(k);});
+      root.classList.add(sourceStatusWarn(sourceStatus)?"tone-return":"tone-flow");
+    }
     return page.querySelector('[data-normalized-live="'+pageKey+'"] .panel-body');
   }
   function sourceStatusLabel(value) {
@@ -2180,9 +2211,17 @@
       (blocking.length?"<div class='live-warning'>"+blocking.map(function(x){return esc(projectionTextRu(x));}).join("<br>")+"</div>":"")+
       "<div class='live-list-clean'>"+(dimensionsKnown?(cards||"<div class='live-item-clean'><small>Источник явно передал пустой dimensions[].</small></div>"):"<div class='live-item-clean'><small>Поле dimensions[] не передано; состав измерений основания не подтверждён.</small></div>")+"</div>" +
       "<div class='foundation-ready-rule'><b>Условие возврата в READY:</b> каждое обязательное измерение должно снова иметь PASS от живого источника. Прошлый PASS или сохранённый отчёт не заменяет текущее доказательство.</div>";
+    refreshDirectionInspector("foundation");
   }
 
   function wireDirectionInspector(pageKey) {
+    var metaMap={
+      atlas:{label:"ATLAS",mark:"A",source:"ATLAS",tone:"flow"},
+      "digital-twin":{label:"DT",mark:"DT",source:"DT",tone:"violet"},
+      foundation:{label:"Фундамент",mark:"F",source:"Foundation",tone:"flow"},
+      research:{label:"Исследования",mark:"R",source:"Research",tone:"flow"}
+    };
+    var meta=metaMap[pageKey]||{label:pageKey,mark:"•",source:pageKey,tone:"flow"};
     var page=document.querySelector('[data-page-panel="'+pageKey+'"]');
     if(!page||page.getAttribute("data-direction-wired")==="1") return;
     page.setAttribute("data-direction-wired","1");
@@ -2206,7 +2245,7 @@
         if(n.classList&&n.classList.contains("tone-unknown"))return "unknown";
         if(n.classList&&n.classList.contains("tone-flow"))return "flow";
       }
-      return pageKey==="digital-twin"?"violet":"flow";
+      return meta.tone;
     }
     function boundary(role){
       var m={
@@ -2228,7 +2267,7 @@
       el.classList.add("direction-selected");
       var role=roleFor(el), tone=toneFor(el);
       var titleEl=el.querySelector("h3,h2,strong");
-      var title=titleEl?titleEl.textContent.trim():(pageKey==="atlas"?"ATLAS":"DT");
+      var title=titleEl?titleEl.textContent.trim():meta.label;
       var textEls=Array.from(el.querySelectorAll("p,span,small")).filter(function(x){return !x.closest(".live-kv-clean")&&x!==titleEl;});
       var summary=textEls.map(function(x){return x.textContent.trim();}).filter(Boolean).slice(0,4).join(" · ");
       if(!summary){
@@ -2239,16 +2278,16 @@
       var ctx={
         kind:"direction_panel",
         title:title,
-        sub:(pageKey==="atlas"?"ATLAS":"DT")+" · "+toneLabel,
+        sub:meta.label+" · "+toneLabel,
         layer:role,
-        source:"Founder Panel / "+(pageKey==="atlas"?"ATLAS":"DT"),
+        source:"Founder Panel / "+meta.source,
         why:boundary(role),
         details:summary
       };
-      var mark=pageKey==="atlas"?"A":"DT";
+      var mark=meta.mark;
       host.style.setProperty("--insp-zone",tone==="return"?"var(--cc-return)":tone==="violet"?"var(--cc-violet)":tone==="critical"?"var(--cc-critical)":tone==="blue"?"#5aa9e6":tone==="unknown"?"var(--cc-unknown)":"var(--cc-flow)");
       host.innerHTML=
-        '<div class="cc-insp-title">'+(pageKey==="atlas"?"ATLAS":"DT")+' · контекст</div>'+
+        '<div class="cc-insp-title">'+esc(meta.label)+' · контекст</div>'+
         '<div class="cc-insp-head"><span class="direction-insp-mark">'+esc(mark)+'</span><div><h3>'+esc(title)+'</h3><small>'+esc(toneLabel)+'</small></div></div>'+
         '<div class="cc-insp-sec"><h4>Что здесь показано</h4><p>'+esc(summary||"Источник не передал отдельное текстовое пояснение для этого окна.")+'</p></div>'+
         '<div class="cc-insp-sec"><h4>Граница чтения</h4><p>'+esc(boundary(role))+'</p></div>'+
@@ -2258,7 +2297,7 @@
       if(b)b.setAttribute("data-cc-steward-context",JSON.stringify(ctx));
     }
     page.addEventListener("click",function(ev){
-      var el=ev.target.closest(".live-item-clean,.metric,.twin-proof-boundary,.atlas-invest-panel,.atlas-siglab-card,.direction-primary-panel");
+      var el=ev.target.closest(".live-item-clean,.metric,.twin-proof-boundary,.atlas-invest-panel,.atlas-siglab-card,.direction-primary-panel,.research-system-bridge,.card");
       if(!el||!page.contains(el)||el.closest(".direction-inspector"))return;
       show(el);
     });
@@ -2271,7 +2310,7 @@
     if(!page||!page._showDirectionInspector)return;
     var selected=page.querySelector(".direction-selected");
     if(selected&&selected.isConnected)return page._showDirectionInspector(selected);
-    var first=page.querySelector(".direction-primary-panel .live-status-box,.direction-primary-panel .metric,.direction-primary-panel .live-item-clean");
+    var first=page.querySelector(".direction-primary-panel .live-status-box,.direction-primary-panel .metric,.direction-primary-panel .live-item-clean,.direction-body > .research-system-bridge,.direction-body > .card");
     if(first)page._showDirectionInspector(first);
   }
 

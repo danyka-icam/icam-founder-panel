@@ -1347,3 +1347,23 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .cc-recent-decisions .cc-feed-item.decision-history>i{background:var(--cc-return);box-shadow:0 0 8px rgba(227,165,72,.55)}
 .cc-recent-decisions .cc-feed-item.decision-history em{display:block;margin-top:3px;font-style:normal;font-size:9px;color:var(--cc-dim)}
 .cc-recent-decisions .cc-feed-item.decision-history:hover{border-color:rgba(227,165,72,.42);box-shadow:0 0 15px rgba(227,165,72,.08)}
+
+/* Opportunity eligibility working state */
+.radar-elig-head{display:block;margin:10px 0 5px;color:var(--cc-dim);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.radar-elig-list{margin:0;padding:0 0 0 16px;color:var(--cc-muted);font-size:10px;line-height:1.5}
+.radar-elig-list li{margin:4px 0}
+.radar-elig-list.missing li::marker{color:var(--cc-return)}
+.radar-elig-next{margin-top:10px;padding:9px 10px;border:1px solid rgba(227,165,72,.22);border-left:2px solid var(--cc-return);border-radius:8px;background:rgba(227,165,72,.045)}
+.radar-elig-next b{display:block;font-size:9px;color:var(--cc-return);text-transform:uppercase;letter-spacing:.08em}
+.radar-elig-next span{display:block;margin-top:4px;color:var(--cc-muted);font-size:10px;line-height:1.45}
+
+.radar-elig-conflict{margin-top:10px;padding:9px 10px;border:1px solid rgba(239,106,91,.26);border-left:2px solid var(--cc-critical);border-radius:8px;background:rgba(239,106,91,.045)}
+.radar-elig-conflict b{display:block;color:var(--cc-critical);font-size:9px;text-transform:uppercase;letter-spacing:.08em}
+.radar-elig-conflict span{display:block;margin-top:4px;color:var(--cc-muted);font-size:10px;line-height:1.45}
+.radar-elig-reviewed{display:block;margin-top:8px;color:var(--cc-dim);font-size:9px}
+
+/* Sequential page normalization: canonical live surface wins over stale legacy placeholders. */
+.normalized-page.normalized-live-active > .normalized-primary-grid ~ *{display:none!important}
+.research-page-grid .card,.research-page-grid .research-system-bridge{cursor:pointer;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+.research-page-grid .card:hover,.research-page-grid .research-system-bridge:hover{border-color:rgba(78,216,190,.30);box-shadow:0 0 18px rgba(78,216,190,.055)}
+.research-page-grid .direction-selected{border-color:color-mix(in srgb,var(--insp-zone,var(--cc-flow)) 46%,var(--line))!important;box-shadow:0 0 20px color-mix(in srgb,var(--insp-zone,var(--cc-flow)) 10%,transparent)!important}

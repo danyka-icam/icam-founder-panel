@@ -11,9 +11,9 @@ Routes:
 - `/founder-ui-preview/api/agent-lineage`
 
 Current canonical state:
-- `registry_revision = 42`
-- `lineage_revision = 43`
-- verified canonical nodes: 36
+- `registry_revision = 52`
+- `lineage_revision = 52`
+- verified canonical nodes: 39
 - explicit unresolved lineage gaps: 0
 - authority conflicts: 0
 - decisions without evidence: 0
@@ -57,4 +57,8 @@ The canonical network was re-audited against live systemd and authority/write bo
 
 ## Signal Lab hardening
 
-The three Signal Lab canonical nodes were revised in place after HARD-004: runtime identity is now `atlassignallab` rather than root. Subsequent HARD-009/HARD-010 hardening added/updated Testing bridge and retained commercial-service authorities. Current Registry/Lineage revisions are 42/43.
+The three Signal Lab canonical nodes were revised in place after HARD-004: runtime identity is now `atlassignallab` rather than root. Subsequent HARD-009/HARD-010 hardening added/updated Testing bridge and retained commercial-service authorities. Current Registry/Lineage revisions are 52/52.
+
+## 0h execution authority split
+
+The execution layer is now live under the 0h split identities. Agent Registry and Lineage were revised from the old shared `contextsteward` model to the verified chain: dispatcher -> executor runner -> model runtime -> tool/transcript broker -> signer, with independent QA consuming claim/receipt/transcript/attestation evidence. Pre-0h direct dispatcher->runtime and runtime->QA receipt edges were retracted. Current Registry revision 52; Lineage revision 52; 39 verified nodes; no authority conflicts or lineage gaps.
