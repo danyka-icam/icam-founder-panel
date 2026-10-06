@@ -3520,6 +3520,20 @@
       copyText(kind==="subject"?sv:(kind==="body"?bv:((sv?"Subject: "+sv+"\n\n":"")+bv)),commercialCopy);
       return;
     }
+    var commercialFail=e.target.closest("[data-commercial-fail]");
+    if(commercialFail){
+      var fscope=commercialFail.closest(".com-manual-card"), fstate=fscope&&fscope.querySelector("[data-commercial-action-state]"); if(!fscope||!fstate)return;
+      var fpayload={};try{fpayload=JSON.parse(commercialFail.getAttribute("data-commercial-fail")||"{}");}catch(_){}
+      var sel=fscope.querySelector("[data-commercial-failure-reason]"), note=fscope.querySelector("[data-commercial-failure-note]");
+      var reasonCode=sel?String(sel.value||"OTHER"):"OTHER";
+      fpayload.action_type=reasonCode==="FOUNDER_DECLINED"?"COMMERCIAL_CASE_DECLINED":"MANUAL_ROUTE_BLOCKED";
+      fpayload.reason_code=reasonCode;fpayload.reason_note=note?String(note.value||"").trim():"";
+      commercialFail.disabled=true;fstate.textContent="Готовлю hash-защищённую фиксацию причины…";
+      panelPost("/founder-ui-preview/api/steward-navigator/action/propose-commercial",fpayload)
+        .then(function(data){var q=data.proposal||{};fstate.innerHTML="<div class='com-commercial-confirm-card' data-commercial-confirm-card data-action-id='"+E(q.action_id||"")+"' data-action-hash='"+E(q.action_hash||"")+"'><b>"+E(q.question||"Подтвердить действие?")+"</b><small>Причина: "+E(reasonCode)+(fpayload.reason_note?" · "+E(fpayload.reason_note):"")+". До следующего клика ничего не записано.</small><button type='button' data-commercial-confirm-action>Подтвердить</button> <button type='button' class='secondary' data-commercial-cancel-action>Отмена</button></div>";})
+        .catch(function(err){commercialFail.disabled=false;fstate.innerHTML="<span class='warn'>"+E(commercialActionErrorText(err))+"</span>";});
+      return;
+    }
     var commercialPropose=e.target.closest("[data-commercial-propose]");
     if(commercialPropose){
       var scope=commercialPropose.closest(".com-manual-card"), state=scope&&scope.querySelector("[data-commercial-action-state]"); if(!scope||!state)return;
@@ -3544,7 +3558,7 @@
       var ccard=commercialConfirm.closest("[data-commercial-confirm-card]"), cs=commercialConfirm.closest(".com-manual-card"), cst=cs&&cs.querySelector("[data-commercial-action-state]"); if(!ccard||!cst)return;
       commercialConfirm.disabled=true;cst.insertAdjacentHTML("beforeend","<span>Записываю подтверждённое событие…</span>");
       panelPost("/founder-ui-preview/api/steward-navigator/action/confirm-commercial",{action_id:ccard.getAttribute("data-action-id"),action_hash:ccard.getAttribute("data-action-hash"),founder_confirmation:"CONFIRM"})
-        .then(function(data){cst.innerHTML="<div class='cc-decision-recorded'><b>Подтверждение записано</b><span>"+E(data.action_type==="HISTORICAL_SENT_CONFIRMED"?"Историческая отправка подтверждена.":"Ручная отправка подтверждена.")+"</span><small>Коммерческий runtime подберёт событие и сам переведёт кейс в WAITING.</small></div>";window.dispatchEvent(new CustomEvent("aiclavis:commercial-action-confirmed"));})
+        .then(function(data){var msg=data.action_type==="HISTORICAL_SENT_CONFIRMED"?"Историческая отправка подтверждена.":(data.action_type==="MANUAL_SEND_CONFIRMED"?"Ручная отправка подтверждена.":(data.action_type==="COMMERCIAL_CASE_DECLINED"?"Кейс отклонён Основателем.":"Причина невозможности отправки зафиксирована."));var tail=(data.action_type==="MANUAL_SEND_CONFIRMED"||data.action_type==="HISTORICAL_SENT_CONFIRMED")?"Коммерческий runtime переведёт кейс в WAITING.":"Коммерческий runtime уберёт кейс из ручной очереди и сохранит причину.";cst.innerHTML="<div class='cc-decision-recorded'><b>Подтверждение записано</b><span>"+E(msg)+"</span><small>"+E(tail)+"</small></div>";window.dispatchEvent(new CustomEvent("aiclavis:commercial-action-confirmed"));})
         .catch(function(err){commercialConfirm.disabled=false;cst.innerHTML="<span class='warn'>"+E(commercialActionErrorText(err))+"</span>";});
       return;
     }
