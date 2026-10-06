@@ -599,12 +599,14 @@
   function renderOrchestratorRoutes(routes, depModel) {
     var active = routes.filter(function (r) { return !isClosed(r); });
 
-    // We preserve source order. The frontend does not create a new canonical priority ranking.
+    // "На моей стороне" is Founder work, not a generic ACTIVE list. Old Founder
+    // assignments remain visible in diagnostics/history but are not promoted as current work.
+    var founderFresh=active.filter(function(r){var age=daysSince(r.last_movement_at);return isFounderOwner(r.ball_owner)&&age!=null&&age<STALE_DAYS;});
     renderRoutePanel(
       '[data-page-panel="orchestrator"] .mine .panel-body',
-      active.slice(0, 8),
+      founderFresh.slice(0, 8),
       depModel,
-      "В текущем чтении нет маршрутов без явного закрывающего статуса."
+      "Свежих маршрутов с явным ходом у Ники сейчас нет. Старые назначения не считаются текущей работой автоматически."
     );
 
     var waiting = active.filter(function (r) {
@@ -750,13 +752,14 @@
     var body = document.querySelector('[data-page-panel="home"] .home-panel.now .body');
     if (!body) return;
     var active = routes.filter(function (r) { return !isClosed(r); });
-    if (!active.length) {
-      body.innerHTML = "<div class='live-empty'>В текущем чтении нет маршрутов без явного закрывающего статуса.</div>";
+    var fresh = active.filter(function(r){var age=daysSince(r.last_movement_at);return age!=null&&age<STALE_DAYS;});
+    if (!fresh.length) {
+      body.innerHTML = "<div class='live-empty'>Свежего движения по маршрутам сейчас нет. Старые ACTIVE-маршруты сохранены в Оркестраторе, но не показываются здесь как «сейчас».</div>";
       return;
     }
 
     body.innerHTML = "<div class='home-live-list'>" +
-      active.slice(0, 5).map(function (r) {
+      fresh.slice(0, 5).map(function (r) {
         var info = riskInfo(r, depModel);
         return "<div class='home-live-item'><b>" + esc(cut(routeName(r), 40)) + " — " +
           esc(cut(r.next_move || r.title || "следующий ход не передан", 80)) + "</b>" +
@@ -765,7 +768,7 @@
           (info.blockers ? " · блокеров " + info.blockers : (!info.blockersKnown ? " · blocker-поле не передано" : "")) +
           "</small></div>";
       }).join("") +
-      "</div><div class='source-note'>Порядок строк получен из Оркестратора; Панель не создаёт свой рейтинг.</div>";
+      "</div><div class='source-note'>Показаны только маршруты со свежим подтверждённым движением. Порядок строк получен из Оркестратора; Панель не создаёт свой рейтинг.</div>";
   }
 
   function renderHomeNeeds(inbox) {
