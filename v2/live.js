@@ -2656,27 +2656,50 @@
     var counts=projection.counts&&typeof projection.counts==="object"?projection.counts:{};
     var rr=projection.registry_revision, lr=projection.lineage_revision;
     if(stamp)stamp.innerHTML="<span class='cc-pulse'></span><span>"+esc(projection.source_status||"SOURCE")+" · Registry r"+esc(rr==null?"—":rr)+" · Lineage r"+esc(lr==null?"—":lr)+"</span>";
-    setKpi("total",counts.total_agents!=null?counts.total_agents:(agentsKnown?"≥ "+agents.length:"—"),counts.total_agents!=null?"подтверждённые агенты":"нижняя граница по agents[]");
-    setKpi("active",counts.active_agents!=null?counts.active_agents:"—","только source-provided active_agents");
-    setKpi("gaps",counts.lineage_gaps!=null?counts.lineage_gaps:"—","происхождение "+(counts.lineage_gaps==null?"—":counts.lineage_gaps)+" · полномочия "+(counts.authority_conflicts==null?"—":counts.authority_conflicts)+" · доказательства "+(counts.decisions_without_evidence==null?"—":counts.decisions_without_evidence));
-    setKpi("revisions","r"+(rr==null?"—":rr)+" / r"+(lr==null?"—":lr),"Registry / Lineage");
+    var timerAgents=agentsKnown?agents.filter(function(a){return /^TIMER[-_]DRIVEN$/i.test(String(a.state||""));}).length:null;
+    var gapFields=["authority_conflicts","unregistered_agents","decisions_without_evidence","lineage_gaps","stalled_agents","degraded_agents"];
+    var gapCountsKnown=gapFields.every(function(k){return counts[k]!=null;});
+    var gapTotal=gapCountsKnown?gapFields.reduce(function(n,k){return n+Number(counts[k]||0);},0):null;
+    var lineageKnown=!!(sourceState.agentLineage.ok&&lineage&&Array.isArray(lineage.edges));
+    var lineageEdges=lineageKnown?lineage.edges:[];
+    var verifiedEdges=lineageKnown?lineageEdges.filter(function(e){return String(e.verification_state||"").toUpperCase()==="VERIFIED";}):[];
+    setKpi("total",counts.total_agents!=null?counts.total_agents:(agentsKnown?"≥ "+agents.length:"—"),counts.total_agents!=null?"зарегистрировано источником":"нижняя граница по agents[]");
+    setKpi("active",counts.active_agents!=null?(counts.active_agents+(timerAgents?" + "+timerAgents:"")):"—",(counts.active_agents!=null?"ACTIVE "+counts.active_agents:"ACTIVE не передан")+(timerAgents!=null?" · по таймеру "+timerAgents:""));
+    setKpi("revisions",lineageKnown?verifiedEdges.length+" / "+lineageEdges.length:"—",lineageKnown?"подтверждённых связей / всего · Lineage r"+(lr==null?"—":lr):"Lineage не подтверждён");
+    setKpi("gaps",gapTotal==null?"—":gapTotal,gapTotal==null?"счётчики разрывов переданы не полностью":"сумма явных конфликтов, пробелов и деградаций");
+    var verifiedAgents=agentsKnown?agents.filter(function(a){return String(a.evidence_status||"").toUpperCase()==="VERIFIED";}).length:null;
     if(stateBox)stateBox.innerHTML="<div class='agent-contract-list'>"+
       "<div><b>Статус источника</b><span>"+esc(projection.source_status||"не передан")+"</span></div>"+
-      "<div><b>Registry revision</b><span>"+esc(rr==null?"не передана":rr)+"</span></div>"+
-      "<div><b>Lineage revision</b><span>"+esc(lr==null?"не передана":lr)+"</span></div>"+
-      "<div><b>Деградировано / зависло / вне реестра</b><span>"+esc(counts.degraded_agents==null?"—":counts.degraded_agents)+" / "+esc(counts.stalled_agents==null?"—":counts.stalled_agents)+" / "+esc(counts.unregistered_agents==null?"—":counts.unregistered_agents)+"</span></div></div>";
+      "<div><b>Ревизии</b><span>реестр r"+esc(rr==null?"—":rr)+" · происхождение r"+esc(lr==null?"—":lr)+"</span></div>"+
+      "<div><b>Доказательства идентичности</b><span>"+esc(verifiedAgents==null?"—":verifiedAgents+" / "+agents.length+" агентов VERIFIED")+"</span></div>"+
+      "<div><b>Штатные состояния</b><span>"+esc(counts.active_agents==null?"ACTIVE не передан":counts.active_agents+" ACTIVE")+(timerAgents!=null?" · "+esc(timerAgents)+" по таймеру":"")+"</span></div>"+
+      "<div><b>Деградировано / зависло / вне реестра</b><span>"+esc(counts.degraded_agents==null?"—":counts.degraded_agents)+" / "+esc(counts.stalled_agents==null?"—":counts.stalled_agents)+" / "+esc(counts.unregistered_agents==null?"—":counts.unregistered_agents)+"</span></div>"+
+      "<div><b>Граница Lineage</b><span>Пустые parent_agent_id / lineage_id в карточке агента сами по себе не считаются разрывом; канонические связи читаются из отдельного графа происхождения.</span></div></div>";
     if(listBox){
       if(!agentsKnown)listBox.innerHTML=unavailableHTML("agents[] не передан","Источник ответил, но коллекция агентов не подтверждена.");
-      else listBox.innerHTML=agents.length?agents.map(function(a){return "<div><b>"+esc(a.agent_id||"не передан")+"</b><span>"+esc(a.role||"роль не передана")+" · "+esc(a.state||"состояние не передано")+" · evidence: "+esc(a.evidence_status||"не передано")+"</span></div>";}).join(""):"<div><b>Реестр пуст</b><span>Источник явно передал пустой agents[].</span></div>";
+      else listBox.innerHTML=agents.length?"<div class='agent-contract-summary'><b>"+esc(agents.length)+" агентов в текущей ревизии</b><span>"+esc(verifiedAgents)+" с подтверждённым evidence_status=VERIFIED · "+esc(timerAgents)+" работают по таймеру</span></div>"+agents.map(function(a){
+        var st=String(a.state||"");
+        var stRu=/^ACTIVE$/i.test(st)?"активен":(/^TIMER[-_]DRIVEN$/i.test(st)?"запускается по таймеру":humanCode(st||"состояние не передано"));
+        var ev=String(a.evidence_status||"").toUpperCase()==="VERIFIED"?"доказательства подтверждены":("доказательства: "+humanCode(a.evidence_status||"не передано"));
+        return "<div><b>"+esc(a.agent_id||"не передан")+"</b><span>"+esc(humanCode(a.role||"роль не передана"))+" · "+esc(stRu)+" · "+esc(ev)+"</span></div>";
+      }).join(""):"<div><b>Реестр пуст</b><span>Источник явно передал пустой agents[].</span></div>";
     }
     if(authBox){
       if(!agentsKnown)authBox.innerHTML=unavailableHTML("authority_scope не проверен","agents[] не передан.");
-      else {var aa=agents.filter(function(a){return Array.isArray(a.authority_scope)&&a.authority_scope.length;});authBox.innerHTML="<div class='agent-contract-list'>"+(aa.length?aa.map(function(a){return "<div><b>"+esc(a.agent_id||"агент")+"</b><span>"+a.authority_scope.map(esc).join(" · ")+"</span></div>";}).join(""):"<div><b>Явные полномочия не переданы</b><span>Панель не восстанавливает их из поведения.</span></div>")+"</div>";}
+      else {
+        var aa=agents.filter(function(a){return Array.isArray(a.authority_scope)&&a.authority_scope.length;});
+        authBox.innerHTML="<div class='agent-contract-summary'><b>"+esc(aa.length)+" / "+esc(agents.length)+" агентов имеют явную область полномочий</b><span>конфликтов полномочий: "+esc(counts.authority_conflicts==null?"—":counts.authority_conflicts)+" · области ниже показаны буквально из authority_scope[]</span></div><div class='agent-contract-list'>"+(aa.length?aa.map(function(a){return "<div><b>"+esc(a.agent_id||"агент")+"</b><span>"+a.authority_scope.map(esc).join(" · ")+"</span></div>";}).join(""):"<div><b>Явные полномочия не переданы</b><span>Панель не восстанавливает их из поведения.</span></div>")+"</div>";
+      }
     }
     if(linBox){
       if(!sourceState.agentLineage.ok || !lineage)linBox.innerHTML=unavailableHTML("Lineage временно недоступен","Agent Registry остаётся видимым; связи не реконструируются.");
-      else if(!Array.isArray(lineage.edges))linBox.innerHTML=unavailableHTML("edges[] не передан","Lineage source ответил без коллекции рёбер.");
-      else {var edges=lineage.edges.filter(function(e){return e.verification_state==="VERIFIED";});linBox.innerHTML="<div class='agent-contract-list'>"+(edges.length?edges.map(function(e){return "<div><b>"+esc(e.source_id||"—")+" → "+esc(e.target_id||"—")+"</b><span>"+esc(e.relation||"relation не передан")+" · rev "+esc(e.edge_revision==null?"—":e.edge_revision)+"</span></div>";}).join(""):"<div><b>Verified-рёбер нет</b><span>Пустая коллекция не заменяется предположениями.</span></div>")+"</div>";}
+      else if(!Array.isArray(lineage.edges))linBox.innerHTML=unavailableHTML("edges[] не передан","Источник происхождения ответил без коллекции рёбер.");
+      else {
+        var unverifiedEdges=lineageEdges.filter(function(e){return String(e.verification_state||"").toUpperCase()!=="VERIFIED";});
+        var verifiedHtml=verifiedEdges.length?verifiedEdges.map(function(e){return "<div><b>"+esc(e.source_id||"—")+" → "+esc(e.target_id||"—")+"</b><span>"+esc(humanCode(e.relation||"отношение не передано"))+" · связь подтверждена · ревизия "+esc(e.edge_revision==null?"—":e.edge_revision)+"</span></div>";}).join(""):"<div><b>Подтверждённых рёбер нет</b><span>Пустая коллекция не заменяется предположениями.</span></div>";
+        var unresolvedHtml=unverifiedEdges.length?"<div class='agent-lineage-unverified'><b>Неподтверждённые связи: "+esc(unverifiedEdges.length)+"</b>"+unverifiedEdges.map(function(e){return "<span>"+esc(e.source_id||"—")+" → "+esc(e.target_id||"—")+" · "+esc(humanCode(e.verification_state||"состояние проверки не передано"))+"</span>";}).join("")+"</div>":"";
+        linBox.innerHTML="<div class='agent-contract-summary'><b>"+esc(verifiedEdges.length)+" / "+esc(lineageEdges.length)+" связей подтверждены</b><span>Lineage r"+esc(lr==null?"—":lr)+" · неподтверждённых "+esc(unverifiedEdges.length)+"</span></div><div class='agent-contract-list'>"+verifiedHtml+"</div>"+unresolvedHtml;
+      }
     }
     if(alertBox){
       var alerts=[];
