@@ -1516,13 +1516,12 @@
       var founder = lines.filter(function (x) { return founderFlagState(x.object).value; });
       var founderFlagsComplete = lines.every(function (x) { return founderFlagState(x.object).known; });
       var founderAssigned = lines.filter(function (x) { return /^(NIKA|НИКА|FOUNDER|ОСНОВАТЕЛ)/i.test(String(x.projection.owner || "").trim()); });
+      var founderAssignedFresh = founderAssigned.filter(function (x) { var d=daysSince(x.projection.semantic_freshness); return d!=null && d<STALE_DAYS; });
+      var founderAssignedStale = founderAssigned.filter(function (x) { var d=daysSince(x.projection.semantic_freshness); return d!=null && d>=STALE_DAYS; });
       var founderProjectionRead = !!(sourceState.founderProjection.ok && founderProjection);
       var founderDecisionsKnown = !!(founderProjectionRead && founderProjection.today && Array.isArray(founderProjection.today.founder_decisions));
       var formalDecisions = founderDecisionsKnown ? founderProjection.today.founder_decisions : [];
       var founderNote = page.querySelector('[data-r="founder-note"]');
-      if (founderNote) founderNote.textContent = "явных назначений хода в RD1: " + (rd1Complete ? founderAssigned.length : "≥ " + founderAssigned.length) +
-        (founderDecisionsKnown ? " · текущих формальных решений: " + formalDecisions.length : " · формальные решения не проверены") +
-        (founderFlagsComplete ? " · специальных флагов участия Основателя: " + founder.length : " · специальные флаги участия Основателя переданы не для всех линий");
       var waiting = lines.filter(function (x) {
         var declared = String(x.object.declared_status || "").toUpperCase();
         var projected = String(x.projection.status || "").toUpperCase();
@@ -1532,16 +1531,25 @@
       });
       var blocked = lines.filter(function (x) { return /BLOCKED/.test(String(x.projection.status || "").toUpperCase()); });
       var freshRD1 = lines.filter(function (x) { var d=daysSince(x.projection.semantic_freshness); return d!=null && d<STALE_DAYS; });
+      var freshActive = active.filter(function (x) { var d=daysSince(x.projection.semantic_freshness); return d!=null && d<STALE_DAYS; });
+      var staleActive = active.filter(function (x) { var d=daysSince(x.projection.semantic_freshness); return d!=null && d>=STALE_DAYS; });
+      var activeFreshnessUnknown = active.length-freshActive.length-staleActive.length;
+      var activeNote = page.querySelector('[data-r="active-note"]');
+      if (activeNote) activeNote.textContent = (rd1Complete && activeStatusComplete ? active.length : "≥ " + active.length) + " формально ACTIVE* · " + freshActive.length + " со свежим RD1 · " + staleActive.length + " без движения 7+ дней" + (activeFreshnessUnknown ? " · " + activeFreshnessUnknown + " без даты свежести" : "");
+      if (founderNote) founderNote.textContent = "явных назначений хода в RD1: " + (rd1Complete ? founderAssigned.length : "≥ " + founderAssigned.length) + " · свежих: " + founderAssignedFresh.length + " · старых: " + founderAssignedStale.length +
+        (founderDecisionsKnown ? " · текущих формальных решений: " + formalDecisions.length : " · формальные решения не проверены") +
+        (founderFlagsComplete ? " · специальных флагов участия Основателя: " + founder.length : " · специальные флаги участия Основателя переданы не для всех линий");
 
       function put(k, v) { var e = page.querySelector('[data-r="' + k + '"]'); if (e) e.textContent = String(v); }
-      put("active-count", rd1Complete && activeStatusComplete ? active.length : "≥ " + active.length);
-      put("founder-count", rd1Complete ? founderAssigned.length : "≥ " + founderAssigned.length);
+      put("active-count", rd1Complete && activeStatusComplete ? freshActive.length : "≥ " + freshActive.length);
+      put("founder-count", rd1Complete ? founderAssignedFresh.length : "≥ " + founderAssignedFresh.length);
       put("waiting-count", rd1Complete ? waiting.length : "≥ " + waiting.length);
       put("identity-count", rd1Complete ? blocked.length : "≥ " + blocked.length);
 
       var linesBox = page.querySelector('[data-r="lines"]');
       if (linesBox) {
-        linesBox.innerHTML = lines.length ? lines.map(function (x) {
+        var orderedResearchLines=lines.slice().sort(function(a,b){return String(b.projection.semantic_freshness||"").localeCompare(String(a.projection.semantic_freshness||""));});
+        linesBox.innerHTML = orderedResearchLines.length ? orderedResearchLines.map(function (x) {
           var o = x.object, p = x.projection;
           var stageRaw = p.stage || "этап не указан";
           var nextRaw = p.next_gate || p.next_move || "не определён";
@@ -1564,11 +1572,15 @@
           "<div class='research-empty compact'><strong>" + esc(emptyTitle) + "</strong><span>" + esc(emptyText) + "</span></div>";
       }
 
-      var founderAttentionRows = founderAssigned.slice(0, 6).map(function (x) {
+      var founderAttentionRows = founderAssignedFresh.slice(0, 6).map(function (x) {
         var o = x.object, p = x.projection, age=daysSince(p.semantic_freshness);
         return "<div class='research-mini-item'><b>" + esc(researchObjectTitle(o)) + "</b><span>" +
-          "явный владелец хода в RD1 · " + esc(researchTextRu(p.next_move || o.last_summary || "следующий ход не передан")) +
+          "свежий явный владелец хода в RD1 · " + esc(researchTextRu(p.next_move || o.last_summary || "следующий ход не передан")) +
           (age==null?" · свежесть не передана":" · состояние обновлено "+age+" дн. назад") + " · " + esc(o.object_id || "ID не определён") + "</span></div>";
+      });
+      founderAssignedStale.slice(0, Math.max(0, 6-founderAttentionRows.length)).forEach(function(x){
+        var o=x.object,p=x.projection,age=daysSince(p.semantic_freshness);
+        founderAttentionRows.push("<div class='research-mini-item stale-assignment'><b>"+esc(researchObjectTitle(o))+"</b><span>старое назначение хода в RD1 · "+esc(researchTextRu(p.next_move||o.last_summary||"следующий ход не передан"))+" · последнее смысловое обновление "+esc(age==null?"не датировано":age+" дн. назад")+" · "+esc(o.object_id||"ID не определён")+"</span><small>Назначение не отменяется автоматически, но не считается свежей задачей Основателя.</small></div>");
       });
       formalDecisions.slice(0, Math.max(0, 6 - founderAttentionRows.length)).forEach(function (d) {
         founderAttentionRows.push("<div class='research-mini-item formal-unbound'><b>Формальное решение Основателя · без привязки к линии</b><span>" +
@@ -1618,7 +1630,7 @@
         bridge.innerHTML =
           "<div class='research-bridge-head'><div><small>ИССЛЕДОВАТЕЛЬСКИЙ ПУЛЬС</small><b>Вопрос → доказательство → независимая проверка → следующий переход</b></div><span>источники не смешиваются</span></div>" +
           "<div class='research-bridge-grid'>" +
-          "<a href='#research' class='research-bridge-cell'><small>Портфель</small><strong>" + esc(rd1Complete ? active.length : "≥ " + active.length) + " объявлены активными · " + esc(rd1Complete ? freshRD1.length : "≥ " + freshRD1.length) + " со свежим RD1</strong><span>" + esc(rd1Complete ? waiting.length : "≥ " + waiting.length) + " ждут условия · " + esc(rd1Complete ? blocked.length : "≥ " + blocked.length) + " явно заблокировано · следующий ход у Ники: " + esc(rd1Complete ? founderAssigned.length : "≥ " + founderAssigned.length) + (founderDecisionsKnown ? " · текущих формальных решений " + esc(formalDecisions.length) : " · формальные решения не проверены") + "</span></a>" +
+          "<a href='#research' class='research-bridge-cell'><small>Портфель</small><strong>" + esc(rd1Complete ? freshActive.length : "≥ " + freshActive.length) + " свежих ACTIVE* · " + esc(rd1Complete ? active.length : "≥ " + active.length) + " формально ACTIVE*</strong><span>" + esc(rd1Complete ? waiting.length : "≥ " + waiting.length) + " ждут условия · " + esc(rd1Complete ? blocked.length : "≥ " + blocked.length) + " явно заблокировано · свежий ход у Ники: " + esc(rd1Complete ? founderAssignedFresh.length : "≥ " + founderAssignedFresh.length) + (founderAssignedStale.length ? " · старых назначений " + esc(founderAssignedStale.length) : "") + (founderDecisionsKnown ? " · текущих формальных решений " + esc(formalDecisions.length) : " · формальные решения не проверены") + "</span></a>" +
           "<a href='#testing' class='research-bridge-cell " + (adjudication.length || blockedTests.length ? "attention" : "") + "'><small>Независимая проверка</small><strong>" + esc(researchTestState.activeKnown ? openTestStates.length : "—") + " в active[] · " + esc(testingComplete ? adjudication.length : "≥ " + adjudication.length) + " на разборе</strong><span>active[] не означает текущее исполнение · " + esc(testTitle) + " · " + esc(testNote) + "</span></a>" +
           "<a href='#research' class='research-bridge-cell'><small>Последнее материальное изменение</small><strong>" + esc(latestTitle) + "</strong><span>" + esc(cut(latestNote, 120)) + (latest ? " · " + esc(ago(latest.object.last_event_at)) : "") + "</span></a>" +
           "<a href='#documents' class='research-bridge-cell'><small>Доказательный контур компании</small><strong>" + esc(reviewN == null ? "действующая очередь не передана" : reviewN + " действительно требуют действия") + "</strong><span>" + esc(reviewQuarantine==null?"карантин не передан":reviewQuarantine+" в карантине без владельца") + " · общесистемный Hub не приписывается исследованию без явной связи с объектом</span></a>" +
