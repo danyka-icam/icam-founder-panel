@@ -3406,7 +3406,14 @@
     var c=d.querySelector("[data-cc-steward-context-view]");
     c.innerHTML="<b>"+E(ctx.title||"Текущий объект")+"</b>"+(ctx.sub?"<span>"+E(ctx.sub)+"</span>":"");
     d.classList.add("open");
-    setTimeout(function(){var i=d.querySelector("[data-cc-steward-input]");if(i)i.focus();},30);
+    setTimeout(function(){var i=d.querySelector("[data-cc-steward-input]");if(i)i.focus();if(ctx.quick_question){var q=String(ctx.quick_question);ctx.quick_question="";d._stewardContext.quick_question="";askSteward(d,q);}},30);
+  }
+
+  function stewardTextHtml(text){
+    var raw=String(text||"");
+    raw=raw.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,"$2");
+    var escaped=E(raw);
+    return escaped.replace(/(https?:\/\/[^\s<]+)/g,function(u){var clean=u.replace(/[),.;]+$/,""),tail=u.slice(clean.length);return "<a href=\""+clean+"\" target=\"_blank\" rel=\"noopener noreferrer\">"+clean+"</a>"+tail;}).replace(/\n/g,"<br>");
   }
 
   function stewardBubble(role,text,evidence) {
@@ -3416,7 +3423,7 @@
         evidence.slice(0,6).map(function(x){var src=x.kind==="projection"?"живой системный источник":(x.kind==="file_item"?"запись рабочего журнала":"рабочий артефакт");return "<div><b>"+E(H.cut(x.title||"источник",70))+"</b><small>"+E(src)+"</small></div>";}).join("")+
       "</div></details>";
     }
-    return "<div class='cc-steward-msg "+role+"'><p>"+E(text||"")+"</p>"+refs+"</div>";
+    return "<div class='cc-steward-msg "+role+"'><p>"+stewardTextHtml(text||"")+"</p>"+refs+"</div>";
   }
 
   function closeStatusCommand(q) {
