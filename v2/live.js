@@ -1520,9 +1520,9 @@
       var founderDecisionsKnown = !!(founderProjectionRead && founderProjection.today && Array.isArray(founderProjection.today.founder_decisions));
       var formalDecisions = founderDecisionsKnown ? founderProjection.today.founder_decisions : [];
       var founderNote = page.querySelector('[data-r="founder-note"]');
-      if (founderNote) founderNote.textContent = (rd1Complete ? founderAssigned.length : "≥ " + founderAssigned.length) + " явных назначений хода в RD1" +
+      if (founderNote) founderNote.textContent = "явных назначений хода в RD1: " + (rd1Complete ? founderAssigned.length : "≥ " + founderAssigned.length) +
         (founderDecisionsKnown ? " · текущих формальных решений: " + formalDecisions.length : " · формальные решения не проверены") +
-        (founderFlagsComplete ? " · специальных founder-флагов: " + founder.length : " · специальные founder-флаги переданы не для всех линий");
+        (founderFlagsComplete ? " · специальных флагов участия Основателя: " + founder.length : " · специальные флаги участия Основателя переданы не для всех линий");
       var waiting = lines.filter(function (x) {
         var declared = String(x.object.declared_status || "").toUpperCase();
         var projected = String(x.projection.status || "").toUpperCase();
