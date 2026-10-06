@@ -1678,3 +1678,6 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .cc-conflict-evidence-line>span{display:grid;gap:2px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)}
 .cc-conflict-evidence-line>span:first-of-type{border-top:0;padding-top:0}
 .cc-conflict-evidence-line small{color:var(--muted-2);overflow-wrap:anywhere}
+
+.cc-decision-actions.is-processing{opacity:.5;filter:saturate(.4)}
+.cc-decision-actions.is-processing button{cursor:default}

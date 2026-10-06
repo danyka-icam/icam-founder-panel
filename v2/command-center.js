@@ -3146,9 +3146,13 @@
     var r = d.raw || {}, choicesKnown = Array.isArray(r.choices), choices = choicesKnown ? r.choices : [];
     var consequencesKnown = Array.isArray(r.verified_consequences), consequences = consequencesKnown ? r.verified_consequences : [];
     var actionable = r.presentation_state === "READY" && !!r.lifecycle_id && choices.length > 0;
-    var decisionControls = actionable ? ("<div class='cc-decision-actions' data-cc-decision-actions data-lifecycle-id='" + E(r.lifecycle_id) + "'>" +
-      "<small>Зафиксировать решение</small><div class='cc-decision-buttons'>" + choices.map(function(c){ var k=String(c.canonical||"").toUpperCase(); return "<button type='button' class='choice-"+E(k.toLowerCase())+"' data-cc-decision-choice='"+E(k)+"'>"+E(c.label||k)+"</button>"; }).join("") + "</div>" +
-      "<div class='cc-decision-action-state' data-cc-decision-action-state><span>Первый клик только готовит действие. Запись произойдёт после отдельного подтверждения.</span></div></div>") : "";
+    var decisionUi=window.__aiclavisFounderDecisionUi||(window.__aiclavisFounderDecisionUi={});
+    var du=r.lifecycle_id?(decisionUi[String(r.lifecycle_id)]||{}):{};
+    var lock=!!(du.actionHtml||du.processing||du.recorded);
+    var initialState=du.actionHtml||"<span>Первый клик только готовит действие. Запись произойдёт после отдельного подтверждения.</span>";
+    var decisionControls = actionable ? ("<div class='cc-decision-actions"+(du.processing||du.recorded?" is-processing":"")+"' data-cc-decision-actions data-lifecycle-id='" + E(r.lifecycle_id) + "'>" +
+      "<small>Зафиксировать решение</small><div class='cc-decision-buttons'>" + choices.map(function(c){ var k=String(c.canonical||"").toUpperCase(); return "<button type='button' class='choice-"+E(k.toLowerCase())+"' data-cc-decision-choice='"+E(k)+"'"+(lock?" disabled":"")+">"+E(c.label||k)+"</button>"; }).join("") + "</div>" +
+      "<div class='cc-decision-action-state' data-cc-decision-action-state>"+initialState+"</div></div>") : "";
     return inspector({
       badge: "<span class='cc-obj-badge strategy'>?</span>",
       title: d.title, sub: "Формальное решение Основателя · Founder Projection",
@@ -3387,6 +3391,7 @@
     var d = window.__PANEL_V2_DATA;
     if (!H || !d) return;
     M = buildModel(d);
+    if(M.fp.ok&&M.FP&&M.FP.decisionsKnown){var dui=window.__aiclavisFounderDecisionUi||(window.__aiclavisFounderDecisionUi={}),liveLifecycles={};M.FP.decisions.forEach(function(x){var lid=x&&x.raw&&x.raw.lifecycle_id;if(lid)liveLifecycles[String(lid)]=true;});Object.keys(dui).forEach(function(lid){if(!liveLifecycles[lid])delete dui[lid];});}
     defaultSelection();
     renderAll();
   }
@@ -3601,7 +3606,7 @@
       dscope.querySelectorAll("[data-cc-decision-choice]").forEach(function(b){b.disabled=true;});
       dstate.innerHTML="<span>Готовлю точное действие и проверяю актуальность решения…</span>";
       panelPost("/founder-ui-preview/api/steward-navigator/action/propose-decision",{lifecycle_id:dlid,choice:dchoice})
-        .then(function(data){var p=data.proposal||{};dstate.innerHTML="<div class='cc-decision-confirm' data-cc-decision-confirm-card data-action-id='"+E(p.action_id||"")+"' data-action-hash='"+E(p.action_hash||"")+"' data-lifecycle-id='"+E(p.lifecycle_id||dlid)+"'><b>Подтвердить: "+E(p.choice_label||dchoice)+"?</b><span>"+E(p.question||"")+"</span><small>До подтверждения решение не записано.</small><div><button type='button' data-cc-decision-confirm>Подтвердить</button><button type='button' data-cc-decision-cancel>Отмена</button></div></div>";})
+        .then(function(data){var p=data.proposal||{};dstate.innerHTML="<div class='cc-decision-confirm' data-cc-decision-confirm-card data-action-id='"+E(p.action_id||"")+"' data-action-hash='"+E(p.action_hash||"")+"' data-lifecycle-id='"+E(p.lifecycle_id||dlid)+"'><b>Подтвердить: "+E(p.choice_label||dchoice)+"?</b><span>"+E(p.question||"")+"</span><small>До подтверждения решение не записано.</small><div><button type='button' data-cc-decision-confirm>Подтвердить</button><button type='button' data-cc-decision-cancel>Отмена</button></div></div>";var ui=window.__aiclavisFounderDecisionUi||(window.__aiclavisFounderDecisionUi={});ui[dlid]=ui[dlid]||{};ui[dlid].choice=dchoice;ui[dlid].actionHtml=dstate.innerHTML;ui[dlid].processing=false;ui[dlid].recorded=false;})
         .catch(function(err){dscope.querySelectorAll("[data-cc-decision-choice]").forEach(function(b){b.disabled=false;});dstate.innerHTML="<span class='warn'>"+E(decisionErrorText(err))+"</span>";});
       return;
     }
@@ -3610,18 +3615,17 @@
       var dcard=decisionCancel.closest("[data-cc-decision-confirm-card]"), dscope2=decisionCancel.closest("[data-cc-decision-actions]"); if(!dcard||!dscope2)return;
       decisionCancel.disabled=true; var dstate2=dscope2.querySelector("[data-cc-decision-action-state]");
       panelPost("/founder-ui-preview/api/steward-navigator/action/cancel",{action_id:dcard.getAttribute("data-action-id"),action_hash:dcard.getAttribute("data-action-hash"),founder_confirmation:"CANCEL"})
-        .then(function(){dscope2.querySelectorAll("[data-cc-decision-choice]").forEach(function(b){b.disabled=false;});dstate2.innerHTML="<span>Предложение отменено. Решение не записано.</span>";})
+        .then(function(){dscope2.querySelectorAll("[data-cc-decision-choice]").forEach(function(b){b.disabled=false;});dstate2.innerHTML="<span>Предложение отменено. Решение не записано.</span>";var lid=dscope2.getAttribute("data-lifecycle-id"),ui=window.__aiclavisFounderDecisionUi||(window.__aiclavisFounderDecisionUi={});if(lid)delete ui[lid];})
         .catch(function(err){decisionCancel.disabled=false;dstate2.insertAdjacentHTML("beforeend","<span class='warn'>"+E(decisionErrorText(err))+"</span>");});
       return;
     }
     var decisionConfirm=e.target.closest("[data-cc-decision-confirm]");
     if(decisionConfirm){
       var dcard2=decisionConfirm.closest("[data-cc-decision-confirm-card]"), dscope3=decisionConfirm.closest("[data-cc-decision-actions]"); if(!dcard2||!dscope3)return;
-      decisionConfirm.disabled=true; var dstate3=dscope3.querySelector("[data-cc-decision-action-state]");
-      dstate3.insertAdjacentHTML("beforeend","<span class='cc-decision-writing'>Записываю подтверждённое решение…</span>");
+      decisionConfirm.disabled=true; var dstate3=dscope3.querySelector("[data-cc-decision-action-state]");var dlid3=dscope3.getAttribute("data-lifecycle-id"),dui=window.__aiclavisFounderDecisionUi||(window.__aiclavisFounderDecisionUi={});if(dlid3){dui[dlid3]=dui[dlid3]||{};dui[dlid3].processing=true;}dscope3.classList.add("is-processing");dscope3.querySelectorAll("button").forEach(function(b){b.disabled=true;});dstate3.insertAdjacentHTML("beforeend","<span class='cc-decision-writing'>Записываю подтверждённое решение…</span>");if(dlid3)dui[dlid3].actionHtml=dstate3.innerHTML;
       panelPost("/founder-ui-preview/api/steward-navigator/action/confirm-decision",{action_id:dcard2.getAttribute("data-action-id"),action_hash:dcard2.getAttribute("data-action-hash"),lifecycle_id:dcard2.getAttribute("data-lifecycle-id"),founder_confirmation:"CONFIRM"})
-        .then(function(data){var life=data.lifecycle||{}, eff=data.decision_effect||"решение";dscope3.querySelectorAll("button").forEach(function(b){b.disabled=true;});dstate3.innerHTML="<div class='cc-decision-recorded'><b>Решение записано: "+E(human(eff))+"</b><span>"+(life.status==="RESOLVED"?"Lifecycle закрыт.":"Lifecycle остаётся открытым согласно выбранному варианту.")+"</span><small>Карточка обновится при следующем чтении Founder Projection.</small></div>";})
-        .catch(function(err){decisionConfirm.disabled=false;dstate3.innerHTML="<span class='warn'>"+E(decisionErrorText(err))+"</span>";});
+        .then(function(data){var life=data.lifecycle||{}, eff=data.decision_effect||"решение";dscope3.querySelectorAll("button").forEach(function(b){b.disabled=true;});dstate3.innerHTML="<div class='cc-decision-recorded'><b>Решение записано: "+E(human(eff))+"</b><span>"+(life.status==="RESOLVED"?"Lifecycle закрыт.":"Lifecycle остаётся открытым согласно выбранному варианту.")+"</span><small>Карточка обновится при следующем чтении Founder Projection.</small></div>";if(dlid3){dui[dlid3].processing=false;dui[dlid3].recorded=true;dui[dlid3].actionHtml=dstate3.innerHTML;}})
+        .catch(function(err){decisionConfirm.disabled=false;dscope3.classList.remove("is-processing");dscope3.querySelectorAll("[data-cc-decision-choice]").forEach(function(b){b.disabled=false;});dstate3.innerHTML="<span class='warn'>"+E(decisionErrorText(err))+"</span>";if(dlid3){dui[dlid3].processing=false;dui[dlid3].recorded=false;dui[dlid3].actionHtml=dstate3.innerHTML;}});
       return;
     }
     var sa=e.target.closest("[data-cc-steward-context]");
