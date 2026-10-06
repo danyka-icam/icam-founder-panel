@@ -1307,7 +1307,7 @@
           var outcome = testOutcomeRu(primary.scientific_outcome || "научный исход не передан");
           var next = researchTextRu(primary.delivery_next_action || primary.next_action || "следующий ход не передан");
           focus.innerHTML =
-            "<div class='testing-focus-head'><div><small>РЕЗУЛЬТАТ ЖДЁТ СОДЕРЖАТЕЛЬНОГО РАЗБОРА</small><b>" + esc(primary.test_id || "проверка без ID") + "</b><span>" + esc(primary.owning_branch || "владеющая ветка не указана") + "</span></div><a href='#research'>Открыть исследования →</a></div>" +
+            "<div class='testing-focus-head'><div><small>РЕЗУЛЬТАТ ЖДЁТ РАЗБОРА ВЛАДЕЮЩЕЙ ВЕТКИ · НЕ ЗАДАЧА ОСНОВАТЕЛЯ</small><b>" + esc(primary.test_id || "проверка без ID") + "</b><span>" + esc(primary.owning_branch || "владеющая ветка не указана") + "</span></div><a href='#research'>Открыть исследования →</a></div>" +
             "<div class='testing-focus-chain'>" +
               "<div class='pass'><small>01 · Процедура</small><strong>" + esc(proc) + "</strong><span>техническое качество прогона</span></div>" +
               "<i>≠</i>" +
@@ -1330,7 +1330,7 @@
         var n = adj.length + rerun.length + blocked.length;
         att.innerHTML = "<div class='testing-attention-main'><span class='testing-signal-ring'>" + esc(testComplete ? n : "≥ " + n) + "</span><div><strong>" +
           (n ? "Есть проверки, требующие работы контура" : (testComplete ? "Нет тестов, требующих работы контура" : "Общий ноль не подтверждён")) + "</strong><p>" +
-          (n ? "Владеющей ветке нужен разбор: " + adj.length + " · повторный прогон: " + rerun.length + " · заблокировано входом/условиями: " + blocked.length + " · Основатель: " + (founderKnown ? founderItems.length : "не проверено") + (testComplete ? "" : " · набор неполный") :
+          (n ? "Системная работа: разбор владеющей ветки " + adj.length + " · технический повтор " + rerun.length + " · заблокировано входом/условиями " + blocked.length + " · действия Ники: " + (founderKnown ? founderItems.length : "не проверено") + (testComplete ? "" : " · набор неполный") :
                (testComplete ? "Полные active[] + recent[] не содержат NEEDS_ADJUDICATION, RERUN_REQUIRED или BLOCKED." : "Доступная часть не содержит этих состояний, но active[] или recent[] не передан.")) +
           "</p></div></div><div class='testing-attention-rule'>Системная или веточная работа не становится задачей Основателя автоматически. Техническое завершение прогона не является научным выводом.</div>";
       }
