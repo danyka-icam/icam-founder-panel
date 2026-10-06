@@ -1263,7 +1263,7 @@
     var page = document.querySelector('[data-page-panel="testing"]');
     if (!page) return;
     if (!sourceState.testingSummary.ok || !summary) {
-      ["waiting", "active", "adjudication", "rerun"].forEach(function (k) {
+      ["founder", "active", "adjudication", "rerun"].forEach(function (k) {
         var e = page.querySelector('[data-t="' + k + '"]'); if (e) e.textContent = "Недоступно";
       });
       var q = page.querySelector('[data-t="queue"]');
@@ -1275,11 +1275,13 @@
       var testComplete = testState.activeKnown && testState.recentKnown;
       var tests = allTests(summary);
       var waiting = tests.filter(function (t) { return ["REQUESTED", "READY"].indexOf(String(t.status || "").toUpperCase()) >= 0; });
+      var founderItems = Array.isArray(summary.needs_founder) ? summary.needs_founder : [];
+      var founderKnown = Array.isArray(summary.needs_founder);
       var adj = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "NEEDS_ADJUDICATION"; });
       var rerun = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "RERUN_REQUIRED"; });
       var active = testState.activeKnown ? summary.active : [];
 
-      [["waiting", waiting.length, testComplete], ["active", active.length, testState.activeKnown], ["adjudication", adj.length, testComplete], ["rerun", rerun.length, testComplete]].forEach(function (kv) {
+      [["founder", founderItems.length, founderKnown], ["active", active.length, testState.activeKnown], ["adjudication", adj.length, testComplete], ["rerun", rerun.length, testComplete]].forEach(function (kv) {
         var e = page.querySelector('[data-t="' + kv[0] + '"]'); if (e) e.textContent = kv[2] ? String(kv[1]) : "≥ " + String(kv[1]);
       });
 
@@ -1327,10 +1329,10 @@
         var blocked = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "BLOCKED"; });
         var n = adj.length + rerun.length + blocked.length;
         att.innerHTML = "<div class='testing-attention-main'><span class='testing-signal-ring'>" + esc(testComplete ? n : "≥ " + n) + "</span><div><strong>" +
-          (n ? "Есть проверки, требующие реакции" : (testComplete ? "Нет тестов, требующих реакции" : "Общий ноль не подтверждён")) + "</strong><p>" +
-          (n ? "Разбор: " + adj.length + " · повтор: " + rerun.length + " · заблокировано: " + blocked.length + (testComplete ? "" : " · набор неполный") :
+          (n ? "Есть проверки, требующие работы контура" : (testComplete ? "Нет тестов, требующих работы контура" : "Общий ноль не подтверждён")) + "</strong><p>" +
+          (n ? "Владеющей ветке нужен разбор: " + adj.length + " · повторный прогон: " + rerun.length + " · заблокировано входом/условиями: " + blocked.length + " · Основатель: " + (founderKnown ? founderItems.length : "не проверено") + (testComplete ? "" : " · набор неполный") :
                (testComplete ? "Полные active[] + recent[] не содержат NEEDS_ADJUDICATION, RERUN_REQUIRED или BLOCKED." : "Доступная часть не содержит этих состояний, но active[] или recent[] не передан.")) +
-          "</p></div></div><div class='testing-attention-rule'>Техническое завершение прогона не становится автоматически научным выводом.</div>";
+          "</p></div></div><div class='testing-attention-rule'>Системная или веточная работа не становится задачей Основателя автоматически. Техническое завершение прогона не является научным выводом.</div>";
       }
 
       var recentBox = page.querySelector('[data-t="recent"]');
