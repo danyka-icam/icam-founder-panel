@@ -2563,77 +2563,101 @@
   };
 
   function renderTwinStateClean(data) {
-    if (!sourceState.twinState.ok || !data) return cleanFailure("digital-twin","DT","twinState");
-    var status = data.source_status;
-    if (status === "OFFLINE" || status === "UNAVAILABLE") {
-      var failBody = activateNormalized("digital-twin", status, "DT · " + esc(status));
-      if (!failBody) return;
-      failBody.innerHTML =
-        "<div class='live-status-box warn'><strong>Personal Twin — источник сообщает " + esc(status) + "</strong>" +
-        "<p>" + esc(data.degraded_reason || "Причина этого статуса источником не передана; успешное чтение проекции не доказывает доступность вычислительного процесса.") + "</p></div>";
+    if (!sourceState.twinState.ok || !data) return cleanFailure("digital-twin","Personal Twin","twinState");
+    var status=String(data.source_status||"").toUpperCase();
+    if(status==="OFFLINE"||status==="UNAVAILABLE"){
+      var failBody=activateNormalized("digital-twin",status,"TWIN G1 · "+esc(status)); if(!failBody)return;
+      failBody.innerHTML="<div class='live-status-box warn'><strong>Personal Twin G1 — "+esc(status)+"</strong><p>"+esc(data.degraded_reason||"G1 не подтвердил текущее состояние; старое состояние не подставляется.")+"</p></div>";
       return;
     }
+    var body=activateNormalized("digital-twin",status,"TWIN G1 · "+esc(status));
+    if(!body)return;
 
-    var body = activateNormalized("digital-twin", status, "DT · " + esc(status));
-    if (!body) return;
-
-    var po = data.program_object || {};
-    var inv = data.safety_invariants_status || {};
-    var predLabel = data.current_prediction == null ? "статус прогноза не передан" : (TWIN_PREDICTION_LABELS[data.current_prediction] || "безопасная метка для этого кода не определена");
-    function numOrNull(v) { if (v == null || v === "") return null; var n = Number(v); return isFinite(n) ? n : null; }
-    var needsConf = numOrNull(data.needs_confirmation);
-    var scoredN = numOrNull(data.prospective_scored_n);
-    var invNames = {
-      C0_C3_exact_controls: "Точные контрольные варианты C0–C3",
-      experimental_lineage: "Экспериментальное происхождение",
-      pre_action_seal: "Запечатывание до действия",
-      prediction_exposure_guard: "Защита от раскрытия прогноза",
-      prediction_hidden_pre_outcome: "Прогноз скрыт до исхода",
-      score_before_update: "Оценка до обновления модели",
-      semantic_validity_clock: "Часы смысловой валидности",
-      sensor_semantic_gate: "Смысловой фильтр входных каналов",
-      unknown_channel_policy: "Политика неизвестных каналов"
-    };
-    function invValueRu(v) {
-      var x = String(v || "").toUpperCase();
-      if (x === "ENFORCED") return "обязательно соблюдается";
-      if (x === "ABSTAIN") return "воздержание при неопределённости";
-      return humanCode(v || "—");
+    var runtime=data.runtime||{}, experiment=data.experiment||{}, prediction=data.prediction||{}, obs=data.observability||{}, counts=data.counts||{};
+    var clones=Array.isArray(data.clones)?data.clones:[], history=Array.isArray(data.history)?data.history:[], learning=Array.isArray(data.learning_history)?data.learning_history:[], pending=Array.isArray(data.pending_confirmations)?data.pending_confirmations:[];
+    var gate=experiment.gatekeeper||{}, prospectiveN=Number(experiment.prospective_n||data.prospective_scored_n||0), predStatus=prediction.status||data.current_prediction||null;
+    var predLabel=predStatus==null?"статус прогноза не передан":(TWIN_PREDICTION_LABELS[predStatus]||"безопасная метка не определена");
+    var mode=String(runtime.mode||data.mode||"").toUpperCase(), modeLabel=mode==="WARM_START"?"Наблюдает, ждёт первые решения":(mode==="LEARNING"?"Обучается на реальных решениях":humanCode(mode||"—"));
+    var runtimeHealth=runtime.health||data.runtime_health||"—", runtimeVersion=runtime.version||"—", generation=runtime.generation||data.generation||"—";
+    function shortHash(v){v=String(v||"");return v?v.slice(0,12)+"…":"—";}
+    function shortId(v){v=String(v||"");return v.length>22?v.slice(0,22)+"…":(v||"—");}
+    function sensorState(ts){
+      if(!ts)return {label:"не передано",cls:"unknown",age:null};
+      var d=new Date(ts); if(isNaN(d))return {label:"не передано",cls:"unknown",age:null};
+      var sec=Math.max(0,Math.round((Date.now()-d.getTime())/1000));
+      return sec<60?{label:"LIVE",cls:"ok",age:sec}:{label:sec<=180?"DELAYED":"STALE",cls:sec<=180?"warn":"bad",age:sec};
     }
-    var invRows = Object.keys(inv).length ? Object.keys(inv).map(function (k) {
-      return kv(invNames[k] || humanCode(k), invValueRu(inv[k]));
-    }).join("") : "";
-    var modeLabel = String(data.mode || "").toUpperCase() === "WARM_START" ? "тёплый запуск" : humanCode(data.mode || "—");
-    var transferLabel = String(data.ss001_transfer_boundary || "").toUpperCase() === "ENGINEERING_METHODOLOGY_ONLY__NO_EMPIRICAL_TRANSFER" ?
-      "перенесена только инженерная методология; эмпирические результаты SS001 не переносятся" : humanCode(data.ss001_transfer_boundary || "—");
+    function cloneRole(role){
+      var m={EXACT_CONTROL:"Точный контроль",LONG_HISTORY:"Длинная история / медленное обновление",FAST_ADAPTATION:"Быстрая адаптация",CONTEXT_X_HISTORY:"Контекст × история",SWITCH_COMPLETION:"Переключение / завершение"};
+      return m[role]||humanCode(role||"—");
+    }
+    function cloneState(c){
+      if(!prospectiveN&&!Number(c.updates||0))return "Ждёт первое обучение";
+      return Number(c.updates||0)>0?"Изменился после последнего решения":"Без обновления после последнего решения";
+    }
+    var sealAge=prediction.sealed_at?ago(prediction.sealed_at):"—";
+    var realCandidates=obs.real_candidate_count, candidateCount=obs.candidate_count;
+    var exactOK=obs.exact_controls_ok;
+    var sensors=[
+      ["Continuity",obs.continuity_last_seen_at],
+      ["Founder Decision",obs.founder_decision_last_seen_at],
+      ["Observer UI",obs.observer_action_last_seen_at]
+    ];
+    var sensorRows=sensors.map(function(x){var st=sensorState(x[1]);return "<div class='twin-sensor "+st.cls+"'><span><b>"+esc(x[0])+"</b><small>"+esc(x[1]?ago(x[1]):"нет метки")+"</small></span><em>"+esc(st.label)+"</em></div>";}).join("");
+    var anyStale=sensors.some(function(x){return sensorState(x[1]).cls==="bad";});
+    var anyDelayed=sensors.some(function(x){return sensorState(x[1]).cls==="warn";});
+    var incidents=Number(counts.incidents||0), confirmations=Number(counts.pending_confirmations!=null?counts.pending_confirmations:pending.length||data.needs_confirmation||0);
+    var red=String(runtimeHealth).toUpperCase()!=="OK"||predStatus==="NO_LIVE_SEAL"||predStatus==="ABSTAIN_CONTAMINATED"||exactOK===false||incidents>0||String(gate.status||"").toUpperCase()==="FAIL"||anyStale;
+    var amber=!red&&(confirmations>0||anyDelayed||(prospectiveN>0&&!gate.status));
+    var alertHTML=red?"<div class='twin-alert bad'><b>Требуется внимание к эксперименту</b><span>Один или несколько safety/runtime критериев G1 сейчас не проходят.</span></div>":(amber?"<div class='twin-alert warn'><b>Эксперимент работает с предупреждением</b><span>Есть delayed channel, pending confirmation или ожидаемый gatekeeper report.</span></div>":"");
 
-    body.innerHTML =
-      "<div class='live-status-box " + sourceStatusBoxClass(status) + "'><strong>Personal Twin — проекция состояния прочитана</strong>" +
-      "<p>Панель получает только безопасную проекцию чтения: вероятности клонов и ранжированные варианты до исхода сюда не поступают.</p></div>" +
-      "<div class='live-summary'>" +
-      "<div class='metric'><small>Объект программы</small><strong>" + esc((po && po.object_id) || "—") + "</strong><span>" + esc((po && po.declared_status) ? humanCode(po.declared_status) : "статус не передан") + "</span></div>" +
-      "<div class='metric'><small>Режим</small><strong>" + esc(modeLabel) + "</strong><span>режим выполнения, не оценка качества прогноза</span></div>" +
-      "<div class='metric'><small>Активных клонов</small><strong>" + esc(data.clones_active != null ? data.clones_active : "—") + "</strong><span>вычислительные варианты C0–C7</span></div>" +
-      "<div class='metric'><small>Оценено проспективных прогнозов</small><strong>" + esc(scoredN == null ? "—" : scoredN) + "</strong><span>исходы, по которым уже можно измерять качество</span></div></div>" +
-      "<div class='twin-proof-boundary tone-blue' data-direction-role='evidence'><b>Граница доказанного:</b> текущий source_status — " + esc(status || "не передан") + ". " +
-        ((String(status || "").toUpperCase() === "LIVE" || String(status || "").toUpperCase() === "OK") ? "Источник этим статусом сообщает доступность вычислительного контура; это не доказывает точность прогноза. " : "Панель не повышает этот статус до утверждения о доступности или точности вычислительного контура. ") +
-        (scoredN == null ? "Число оценённых проспективных исходов источником не передано — вывод о предсказательной способности не делается." :
-          (scoredN === 0 ? "Пока оценено 0 проспективных исходов — предсказательная способность и лучший клон не определены." : "Оценённые исходы существуют, но их качество должно читаться из отдельной доказательной проекции.")) + "</div>" +
-      renderLatestBranchActivity(data.latest_branch_activity,"digital-twin") +
-      "<div class='live-item-clean tone-violet' data-direction-role='research'><div class='live-item-clean-head'><h3>Текущее состояние прогноза</h3>" + chip(data.current_prediction || "—") + "</div>" +
-      "<div class='live-kv-grid'>" +
-      kv("Статус", predLabel) +
-      kv("SHA-256 запечатанного обязательства", data.current_commitment ? cut(data.current_commitment, 24) + "…" : "—") +
-      kv("Печать создана", data.seal_created_at ? ago(data.seal_created_at) : "—") +
-      kv("Последний исход", data.last_outcome || "исход не передан") +
-      "</div>" +
-      (needsConf != null && needsConf > 0 ?
-        "<div class='live-status-box warn' style='margin-top:8px'><strong>Ожидает подтверждения: " + esc(needsConf) + "</strong>" +
-        "<p>Исход неоднозначен. Панель только показывает ожидание — подтверждение здесь не выполняется.</p></div>" : "") +
-      "</div>" +
-      "<div class='live-item-clean tone-blue' data-direction-role='evidence'><div class='live-item-clean-head'><h3>Предохранители эксперимента</h3>" + chip(Object.keys(inv).length ? "ИЗ ИСТОЧНИКА" : "—") + "</div>" +
-      "<div class='live-kv-grid'>" + invRows + "</div>" +
-      "<small>Граница переноса SS001: " + esc(transferLabel) + ".</small></div>";
+    var phaseScore=Number(counts.scores||0)>0, phaseLearning=Number(counts.model_updates||0)>0;
+    var phases=[
+      ["НАБЛЮДАЕТ",true],
+      ["ПРОГНОЗ ЗАПЕЧАТАН",predStatus==="SEALED"],
+      ["РЕАЛЬНОЕ ДЕЙСТВИЕ",prospectiveN>0||Number(counts.outcomes||0)>0],
+      ["SCORE",phaseScore],
+      ["ОБУЧЕНИЕ",phaseLearning],
+      ["НОВЫЙ ПРОГНОЗ",prospectiveN>0&&predStatus==="SEALED"]
+    ];
+    var processHTML=phases.map(function(x,i){return "<div class='twin-phase "+(x[1]?"active":"pending")+"'><span>"+(i+1)+"</span><b>"+esc(x[0])+"</b></div>";}).join("<i>→</i>");
+
+    var cloneHTML=clones.length?clones.map(function(c){
+      var exact=/^C[0-3]$/.test(String(c.id||""));
+      var grad=c.last_gradient_norm;
+      return "<article class='twin-clone "+(exact?"exact":"")+"'><header><b>"+esc(c.id||"—")+"</b><span>"+esc(cloneRole(c.role))+"</span></header><strong>"+esc(cloneState(c))+"</strong><div><small>Обновления</small><b>"+esc(c.updates==null?"—":c.updates)+"</b><small>N</small><b>"+esc(c.prospective_n==null?prospectiveN:c.prospective_n)+"</b></div>"+
+        (exact?"<em class='"+(exactOK===true?"ok":exactOK===false?"bad":"unknown")+"'>Точные контрольные клоны: "+esc(exactOK===true?"PASS":exactOK===false?"FAIL":"—")+"</em>":"")+
+        (Number(c.updates||0)>0?"<footer><span>последнее обновление: "+esc(c.last_update_at?ago(c.last_update_at):"—")+"</span><span>скорость обучения: "+esc(c.learning_rate==null?"—":c.learning_rate)+"</span><span>норма градиента: "+esc(grad==null?"—":grad)+" · величина обновления, не качество</span></footer>":"")+"</article>";
+    }).join(""):"<div class='cc-empty'>Клоны не переданы безопасной проекцией.</div>";
+
+    var historyHTML="";
+    if(!history.length){
+      historyHTML="<div class='twin-history-empty'><b>Ещё не было реального проспективного решения</b><span>N = "+esc(prospectiveN)+". До фактического исхода история обучения и раскрытые результаты прогноза отсутствуют.</span></div>";
+    }else{
+      historyHTML=history.slice(0,12).map(function(h){
+        var updates=learning.filter(function(x){return x.outcome_id&&x.outcome_id===h.outcome_id;});
+        return "<details class='twin-history-item'><summary><time>"+esc(h.occurred_at?dateShort(h.occurred_at):"—")+"</time><b>"+esc(h.object_id||"outcome")+"</b><span>"+esc(h.resolution_status||"—")+"</span></summary><div class='live-kv-grid'>"+kv("Outcome",h.outcome_id||"—")+kv("Eligible seal",shortId(h.eligible_seal_id))+kv("Commitment",shortHash(h.commitment_sha256))+kv("Confidence",h.confidence==null?"—":h.confidence)+kv("Model updates",updates.length+" / 8")+kv("Gatekeeper",gate.status||"—")+"</div></details>";
+      }).join("");
+    }
+
+    var gateStatus=gate.status||"не передан";
+    var gateClass=/PASS/i.test(gateStatus)?"ok":(/FAIL/i.test(gateStatus)?"bad":"wait");
+    var milestoneN=[0,10,30,60];
+    var milestoneHTML=milestoneN.map(function(n){var reached=prospectiveN>=n;var label=n===10?"Проверка стабильности инструмента":n===30?"Первый predictive gate":n===60?"Усиленный longitudinal gate":"Старт проспективного наблюдения";return "<div class='twin-milestone "+(reached?"reached":"")+"'><b>N="+n+"</b><span>"+esc(label)+"</span></div>";}).join("");
+
+    body.innerHTML=
+      alertHTML+
+      "<section class='twin-now direction-selectable' data-direction-role='canonical' data-direction-title='Personal Twin — G1' data-direction-summary='"+attr("Среда выполнения "+runtimeHealth+" · "+generation+" · N="+prospectiveN+" · "+predLabel)+"'><header><div><small>МОЙ ДВОЙНИК СЕЙЧАС</small><h2>Personal Twin — G1</h2></div><div class='twin-now-badges'><span>"+esc(generation)+"</span><span>"+esc(runtimeVersion)+"</span><span>N = "+esc(prospectiveN)+"</span></div></header>"+
+      "<div class='twin-now-grid'><div><small>Среда выполнения</small><b>"+esc(runtimeHealth)+"</b></div><div><small>Режим</small><b>"+esc(modeLabel)+"</b></div><div><small>Текущий прогноз</small><b>"+esc(predLabel)+"</b></div><div><small>Возраст seal</small><b>"+esc(sealAge)+"</b></div><div><small>Реальных решений</small><b>"+esc(prospectiveN)+"</b></div><div><small>Варианты</small><b>"+esc(realCandidates==null?"—":realCandidates+" реальных + OTHER")+"</b></div><div><small>Точные контрольные клоны</small><b>"+esc(exactOK===true?"PASS":exactOK===false?"FAIL":"—")+"</b></div><div><small>Incidents</small><b>"+esc(incidents)+"</b></div></div>"+
+      "<div class='twin-seal-line'><span>Active seal: <b>"+esc(shortId(gate.active_seal_id))+"</b></span><span>Commitment: <b>"+esc(shortHash(prediction.commitment||data.current_commitment))+"</b></span><span>детали прогноза: <b>СКРЫТЫ ДО OUTCOME</b></span></div></section>"+
+      "<section class='twin-process direction-selectable' data-direction-role='projection' data-direction-title='Цикл G1'><h3>Как идёт эксперимент</h3><div class='twin-process-row'>"+processHTML+"</div></section>"+
+      "<section class='twin-clones-wrap'><div class='live-item-clean-head'><h3>Восемь клонов C0–C7</h3>"+chip(clones.length+" / 8")+"</div><div class='twin-clone-grid'>"+cloneHTML+"</div></section>"+
+      "<details class='twin-learning'><summary><b>Что происходило с малышами</b><span>"+esc(history.length?history.length+" завершённых эпизодов":"первый фактический исход ещё не случился")+"</span></summary><div>"+historyHTML+"</div></details>"+
+      "<section class='twin-science-grid'><article class='twin-science'><header><small>SCIENTIFIC GATE</small><b class='"+gateClass+"'>"+esc(gateStatus)+"</b></header><p>Следующий gate: "+esc(prospectiveN<1?"G1_FIRST_REAL_OUTCOME_E2E":prospectiveN<10?"N10":prospectiveN<30?"N30":"N60")+". Gatekeeper проверяется независимо от UI.</p><div class='twin-milestones'>"+milestoneHTML+"</div></article>"+
+      "<article class='twin-science'><header><small>ЧТО СИСТЕМА СЕЙЧАС ВИДИТ</small><b>"+esc(realCandidates==null?"—":realCandidates+" реальных вариантов")+"</b></header><div class='twin-sensors'>"+sensorRows+"</div><div class='live-kv-grid'>"+kv("Всего candidate classes",candidateCount==null?"—":candidateCount)+kv("Exact controls",exactOK===true?"PASS":exactOK===false?"FAIL":"—")+kv("Incidents",incidents)+kv("Pending confirmation",confirmations)+"</div></article></section>"+
+      (confirmations>0?"<section class='twin-pending'><b>Нужно подтвердить исход: "+esc(confirmations)+"</b><span>v1.0 только показывает ambiguous outcome. Автоподтверждения нет.</span></section>":"")+
+      "<div class='twin-safety-boundary'><b>Граница безопасности:</b> активный predicted object, вероятности, ranking, top‑1, объясняющие факторы и hidden payload не передаются Founder Panel до outcome. "+esc(data.safety_note||"")+"</div>"+
+      renderLatestBranchActivity(data.latest_branch_activity,"digital-twin");
     refreshDirectionInspector("digital-twin");
   }
 
@@ -2865,7 +2889,7 @@
     function provenanceHTML(x){var p=provenance(x);return '<div class="com-provenance '+p.cls+'">'+safe(p.label)+'</div>';}
     function evidenceRank(x){var p=provenance(x);return p.cls==="live"?0:(p.cls==="imported"?2:1);}
     if(!sourceState.commercialDashboard.ok||!data){
-      ["hero","manual","feedback","proposals","stages","queue","sourcebar"].forEach(function(k){var el=box(k);if(el)el.innerHTML=unavailableHTML("Коммерческий контур недоступен","Проекция чтения не отвечает; прошлое состояние не используется как текущее.");});
+      ["hero","manual","automatic","feedback","proposals","stages","queue","sourcebar"].forEach(function(k){var el=box(k);if(el)el.innerHTML=unavailableHTML("Коммерческий контур недоступен","Проекция чтения не отвечает; прошлое состояние не используется как текущее.");});
       var ps=box("products");if(ps)ps.innerHTML=unavailableHTML("Продукты недоступны","Проекция чтения не отвечает.");
       pageBadge("commercial","unavailable","КОММЕРЧЕСКИЙ КОНТУР НЕДОСТУПЕН");
       refreshDirectionInspector("commercial");
@@ -2882,9 +2906,39 @@
       '<div class="commercial-source-item"><small>Собрано</small><b>'+safe(generatedRu)+'</b><span>'+safe(ageMin==null?"возраст неизвестен":"возраст "+ageMinutesLabel(ageMin))+'; обновляется автоматическим циклом</span></div>';if(sourcebar){sourcebar.setAttribute("data-direction-title","Подключения и свежесть");sourcebar.setAttribute("data-direction-summary","Коммерческая проекция подключена. Живых датированных записей: "+n(t.live_dated)+", импортированных без даты события: "+n(t.imported_undated)+". Ручная очередь: "+n(manual.length)+". Последняя сборка: "+generatedRu+".");}
     var nav=document.querySelector("[data-commercial-nav-count]");if(nav)nav.textContent=n(t.founder)?String(n(t.founder)):"";
     var hero=box("hero");if(hero){hero.setAttribute("data-direction-title","Коммерческое ядро");hero.setAttribute("data-direction-summary",n(t.all)+" записей всего: "+n(t.live_dated)+" с живой датой и "+n(t.imported_undated)+" импортированных без даты события. Незакрытых: "+n(t.active)+"; ждём рынок: "+n(t.waiting)+" ("+n(t.waiting_live_dated)+" живых / "+n(t.waiting_imported_undated)+" импортированных); требует действия Ники: "+n(t.founder)+"; оплачено: "+n(t.paid)+".");hero.innerHTML='<div class="com-hero-row"><div class="com-hero-copy"><small>КОММЕРЧЕСКОЕ ЯДРО</small><h2>'+n(t.all)+' записей · '+n(t.live_dated)+' с живой датой</h2><p>'+n(t.imported_undated)+' записей пришли из handoff без даты события и сохраняются как импортированное состояние, а не как свежая рыночная активность.</p></div><div class="com-hero-state"><span><small>незакрытых записей</small><b>'+n(t.active)+'</b></span><span><small>ждём рынок</small><b>'+n(t.waiting)+'</b></span><span><small>ручных действий</small><b>'+n(manual.length)+'</b></span><span><small>оплачено</small><b>'+n(t.paid)+'</b></span></div></div>';}
-    var k=box("kpis");if(k){var cells=[["Незакрытые записи",t.active,"из "+n(t.all)+" записей; это не число свежих сделок","◈","","projection"],["Ждём рынок",t.waiting,n(t.waiting_live_dated)+" с живой датой · "+n(t.waiting_imported_undated)+" импортированы без даты события","○","wait","projection"],["Ручная отправка",t.manual_send,"форма / портал / скрытый канал","↗","risk","decision"],["Проверить отправку",t.verify_sent,"сначала исключить дубль","?","wait","decision"],["Живые датированные",t.live_dated,"записи с подтверждённой датой события","↩","","evidence"],["Импорт без даты",t.imported_undated,"handoff-состояния; не свежие события","▤","","evidence"]];k.innerHTML=cells.map(function(c){var summary=c[0]+": "+n(c[1])+". "+c[2]+".";return '<div class="cc-kpi direction-selectable '+c[4]+'" data-direction-role="'+c[5]+'" data-direction-title="'+safe(c[0])+'" data-direction-summary="'+safe(summary)+'"><span class="cc-kpi-icon">'+c[3]+'</span><span class="cc-kpi-body"><small>'+safe(c[0])+'</small><strong>'+n(c[1])+'</strong><em>'+safe(c[2])+'</em></span></div>';}).join("");}
+    var autoToday=Array.isArray(data.automatic_today)?data.automatic_today:[];
+    var k=box("kpis");if(k){var cells=[["Отправить вручную",t.manual_send,"формы, порталы и каналы без безопасной автоотправки","↗","risk","decision"],["Найти контакт / решить маршрут",t.contact_route,"сильный кейс готов, но адрес или маршрут не подтверждён","⌕","violet","decision"],["Проверить прошлую отправку",t.verify_sent,"нельзя повторять касание до проверки","?","wait","decision"],["Сегодня автоматически",autoToday.length,"обычные безопасные first-touch email; это наблюдаемость, не задача","✓","","evidence"],["Ждём рынок",t.waiting,n(t.waiting_live_dated)+" с живой датой · "+n(t.waiting_imported_undated)+" импортированы без даты события","○","wait","projection"],["Живые датированные",t.live_dated,"записи с подтверждённой датой события","↩","","evidence"]];k.innerHTML=cells.map(function(c){var summary=c[0]+": "+n(c[1])+". "+c[2]+".";return '<div class="cc-kpi direction-selectable '+c[4]+'" data-direction-role="'+c[5]+'" data-direction-title="'+safe(c[0])+'" data-direction-summary="'+safe(summary)+'"><span class="cc-kpi-icon">'+c[3]+'</span><span class="cc-kpi-body"><small>'+safe(c[0])+'</small><strong>'+n(c[1])+'</strong><em>'+safe(c[2])+'</em></span></div>';}).join("");}
     var prod=box("products");if(prod)prod.innerHTML=products.map(function(p){var counts=p.stage_counts||{},items=(p.items||[]).slice().sort(function(a,b){var d=stagePriority(a.stage)-stagePriority(b.stage);return d||evidenceRank(a)-evidenceRank(b);});var chips=["RESEARCH","FOUNDER","WAITING","WATCH","HOLD","SUBMITTED","REPLIED","PROPOSAL","PAID"].filter(function(x){return n(counts[x])>0;}).map(function(x){return '<span class="com-stage-chip">'+safe(ruStage(x))+' <b>'+n(counts[x])+'</b></span>';}).join("");var rows=items.filter(function(x){return x.stage!=="CLOSED";}).slice(0,6).map(function(x){var nx=nextRu(x.next||x.signal_class||x.class_name||x.route||"");var summary=(x.company||x.id)+". Стадия: "+ruStage(x.stage)+". Следующий ход: "+(nx||"не передан")+".";return '<div class="com-item direction-selectable" data-direction-role="projection" data-direction-title="'+safe(x.company||x.id)+'" data-direction-summary="'+safe(summary)+'"><div class="com-item-top"><b>'+safe(x.company||x.id)+'</b><em>'+safe(ruStage(x.stage))+'</em></div><small>'+safe(nx)+'</small>'+itemDates(x)+provenanceHTML(x)+'</div>';}).join("");var tone=productClass(p)==="amber"?"tone-return":productClass(p)==="violet"?"tone-violet":"tone-flow";return '<article class="com-product direction-selectable '+safe(tone)+' '+safe(productClass(p))+'" data-direction-role="projection"><div class="com-product-head"><div><h2>'+safe(p.name)+'</h2><small>'+safe(productGoal(p))+'</small></div><span class="com-product-badge">'+n(p.active_items)+'</span></div><div class="com-stage-strip">'+chips+'</div><div class="com-product-list">'+(rows||'<div class="com-empty">Нет активных объектов.</div>')+'</div></article>';}).join("");
-    var man=box("manual");if(man)man.innerHTML=manual.length?manual.map(function(x){var verify=x.kind==="VERIFY_SENT";var action=verify?"проверить статус":"открыть ручную отправку";var dateNote=verify?"дата отправки не подтверждена · состояние сверено "+generatedRu:"готово к ручному действию · состояние сверено "+generatedRu;var summary=(x.company||x.item_id)+". "+(x.reason||nextRu(x.next)||"Требуется ручное действие")+". "+dateNote+".";var ctx={kind:"commercial_object",title:x.company||x.item_id,sub:x.product_name||x.product_id,object_id:x.item_id||"",status:x.status||"",next:nextRu(x.next||""),route:x.route||"",generated_at:data.generated_at||"",why:x.reason||"",details:summary};return '<div class="com-manual-row direction-selectable tone-return" data-direction-role="decision" data-direction-title="'+safe(x.company||x.item_id)+'" data-direction-summary="'+safe(summary)+'"><div><b>'+safe(x.company||x.item_id)+'</b><small>'+safe(x.product_name||x.product_id)+'</small><div class="com-item-date"><span class="'+(verify?"due":"sent")+'">'+safe(dateNote)+'</span></div><div class="com-provenance '+(x._source_kind==="handoff_seed"?"imported":"unknown")+'">'+safe(x._source_kind==="handoff_seed"?"импорт · дата события не передана":"происхождение не указано")+'</div></div><button type="button" class="com-action-tag '+(verify?'verify':'')+'" data-cc-steward-context="'+attr(JSON.stringify(ctx))+'">'+safe(action)+'</button><small>'+safe(x.reason||nextRu(x.next)||x.route||"")+'</small></div>';}).join(""):'<div class="com-empty">Сейчас ручных действий нет. Автоматические стадии продолжаются сами.</div>';
+    function manualInfo(x){
+      var kind=String(x.kind||"");
+      if(kind==="VERIFY_SENT")return {label:"Проверить прошлую отправку",cls:"verify",tone:"tone-blue"};
+      if(kind==="MANUAL_CONTACT_RESEARCH")return {label:"Найти контакт / решить маршрут",cls:"route",tone:"tone-violet"};
+      return {label:"Отправить вручную",cls:"send",tone:"tone-return"};
+    }
+    function taskDate(x){return x.created_at||x._imported_at||x.updated_at||data.generated_at||null;}
+    var man=box("manual");
+    if(man)man.innerHTML=manual.length?manual.map(function(x){
+      var info=manualInfo(x), verify=x.kind==="VERIFY_SENT", title=x.company||x.item_id||"Коммерческий кейс";
+      var appeared=taskDate(x), appearedText=appeared?dateShort(appeared):"дата не передана";
+      var subject=x.subject||"", bodyText=x.body||x.copy_text||"";
+      var recipient=[x.recipient_name,x.recipient_role].filter(Boolean).join(" · ")||"адресат / роль не переданы";
+      var why=x.why_now||x.reason||"Требуется ручное действие";
+      var payload={case_id:x.item_id||"",company:title,product_id:x.product_id||"",channel:x.route||"",target_url:x.target_url||null,projection_generated_at:data.generated_at||null,timestamp:new Date().toISOString()};
+      var currentAction=attr(JSON.stringify(Object.assign({},payload,{action_type:"MANUAL_SEND_CONFIRMED"})));
+      var historicalAction=attr(JSON.stringify(Object.assign({},payload,{action_type:"HISTORICAL_SENT_CONFIRMED"})));
+      var stewardCtx=attr(JSON.stringify({kind:"commercial_manual_action",title:title,sub:x.product_name||x.product_id||"",object_id:x.item_id||"",status:x.status||"",route:x.route||"",why:why,target_url:x.target_url||"",subject:subject,generated_at:data.generated_at||"",details:"Ручная граница: "+info.label+". "+why}));
+      var openButton=x.target_url?'<a class="com-work-open" href="'+attr(x.target_url)+'" target="_blank" rel="noopener">Открыть форму / сайт</a>':'<button type="button" class="com-work-open unavailable" data-cc-steward-context="'+stewardCtx+'">Маршрут не передан — спросить Стюарда</button>';
+      var subjectBlock=subject?'<div class="com-copy-field"><div><small>Тема</small><button type="button" data-commercial-copy="subject">Копировать</button></div><p data-commercial-subject>'+safe(subject)+'</p></div>':'<div class="com-copy-field missing"><small>Тема</small><p>не передана источником</p></div>';
+      var bodyBlock=bodyText?'<div class="com-copy-field body"><div><small>Текст для отправки</small><button type="button" data-commercial-copy="body">Копировать текст</button></div><pre data-commercial-body>'+safe(bodyText)+'</pre><button type="button" class="com-copy-all" data-commercial-copy="all">Скопировать всё</button></div>':'<div class="com-copy-field missing"><small>Текст для отправки</small><p>не передан источником — панель не сочиняет письмо</p></div>';
+      var routeResearch=x.kind==="MANUAL_CONTACT_RESEARCH";
+      var actionButtons=verify?'<div class="com-work-confirm"><button type="button" data-commercial-propose="'+historicalAction+'">Да, уже отправлено</button>'+(x.target_url?'<a href="'+attr(x.target_url)+'" target="_blank" rel="noopener" class="secondary">Нет, не отправлено — открыть маршрут</a>':'<button type="button" class="secondary" data-cc-steward-context="'+stewardCtx+'">Нет, не отправлено — решить маршрут</button>')+'<div data-commercial-action-state></div></div>':(routeResearch?'<div class="com-work-confirm route-research"><button type="button" class="secondary" data-cc-steward-context="'+stewardCtx+'">Разобрать маршрут со Стюардом</button><small>Подтверждение отправки появится только после того, как upstream найдёт допустимый адрес или форму и пересоберёт задачу.</small></div>':'<div class="com-work-confirm"><button type="button" data-commercial-propose="'+currentAction+'">Отправлено вручную</button><div data-commercial-action-state></div></div>');
+      return '<details class="com-manual-card '+info.cls+' '+info.tone+' direction-selectable" data-direction-role="decision" data-direction-title="'+safe(title)+'" data-direction-summary="'+safe(info.label+". "+why+". Появилось: "+appearedText)+
+        '"><summary><div class="com-manual-summary-main"><b>'+safe(title)+'</b><small>'+safe(x.product_name||x.product_id||"продукт не передан")+'</small></div><span class="com-manual-type">'+safe(info.label)+'</span><p>'+safe(why)+'</p><time>'+safe(appearedText)+'</time></summary>'+
+        '<div class="com-manual-work"><div class="com-work-left"><div><small>Компания</small><b>'+safe(title)+'</b></div><div><small>Продукт</small><b>'+safe(x.product_name||x.product_id||"—")+'</b></div><div><small>Сигнал / почему сейчас</small><p>'+safe(x.why_now||x.reason||"не передано")+'</p></div><div><small>Адресат / роль</small><p>'+safe(recipient)+'</p></div><div><small>Причина ручного режима</small><p>'+safe(x.reason||"не передано")+'</p></div><div><small>Дата появления задачи</small><p>'+safe(appearedText)+'</p></div></div>'+
+        '<div class="com-work-right">'+openButton+subjectBlock+bodyBlock+actionButtons+'</div></div></details>';
+    }).join(""):'<div class="com-empty">Сейчас ручных границ нет. Если автоматизация умеет выполнить безопасный следующий шаг сама, задача Нике не создаётся.</div>';
+    var autoBox=box("automatic");
+    if(autoBox)autoBox.innerHTML=autoToday.length?'<div class="com-auto-count"><b>'+autoToday.length+' отправлено</b><span>сегодня автоматически после gates и проверки дублей</span></div>'+autoToday.map(function(x){return '<div class="com-auto-row"><b>'+safe(x.company||x.case_id)+'</b><span>SENT · '+safe(dateShort(x.sent_at))+'</span><small>'+safe(x.product_name||x.product_id||"")+'</small></div>';}).join(""):'<div class="com-empty">Сегодня подтверждённых автоматических отправок пока нет.</div>';
     var feedback=[];products.forEach(function(p){(p.items||[]).forEach(function(x){if(x.reply_status||x.reply_summary||["REPLIED","CONVERSATION"].includes(x.stage))feedback.push(x);});});var fb=box("feedback");if(fb)fb.innerHTML=feedback.length?feedback.slice(0,8).map(function(x){return '<div class="com-feedback-row"><div><b>'+safe(x.company||x.id)+'</b><small>'+safe(x.reply_status||ruStage(x.stage))+'</small></div><span></span><small>'+safe(x.reply_summary||"Ответ подтверждён; содержание ещё не занесено.")+'</small></div>';}).join(""):'<div class="com-empty">Подтверждённой обратной связи пока нет. Это не означает отсутствие ответов — только отсутствие занесённого события.</div>';
     var prop=[];products.forEach(function(p){(p.items||[]).forEach(function(x){if(["SUBMITTED","PROPOSAL","PAID"].includes(x.stage)||x.proposal_status)prop.push(x);});});var pr=box("proposals");if(pr)pr.innerHTML=prop.length?prop.slice(0,10).map(function(x){return '<div class="com-feedback-row"><div><b>'+safe(x.company||x.id)+'</b><small>'+safe(ruStage(x.stage))+'</small></div><span></span><small>'+safe(x.proposal_feedback||x.next||x.proposal_status||"")+'</small></div>';}).join(""):'<div class="com-empty">Подтверждённых КП / формальных подач пока нет.</div>';
     var stages=["DISCOVERY","SCREENING","RESEARCH","HOLD","READY","FOUNDER","WAITING","WATCH","SUBMITTED","REPLIED","CONVERSATION","PROPOSAL","PAID","CLOSED"];var sm=box("stages");if(sm){var heads='<div class="head">Стадия</div>'+products.map(function(p){return '<div class="head">'+safe(p.name)+'</div>';}).join("");var rows=stages.map(function(x){return '<div class="stage-name">'+safe(ruStage(x))+'</div>'+products.map(function(p){var cls=productClass(p),c=n((p.stage_counts||{})[x]);return '<div class="n '+safe(cls)+'-n">'+c+'</div>';}).join("");}).join("");sm.innerHTML='<div class="com-stage-matrix">'+heads+rows+'</div>';}
@@ -2915,6 +2969,8 @@
         '</div>';
     }).join("")+'</div>';
   }
+
+  window.addEventListener("aiclavis:commercial-action-confirmed",function(){setTimeout(function(){fetchJSON("commercialDashboard",ENDPOINTS.commercialDashboard,UNIVERSE_TIMEOUT_MS).then(function(d){renderCommercial(d);});fetchJSON("manualCommercial",ENDPOINTS.manualCommercial,UNIVERSE_TIMEOUT_MS).then(function(d){renderManualCommercial(d);});},1200);});
 
   function boot() {
     injectLiveStyles();

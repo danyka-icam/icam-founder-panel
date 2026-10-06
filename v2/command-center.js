@@ -3478,6 +3478,23 @@
       .then(function(r){return r.json().then(function(j){if(!r.ok){var er=new Error(j.error||("HTTP "+r.status));er.code=j.error||"http_error";er.status=r.status;throw er;}return j;});});
   }
 
+  function commercialActionErrorText(err) {
+    var c=err&&err.code||"";
+    if(c==="commercial_action_not_pending"||c==="action_not_pending") return "Это подтверждение уже обработано. Повторная запись не выполнена.";
+    if(c==="commercial_action_identity_required") return "Не хватает точной идентичности коммерческого кейса. Система ничего не записала.";
+    if(c==="commercial_action_type_not_allowed") return "Такой тип коммерческого подтверждения не разрешён.";
+    return "Не удалось безопасно записать коммерческое подтверждение. Система ничего не изменила.";
+  }
+
+  function copyText(value,button) {
+    var text=String(value||"");
+    if(!text)return;
+    var done=function(){if(button){var old=button.textContent;button.textContent="Скопировано";setTimeout(function(){button.textContent=old;},1200);}};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done).catch(function(){});return;}
+    var ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy");done();}catch(_){}
+    ta.remove();
+  }
+
   function decisionErrorText(err) {
     var c=err&&err.code||"";
     if(c==="decision_not_open") return "Это решение уже не открыто. Обнови панель — возможно, оно уже было зафиксировано.";
@@ -3488,6 +3505,42 @@
   }
 
   document.addEventListener("click", function (e) {
+    var commercialCopy=e.target.closest("[data-commercial-copy]");
+    if(commercialCopy){
+      var card=commercialCopy.closest(".com-manual-card"); if(!card)return;
+      var kind=commercialCopy.getAttribute("data-commercial-copy"), subject=card.querySelector("[data-commercial-subject]"), body=card.querySelector("[data-commercial-body]");
+      var sv=subject?subject.textContent.trim():"", bv=body?body.textContent:"";
+      copyText(kind==="subject"?sv:(kind==="body"?bv:((sv?"Subject: "+sv+"\n\n":"")+bv)),commercialCopy);
+      return;
+    }
+    var commercialPropose=e.target.closest("[data-commercial-propose]");
+    if(commercialPropose){
+      var scope=commercialPropose.closest(".com-manual-card"), state=scope&&scope.querySelector("[data-commercial-action-state]"); if(!scope||!state)return;
+      var payload={};try{payload=JSON.parse(commercialPropose.getAttribute("data-commercial-propose")||"{}");}catch(_){}
+      commercialPropose.disabled=true; state.textContent="Готовлю hash-защищённое подтверждение…";
+      panelPost("/founder-ui-preview/api/steward-navigator/action/propose-commercial",payload)
+        .then(function(data){var q=data.proposal||{};state.innerHTML="<div class='com-commercial-confirm-card' data-commercial-confirm-card data-action-id='"+E(q.action_id||"")+"' data-action-hash='"+E(q.action_hash||"")+"'><b>"+E(q.question||"Подтвердить действие?")+"</b><small>Первый клик ничего не записал. Только следующий клик создаст авторитетное событие через Founder Actions.</small><button type='button' data-commercial-confirm-action>Подтвердить</button> <button type='button' class='secondary' data-commercial-cancel-action>Отмена</button></div>";})
+        .catch(function(err){commercialPropose.disabled=false;state.innerHTML="<span class='warn'>"+E(commercialActionErrorText(err))+"</span>";});
+      return;
+    }
+    var commercialCancel=e.target.closest("[data-commercial-cancel-action]");
+    if(commercialCancel){
+      var cc= commercialCancel.closest("[data-commercial-confirm-card]"), cscope=commercialCancel.closest(".com-manual-card"), cstate=cscope&&cscope.querySelector("[data-commercial-action-state]"); if(!cc||!cstate)return;
+      commercialCancel.disabled=true;
+      panelPost("/founder-ui-preview/api/steward-navigator/action/cancel",{action_id:cc.getAttribute("data-action-id"),action_hash:cc.getAttribute("data-action-hash"),founder_confirmation:"CANCEL"})
+        .then(function(){cstate.innerHTML="<span>Подтверждение отменено. Ничего не записано.</span>";var b=cscope.querySelector("[data-commercial-propose]");if(b)b.disabled=false;})
+        .catch(function(err){commercialCancel.disabled=false;cstate.innerHTML="<span class='warn'>"+E(commercialActionErrorText(err))+"</span>";});
+      return;
+    }
+    var commercialConfirm=e.target.closest("[data-commercial-confirm-action]");
+    if(commercialConfirm){
+      var ccard=commercialConfirm.closest("[data-commercial-confirm-card]"), cs=commercialConfirm.closest(".com-manual-card"), cst=cs&&cs.querySelector("[data-commercial-action-state]"); if(!ccard||!cst)return;
+      commercialConfirm.disabled=true;cst.insertAdjacentHTML("beforeend","<span>Записываю подтверждённое событие…</span>");
+      panelPost("/founder-ui-preview/api/steward-navigator/action/confirm-commercial",{action_id:ccard.getAttribute("data-action-id"),action_hash:ccard.getAttribute("data-action-hash"),founder_confirmation:"CONFIRM"})
+        .then(function(data){cst.innerHTML="<div class='cc-decision-recorded'><b>Подтверждение записано</b><span>"+E(data.action_type==="HISTORICAL_SENT_CONFIRMED"?"Историческая отправка подтверждена.":"Ручная отправка подтверждена.")+"</span><small>Коммерческий runtime подберёт событие и сам переведёт кейс в WAITING.</small></div>";window.dispatchEvent(new CustomEvent("aiclavis:commercial-action-confirmed"));})
+        .catch(function(err){commercialConfirm.disabled=false;cst.innerHTML="<span class='warn'>"+E(commercialActionErrorText(err))+"</span>";});
+      return;
+    }
     var cancelAction=e.target.closest("[data-cc-steward-cancel]");
     if(cancelAction){
       var card=cancelAction.closest("[data-cc-steward-action-card]"); if(!card)return;

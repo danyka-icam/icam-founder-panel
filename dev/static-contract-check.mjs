@@ -19,6 +19,8 @@ const allowedPosts = new Set([
   "/founder-ui-preview/api/steward-navigator/action/confirm-status",
   "/founder-ui-preview/api/steward-navigator/action/propose-decision",
   "/founder-ui-preview/api/steward-navigator/action/confirm-decision",
+  "/founder-ui-preview/api/steward-navigator/action/propose-commercial",
+  "/founder-ui-preview/api/steward-navigator/action/confirm-commercial",
   "/founder-ui-preview/api/steward-navigator/action/cancel"
 ]);
 const disallowedWrites = browserWrites.filter((x) => !(x.method === "POST" && allowedPosts.has(x.url)));
@@ -38,7 +40,7 @@ check(/operations-legacy-deprecated" hidden/.test(src["v2/index.html"]), "legacy
 
 const liveClient = src["v2/live.js"];
 check(/rq\.actionable_review/.test(liveClient) && /rq\.unassigned_review_quarantine/.test(liveClient), "documents keep actionable review separate from quarantine");
-check(/это не число свежих сделок/.test(liveClient) && /live_dated/.test(liveClient) && /imported_undated/.test(liveClient), "commercial UI keeps live-dated state separate from imported-undated state");
+check(/live_dated/.test(liveClient) && /imported_undated/.test(liveClient) && /импортированные записи не считаются датированными текущими событиями/.test(liveClient), "commercial UI keeps live-dated state separate from imported-undated state");
 check(/unverifiedEdges/.test(liveClient) && /Неподтверждённые связи/.test(liveClient), "Agent Lineage does not silently drop unverified edges");
 check(/founderItems = Array\.isArray\(summary\.needs_founder\)/.test(liveClient), "Testing Founder work comes from explicit needs_founder[]");
 check(/API \+ "\/agent-registry"/.test(liveClient) && /API \+ "\/agent-lineage"/.test(liveClient), "Agent Network uses only upstream-approved same-origin read projections");
