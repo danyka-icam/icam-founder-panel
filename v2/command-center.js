@@ -590,7 +590,7 @@
     var trustedKnown = !!(j.trusted_owner_map && typeof j.trusted_owner_map === "object" && !Array.isArray(j.trusted_owner_map));
     var ownerConflictsKnown = Array.isArray(j.owner_conflicts) || !!(j.owner_conflicts && typeof j.owner_conflicts === "object");
     var rulesKnown = Array.isArray(j.rules) || !!(j.rules && typeof j.rules === "object");
-    var AD = { counts: j.counts || {}, compiledAt: j.compiled_at || null, rules: [], rulesKnown: rulesKnown, items: {}, byMemory: {}, buckets: {}, trustedKnown: trustedKnown, ownerConflictsKnown: ownerConflictsKnown };
+    var AD = { counts: j.counts || {}, compiledAt: j.compiled_at || null, rules: [], rulesKnown: rulesKnown, items: {}, byMemory: {}, buckets: {}, trustedKnown: trustedKnown, ownerConflictsKnown: ownerConflictsKnown, conflictEvidence:(j.conflict_evidence&&typeof j.conflict_evidence==="object"?j.conflict_evidence:{}) };
     AD.rules = Array.isArray(j.rules) ? j.rules : (j.rules && typeof j.rules === "object" ? Object.keys(j.rules).map(function (k) { return k + ": " + scalar(j.rules[k]); }) : []);
     // trusted_owner_map: owning_branch → exact canonical line title.
     var trusted = trustedKnown ? j.trusted_owner_map : {};
@@ -2600,14 +2600,14 @@
     slots["placement-sum"].innerHTML = "<div class='cc-plts'>" +
       tile("placed", "На Founder Map", M.tu.ok ? lowerBoundCount(M.U.stars.length, M.U.starsComplete) : (c.placed != null ? c.placed : "—"), M.tu.ok ? (M.U.starsComplete ? "звёзд в Temporal Universe" : "нижняя граница: не у всех линий передан branches[]") : "по счётчику источника") +
       tile("candidate", "Кандидаты на точную связь", candActive, candSource !== candActive ? "из " + candSource + " по источнику · " + (candSource - candActive) + " в архиве" : "точный владелец найден источником; ещё не звёзды") +
-      tile("review", "Записи на структурную сверку", q.review, "не список срочных задач · из " + reviewCounts().review + " по источнику" + (q.archived ? " · " + (reviewCounts().review - q.review) + " в архиве" : "")) +
+      tile("review", "Системная сверка", q.review, "реестровая работа, не задачи Основателя · из " + reviewCounts().review + " по источнику" + (q.archived ? " · " + (reviewCounts().review - q.review) + " в архиве" : "")) +
       tile("conflict", "Конфликт владельцев", q.conflicts == null ? "—" : q.conflicts, q.conflicts == null ? "owner_conflicts не передан; наличие конфликтов не подтверждено" : (q.conflicts ? "решается вручную" : "конфликтов нет")) +
       tile("archive", "Архив", AD.ownerConflictsKnown ? AD.buckets.archive.length : "≥ " + AD.buckets.archive.length, AD.ownerConflictsKnown ? "архивные и исторические элементы допуска" : "нижняя граница: owner_conflicts не передан") + "</div>" +
       "<div class='cc-pl-source'><b>Счётчики источника</b> " + srcKeys.filter(function (k) { return c[k] != null; }).map(function (k) {
         return "<span title='" + E(k) + "'>" + E(srcNames[k]) + " <b>" + E(c[k]) + "</b></span>";
       }).join("") + Object.keys(c).filter(function (k) { return srcKeys.indexOf(k) < 0; }).map(function (k) {
         return "<span title='" + E(k) + "'>" + E(H.humanCode(k)) + " <b>" + E(scalar(c[k])) + "</b></span>";
-      }).join("") + "<em>Структурная очередь = элементы без архивного state; это не очередь срочности и не список задач Основателя. Архив показан отдельно ниже.</em></div>";
+      }).join("") + "<em>review_required — техническая очередь Portfolio Admission. Она не считается работой Основателя. Ручное решение требуется только там, где источник отдельно подтверждает конфликт владельцев.</em></div>";
 
     slots["pl-map"].innerHTML = M.tu.ok ? founderMap() : unavailable("Список звёзд недоступен", "Temporal Universe не ответил. Счётчик placed — из Portfolio Admission counts.");
     slots["pl-cand"].innerHTML = AD.buckets.candidate.length ? AD.buckets.candidate.map(admCard).join("") : empty("Кандидатов нет", "");
@@ -2625,7 +2625,7 @@
       reviewGroups.forEach(function(g){if(!g.states)g.items=AD.buckets.review.filter(function(it){return !claimed[it.key];});});
       var reasonCount={};AD.buckets.review.forEach(function(it){var r=String(it.raw&&it.raw.reason||"причина не передана");reasonCount[r]=(reasonCount[r]||0)+1;});
       var reasonSummary=Object.keys(reasonCount).sort(function(a,b){return reasonCount[b]-reasonCount[a];}).map(function(k){return "<span>"+E(H.humanCode(k))+" <b>"+reasonCount[k]+"</b></span>";}).join("");
-      slots["pl-queue"].innerHTML="<div class='cc-placement-queue-intro'><b>"+AD.buckets.review.length+" записей, а не "+AD.buckets.review.length+" одинаково срочных задач</b><span>Группировка ниже использует только явный state источника. Причины: "+reasonSummary+"</span></div>"+reviewGroups.filter(function(g){return g.items.length;}).map(function(g){return "<details class='cc-placement-group'><summary><b>"+E(g.label)+"</b><span>"+g.items.length+"</span></summary><div class='cc-placement-group-body'>"+g.items.map(admCard).join("")+"</div></details>";}).join("");
+      slots["pl-queue"].innerHTML="<div class='cc-placement-queue-intro'><b>"+AD.buckets.review.length+" записей системной сверки</b><span>Это работа владельца реестра/reconciliation, а не список решений Ники. Панель показывает её для прозрачности. Причины: "+reasonSummary+"</span></div>"+reviewGroups.filter(function(g){return g.items.length;}).map(function(g){return "<details class='cc-placement-group'><summary><b>"+E(g.label)+"</b><span>"+g.items.length+"</span></summary><div class='cc-placement-group-body'>"+g.items.map(admCard).join("")+"</div></details>";}).join("");
     } else slots["pl-queue"].innerHTML = empty("Очередь сверки пуста", "");
     slots["pl-conflict"].innerHTML = AD.buckets.conflict.length ? AD.buckets.conflict.map(admCard).join("") :
       (AD.ownerConflictsKnown ? empty("Конфликтов нет в текущем owner_conflicts", "Источник передал пустой набор.") : unavailable("Конфликты владельцев не проверены", "Поле owner_conflicts источником не передано."));
@@ -3267,6 +3267,17 @@
     });
   }
 
+  function conflictEvidenceHTML(branch) {
+    var ev=M.AD&&M.AD.conflictEvidence&&M.AD.conflictEvidence[branch];
+    if(!ev||typeof ev!=="object")return muted("Причинные размещённые объекты источником не переданы.");
+    var lines=Object.keys(ev);
+    if(!lines.length)return muted("conflict_evidence передан без объектов.");
+    return "<small>Что именно породило конфликт</small><div class=\"cc-conflict-evidence\">"+lines.map(function(line){
+      var rows=Array.isArray(ev[line])?ev[line]:[];
+      return "<div class=\"cc-conflict-evidence-line\"><b>"+E(line)+"</b>"+(rows.length?rows.map(function(x){return "<span><strong>"+E(x.title||x.memory_id||"объект")+"</strong><small>"+E([x.memory_id,x.kind&&human(x.kind),x.state&&human(x.state),x.evidence_status&&human(x.evidence_status)].filter(Boolean).join(" · "))+"</small></span>";}).join(""):"<span>объекты не переданы</span>")+"</div>";
+    }).join("")+"</div>";
+  }
+
   function inspectAdm(it) {
     var r = it.raw, vis = mapVisibility(it.memoryId);
     var nav = "<a href='#placement'>Размещение →</a>";
@@ -3276,10 +3287,10 @@
         what: para("Происхождение «" + (r.owning_branch || it.title) + "» указывает сразу на " + it.conflictLines.length + " линии."),
         where: crumbs([{ t: "ICAM" }, { t: "слой допуска" }, { t: "конфликт", cur: true }]),
         now: para("Пока конфликт не решён, объекты с этим происхождением не размещаются автоматически."),
-        waiting: para("Ручного выбора одной линии-владельца."),
-        step: { text: "Выбрать одну линию-владельца вручную.", src: "решение принимается вне панели — панель только читает" },
-        links: refsBlock("Конкурирующие линии", "") + conflictLinesHTML(it),
-        ceiling: [ceilingRow("ok", "Конфликт — owner_conflicts Portfolio Admission"), ceilingRow("info", "Ссылка на линию — только при точном совпадении названия")],
+        waiting: para("Нужно определить модель владения: либо выбрать одну каноническую линию для этого owning_branch, либо разделить слишком широкую ветку на более точные owning_branch. До решения автоматическое размещение остановлено."),
+        step: { text: "Сначала проверить объекты, породившие конфликт; затем выбрать одного владельца или разделить owning_branch.", src: "Portfolio Admission conflict_evidence + решение Основателя; панель пока только читает" },
+        links: refsBlock("Конкурирующие линии", "") + conflictLinesHTML(it) + conflictEvidenceHTML(r.owning_branch),
+        ceiling: [ceilingRow("ok", "Конфликт — owner_conflicts Portfolio Admission"), ceilingRow(M.AD.conflictEvidence&&M.AD.conflictEvidence[r.owning_branch]?"ok":"info", M.AD.conflictEvidence&&M.AD.conflictEvidence[r.owning_branch]?"Причинные размещённые объекты переданы conflict_evidence":"Источник не передал conflict_evidence; нельзя безопасно выбирать по названию"), ceilingRow("info", "Ссылка на линию — только при точном совпадении названия")],
         nav: nav
       });
     }
@@ -3367,8 +3378,8 @@
     var navCount = document.querySelector("[data-cc-nav-count='placement']");
     if (navCount) {
       var q = M.adm.ok ? activeQueue() : null;
-      navCount.textContent = q && q.active ? (q.activeKnown ? String(q.active) : "≥" + q.active) : "";
-      navCount.title = q ? (q.activeKnown ? "структурные записи на сверку и конфликты, без архива; это не счётчик срочных задач" : "нижняя граница структурных записей: owner_conflicts не передан") : "";
+      navCount.textContent = q && q.conflicts ? String(q.conflicts) : "";
+      navCount.title = q ? (q.conflictsKnown ? (q.conflicts ? "конфликт владельца, требующий ручного решения" : "ручных конфликтов владельца нет") : "owner_conflicts источником не подтверждён") : "";
     }
   }
 

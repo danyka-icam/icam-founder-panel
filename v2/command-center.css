@@ -1671,3 +1671,10 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .com-manual-card.is-processing{opacity:.48;filter:saturate(.35);background:rgba(255,255,255,.015)}
 .com-manual-card.is-processing>summary{cursor:default}
 .com-manual-card.is-processing a[aria-disabled="true"]{pointer-events:none}
+
+.cc-conflict-evidence{display:grid;gap:10px;margin-top:8px}
+.cc-conflict-evidence-line{border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;display:grid;gap:7px}
+.cc-conflict-evidence-line>b{font-size:12px}
+.cc-conflict-evidence-line>span{display:grid;gap:2px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)}
+.cc-conflict-evidence-line>span:first-of-type{border-top:0;padding-top:0}
+.cc-conflict-evidence-line small{color:var(--muted-2);overflow-wrap:anywhere}
