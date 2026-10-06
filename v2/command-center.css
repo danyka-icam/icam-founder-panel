@@ -1667,3 +1667,7 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .com-reply-meta b{font-size:12px;overflow-wrap:anywhere}
 .com-reply-body p{margin:0;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
 @media(max-width:900px){.com-reply-meta{grid-template-columns:1fr}}
+
+.com-manual-card.is-processing{opacity:.48;filter:saturate(.35);background:rgba(255,255,255,.015)}
+.com-manual-card.is-processing>summary{cursor:default}
+.com-manual-card.is-processing a[aria-disabled="true"]{pointer-events:none}

@@ -2919,7 +2919,19 @@
       return {label:"Отправить вручную",cls:"send",tone:"tone-return"};
     }
     function taskDate(x){return x.created_at||x._imported_at||x.updated_at||data.generated_at||null;}
+    var commercialUi=window.__aiclavisCommercialManualUi||(window.__aiclavisCommercialManualUi={});
     var man=box("manual");
+    if(man){
+      man.querySelectorAll(".com-manual-card[data-commercial-item-id]").forEach(function(card){
+        var id=card.getAttribute("data-commercial-item-id");if(!id)return;
+        var u=commercialUi[id]||(commercialUi[id]={});
+        if(!u.processing)u.open=!!card.open;
+        var st=card.querySelector("[data-commercial-action-state]");
+        if(st&&st.innerHTML.trim())u.actionHtml=st.innerHTML;
+        var fd=card.querySelector(".com-work-failure>details"),fr=card.querySelector("[data-commercial-failure-reason]"),fn=card.querySelector("[data-commercial-failure-note]");
+        if(fd)u.failureOpen=!!fd.open;if(fr)u.failureReason=fr.value;if(fn)u.failureNote=fn.value;
+      });
+    }
     if(man)man.innerHTML=manual.length?manual.map(function(x){
       var info=manualInfo(x), verify=x.kind==="VERIFY_SENT", title=x.company||x.item_id||"Коммерческий кейс";
       var appeared=taskDate(x), appearedText=appeared?dateShort(appeared):"дата не передана";
@@ -2939,11 +2951,23 @@
       var verifyEvidence=verify&&verifyCandidates.length?'<div class="com-verify-evidence"><small>Что нашёл Клим в истории отправок</small>'+verifyCandidates.map(function(v){return '<div class="com-verify-hit"><b>'+safe(v.email||"email не передан")+'</b><span>'+safe(v.sent_at?dateShort(v.sent_at):"дата не передана")+'</span><p>'+safe(v.subject||"тема не передана")+'</p></div>';}).join("")+'</div>':"";
       var actionButtons=verify?verifyEvidence+'<div class="com-work-confirm"><button type="button" data-commercial-propose="'+historicalAction+'">Да, это было отправлено</button>'+(x.target_url?'<a href="'+attr(x.target_url)+'" target="_blank" rel="noopener" class="secondary">Нет, не эта отправка — открыть маршрут</a>':'<button type="button" class="secondary" data-cc-steward-context="'+stewardCtx+'">Нет, не эта отправка</button>')+'<div data-commercial-action-state></div></div>':(routeResearch?'<div class="com-work-confirm route-research"><button type="button" class="secondary" data-cc-steward-context="'+stewardCtx+'">Разобрать маршрут со Стюардом</button><button type="button" data-commercial-propose="'+currentAction+'">Отправлено вручную</button><div data-commercial-action-state></div><small>После фактической отправки подтвердите её здесь: событие пройдёт через Steward/action layer и переведёт кейс в WAITING.</small></div>':'<div class="com-work-confirm"><button type="button" data-commercial-propose="'+currentAction+'">Отправлено вручную</button><div data-commercial-action-state></div></div>');
       var failureControl='<div class="com-work-failure"><details><summary>Не удалось отправить / отклонить</summary><div class="com-work-failure-body"><select data-commercial-failure-reason><option value="FORM_BROKEN">Форма / сайт не работает</option><option value="MISSING_REQUIRED_DATA">Не хватает данных для заполнения</option><option value="ROUTE_CLOSED">Маршрут закрыт / регистрация недоступна</option><option value="WRONG_CONTACT_ROUTE">Контакт не подходит / неверный маршрут</option><option value="CHANNEL_NOT_WORTH_TIME">Не хочу тратить время на этот канал</option><option value="FOUNDER_DECLINED">Отклонить кейс целиком</option><option value="OTHER">Другая причина</option></select><input type="text" data-commercial-failure-note placeholder="Короткий комментарий — необязательно"><button type="button" class="secondary" data-commercial-fail="'+failureAction+'">Зафиксировать</button><small>Временная проблема уберёт кейс из ручной очереди и передаст его на поиск нового маршрута. «Отклонить кейс целиком» закроет его по решению Основателя.</small></div></details></div>';
-      return '<details class="com-manual-card '+info.cls+' '+info.tone+' direction-selectable" data-direction-role="decision" data-direction-title="'+safe(title)+'" data-direction-summary="'+safe(info.label+". "+why+". Появилось: "+appearedText)+
+      var uiState=commercialUi[String(x.item_id||"")]||{};
+      return '<details class="com-manual-card '+info.cls+' '+info.tone+(uiState.processing?' is-processing':'')+' direction-selectable" data-commercial-item-id="'+safe(x.item_id||"")+'"'+(uiState.open&&!uiState.processing?' open':'')+' data-direction-role="decision" data-direction-title="'+safe(title)+'" data-direction-summary="'+safe(info.label+". "+why+". Появилось: "+appearedText)+
         '"><summary><div class="com-manual-summary-main"><b>'+safe(title)+'</b><small>'+safe(x.product_name||x.product_id||"продукт не передан")+'</small></div><span class="com-manual-type">'+safe(info.label)+'</span><p>'+safe(why)+'</p><time>'+safe(appearedText)+'</time></summary>'+
         '<div class="com-manual-work"><div class="com-work-left"><div><small>Компания</small><b>'+safe(title)+'</b></div><div><small>Продукт</small><b>'+safe(x.product_name||x.product_id||"—")+'</b></div><div><small>Сигнал / почему сейчас</small><p>'+safe(x.why_now||x.reason||"не передано")+'</p></div><div><small>Адресат / роль</small><p>'+safe(recipient)+'</p></div><div><small>Причина ручного режима</small><p>'+safe(x.reason||"не передано")+'</p></div><div><small>Дата появления задачи</small><p>'+safe(appearedText)+'</p></div></div>'+
         '<div class="com-work-right">'+openButton+subjectBlock+bodyBlock+actionButtons+failureControl+'</div></div></details>';
     }).join(""):'<div class="com-empty">Сейчас ручных границ нет. Если автоматизация умеет выполнить безопасный следующий шаг сама, задача Нике не создаётся.</div>';
+    if(man){
+      var liveIds={};
+      man.querySelectorAll(".com-manual-card[data-commercial-item-id]").forEach(function(card){
+        var id=card.getAttribute("data-commercial-item-id");liveIds[id]=true;
+        var u=commercialUi[id]||{};
+        if(u.actionHtml){var st=card.querySelector("[data-commercial-action-state]");if(st)st.innerHTML=u.actionHtml;if(u.actionHtml.indexOf("data-commercial-confirm-card")>=0)card.querySelectorAll("[data-commercial-propose],[data-commercial-fail]").forEach(function(el){el.disabled=true;});}
+        var fd=card.querySelector(".com-work-failure>details"),fr=card.querySelector("[data-commercial-failure-reason]"),fn=card.querySelector("[data-commercial-failure-note]");if(fd&&u.failureOpen)fd.open=true;if(fr&&u.failureReason)fr.value=u.failureReason;if(fn&&u.failureNote!=null)fn.value=u.failureNote;
+        if(u.processing){card.classList.add("is-processing");card.open=false;card.querySelectorAll("button,input,select,a").forEach(function(el){if(el.tagName==="A")el.setAttribute("aria-disabled","true");else el.disabled=true;});}
+      });
+      Object.keys(commercialUi).forEach(function(id){if(!liveIds[id]&&!commercialUi[id].processing)delete commercialUi[id];});
+    }
     var autoBox=box("automatic");
     if(autoBox)autoBox.innerHTML=sentToday.length?'<div class="com-auto-count"><b>'+sentToday.length+' отправлено</b><span>сегодня подтверждено: автоматические, ручные и восстановленные по истории отправки</span></div>'+sentToday.map(function(x){var mode=x.send_mode||"AUTO";var modeRu=mode==="MANUAL"?"РУЧНАЯ":(mode==="HISTORY"?"ИСТОРИЯ":"АВТО");var modeNote=mode==="HISTORY"?" · подтверждено по почте":"";return '<div class="com-auto-row"><b>'+safe(x.company||x.case_id)+'</b><span>'+modeRu+modeNote+' · SENT · '+safe(dateShort(x.sent_at))+'</span><small>'+safe(x.product_name||x.product_id||"")+(x.channel?" · "+safe(x.channel):"")+'</small></div>';}).join(""):'<div class="com-empty">Сегодня подтверждённых отправок пока нет.</div>';
     function replyLabel(v){var m={INTEREST:"интерес / готовность обсуждать",QUESTION:"вопрос",ROUTING:"перенаправление",REQUEST_MATERIAL:"просит материалы",NEGATIVE:"отрицательный ответ",UNKNOWN:"ответ требует разбора"};return m[String(v||"").toUpperCase()]||v||"ответ";}
