@@ -3115,5 +3115,15 @@
     boot();
   }
 
+  // Personal Twin G1 has a tighter observational cadence than the rest of the
+  // Founder Panel. The server adapter keeps heavier evidence surfaces cached / counter-driven,
+  // so this 15s read refreshes runtime + summary without turning history into a hot poll.
+  setInterval(function(){
+    fetchJSON("twinState", ENDPOINTS.twinState).then(function(d){
+      renderTwinStateClean(d);
+      if(lastSnapshot){lastSnapshot.twinState=d;lastSnapshot.sources=JSON.parse(JSON.stringify(sourceState));}
+    });
+  },15000);
+
   setInterval(boot, REFRESH_MS);
 })();
