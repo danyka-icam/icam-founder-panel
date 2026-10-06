@@ -1489,3 +1489,15 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .registry-blocker-summary b{font:400 17px var(--cc-serif);color:#eef6f3}
 .registry-blocker-summary span{font-size:9.5px;line-height:1.4;color:var(--muted-2);text-align:right}
 .registry-mini-item small{display:block;margin-top:4px;font-size:9px;line-height:1.35;color:var(--cc-dim)}
+
+/* Placement queue semantic grouping */
+.cc-placement-queue-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:12px 14px;margin-bottom:10px;border:1px solid rgba(90,169,230,.18);border-radius:12px;background:rgba(90,169,230,.035)}
+.cc-placement-queue-intro>b{font:400 16px var(--cc-serif);color:#eef6f3;max-width:42%}
+.cc-placement-queue-intro>span{font-size:9.5px;line-height:1.45;color:var(--muted-2);text-align:right}
+.cc-placement-queue-intro span span{display:inline-block;margin-left:8px}
+.cc-placement-group{border:1px solid rgba(255,255,255,.06);border-radius:11px;background:rgba(7,17,21,.38);margin-top:8px;overflow:hidden}
+.cc-placement-group>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;cursor:pointer;list-style:none}
+.cc-placement-group>summary::-webkit-details-marker{display:none}
+.cc-placement-group>summary b{font-size:11px;font-weight:500;color:#dce8e5}
+.cc-placement-group>summary span{min-width:28px;text-align:center;padding:3px 7px;border-radius:999px;border:1px solid rgba(90,169,230,.18);font-size:9px;color:#9fc4d9}
+.cc-placement-group-body{padding:0 8px 8px}

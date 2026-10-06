@@ -2596,18 +2596,33 @@
     slots["placement-sum"].innerHTML = "<div class='cc-plts'>" +
       tile("placed", "На Founder Map", M.tu.ok ? lowerBoundCount(M.U.stars.length, M.U.starsComplete) : (c.placed != null ? c.placed : "—"), M.tu.ok ? (M.U.starsComplete ? "звёзд в Temporal Universe" : "нижняя граница: не у всех линий передан branches[]") : "по счётчику источника") +
       tile("candidate", "Кандидаты на точную связь", candActive, candSource !== candActive ? "из " + candSource + " по источнику · " + (candSource - candActive) + " в архиве" : "точный владелец найден источником; ещё не звёзды") +
-      tile("review", "Активная очередь сверки", q.review, "из " + reviewCounts().review + " по источнику" + (q.archived ? " · " + (reviewCounts().review - q.review) + " в архиве" : "")) +
+      tile("review", "Записи на структурную сверку", q.review, "не список срочных задач · из " + reviewCounts().review + " по источнику" + (q.archived ? " · " + (reviewCounts().review - q.review) + " в архиве" : "")) +
       tile("conflict", "Конфликт владельцев", q.conflicts == null ? "—" : q.conflicts, q.conflicts == null ? "owner_conflicts не передан; наличие конфликтов не подтверждено" : (q.conflicts ? "решается вручную" : "конфликтов нет")) +
       tile("archive", "Архив", AD.ownerConflictsKnown ? AD.buckets.archive.length : "≥ " + AD.buckets.archive.length, AD.ownerConflictsKnown ? "архивные и исторические элементы допуска" : "нижняя граница: owner_conflicts не передан") + "</div>" +
       "<div class='cc-pl-source'><b>Счётчики источника</b> " + srcKeys.filter(function (k) { return c[k] != null; }).map(function (k) {
         return "<span title='" + E(k) + "'>" + E(srcNames[k]) + " <b>" + E(c[k]) + "</b></span>";
       }).join("") + Object.keys(c).filter(function (k) { return srcKeys.indexOf(k) < 0; }).map(function (k) {
         return "<span title='" + E(k) + "'>" + E(H.humanCode(k)) + " <b>" + E(scalar(c[k])) + "</b></span>";
-      }).join("") + "<em>Активная очередь = элементы без архивного state; архив показан отдельно ниже.</em></div>";
+      }).join("") + "<em>Структурная очередь = элементы без архивного state; это не очередь срочности и не список задач Основателя. Архив показан отдельно ниже.</em></div>";
 
     slots["pl-map"].innerHTML = M.tu.ok ? founderMap() : unavailable("Список звёзд недоступен", "Temporal Universe не ответил. Счётчик placed — из Portfolio Admission counts.");
     slots["pl-cand"].innerHTML = AD.buckets.candidate.length ? AD.buckets.candidate.map(admCard).join("") : empty("Кандидатов нет", "");
-    slots["pl-queue"].innerHTML = AD.buckets.review.length ? AD.buckets.review.map(admCard).join("") : empty("Активная очередь пуста", "");
+    if (AD.buckets.review.length) {
+      var reviewGroups=[
+        {id:"parked",label:"Заморожено / удерживается / припарковано",states:["PARKED","FROZEN","HELD","DORMANT"]},
+        {id:"waiting",label:"Ожидает внешнего условия или даты",states:["WAITING_EXTERNAL","WAITING_DATE","AWAITING_OUTCOME"]},
+        {id:"blocked",label:"Явно заблокировано",states:["BLOCKED_EVIDENCE","BLOCKED_AUTHORITY"]},
+        {id:"reconcile",label:"Требует структурной сверки",states:["NEEDS_RECONCILIATION"]},
+        {id:"result",label:"Отрицательный или неопределённый результат",states:["NEGATIVE_RESULT","INCONCLUSIVE"]},
+        {id:"current",label:"Остальные текущие состояния",states:null}
+      ];
+      var claimed={};
+      reviewGroups.forEach(function(g){if(g.states)g.items=AD.buckets.review.filter(function(it){var s=upper(it.raw&&it.raw.state);var ok=g.states.indexOf(s)>=0;if(ok)claimed[it.key]=true;return ok;});});
+      reviewGroups.forEach(function(g){if(!g.states)g.items=AD.buckets.review.filter(function(it){return !claimed[it.key];});});
+      var reasonCount={};AD.buckets.review.forEach(function(it){var r=String(it.raw&&it.raw.reason||"причина не передана");reasonCount[r]=(reasonCount[r]||0)+1;});
+      var reasonSummary=Object.keys(reasonCount).sort(function(a,b){return reasonCount[b]-reasonCount[a];}).map(function(k){return "<span>"+E(H.humanCode(k))+" <b>"+reasonCount[k]+"</b></span>";}).join("");
+      slots["pl-queue"].innerHTML="<div class='cc-placement-queue-intro'><b>"+AD.buckets.review.length+" записей, а не "+AD.buckets.review.length+" одинаково срочных задач</b><span>Группировка ниже использует только явный state источника. Причины: "+reasonSummary+"</span></div>"+reviewGroups.filter(function(g){return g.items.length;}).map(function(g){return "<details class='cc-placement-group'><summary><b>"+E(g.label)+"</b><span>"+g.items.length+"</span></summary><div class='cc-placement-group-body'>"+g.items.map(admCard).join("")+"</div></details>";}).join("");
+    } else slots["pl-queue"].innerHTML = empty("Очередь сверки пуста", "");
     slots["pl-conflict"].innerHTML = AD.buckets.conflict.length ? AD.buckets.conflict.map(admCard).join("") :
       (AD.ownerConflictsKnown ? empty("Конфликтов нет в текущем owner_conflicts", "Источник передал пустой набор.") : unavailable("Конфликты владельцев не проверены", "Поле owner_conflicts источником не передано."));
     slots["pl-archive"].innerHTML = AD.buckets.archive.length ? "<div class='cc-archive-grid'>" + AD.buckets.archive.map(admCard).join("") + "</div>" +
@@ -3349,7 +3364,7 @@
     if (navCount) {
       var q = M.adm.ok ? activeQueue() : null;
       navCount.textContent = q && q.active ? (q.activeKnown ? String(q.active) : "≥" + q.active) : "";
-      navCount.title = q ? (q.activeKnown ? "активная очередь сверки и конфликтов (без архива)" : "нижняя граница активной очереди: owner_conflicts не передан") : "";
+      navCount.title = q ? (q.activeKnown ? "структурные записи на сверку и конфликты, без архива; это не счётчик срочных задач" : "нижняя граница структурных записей: owner_conflicts не передан") : "";
     }
   }
 
