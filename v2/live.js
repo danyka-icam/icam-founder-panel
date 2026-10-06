@@ -2160,8 +2160,12 @@
     var ownedOpen=openOps.filter(function(o){return ownerDisplay(o)!=="Недоступно";}).length;
     var factualKnown=ops.filter(function(o){return o.factual_result && String(o.factual_result).toUpperCase()!=="UNAVAILABLE";}).length;
     var ordered=openOps.slice().sort(function(a,b){return String(b.updated_at||b.opened_at||"").localeCompare(String(a.updated_at||a.opened_at||""));}).concat(closedOps);
+    var founderFlagKnown=ops.some(function(o){return typeof o.founder_action_required==="boolean"||typeof o.needs_founder==="boolean";});
+    var founderRequired=ops.filter(function(o){return o.founder_action_required===true||o.needs_founder===true;}).length;
+    var objectBlockerLinks=(c.with_object_level_blockers!=null?Number(c.with_object_level_blockers):null);
     var summary="<div class='live-status-box "+sourceStatusBoxClass(data.source_status)+"'><strong>Операционная проекция — "+esc(sourceStatusLabel(data.source_status))+"</strong>"+
       "<p>"+(String(data.freshness_state).toUpperCase()==="STALE"?"Открытые обязательства не имели нового движения в окне свежести. Они не отменяются автоматически, но не должны выглядеть как свежая операционная очередь.":"Состояние прочитано из серверной проекции.")+"</p></div>"+
+      "<div class='operations-proof-boundary'><b>Граница вмешательства Основателя:</b> "+esc(founderFlagKnown?(founderRequired+" записей явно требуют Основателя по полю источника."):"поля needs_founder / founder_action_required в operations[] не переданы. Панель не считает эти обязательства задачами Ники без явного основания.")+"</div>"+
       "<div class='live-summary'>"+
       "<div class='metric'><small>Объекты с открытыми обязательствами</small><strong>"+esc(operationsProvided?openObjectCount:"—")+"</strong><span>"+esc(operationsProvided?openOps.length+" открытых записей":"operations[] не передан")+"</span></div>"+
       "<div class='metric'><small>Свежие открытые записи</small><strong>"+esc(operationsProvided?freshOpen:"—")+"</strong><span>движение менее "+esc(STALE_DAYS)+" дней назад</span></div>"+
@@ -2169,7 +2173,7 @@
       "<div class='metric'><small>Владелец известен</small><strong>"+esc(operationsProvided?ownedOpen+" / "+openOps.length:"—")+"</strong><span>среди открытых записей</span></div></div>"+
       "<div class='operations-proof-boundary'><b>Граница доказанного:</b> "+
         (operationsProvided?(openOps.length?(openObjectCount+" объектов имеют "+openOps.length+" записей без явного закрывающего статуса. Из них "+freshOpen+" имели движение менее "+STALE_DAYS+" дней назад, "+staleOpen+" давно не двигались"+(unknownAgeOpen?", у "+unknownAgeOpen+" дата не подтверждена":"")+"."):"Источник явно передал operations[] без записей с незакрытым статусом."):"Поле operations[] не передано; количество открытых обязательств не подтверждено.")+" "+
-        (operationsProvided?(ownedOpen+" из "+openOps.length+" открытых записей имеют переданного владельца хода. "+factualKnown+" из "+ops.length+" записей всей проекции передают фактический результат; `closed_at` доказывает закрытие записи, но не бизнес-исход."):"Владельцы и фактические результаты также не проверены.")+"</div>";
+        (operationsProvided?(ownedOpen+" из "+openOps.length+" открытых записей имеют переданного владельца хода. "+factualKnown+" из "+ops.length+" записей всей проекции передают фактический результат; `closed_at` доказывает закрытие записи, но не бизнес-исход. "+(objectBlockerLinks!=null?objectBlockerLinks+" записей имеют объектные blocker-связи по агрегату counts.with_object_level_blockers; это не доказывает blocker каждого обязательства и не назначает действие Основателю.":"Агрегат object-level blocker-связей не передан.")):"Владельцы и фактические результаты также не проверены.")+"</div>";
     var openGroups={};
     openOps.forEach(function(o){
       var id=String(o.object_id||"объект не определён");
