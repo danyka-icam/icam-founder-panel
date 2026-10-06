@@ -2303,16 +2303,19 @@
     var blocking=blockingProvided?data.blocking_reasons:[];
     var systemItemsKnown=!!(sourceState.inbox.ok&&inbox&&Array.isArray(inbox.system_attention));
     var systemItems=systemItemsKnown?inbox.system_attention:[];
-    function sysAge(x){return daysSince(x&&x.last_seen_at);}
+    function sysLastSeenAge(x){return daysSince(x&&x.last_seen_at);}
+    function sysOpenedAge(x){return daysSince(x&&x.opened_at);}
     function sysFixture(x){var s=[x&&x.source_system,x&&x.title,x&&x.reason,x&&x.issue_key].filter(Boolean).join(" ");return /(?:TEST|FIXTURE|NONEXISTENT_OBJECT)/i.test(s);}
     var systemBlock="";
     if(systemItemsKnown){
-      var recentSystem=systemItems.filter(function(x){var a=sysAge(x);return a!=null&&a<STALE_DAYS;}).length;
-      var oldSystem=systemItems.filter(function(x){var a=sysAge(x);return a!=null&&a>=STALE_DAYS;}).length;
+      var newlyOpenedSystem=systemItems.filter(function(x){var a=sysOpenedAge(x);return a!=null&&a<STALE_DAYS;}).length;
+      var recurringOldSystem=systemItems.filter(function(x){var opened=sysOpenedAge(x),seen=sysLastSeenAge(x);return opened!=null&&opened>=STALE_DAYS&&seen!=null&&seen<STALE_DAYS;}).length;
+      var dormantSystem=systemItems.filter(function(x){var a=sysLastSeenAge(x);return a!=null&&a>=STALE_DAYS;}).length;
+      var unknownSystemAge=systemItems.length-newlyOpenedSystem-recurringOldSystem-dormantSystem;
       var fixtureSystem=systemItems.filter(sysFixture).length;
       var byType={};systemItems.forEach(function(x){var k=String(x.issue_type||"UNKNOWN");byType[k]=(byType[k]||0)+1;});
       var rows=[["SYNC_HEALTH_DEGRADED","свежесть / синхронизация"],["MEANING_ASSESSMENT_REJECTED","отклонённые смысловые записи"],["INGRESS_PACKET_NOT_INGESTED","входящие пакеты без полного контракта"],["PROJECTION_REJECTED","отклонённые проекции"]].filter(function(x){return byType[x[0]];}).map(function(x){return "<span><small>"+esc(x[1])+"</small><b>"+esc(byType[x[0]])+"</b></span>";}).join("");
-      systemBlock="<div class='live-item-clean direction-selectable tone-return' data-direction-role='evidence' data-direction-title='Системное внимание' data-direction-summary='"+attr(systemItems.length+" системных записей: "+recentSystem+" видели менее "+STALE_DAYS+" дней назад; "+oldSystem+" старых; "+fixtureSystem+" имеют явные признаки тестового происхождения. Ни одна запись не скрыта автоматически.")+"'><div class='live-item-clean-head'><h3>Системное внимание</h3>"+chip(systemItems.length)+"</div><div class='foundation-proof-grid'>"+rows+"</div><small>"+esc(recentSystem+" видели менее "+STALE_DAYS+" дней назад · "+oldSystem+" старых · "+fixtureSystem+" с явным тестовым происхождением. Тестовое происхождение не означает автоматического игнорирования.")+"</small></div>";
+      systemBlock="<div class='live-item-clean direction-selectable tone-return' data-direction-role='evidence' data-direction-title='Системное внимание' data-direction-summary='"+attr(systemItems.length+" системных записей четырёх классов: "+newlyOpenedSystem+" открыты менее "+STALE_DAYS+" дней назад; "+recurringOldSystem+" старые, но продолжают повторно наблюдаться; "+dormantSystem+" не повторялись 7+ дней; "+fixtureSystem+" имеют явные признаки тестового происхождения.")+"'><div class='live-item-clean-head'><h3>Системные записи внимания</h3>"+chip(systemItems.length+" записей")+"</div><div class='foundation-proof-grid'>"+rows+"</div><small>"+esc(newlyOpenedSystem+" новых за "+STALE_DAYS+" дней · "+recurringOldSystem+" старых, но всё ещё повторно наблюдаются · "+dormantSystem+" давно не повторялись"+(unknownSystemAge?" · "+unknownSystemAge+" без полной даты":"")+" · "+fixtureSystem+" с явным тестовым происхождением. last_seen показывает повторное обнаружение, а не дату возникновения проблемы. Эти записи не входят в текущий blocking_reasons[] Foundation; это не делает их автоматически несущественными.")+"</small></div>";
     } else if(sourceState.inbox.ok){
       systemBlock="<div class='live-item-clean'><div class='live-item-clean-head'><h3>Системное внимание</h3>"+chip("—")+"</div><small>Founder inbox ответил, но system_attention[] не передан; состав системной очереди не подтверждён.</small></div>";
     }
