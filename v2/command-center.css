@@ -1631,3 +1631,11 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
   .com-manual-card>summary p{grid-column:1/-1}
   .com-manual-card>summary time{grid-column:2;grid-row:1}
 }
+
+.com-verify-evidence{border:1px solid rgba(73,167,230,.28);border-radius:14px;padding:14px;display:grid;gap:10px;background:rgba(29,93,132,.08)}
+.com-verify-evidence>small{font-size:11px;letter-spacing:.11em;text-transform:uppercase;opacity:.72}
+.com-verify-hit{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:10px 0;border-top:1px solid rgba(255,255,255,.08)}
+.com-verify-hit:first-of-type{border-top:0}
+.com-verify-hit b{min-width:0;overflow-wrap:anywhere}
+.com-verify-hit span{white-space:nowrap;opacity:.75}
+.com-verify-hit p{grid-column:1/-1;margin:0;opacity:.82;overflow-wrap:anywhere}
