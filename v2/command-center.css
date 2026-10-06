@@ -1652,3 +1652,18 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .com-followup-summary small{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-2)}
 .com-followup-summary b{font:400 19px var(--cc-serif);color:var(--text)}
 @media(max-width:1180px){.com-followup-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.com-reply-card{border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.018);overflow:hidden}
+.com-reply-card+ .com-reply-card{margin-top:10px}
+.com-reply-card>summary{list-style:none;cursor:pointer;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.com-reply-card>summary::-webkit-details-marker{display:none}
+.com-reply-card>summary>div{display:grid;gap:3px;min-width:0}
+.com-reply-card>summary b{overflow-wrap:anywhere}
+.com-reply-card>summary small,.com-reply-card>summary time{color:var(--muted-2)}
+.com-reply-body{border-top:1px solid rgba(255,255,255,.07);padding:14px 15px;display:grid;gap:12px}
+.com-reply-meta{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:10px}
+.com-reply-meta>span{display:grid;gap:4px;min-width:0}
+.com-reply-meta small{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-2)}
+.com-reply-meta b{font-size:12px;overflow-wrap:anywhere}
+.com-reply-body p{margin:0;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:900px){.com-reply-meta{grid-template-columns:1fr}}
