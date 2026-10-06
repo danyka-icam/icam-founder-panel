@@ -2719,9 +2719,10 @@
       var scanUnknown = scanFailingKnown ? cov.failing.filter(function (x) { return x && !x.known_degraded; }).length : null;
       var hub = hubHealth || {};
       var readTone = failed ? "warn" : "ok";
-      var foundationTone = String(f.source_status || "").toUpperCase() === "DEGRADED" ? "warn" : "neutral";
+      var foundationStatus = String(f.source_status || "").toUpperCase();
+      var foundationTone = foundationStatus === "READY" ? "ok" : (foundationStatus === "DEGRADED" ? "warn" : "neutral");
       var durabilityTone = String(dur.state || "").toUpperCase() === "PASS" ? "ok" : (String(dur.state || "").toUpperCase() === "FAIL" ? "bad" : "neutral");
-      var scannerTone = !scanAvailable ? "warn" : (scanTotal != null && scanOk != null && scanTotal > 0 && scanOk === scanTotal ? "ok" : (scanFail != null && scanFail > 0 ? "bad" : "neutral"));
+      var scannerTone = !scanAvailable ? "warn" : (scanTotal != null && scanOk != null && scanTotal > 0 && scanOk === scanTotal ? "ok" : (scanFail != null && scanFail > 0 ? (scanUnknown === 0 ? "warn" : "bad") : "neutral"));
       trust.innerHTML =
         "<div class='diag-boundary-intro'><div><small>НЕ ЕДИНЫЙ РЕЙТИНГ, А ГРАНИЦЫ ДОКАЗАННОГО</small><b>Доступность интерфейса ≠ здоровье всех источников мира</b><span>Каждое измерение сохраняет собственный источник и область действия.</span></div></div>" +
         "<div class='diag-boundary-grid'>" +
