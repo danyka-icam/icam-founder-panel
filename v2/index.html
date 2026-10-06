@@ -2100,19 +2100,19 @@
 <span>объекты с declared_status ACTIVE*; это не доказательство фактического движения</span>
 </article>
 <article class="card">
-<small>Участие Основателя</small>
+<small>Следующий ход у меня</small>
 <strong data-r="founder-count">—</strong>
-<span data-r="founder-note">привязанные к линиям события / формальные решения без объектной связи</span>
+<span data-r="founder-note">только явный владелец хода в RD1; формальные решения показываются отдельно</span>
 </article>
 <article class="card">
 <small>Явно ждём / на паузе</small>
 <strong data-r="waiting-count">—</strong>
-<span>только явные PARKED / WAITING / AWAITING или владелец EXTERNAL; отсутствие такого поля не считается ожиданием</span>
+<span>явные WAITING / AWAITING / PARKED / PENDING_*_ACK или внешний владелец хода</span>
 </article>
 <article class="card">
-<small>Без отметки смысловой свежести</small>
+<small>Явно заблокировано</small>
 <strong data-r="identity-count">—</strong>
-<span>RD1 не передал semantic_freshness; это не считается проблемой идентичности</span>
+<span>только BLOCKED в текущем RD1-статусе; старый ACTIVE* объекта блокировку не отменяет</span>
 </article>
 </section>
 <section class="research-system-bridge" data-r="system-bridge"><div class="research-empty compact"><strong>Собираем исследовательский пульс…</strong><span>RD1, независимые проверки и общесистемный доказательный контур читаются раздельно.</span></div></section>

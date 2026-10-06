@@ -1515,27 +1515,29 @@
       });
       var founder = lines.filter(function (x) { return founderFlagState(x.object).value; });
       var founderFlagsComplete = lines.every(function (x) { return founderFlagState(x.object).known; });
+      var founderAssigned = lines.filter(function (x) { return /^(NIKA|НИКА|FOUNDER|ОСНОВАТЕЛ)/i.test(String(x.projection.owner || "").trim()); });
       var founderProjectionRead = !!(sourceState.founderProjection.ok && founderProjection);
       var founderDecisionsKnown = !!(founderProjectionRead && founderProjection.today && Array.isArray(founderProjection.today.founder_decisions));
       var formalDecisions = founderDecisionsKnown ? founderProjection.today.founder_decisions : [];
       var founderNote = page.querySelector('[data-r="founder-note"]');
-      if (founderNote) founderNote.textContent = (rd1Complete && founderFlagsComplete ? founder.length : "≥ " + founder.length) + " привязано к исследовательской линии" +
-        (founderDecisionsKnown ? (formalDecisions.length ? " · " + formalDecisions.length + " формальное решение без привязки к объекту" : " · формальных решений: 0") : " · Founder Projection: решения не проверены");
+      if (founderNote) founderNote.textContent = (rd1Complete ? founderAssigned.length : "≥ " + founderAssigned.length) + " явных назначений хода в RD1" +
+        (founderDecisionsKnown ? " · текущих формальных решений: " + formalDecisions.length : " · формальные решения не проверены") +
+        (founderFlagsComplete ? " · специальных founder-флагов: " + founder.length : " · специальные founder-флаги переданы не для всех линий");
       var waiting = lines.filter(function (x) {
         var declared = String(x.object.declared_status || "").toUpperCase();
         var projected = String(x.projection.status || "").toUpperCase();
         var owner = String(x.projection.owner || "").toUpperCase();
         // Waiting is source-stated, not inferred from PREPARING/active design.
-        return /PARKED|WAITING|AWAITING/.test(declared) || /PARKED|WAITING|AWAITING/.test(projected) || /EXTERNAL/.test(owner);
+        return /PARKED|WAITING|AWAITING/.test(declared) || /PARKED|WAITING|AWAITING|PENDING_.*_ACK/.test(projected) || /EXTERNAL/.test(owner);
       });
-      // Missing semantic_freshness is a freshness-observability gap, not identity debt.
-      var noSemanticFreshness = lines.filter(function (x) { return !x.projection.semantic_freshness; });
+      var blocked = lines.filter(function (x) { return /BLOCKED/.test(String(x.projection.status || "").toUpperCase()); });
+      var freshRD1 = lines.filter(function (x) { var d=daysSince(x.projection.semantic_freshness); return d!=null && d<STALE_DAYS; });
 
       function put(k, v) { var e = page.querySelector('[data-r="' + k + '"]'); if (e) e.textContent = String(v); }
       put("active-count", rd1Complete && activeStatusComplete ? active.length : "≥ " + active.length);
-      put("founder-count", (rd1Complete && founderFlagsComplete && founderDecisionsKnown) ? (founder.length + (formalDecisions.length ? " + " + formalDecisions.length : "")) : "≥ " + (founder.length + formalDecisions.length));
+      put("founder-count", rd1Complete ? founderAssigned.length : "≥ " + founderAssigned.length);
       put("waiting-count", rd1Complete ? waiting.length : "≥ " + waiting.length);
-      put("identity-count", rd1Complete ? noSemanticFreshness.length : "≥ " + noSemanticFreshness.length);
+      put("identity-count", rd1Complete ? blocked.length : "≥ " + blocked.length);
 
       var linesBox = page.querySelector('[data-r="lines"]');
       if (linesBox) {
@@ -1543,12 +1545,13 @@
           var o = x.object, p = x.projection;
           var stageRaw = p.stage || "этап не указан";
           var nextRaw = p.next_gate || p.next_move || "не определён";
+          var rd1Age=daysSince(p.semantic_freshness);
           return "<div class='research-live-row'><b>" + esc(researchObjectTitle(o)) +
-            "<small>" + esc(o.object_id || "ID не определён") + "</small></b>" +
+            "<small>" + esc(o.object_id || "ID не определён") + " · объект: " + esc(ruStatus(o.declared_status || "—")) + "</small></b>" +
             "<span title='" + esc(stageRaw) + "'>" + esc(researchTextRu(humanCode(stageRaw))) + "</span>" +
             "<span>" + esc(researchTextRu(p.owner || "владелец хода не передан")) + "</span>" +
             "<span title='" + esc(nextRaw) + "'>" + esc(researchTextRu(humanCode(nextRaw))) + "</span>" +
-            "<small>" + esc(researchTextRu(humanCode(ruStatus(p.status || o.declared_status || "—")))) + "</small></div>";
+            "<small>" + esc(researchTextRu(humanCode(ruStatus(p.status || o.declared_status || "—")))) + (rd1Age==null?" · свежесть не передана":" · RD1 "+rd1Age+" дн.") + "</small></div>";
         }).join("") :
         (rd1Complete ?
           "<div class='research-empty'><strong>Исследовательских линий в текущей RD1-проекции нет</strong><span>Все RD1-проекции прочитаны; ни один объект не удовлетворил явному research/RD1-контракту.</span></div>" :
@@ -1561,10 +1564,11 @@
           "<div class='research-empty compact'><strong>" + esc(emptyTitle) + "</strong><span>" + esc(emptyText) + "</span></div>";
       }
 
-      var founderAttentionRows = founder.slice(0, 6).map(function (x) {
-        var o = x.object, p = x.projection;
+      var founderAttentionRows = founderAssigned.slice(0, 6).map(function (x) {
+        var o = x.object, p = x.projection, age=daysSince(p.semantic_freshness);
         return "<div class='research-mini-item'><b>" + esc(researchObjectTitle(o)) + "</b><span>" +
-          esc(researchTextRu(p.next_move || o.last_summary || "основание участия не передано")) + " · " + esc(o.object_id || "ID не определён") + "</span></div>";
+          "явный владелец хода в RD1 · " + esc(researchTextRu(p.next_move || o.last_summary || "следующий ход не передан")) +
+          (age==null?" · свежесть не передана":" · состояние обновлено "+age+" дн. назад") + " · " + esc(o.object_id || "ID не определён") + "</span></div>";
       });
       formalDecisions.slice(0, Math.max(0, 6 - founderAttentionRows.length)).forEach(function (d) {
         founderAttentionRows.push("<div class='research-mini-item formal-unbound'><b>Формальное решение Основателя · без привязки к линии</b><span>" +
@@ -1573,15 +1577,15 @@
       });
       var attentionComplete = rd1Complete && founderDecisionsKnown;
       mini(page.querySelector('[data-r="attention"]'), founderAttentionRows,
-        attentionComplete ? "Решений Основателя в исследовательском контуре нет" : "Контур решений прочитан частично",
-        attentionComplete ? "Полные RD1-проекции и Founder Projection не передали текущего решения." : "Часть RD1-проекций или founder_decisions[] не подтверждена; общий ноль решений не выводится.");
+        attentionComplete ? "Явных ходов или решений Основателя в исследовательском контуре нет" : "Контур участия Основателя прочитан частично",
+        attentionComplete ? "Полные RD1-проекции не назначили следующий ход Нике, а Founder Projection не передал текущего формального решения." : "Часть RD1-проекций или founder_decisions[] не подтверждена; общий ноль не выводится.");
 
       mini(page.querySelector('[data-r="waiting"]'), waiting.slice(0, 6).map(function (x) {
         var o = x.object, p = x.projection;
         return "<div class='research-mini-item'><b>" + esc(researchObjectTitle(o)) + "</b><span>" +
           "ждём: " + esc(researchTextRu(p.next_gate || p.next_move || "условие не описано")) + " · ход: " + esc(researchTextRu(p.owner || "владелец хода не передан")) + "</span></div>";
       }), rd1Complete ? "Линий в ожидании не найдено" : "Контур ожидания прочитан частично",
-        rd1Complete ? "Нет явного PARKED / WAITING / AWAITING или внешнего владельца хода." : "Часть RD1-проекций недоступна; общий ноль ожидания не подтверждён.");
+        rd1Complete ? "Нет явного PARKED / WAITING / AWAITING / PENDING_*_ACK или внешнего владельца хода." : "Часть RD1-проекций недоступна; общий ноль ожидания не подтверждён.");
 
       var MATERIAL = ["GATE_RESULT", "DECISION", "STATUS_CHANGE", "STAGE_CHANGE", "TEST_RESULT", "EXTERNAL_EVENT"];
       var material = lines.filter(function (x) {
@@ -1601,7 +1605,8 @@
         var blockedTests = tests.filter(function (t) { return String(t.status || "").toUpperCase() === "BLOCKED"; });
         var openTestStates = researchTestState.activeKnown ? testingSummary.active : [];
         var rq = sourceState.hubHealth.ok && hubHealth ? (hubHealth.review_queue || {}) : {};
-        var reviewN = rq.manual_review_required;
+        var reviewN = rq.actionable_review;
+        var reviewQuarantine = rq.unassigned_review_quarantine;
         var leadTest = adjudication[0] || blockedTests[0] || openTestStates[0] || null;
         var latest = material[0] || null;
         var testTitle = leadTest ? (leadTest.test_id || "проверка без ID") : (testingComplete ? "нет проверки, требующей реакции" : "набор Testing неполный");
@@ -1613,10 +1618,10 @@
         bridge.innerHTML =
           "<div class='research-bridge-head'><div><small>ИССЛЕДОВАТЕЛЬСКИЙ ПУЛЬС</small><b>Вопрос → доказательство → независимая проверка → следующий переход</b></div><span>источники не смешиваются</span></div>" +
           "<div class='research-bridge-grid'>" +
-          "<a href='#research' class='research-bridge-cell'><small>Портфель</small><strong>" + esc(rd1Complete ? active.length : "≥ " + active.length) + " объявлены активными</strong><span>" + esc(rd1Complete ? waiting.length : "≥ " + waiting.length) + " ждут условия · участие Основателя: " + esc(rd1Complete ? founder.length : "≥ " + founder.length) + " привязано" + (founderDecisionsKnown ? (formalDecisions.length ? " · " + esc(formalDecisions.length) + " формально без объектной связи" : "") : " · формальные решения не проверены") + "</span></a>" +
+          "<a href='#research' class='research-bridge-cell'><small>Портфель</small><strong>" + esc(rd1Complete ? active.length : "≥ " + active.length) + " объявлены активными · " + esc(rd1Complete ? freshRD1.length : "≥ " + freshRD1.length) + " со свежим RD1</strong><span>" + esc(rd1Complete ? waiting.length : "≥ " + waiting.length) + " ждут условия · " + esc(rd1Complete ? blocked.length : "≥ " + blocked.length) + " явно заблокировано · следующий ход у Ники: " + esc(rd1Complete ? founderAssigned.length : "≥ " + founderAssigned.length) + (founderDecisionsKnown ? " · текущих формальных решений " + esc(formalDecisions.length) : " · формальные решения не проверены") + "</span></a>" +
           "<a href='#testing' class='research-bridge-cell " + (adjudication.length || blockedTests.length ? "attention" : "") + "'><small>Независимая проверка</small><strong>" + esc(researchTestState.activeKnown ? openTestStates.length : "—") + " в active[] · " + esc(testingComplete ? adjudication.length : "≥ " + adjudication.length) + " на разборе</strong><span>active[] не означает текущее исполнение · " + esc(testTitle) + " · " + esc(testNote) + "</span></a>" +
           "<a href='#research' class='research-bridge-cell'><small>Последнее материальное изменение</small><strong>" + esc(latestTitle) + "</strong><span>" + esc(cut(latestNote, 120)) + (latest ? " · " + esc(ago(latest.object.last_event_at)) : "") + "</span></a>" +
-          "<a href='#documents' class='research-bridge-cell'><small>Доказательный контур компании</small><strong>" + esc(reviewN == null ? "нет счётчика" : reviewN + " на ручном разборе") + "</strong><span>общесистемная очередь Hub; не приписывается исследованию без связи с объектом</span></a>" +
+          "<a href='#documents' class='research-bridge-cell'><small>Доказательный контур компании</small><strong>" + esc(reviewN == null ? "действующая очередь не передана" : reviewN + " действительно требуют действия") + "</strong><span>" + esc(reviewQuarantine==null?"карантин не передан":reviewQuarantine+" в карантине без владельца") + " · общесистемный Hub не приписывается исследованию без явной связи с объектом</span></a>" +
           "</div><div class='research-bridge-rule'>Панель не превращает завершённый прогон в научный вывод и не считает общую очередь документов доказательствами конкретной исследовательской линии без явной связи.</div>";
       }
 
