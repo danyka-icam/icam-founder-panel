@@ -2679,7 +2679,7 @@
     var lineageEdges=lineageKnown?lineage.edges:[];
     var verifiedEdges=lineageKnown?lineageEdges.filter(function(e){return String(e.verification_state||"").toUpperCase()==="VERIFIED";}):[];
     setKpi("total",counts.total_agents!=null?counts.total_agents:(agentsKnown?"≥ "+agents.length:"—"),counts.total_agents!=null?"зарегистрировано источником":"нижняя граница по agents[]");
-    setKpi("active",counts.active_agents!=null?(counts.active_agents+(timerAgents?" + "+timerAgents:"")):"—",(counts.active_agents!=null?"ACTIVE "+counts.active_agents:"ACTIVE не передан")+(timerAgents!=null?" · по таймеру "+timerAgents:""));
+    setKpi("active",counts.active_agents!=null?(counts.active_agents+(timerAgents?" + "+timerAgents:"")):"—",(counts.active_agents!=null?"ACTIVE "+counts.active_agents:"ACTIVE не передан")+(timerAgents!=null?" · по таймеру "+timerAgents:"")+" · это реестровые lifecycle-состояния, не одновременное исполнение");
     setKpi("revisions",lineageKnown?verifiedEdges.length+" / "+lineageEdges.length:"—",lineageKnown?"подтверждённых связей / всего · Lineage r"+(lr==null?"—":lr):"Lineage не подтверждён");
     setKpi("gaps",gapTotal==null?"—":gapTotal,gapTotal==null?"счётчики разрывов переданы не полностью":"сумма явных конфликтов, пробелов и деградаций");
     var verifiedAgents=agentsKnown?agents.filter(function(a){return String(a.evidence_status||"").toUpperCase()==="VERIFIED";}).length:null;
@@ -2687,7 +2687,7 @@
       "<div><b>Статус источника</b><span>"+esc(projection.source_status||"не передан")+"</span></div>"+
       "<div><b>Ревизии</b><span>реестр r"+esc(rr==null?"—":rr)+" · происхождение r"+esc(lr==null?"—":lr)+"</span></div>"+
       "<div><b>Доказательства идентичности</b><span>"+esc(verifiedAgents==null?"—":verifiedAgents+" / "+agents.length+" агентов VERIFIED")+"</span></div>"+
-      "<div><b>Штатные состояния</b><span>"+esc(counts.active_agents==null?"ACTIVE не передан":counts.active_agents+" ACTIVE")+(timerAgents!=null?" · "+esc(timerAgents)+" по таймеру":"")+"</span></div>"+
+      "<div><b>Штатные реестровые состояния</b><span>"+esc(counts.active_agents==null?"ACTIVE не передан":counts.active_agents+" ACTIVE")+(timerAgents!=null?" · "+esc(timerAgents)+" по таймеру":"")+" · не означает одновременное исполнение</span></div>"+
       "<div><b>Деградировано / зависло / вне реестра</b><span>"+esc(counts.degraded_agents==null?"—":counts.degraded_agents)+" / "+esc(counts.stalled_agents==null?"—":counts.stalled_agents)+" / "+esc(counts.unregistered_agents==null?"—":counts.unregistered_agents)+"</span></div>"+
       "<div><b>Граница Lineage</b><span>Пустые parent_agent_id / lineage_id в карточке агента сами по себе не считаются разрывом; канонические связи читаются из отдельного графа происхождения.</span></div></div>";
     if(listBox){
