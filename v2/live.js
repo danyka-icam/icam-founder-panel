@@ -1142,7 +1142,7 @@
         (authority ? humanCode(authority) : "состояние полномочий не передано");
       evidenceBox.innerHTML =
         "<div class='doc-integrity-boundary'><b>Граница сохранности:</b><span>Hub сообщает " + esc(health.objects_on_disk == null ? "—" : health.objects_on_disk) + " объектов на диске, из них индексировано " + esc(health.indexed_ok == null ? "—" : health.indexed_ok) + ", не индексировано " + esc(health.unindexed == null ? "—" : health.unindexed) + ". Осиротевших расписок: " + esc(health.orphan_receipts == null ? "—" : health.orphan_receipts) + "; доказанно исключённых self-test расписок: " + esc(health.excluded_test_orphan_receipts == null ? "—" : health.excluded_test_orphan_receipts) + "; расхождений хэшей: " + esc(health.hash_mismatches == null ? "—" : health.hash_mismatches) + ". Исключение self-test не удаляет исходную receipt и не распространяется на другие orphan. Наличие файла на диске не повышается до доказанного полного readback.</span></div>" +
-        "<div class='doc-evidence-head'><div><small>КЛАССИФИКАЦИЯ НЕРАЗОБРАННОГО КОНТУРА</small><b>" + esc(roleTotal != null ? roleTotal + " артефактов распределены по переданным ролям" : (rq.still_unreviewed != null ? rq.still_unreviewed + " остаются неразобранными; полный role-breakdown не передан" : "разбивка по ролям не передана")) + "</b></div><span>реально требует действия: <strong>" + esc(shownCount(actionable)) + "</strong> · карантин без владельца: <strong>" + esc(shownCount(unassigned)) + "</strong> · неручной pending: <strong>" + esc(shownCount(nonManual)) + "</strong></span></div>" +
+        "<div class='doc-evidence-head'><div><small>КЛАССИФИКАЦИЯ НЕРАЗОБРАННОГО КОНТУРА</small><b>" + esc(roleTotal != null ? roleTotal + " артефактов распределены по переданным ролям" : (rq.still_unreviewed != null ? rq.still_unreviewed + " остаются неразобранными; полный role-breakdown не передан" : "разбивка по ролям не передана")) + "</b></div><span>назначено на разбор владельцам: <strong>" + esc(shownCount(actionable)) + "</strong> · гейт Основателя: <strong>" + esc(rq.founder_gate_required==null?"—":rq.founder_gate_required) + "</strong> · карантин без владельца: <strong>" + esc(shownCount(unassigned)) + "</strong> · неручной pending: <strong>" + esc(shownCount(nonManual)) + "</strong></span></div>" +
         "<div class='doc-role-grid'>" +
           "<div class='operational'><small>Операционные свидетельства</small><b>" + esc(shownCount(op)) + "</b><span>рабочий след; сам по себе не меняет канон</span></div>" +
           "<div class='working'><small>Рабочие ссылки</small><b>" + esc(shownCount(work)) + "</b><span>справочный материал</span></div>" +
@@ -1159,27 +1159,22 @@
     }
     var q = page.querySelector('[data-d="queue"]');
     if (q) {
-      var oldestKnown = reviewQueueKnown && Array.isArray(rq.oldest_5);
-      var rows = oldestKnown ? rq.oldest_5 : [];
+      var reviewRowsKnown = Array.isArray(health.review_rows);
+      var actionableRows = reviewRowsKnown ? health.review_rows.filter(function(r){return r&&r.still_pending!==false&&String(r.review_authority_state||"").toUpperCase()==="ACTIONABLE_REVIEW";}) : [];
       var manualQueueCount = numberOrNull(rq.actionable_review);
-      var queueIntro = "<div class='documents-queue-truth'><b>"+esc(manualQueueCount==null?"Действующая очередь не передана":manualQueueCount+" элементов действительно требуют действия")+"</b><span>"+esc((rq.unassigned_review_quarantine==null?"Карантин не передан":rq.unassigned_review_quarantine+" записей находятся в карантине без владельца")+". Поле oldest_5 показывает старейшие поверхности ручного разбора и не идентифицирует сами элементы текущей очереди; Панель их не угадывает.")+"</span></div>";
-      if (rows.length) {
-        q.innerHTML = queueIntro + rows.map(function (r) {
-          var ageMin = r.received_at ? Math.max(0, Math.round((Date.now() - new Date(r.received_at).getTime()) / 60000)) : null;
-          return "<div class='document-live-row'><b>" + esc(r.packet_file || "(событие без файла)") + "</b>" +
-            "<span>" + esc(r.claimed_object_id || "не привязан") + "</span>" +
-            "<span>" + esc(r.artifact_class === "CANONICAL_REVIEW" ? "канонический разбор" : (r.artifact_class === "UNKNOWN" ? "не классифицировано" : humanCode(r.artifact_class || "UNKNOWN"))) +
-            (r.classification_reason ? "<small title='" + esc(r.classification_reason) + "'>" + esc(r.classification_reason === "not yet classified" ? "роль ещё не определена" : (r.classification_reason.indexOf("no explicit canonical/operational/working signal") === 0 ? "нет явного сигнала роли" : humanCode(r.classification_reason))) + "</small>" : "") +
-            "</span><small>" + esc(ageMinutesLabel(ageMin)) + "</small></div>";
+      var founderGate = numberOrNull(rq.founder_gate_required);
+      var queueIntro = "<div class='documents-queue-truth'><b>"+esc(manualQueueCount==null?"Действующая очередь не передана":manualQueueCount+" разбора назначены конкретным владельцам")+"</b><span>"+esc("гейт Основателя: "+(founderGate==null?"не передан":founderGate)+". "+(rq.unassigned_review_quarantine==null?"Карантин не передан":rq.unassigned_review_quarantine+" записей находятся в карантине без владельца")+". Карантин не считается задачей Ники.")+"</span></div>";
+      if (!reviewQueueKnown || !reviewRowsKnown) {
+        q.innerHTML = unavailableHTML("Очередь ручного разбора не проверена полностью", !reviewQueueKnown?"Поле review_queue в Hub не передано.":"review_queue передан, но review_rows[] отсутствует; идентичность actionable review не подтверждена.");
+      } else if (actionableRows.length) {
+        q.innerHTML = queueIntro + actionableRows.map(function(r){
+          var ageMin=r.received_at?Math.max(0,Math.round((Date.now()-new Date(r.received_at).getTime())/60000)):null;
+          return "<div class='document-live-row'><b>"+esc(r.test_id||r.packet_file||"review без ID")+"<small>"+esc(r.artifact_class==="CANONICAL_REVIEW"?"канонический разбор":humanCode(r.artifact_class||"UNKNOWN"))+"</small></b><span>"+esc(r.review_owner_id||r.owning_branch||"владелец не передан")+"</span><span>"+esc("владелец: "+(r.review_owner_kind?humanCode(r.review_owner_kind):"не передан")+" · "+(r.review_authority_basis?humanCode(r.review_authority_basis):"основание полномочий не передано"))+"</span><small>"+esc(ageMinutesLabel(ageMin))+"</small></div>";
         }).join("");
-      } else if (!reviewQueueKnown) {
-        q.innerHTML = unavailableHTML("Очередь ручного разбора не проверена", "Поле review_queue в Hub не передано.");
-      } else if (!oldestKnown) {
-        q.innerHTML = unavailableHTML("Детали очереди не переданы", "review_queue прочитан, но oldest_5 отсутствует; нулевую очередь Панель не выводит.");
-      } else if (manualQueueCount === 0) {
-        q.innerHTML = "<div class='documents-empty compact'><strong>Ручная очередь равна 0 по источнику</strong><span>Hub явно передал manual_review_required=0 и пустой oldest_5[].</span></div>";
+      } else if (manualQueueCount===0) {
+        q.innerHTML = queueIntro + "<div class='documents-empty compact'><strong>Назначенных разборов = 0</strong><span>Назначенных ручных review сейчас нет.</span></div>";
       } else {
-        q.innerHTML = "<div class='documents-empty compact'><strong>oldest_5[] пуст, но общий ноль не подтверждён</strong><span>Счётчик manual_review_required не равен явному нулю или не передан.</span></div>";
+        q.innerHTML = queueIntro + unavailableHTML("Счётчик и идентичные строки расходятся", "actionable_review ненулевой, но review_rows[] не содержит ACTIONABLE_REVIEW. Панель не подставляет oldest_5 вместо действующей очереди.");
       }
     }
     var recentBox = page.querySelector('[data-d="recent"]');
