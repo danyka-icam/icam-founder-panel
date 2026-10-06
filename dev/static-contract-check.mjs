@@ -30,8 +30,17 @@ check(!/(?:sk-[A-Za-z0-9_-]{12,}|ghp_[A-Za-z0-9]{20,}|github_pat_|AKIA[0-9A-Z]{1
 check(!/x-atlas-signals-key|ATLAS_SIGNALS_KEY_FILE/i.test(all), "no signals ingest secret markers");
 check(!/с объектом FND-007|Legacy-код обращается к `FND-007`/.test(all), "no legacy BrazilPortal identity hard-code");
 check(!/data-drawer=|id="drawer"|top-corner-arrow/.test(src["v2/index.html"]), "no legacy placeholder drawer controls");
+check(/foundation-legacy-deprecated" hidden/.test(src["v2/index.html"]), "legacy Foundation surface is permanently hidden");
+check(/atlas-legacy-deprecated" hidden/.test(src["v2/index.html"]), "legacy ATLAS surface is permanently hidden");
+check(/twin-legacy-deprecated" hidden/.test(src["v2/index.html"]), "legacy Digital Twin surface is permanently hidden");
+check(/brazilportal-legacy-deprecated" hidden/.test(src["v2/index.html"]), "legacy BrazilPortal surface is permanently hidden");
+check(/operations-legacy-deprecated" hidden/.test(src["v2/index.html"]), "legacy Operations surface is permanently hidden");
 
 const liveClient = src["v2/live.js"];
+check(/rq\.actionable_review/.test(liveClient) && /rq\.unassigned_review_quarantine/.test(liveClient), "documents keep actionable review separate from quarantine");
+check(/это не число свежих сделок/.test(liveClient) && /live_dated/.test(liveClient) && /imported_undated/.test(liveClient), "commercial UI keeps live-dated state separate from imported-undated state");
+check(/unverifiedEdges/.test(liveClient) && /Неподтверждённые связи/.test(liveClient), "Agent Lineage does not silently drop unverified edges");
+check(/founderItems = Array\.isArray\(summary\.needs_founder\)/.test(liveClient), "Testing Founder work comes from explicit needs_founder[]");
 check(/API \+ "\/agent-registry"/.test(liveClient) && /API \+ "\/agent-lineage"/.test(liveClient), "Agent Network uses only upstream-approved same-origin read projections");
 check(!/\/api\/v1\/registry|\/api\/v1\/lineage|127\.0\.0\.1:8840/i.test(liveClient), "browser does not bypass same-origin projection to canonical Agent Registry service coordinates");
 const atlasStart = liveClient.indexOf("function renderAtlasStateClean");
