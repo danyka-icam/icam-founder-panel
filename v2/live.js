@@ -2253,7 +2253,7 @@
     if(!body)return;
     var names={
       continuity_source_health:"Контур Continuity",
-      artifact_durability_readback:"Долговечность / readback",
+      artifact_durability_readback:"Долговечность / обратное чтение",
       authority_action_path:"Путь полномочий",
       testing_execution_integrity:"Исполнение Testing"
     };
@@ -2274,7 +2274,7 @@
           "Причина состояния передана в blocking_reason выше; Панель не заменяет её собственной причинной моделью." :
           (explicitCleanCounts && explicitOrphanFailure ?
             "Источник явно передал 0 потерянных артефактов, 0 расхождений хэшей и ненулевой orphan_receipts при state=FAIL. Панель показывает это сочетание, но не идентифицирует конкретную расписку без поля источника." :
-            "Поля readback показаны буквально. Причина PASS/FAIL сверх переданных state, detail и blocking_reason Панелью не выводится." + (excludedTestOrphanN != null && excludedTestOrphanN > 0 ? " Источник отдельно передал " + excludedTestOrphanN + " доказанно исключённую self-test расписку; она не считается production orphan и не удалена из исторического учёта." : ""));
+            "Поля обратного чтения показаны буквально. Причина состояния сверх переданных state, detail и blocking_reason Панелью не выводится." + (excludedTestOrphanN != null && excludedTestOrphanN > 0 ? " Источник отдельно передал " + excludedTestOrphanN + " доказанно исключённую тестовую расписку; она не считается производственной осиротевшей распиской и не удалена из исторического учёта." : ""));
         extra = "<div class='foundation-proof-grid'>" +
           "<span><small>На диске</small><b>" + esc(det.objects_on_disk != null ? det.objects_on_disk : "—") + "</b></span>" +
           "<span><small>Расхождения хэшей</small><b>" + esc(det.hash_mismatches != null ? det.hash_mismatches : "—") + "</b></span>" +
@@ -2299,8 +2299,8 @@
       var oldSystem=systemItems.filter(function(x){var a=sysAge(x);return a!=null&&a>=STALE_DAYS;}).length;
       var fixtureSystem=systemItems.filter(sysFixture).length;
       var byType={};systemItems.forEach(function(x){var k=String(x.issue_type||"UNKNOWN");byType[k]=(byType[k]||0)+1;});
-      var rows=[["SYNC_HEALTH_DEGRADED","свежесть / синхронизация"],["MEANING_ASSESSMENT_REJECTED","отклонённые смысловые записи"],["INGRESS_PACKET_NOT_INGESTED","пакеты ingress без полного контракта"],["PROJECTION_REJECTED","отклонённые проекции"]].filter(function(x){return byType[x[0]];}).map(function(x){return "<span><small>"+esc(x[1])+"</small><b>"+esc(byType[x[0]])+"</b></span>";}).join("");
-      systemBlock="<div class='live-item-clean direction-selectable tone-return' data-direction-role='evidence' data-direction-title='Системное внимание' data-direction-summary='"+attr(systemItems.length+" SYSTEM-записей: "+recentSystem+" видели менее "+STALE_DAYS+" дней назад; "+oldSystem+" старых; "+fixtureSystem+" имеют явные TEST/FIXTURE-маркеры. Ни одна запись не скрыта автоматически.")+"'><div class='live-item-clean-head'><h3>Системное внимание</h3>"+chip(systemItems.length)+"</div><div class='foundation-proof-grid'>"+rows+"</div><small>"+esc(recentSystem+" видели менее "+STALE_DAYS+" дней назад · "+oldSystem+" старых · "+fixtureSystem+" с явным TEST/FIXTURE-происхождением. Тестовое происхождение не означает автоматического игнорирования.")+"</small></div>";
+      var rows=[["SYNC_HEALTH_DEGRADED","свежесть / синхронизация"],["MEANING_ASSESSMENT_REJECTED","отклонённые смысловые записи"],["INGRESS_PACKET_NOT_INGESTED","входящие пакеты без полного контракта"],["PROJECTION_REJECTED","отклонённые проекции"]].filter(function(x){return byType[x[0]];}).map(function(x){return "<span><small>"+esc(x[1])+"</small><b>"+esc(byType[x[0]])+"</b></span>";}).join("");
+      systemBlock="<div class='live-item-clean direction-selectable tone-return' data-direction-role='evidence' data-direction-title='Системное внимание' data-direction-summary='"+attr(systemItems.length+" системных записей: "+recentSystem+" видели менее "+STALE_DAYS+" дней назад; "+oldSystem+" старых; "+fixtureSystem+" имеют явные признаки тестового происхождения. Ни одна запись не скрыта автоматически.")+"'><div class='live-item-clean-head'><h3>Системное внимание</h3>"+chip(systemItems.length)+"</div><div class='foundation-proof-grid'>"+rows+"</div><small>"+esc(recentSystem+" видели менее "+STALE_DAYS+" дней назад · "+oldSystem+" старых · "+fixtureSystem+" с явным тестовым происхождением. Тестовое происхождение не означает автоматического игнорирования.")+"</small></div>";
     } else if(sourceState.inbox.ok){
       systemBlock="<div class='live-item-clean'><div class='live-item-clean-head'><h3>Системное внимание</h3>"+chip("—")+"</div><small>Founder inbox ответил, но system_attention[] не передан; состав системной очереди не подтверждён.</small></div>";
     }
@@ -2310,12 +2310,12 @@
       "<div class='live-summary'>"+
       "<div class='metric'><small>Общий статус</small><strong>"+esc(sourceStatusLabel(data.source_status))+"</strong><span>серверная агрегированная проекция — единственный источник этого статуса</span></div>"+
       "<div class='metric'><small>Свежесть</small><strong>"+esc(data.freshness_state?humanCode(data.freshness_state):"не передана")+"</strong><span>поле freshness_state серверной проекции</span></div>"+
-      "<div class='metric'><small>PASS</small><strong>"+esc(passBase.length?passCount+" / "+passBase.length:"—")+"</strong><span>"+esc(mandatoryKnown?"обязательные измерения":"переданные dimensions; mandatory не полностью указан")+"</span></div>"+
+      "<div class='metric'><small>Пройдено</small><strong>"+esc(passBase.length?passCount+" / "+passBase.length:"—")+"</strong><span>"+esc(mandatoryKnown?"обязательные измерения":"переданные dimensions; mandatory не полностью указан")+"</span></div>"+
       "<div class='metric'><small>Блокирующие причины</small><strong>"+esc(blockingProvided?blocking.length:"—")+"</strong><span>"+esc(blockingProvided?"по явному blocking_reasons[]":"поле не передано")+"</span></div></div>"+
       (blocking.length?"<div class='live-warning'>"+blocking.map(function(x){return esc(projectionTextRu(x));}).join("<br>")+"</div>":"")+
       systemBlock +
       "<div class='live-list-clean'>"+(dimensionsKnown?(cards||"<div class='live-item-clean'><small>Источник явно передал пустой dimensions[].</small></div>"):"<div class='live-item-clean'><small>Поле dimensions[] не передано; состав измерений основания не подтверждён.</small></div>")+"</div>" +
-      "<div class='foundation-ready-rule'><b>Условие возврата в READY:</b> каждое обязательное измерение должно снова иметь PASS от живого источника. Прошлый PASS или сохранённый отчёт не заменяет текущее доказательство.</div>";
+      "<div class='foundation-ready-rule'><b>Условие возврата в состояние «готово»:</b> каждое обязательное измерение должно снова иметь PASS от живого источника. Прошлый PASS или сохранённый отчёт не заменяет текущее доказательство.</div>";
     refreshDirectionInspector("foundation");
   }
 
