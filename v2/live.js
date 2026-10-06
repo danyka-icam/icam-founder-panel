@@ -1024,10 +1024,21 @@
         var blockerRecords = blockersResp.items.filter(function (b) {
           return !b.is_test && String(b.status || "").toUpperCase() !== "CLEARED";
         });
-        blockerBox.innerHTML = blockerRecords.length ? "<div class='registry-mini-list'>" + blockerRecords.slice(0, 6).map(function (b) {
-          return "<div class='registry-mini-item'><b>" + esc(b.title || b.blocker || "Запись блокера") + "</b><span>" +
-            esc(b.object_id || "объект не определён") + " · " + esc(b.status ? ruStatus(b.status) : "статус не указан") + " · тяжесть не передана</span></div>";
-        }).join("") + "</div>" :
+        var blockerGroups={};
+        blockerRecords.forEach(function(b){
+          var id=String(b.object_id||"объект не определён");
+          if(!blockerGroups[id]) blockerGroups[id]={id:id,items:[],latest:null,age:null};
+          blockerGroups[id].items.push(b);
+          var at=b.updated_at||b.opened_at||null, age=daysSince(at);
+          if(at && (!blockerGroups[id].latest || String(at)>String(blockerGroups[id].latest))){blockerGroups[id].latest=at;blockerGroups[id].age=age;}
+        });
+        var groupedBlockers=Object.keys(blockerGroups).map(function(k){return blockerGroups[k];}).sort(function(a,b){return String(b.latest||"").localeCompare(String(a.latest||""));});
+        var recentBlockers=blockerRecords.filter(function(b){var a=daysSince(b.updated_at||b.opened_at);return a!=null&&a<STALE_DAYS;}).length;
+        blockerBox.innerHTML = blockerRecords.length ? "<div class='registry-blocker-summary'><b>"+esc(groupedBlockers.length)+" объектов</b><span>"+esc(blockerRecords.length)+" открытых записей · "+esc(recentBlockers)+" с движением менее "+esc(STALE_DAYS)+" дней назад · "+esc(blockerRecords.length-recentBlockers)+" старых записей</span></div><div class='registry-mini-list'>" + groupedBlockers.slice(0, 6).map(function (g) {
+          var latest=g.items.slice().sort(function(a,b){return String(b.updated_at||b.opened_at||"").localeCompare(String(a.updated_at||a.opened_at||""));})[0]||{};
+          return "<div class='registry-mini-item'><b>" + esc(g.id) + " · " + esc(g.items.length) + " записей</b><span>" +
+            esc(g.age==null?"дата последнего движения не передана":("последнее движение "+g.age+" дн. назад")) + "</span><small>"+esc(cut(latest.title||latest.blocker||"Описание не передано",150))+"</small></div>";
+        }).join("") + "</div>" + (groupedBlockers.length>6?"<div class='signals-partial-note'>Ещё "+esc(groupedBlockers.length-6)+" объект(а) со blocker-записями скрыты из краткого обзора.</div>":"") :
         "<div class='registry-empty compact'><strong>Нет нетестовых blocker-записей без явного CLEARED</strong><span>Текущая проекция Continuity не содержит OPEN или записей с неизвестным lifecycle.</span></div>";
       }
     }
@@ -2090,32 +2101,47 @@
     var isClosedCommitment=function(o){return ["DONE","CLOSED","ARCHIVED","CANCELLED"].indexOf(String(o.status||"").toUpperCase())>=0;};
     var openOps=ops.filter(function(o){return !isClosedCommitment(o);});
     var closedOps=ops.filter(isClosedCommitment);
+    var openObjectIds={};openOps.forEach(function(o){openObjectIds[String(o.object_id||"объект не определён")]=true;});
+    var openObjectCount=Object.keys(openObjectIds).length;
+    var freshOpen=openOps.filter(function(o){var a=daysSince(o.updated_at||o.opened_at);return a!=null&&a<STALE_DAYS;}).length;
+    var staleOpen=openOps.filter(function(o){var a=daysSince(o.updated_at||o.opened_at);return a!=null&&a>=STALE_DAYS;}).length;
+    var unknownAgeOpen=openOps.length-freshOpen-staleOpen;
     var ownedOpen=openOps.filter(function(o){return ownerDisplay(o)!=="Недоступно";}).length;
     var factualKnown=ops.filter(function(o){return o.factual_result && String(o.factual_result).toUpperCase()!=="UNAVAILABLE";}).length;
-    var ordered=openOps.concat(closedOps);
+    var ordered=openOps.slice().sort(function(a,b){return String(b.updated_at||b.opened_at||"").localeCompare(String(a.updated_at||a.opened_at||""));}).concat(closedOps);
     var summary="<div class='live-status-box "+sourceStatusBoxClass(data.source_status)+"'><strong>Операционная проекция — "+esc(sourceStatusLabel(data.source_status))+"</strong>"+
-      "<p>"+(String(data.freshness_state).toUpperCase()==="STALE"?"Проекция устарела по собственному контракту: нового движения обязательств в окне свежести не было. Это не означает, что обязательства автоматически отменены или просрочены.":"Состояние прочитано из серверной проекции.")+"</p></div>"+
+      "<p>"+(String(data.freshness_state).toUpperCase()==="STALE"?"Открытые обязательства не имели нового движения в окне свежести. Они не отменяются автоматически, но не должны выглядеть как свежая операционная очередь.":"Состояние прочитано из серверной проекции.")+"</p></div>"+
       "<div class='live-summary'>"+
-      "<div class='metric'><small>Без явного закрывающего статуса</small><strong>"+esc(operationsProvided?openOps.length:"—")+"</strong><span>"+esc(operationsProvided?"из "+ops.length+" записей проекции":"operations[] не передан")+"</span></div>"+
-      "<div class='metric'><small>Владелец известен</small><strong>"+esc(operationsProvided?ownedOpen+" / "+openOps.length:"—")+"</strong><span>только среди записей без явного закрывающего статуса</span></div>"+
-      "<div class='metric'><small>Свежесть</small><strong>"+esc(data.freshness_state?humanCode(data.freshness_state):"не передана")+"</strong><span>последнее движение "+esc(data.last_movement_at?ago(data.last_movement_at):"не передано")+"</span></div>"+
-      "<div class='metric'><small>Фактический результат</small><strong>"+esc(operationsProvided?factualKnown+" / "+ops.length:"—")+"</strong><span>закрытие само по себе не считается результатом</span></div></div>"+
+      "<div class='metric'><small>Объекты с открытыми обязательствами</small><strong>"+esc(operationsProvided?openObjectCount:"—")+"</strong><span>"+esc(operationsProvided?openOps.length+" открытых записей":"operations[] не передан")+"</span></div>"+
+      "<div class='metric'><small>Свежие открытые записи</small><strong>"+esc(operationsProvided?freshOpen:"—")+"</strong><span>движение менее "+esc(STALE_DAYS)+" дней назад</span></div>"+
+      "<div class='metric'><small>Старые открытые записи</small><strong>"+esc(operationsProvided?staleOpen:"—")+"</strong><span>"+(unknownAgeOpen?esc(unknownAgeOpen)+" без подтверждённой даты · ":"")+"не закрываются автоматически</span></div>"+
+      "<div class='metric'><small>Владелец известен</small><strong>"+esc(operationsProvided?ownedOpen+" / "+openOps.length:"—")+"</strong><span>среди открытых записей</span></div></div>"+
       "<div class='operations-proof-boundary'><b>Граница доказанного:</b> "+
-        (operationsProvided?(openOps.length?(ownedOpen+" из "+openOps.length+" записей без явного закрывающего статуса имеют переданного владельца хода; у "+(openOps.length-ownedOpen)+" владелец в этой проекции не передан."):"Источник явно передал operations[] без записей с незакрытым статусом."):"Поле operations[] не передано; количество и владельцы записей без явного закрывающего статуса не подтверждены.")+" "+
-        (operationsProvided?(factualKnown+" из "+ops.length+" записей передают фактический результат; `closed_at` доказывает закрытие записи, но не бизнес-исход."):"Фактические результаты по операциям также не проверены.")+"</div>";
-    var rows=ordered.slice(0,6).map(function(o){
-      var owner=ownerDisplay(o);
-      var factual=(o.factual_result && String(o.factual_result).toUpperCase()!=="UNAVAILABLE")?projectionTextRu(o.factual_result):"не передан источником";
-      var objectBlockersKnown=Array.isArray(o.object_level_blockers), objectBlockers=objectBlockersKnown?o.object_level_blockers:[];
-      return "<div class='live-item-clean'><div class='live-item-clean-head'><h3>"+esc(o.object_id||"Обязательство")+"</h3>"+chip(o.status)+"</div>"+
-        "<p>"+esc(cut(operationSummaryRu(o),220))+"</p>"+
-        "<div class='live-kv-grid'>"+kv("Ключ обязательства",o.commitment_key)+kv("Открыто",o.opened_at?ago(o.opened_at):"—")+kv("Последнее изменение",o.updated_at?ago(o.updated_at):"—")+kv("Владелец хода",owner)+kv("Условие активации",projectionTextRu(o.activation_condition||"не передано"))+kv("Фактический результат",factual)+"</div>"+
-        (owner==="Недоступно"?"<small>Источник: "+esc(projectionTextRu(o.ball_owner_reason||"владелец хода не передан"))+"</small>":"")+
-        (objectBlockers.length?"<small>У связанного объекта есть "+esc(objectBlockers.length)+" открытых blocker-записей. Источник прямо запрещает считать их блокерами именно этого обязательства.</small>":(!objectBlockersKnown?"<small>Поле object_level_blockers[] не передано; отсутствие blocker-контекста объекта не подтверждено.</small>":""))+"</div>";
+        (operationsProvided?(openOps.length?(openObjectCount+" объектов имеют "+openOps.length+" записей без явного закрывающего статуса. Из них "+freshOpen+" имели движение менее "+STALE_DAYS+" дней назад, "+staleOpen+" давно не двигались"+(unknownAgeOpen?", у "+unknownAgeOpen+" дата не подтверждена":"")+"."):"Источник явно передал operations[] без записей с незакрытым статусом."):"Поле operations[] не передано; количество открытых обязательств не подтверждено.")+" "+
+        (operationsProvided?(ownedOpen+" из "+openOps.length+" открытых записей имеют переданного владельца хода. "+factualKnown+" из "+ops.length+" записей всей проекции передают фактический результат; `closed_at` доказывает закрытие записи, но не бизнес-исход."):"Владельцы и фактические результаты также не проверены.")+"</div>";
+    var openGroups={};
+    openOps.forEach(function(o){
+      var id=String(o.object_id||"объект не определён");
+      if(!openGroups[id])openGroups[id]={id:id,items:[],latest:null};
+      openGroups[id].items.push(o);
+      var at=o.updated_at||o.opened_at||null;
+      if(at&&(!openGroups[id].latest||String(at)>String(openGroups[id].latest)))openGroups[id].latest=at;
+    });
+    var groupedOpen=Object.keys(openGroups).map(function(k){return openGroups[k];}).sort(function(a,b){return String(b.latest||"").localeCompare(String(a.latest||""));});
+    var rows=groupedOpen.map(function(g){
+      var items=g.items.slice().sort(function(a,b){return String(b.updated_at||b.opened_at||"").localeCompare(String(a.updated_at||a.opened_at||""));});
+      var latest=items[0]||{}, age=daysSince(latest.updated_at||latest.opened_at);
+      var owners={};items.forEach(function(o){var v=ownerDisplay(o);if(v!=="Недоступно")owners[v]=true;});
+      var ownerNames=Object.keys(owners);
+      var activation=items.filter(function(o){return o.activation_condition;})[0];
+      return "<div class='live-item-clean direction-selectable' data-direction-role='projection' data-direction-title='"+attr(g.id)+"' data-direction-summary='"+attr(g.id+": "+items.length+" открытых обязательств; последнее движение "+(age==null?"не датировано":age+" дн. назад")+".")+"'><div class='live-item-clean-head'><h3>"+esc(g.id)+"</h3>"+chip(items.length+" открыто")+"</div>"+
+        "<p>"+esc(cut(operationSummaryRu(latest),220))+"</p>"+
+        "<div class='live-kv-grid'>"+kv("Открытых обязательств",items.length)+kv("Последнее движение",age==null?"дата не передана":age+" дн. назад")+kv("Владельцы",ownerNames.length?ownerNames.join(", "):"не переданы")+kv("Условие активации",activation?projectionTextRu(activation.activation_condition):"не передано")+"</div>"+
+        "<small>Это объектный обзор. "+esc(items.length)+" исходных commitment-записей сохранены в серверной проекции и не объединяются в одно обязательство.</small></div>";
     }).join("");
     var unavailableOpsFields=Array.isArray(data.unavailable_fields)?data.unavailable_fields:null;
     var unavailableOpsHTML=unavailableOpsFields?("<div class='live-item-clean'><div class='live-item-clean-head'><h3>Сознательно неизвестные поля</h3><small>буквальный unavailable_fields[] операционной проекции</small></div>"+(unavailableOpsFields.length?"<div class='live-kv-grid' data-ops-unavailable-fields>"+unavailableOpsFields.map(function(f){return kv(projectionFieldRu(f),"недоступно");}).join("")+"</div>":"<p data-ops-unavailable-fields>Источник явно передал пустой unavailable_fields[].</p>")+"</div>"):"";
-    body.innerHTML=summary+unavailableOpsHTML+"<div class='live-list-clean'>"+rows+"</div>"+(ordered.length>6?"<div class='live-more'>Сначала показаны записи без явного закрывающего статуса. Ещё "+(ordered.length-6)+" записей скрыты из обзора.</div>":"");
+    body.innerHTML=summary+unavailableOpsHTML+"<div class='live-list-clean'>"+rows+"</div>"+(closedOps.length?"<div class='live-more'>"+esc(closedOps.length)+" исторически закрытых записей сохранены в источнике и не занимают текущий обзор.</div>":"");
     refreshDirectionInspector("operations");
   }
 

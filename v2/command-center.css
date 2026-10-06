@@ -1485,3 +1485,7 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .cc-hero-group.stale .cc-hero-item{background:rgba(10,18,22,.42);border-color:rgba(90,169,230,.16)}
 .cc-hero-group.stale .cc-hero-item small{color:#a8b8b4}
 .cc-hero-group.stale .cc-hero-item em{color:#7f9792}
+.registry-blocker-summary{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 12px;margin-bottom:8px;border:1px solid rgba(90,169,230,.16);border-radius:10px;background:rgba(90,169,230,.035)}
+.registry-blocker-summary b{font:400 17px var(--cc-serif);color:#eef6f3}
+.registry-blocker-summary span{font-size:9.5px;line-height:1.4;color:var(--muted-2);text-align:right}
+.registry-mini-item small{display:block;margin-top:4px;font-size:9px;line-height:1.35;color:var(--cc-dim)}
