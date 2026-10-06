@@ -1106,20 +1106,18 @@
     decisions = byDateDesc(decisions);
     assigned = byDateDesc(assigned);
     assignedOld = byDateDesc(assignedOld);
-    var nd = decisions.length, na = assigned.length, no = assignedOld.length, total = nd + na + no;
+    var nd = decisions.length, na = assigned.length, no = assignedOld.length, currentTotal = nd + na;
     var decisionsOk = M.fp.ok && M.FP.decisionsKnown;
     var anyOk = decisionsOk || routeDataOk();
     var head = "<div class='cc-hero-head'><span class='cc-hero-mark'>!</span><div><h2>Требует вашего решения</h2>" +
       "<small>формальные решения и только свежие назначения отделены от старых маршрутов, которые источник всё ещё держит ACTIVE</small></div>" +
       "<div class='cc-hero-counts'><strong class='cc-hero-count'>" + (decisionsOk ? nd : "—") + "</strong>" +
       "<span><b>" + (decisionsOk ? nd : "—") + "</b> " + (decisionsOk ? plural(nd, "формальное решение", "формальных решения", "формальных решений") : "формальных решений") +
-      " · <b>" + (routeDataOk() ? na : "—") + "</b> свежих назначений · <b>" + (routeDataOk() ? no : "—") + "</b> старых маршрутов на сверку</span></div></div>";
+      " · <b>" + (routeDataOk() ? na : "—") + "</b> свежих назначений" + (routeDataOk() && no ? " · <b>"+no+"</b> старых назначений вынесены в системную сверку" : "") + "</span></div></div>";
     if (!anyOk) return head + unavailable("Контур внимания не проверен", (M.fp.ok ? "Founder Projection ответил, но today.founder_decisions[] не передан" : "Проекция решений Основателя недоступна") + "; " + routeGapText() + ". Состояние внимания не подтверждено.");
-    if (!total && decisionsOk && routeDataOk()) return head + "<div class='cc-hero-calm'>Формальных решений и назначенных вам маршрутов сейчас нет.</div>";
     var shownD = ui.heroAll ? nd : Math.min(nd, HERO_LIMIT);
     var shownA = ui.heroAll ? na : Math.min(na, Math.max(0, HERO_LIMIT - shownD));
-    var shownO = ui.heroAll ? no : Math.min(no, Math.max(0, HERO_LIMIT - shownD - shownA));
-    var hidden = total - shownD - shownA - shownO;
+    var hidden = currentTotal - shownD - shownA;
     function card(it) {
       return "<div class='cc-hero-item " + it.kind + "'" + it.attr + " tabindex='0'>" +
         "<b>" + E(H.cut(it.title, 90)) + "</b><small>" + E(H.cut(it.why, 150)) + "</small>" +
@@ -1133,12 +1131,13 @@
       else body = "<div class='cc-hero-list'>" + list.slice(0, shown).map(card).join("") + "</div>";
       return "<section class='cc-hero-group " + cls + "'><header><span class='cc-hero-kind'>" + E(title) + "</span><b>" + (srcOk ? list.length : "—") + "</b><small>" + E(sub) + "</small></header>" + body + "</section>";
     }
-    return head +
+    var currentBody = currentTotal ? (
       group("decide", "Нужно решить", "только формальные решения Основателя", decisions, shownD, decisionsOk, M.fp.ok ? "Founder Projection ответил, но today.founder_decisions[] не передан" : "Проекция решений Основателя недоступна") +
       group("move", "Свежие маршруты на вашей стороне", "владелец следующего хода — вы, и движение было менее " + H.STALE_DAYS + " дней назад", assigned, shownA, routeDataOk(), routeGapText()) +
-      group("stale", "Старые назначения — нужна сверка", "источник всё ещё держит маршрут активным, но свежего движения нет; панель не считает это текущей задачей автоматически", assignedOld, shownO, routeDataOk(), routeGapText()) +
-      (hidden > 0 ? "<button class='cc-hero-more' data-cc-hero-more>Показать ещё " + hidden + "</button>" :
-        (ui.heroAll && total > HERO_LIMIT ? "<button class='cc-hero-more' data-cc-hero-more>Свернуть</button>" : "")) +
+      (hidden > 0 ? "<button class='cc-hero-more' data-cc-hero-more>Показать ещё " + hidden + "</button>" : (ui.heroAll && currentTotal > HERO_LIMIT ? "<button class='cc-hero-more' data-cc-hero-more>Свернуть</button>" : ""))
+    ) : (decisionsOk && routeDataOk() ? "<div class='cc-hero-calm'>Сейчас действий Ники нет: формальных решений и свежих маршрутов на вашей стороне — 0.</div>" : "");
+    var staleBody = routeDataOk() && no ? "<details class='cc-hero-stale-archive'><summary><b>Старые назначения · "+no+"</b><span>источник всё ещё держит их ACTIVE, но это системная сверка, а не текущая работа Ники</span></summary><div class='cc-hero-list'>"+assignedOld.map(card).join("")+"</div></details>" : "";
+    return head + currentBody + staleBody +
       (inboxDataOk() && M.inboxItems.length ? "<div class='cc-foot-note'>Входящие Основателя: " + M.inboxItems.length + " запрос(ов) на участие. Они не становятся формальными решениями без проекции решений Основателя.</div>" : "") +
       "<div class='cc-foot-note'>Старый ACTIVE не закрывается автоматически: он остаётся видимым как запись источника, но после " + H.STALE_DAYS + " дней без движения выводится на сверку, а не как сегодняшняя задача. Приоритет показывается только таким, каким его отдал источник.</div>";
   }
@@ -1164,8 +1163,8 @@
         ((M.marketStored != null ? "накоплено в хранилище" : "в текущем чтении") + (M.marketReturned != null ? " · в текущем чтении " + M.marketReturned : "") + " · Scanner " + scanOk + "/" + scanTotal + " источников") :
         "свежесть и покрытие Scanner не подтверждены");
     chips.push("<a class='cc-meta" + (scanDegraded ? " warn" : "") + "' href='#signals'><i>◉</i>рыночные сигналы: <b>" + E(marketLabel) + "</b><span class='cc-meta-sub'>" + E(marketSub) + "</span></a>");
-    chips.push("<a class='cc-meta' href='#placement'><i>⌖</i>качество карты: <b>" + (q ? (q.activeKnown ? q.active : "≥ " + q.active) + " в активной очереди" : "Не проверено") + "</b>" +
-      (q ? "<span class='cc-meta-sub'>" + (q.sourceTotal == null ? "owner_conflicts не передан; показана нижняя граница" : "по источнику " + q.sourceTotal + (q.archived ? " · " + q.archived + " в архиве" : "")) + "</span>" : "") + "</a>");
+    chips.push("<a class='cc-meta' href='#placement'><i>⌖</i>качество карты: <b>" + (q ? ((q.conflictsKnown?q.conflicts:"—") + " ручн. конфликт") : "Не проверено") + "</b>" +
+      (q ? "<span class='cc-meta-sub'>" + q.review + " записей системной сверки" + (q.archived ? " · " + q.archived + " в архиве" : "") + "</span>" : "") + "</a>");
     if (inboxDataOk() && M.inboxItems.length) {
       chips.push("<span class='cc-meta'><i>!</i>Входящие Основателя: <b>" + M.inboxItems.length + "</b><span class='cc-meta-sub'>запросы на участие, не автоматически решения</span></span>");
     }
