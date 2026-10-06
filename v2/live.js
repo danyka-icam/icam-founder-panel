@@ -1065,7 +1065,7 @@
   function renderDocuments(health, testingSummary) {
     var page = document.querySelector('[data-page-panel="documents"]');
     if (!page) return;
-    var keys = ["durable", "review", "oldest", "unknown"];
+    var keys = ["durable", "review", "quarantine", "unknown"];
     if (!sourceState.hubHealth.ok || !health) {
       keys.forEach(function (k) { var e = page.querySelector('[data-d="' + k + '"]'); if (e) e.textContent = "Недоступно"; });
       var q = page.querySelector('[data-d="queue"]');
@@ -1077,8 +1077,8 @@
     var rq = reviewQueueKnown ? health.review_queue : {};
     var vals = {
       durable: health.objects_on_disk == null ? "—" : health.objects_on_disk,
-      review: rq.manual_review_required == null ? "—" : rq.manual_review_required,
-      oldest: ageMinutesLabel(rq.oldest_manual_review_minutes),
+      review: rq.actionable_review == null ? "—" : rq.actionable_review,
+      quarantine: rq.unassigned_review_quarantine == null ? "—" : rq.unassigned_review_quarantine,
       unknown: rq.unknown_classification == null ? "—" : rq.unknown_classification
     };
     Object.keys(vals).forEach(function (k) { var e = page.querySelector('[data-d="' + k + '"]'); if (e) e.textContent = vals[k]; });
@@ -1106,8 +1106,12 @@
         return isFinite(n) ? n : null;
       }
       var manual = countOrNull(rq.manual_review_required);
+      var actionable = countOrNull(rq.actionable_review);
       var nonManual = countOrNull(rq.non_manual_pending);
       var unassigned = countOrNull(rq.unassigned_review_quarantine);
+      var legacyQuarantine = countOrNull(rq.legacy_unassigned_quarantine);
+      var newQuarantine = countOrNull(rq.new_unassigned_quarantine);
+      var oldestLiveReview = rq.oldest_live_review_minutes == null ? "—" : ageMinutesLabel(rq.oldest_live_review_minutes);
       var op = countOrNull(rq.operational_evidence);
       var work = countOrNull(rq.working_reference);
       var canonical = countOrNull(rq.canonical_review);
@@ -1135,7 +1139,7 @@
         (authority ? humanCode(authority) : "состояние полномочий не передано");
       evidenceBox.innerHTML =
         "<div class='doc-integrity-boundary'><b>Граница сохранности:</b><span>Hub сообщает " + esc(health.objects_on_disk == null ? "—" : health.objects_on_disk) + " объектов на диске, из них индексировано " + esc(health.indexed_ok == null ? "—" : health.indexed_ok) + ", не индексировано " + esc(health.unindexed == null ? "—" : health.unindexed) + ". Осиротевших расписок: " + esc(health.orphan_receipts == null ? "—" : health.orphan_receipts) + "; доказанно исключённых self-test расписок: " + esc(health.excluded_test_orphan_receipts == null ? "—" : health.excluded_test_orphan_receipts) + "; расхождений хэшей: " + esc(health.hash_mismatches == null ? "—" : health.hash_mismatches) + ". Исключение self-test не удаляет исходную receipt и не распространяется на другие orphan. Наличие файла на диске не повышается до доказанного полного readback.</span></div>" +
-        "<div class='doc-evidence-head'><div><small>КЛАССИФИКАЦИЯ НЕРАЗОБРАННОГО КОНТУРА</small><b>" + esc(roleTotal != null ? roleTotal + " артефактов распределены по переданным ролям" : (rq.still_unreviewed != null ? rq.still_unreviewed + " остаются неразобранными; полный role-breakdown не передан" : "разбивка по ролям не передана")) + "</b></div><span>ручного разбора: <strong>" + esc(shownCount(manual)) + "</strong> · неручной pending: <strong>" + esc(shownCount(nonManual)) + "</strong> · без назначенного authority: <strong>" + esc(shownCount(unassigned)) + "</strong></span></div>" +
+        "<div class='doc-evidence-head'><div><small>КЛАССИФИКАЦИЯ НЕРАЗОБРАННОГО КОНТУРА</small><b>" + esc(roleTotal != null ? roleTotal + " артефактов распределены по переданным ролям" : (rq.still_unreviewed != null ? rq.still_unreviewed + " остаются неразобранными; полный role-breakdown не передан" : "разбивка по ролям не передана")) + "</b></div><span>реально требует действия: <strong>" + esc(shownCount(actionable)) + "</strong> · карантин без владельца: <strong>" + esc(shownCount(unassigned)) + "</strong> · неручной pending: <strong>" + esc(shownCount(nonManual)) + "</strong></span></div>" +
         "<div class='doc-role-grid'>" +
           "<div class='operational'><small>Операционные свидетельства</small><b>" + esc(shownCount(op)) + "</b><span>рабочий след; сам по себе не меняет канон</span></div>" +
           "<div class='working'><small>Рабочие ссылки</small><b>" + esc(shownCount(work)) + "</b><span>справочный материал</span></div>" +
@@ -1148,15 +1152,16 @@
           ((reviewRowsKnown && testingComplete) ?
             "<div class='doc-test-link calm'><div><small>СВЯЗЬ С ТЕКУЩЕЙ ПРОВЕРКОЙ</small><b>Точного совпадения test_id в текущих полных наборах не найдено</b><span>Панель не связывает артефакты с тестом по названию или похожему тексту.</span></div></div>" :
             "<div class='doc-test-link calm'><div><small>СВЯЗЬ С ТЕКУЩЕЙ ПРОВЕРКОЙ</small><b>Полнота сверки не подтверждена</b><span>" + esc(!reviewRowsKnown ? "review_rows не передан Hub." : "Testing active[] или recent[] не передан; отсутствие совпадения не доказано.") + "</span></div></div>")) +
-        "<div class='doc-evidence-rule'>Ручная очередь = активный канонический разбор + неизвестная классификация. still_unreviewed дополнительно включает неручные pending-записи; они не приравниваются к ручному долгу. Исторические тестовые разборы не возвращаются в активную очередь автоматически.</div>";
+        "<div class='doc-evidence-rule'>Текущая очередь действия задаётся полем actionable_review. В этом чтении manual_review_required="+esc(shownCount(manual))+" раскладывается на actionable="+esc(shownCount(actionable))+" и карантин без назначенного владельца="+esc(shownCount(unassigned))+(legacyQuarantine!=null?" (legacy "+esc(legacyQuarantine)+(newQuarantine!=null?", новые "+esc(newQuarantine):"")+")":"")+". Старейшая живая review-поверхность: "+esc(oldestLiveReview)+". Карантин и исторические тестовые разборы не становятся задачами Основателя автоматически.</div>";
     }
     var q = page.querySelector('[data-d="queue"]');
     if (q) {
       var oldestKnown = reviewQueueKnown && Array.isArray(rq.oldest_5);
       var rows = oldestKnown ? rq.oldest_5 : [];
-      var manualQueueCount = numberOrNull(rq.manual_review_required);
+      var manualQueueCount = numberOrNull(rq.actionable_review);
+      var queueIntro = "<div class='documents-queue-truth'><b>"+esc(manualQueueCount==null?"Действующая очередь не передана":manualQueueCount+" элементов действительно требуют действия")+"</b><span>"+esc((rq.unassigned_review_quarantine==null?"Карантин не передан":rq.unassigned_review_quarantine+" записей находятся в карантине без владельца")+". Поле oldest_5 показывает старейшие поверхности ручного разбора и не идентифицирует сами элементы текущей очереди; Панель их не угадывает.")+"</span></div>";
       if (rows.length) {
-        q.innerHTML = rows.map(function (r) {
+        q.innerHTML = queueIntro + rows.map(function (r) {
           var ageMin = r.received_at ? Math.max(0, Math.round((Date.now() - new Date(r.received_at).getTime()) / 60000)) : null;
           return "<div class='document-live-row'><b>" + esc(r.packet_file || "(событие без файла)") + "</b>" +
             "<span>" + esc(r.claimed_object_id || "не привязан") + "</span>" +
