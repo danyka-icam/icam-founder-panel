@@ -359,11 +359,13 @@
       "Supply the authorized frozen 96-slot pre-cutoff GitHub evidence dataset and re-execute testing.": "Передать разрешённый замороженный набор из 96 GitHub-слотов до отсечки и повторно запустить тестирование.",
       "Supply complete source custody artifacts, including the delivered execution lock, execution script, exact parent artifacts, and frozen PSID source environment.": "Передать полный пакет исходных материалов: зафиксированный запуск, сценарий выполнения, точные родительские артефакты и замороженную среду исходных данных PSID.",
       "Commission independent Third Coder adjudication or resolve coder tooling/linguistic parity before unblinding and scoring primary/genealogical claims.": "Провести независимую сверку третьим кодировщиком либо устранить различия инструментов и языковой паритет до раскрытия данных и оценки основных и генеалогических утверждений.",
-      "Security follow-up required: internal localhost service credentials were exposed in diagnostic tool output. Rotate affected credentials and move any inline/unit or CLI-visible secret transport to protected credential files; never reuse exposed values.": "Нужно устранить последствие утечки: внутренние учётные данные локального сервиса попали в диагностический вывод. Сменить затронутые секреты, перенести их из командной строки и inline-конфигурации в защищённые файлы учётных данных и не использовать раскрытые значения повторно."
+      "Security follow-up required: internal localhost service credentials were exposed in diagnostic tool output. Rotate affected credentials and move any inline/unit or CLI-visible secret transport to protected credential files; never reuse exposed values.": "Нужно устранить последствие утечки: внутренние учётные данные локального сервиса попали в диагностический вывод. Сменить затронутые секреты, перенести их из командной строки и inline-конфигурации в защищённые файлы учётных данных и не использовать раскрытые значения повторно.",
+      "Founder approval required: authorize one-off FINAL_ADJUDICATOR role J for INFRA-ZC-001 proposed rev2, or keep the test quarantined. A/B remain frozen; no general Testing authority is granted.": "Требовалось решение Основателя: разово разрешить роль FINAL_ADJUDICATOR J для предложенной rev2 теста INFRA-ZC-001 либо оставить тест в карантине. Варианты A/B остаются замороженными; общие полномочия Testing этим не выдаются."
     };
     if (exact[raw]) return exact[raw];
     if (raw.indexOf("External reproducibility Gate v0.1") === 0) return raw.replace("External reproducibility Gate v0.1", "Внешний гейт воспроизводимости v0.1");
-    if (raw.indexOf("Service operating normally:") === 0) return raw.replace("Service operating normally:", "Сервис работает штатно:");
+    if (raw.indexOf("Service operating normally:") === 0) return "Сервис работает штатно; подробная разбивка состояний — в разделе «Тестирование».";
+    if (/^Reviewed as new evidence on this .* arrives\.?$/i.test(raw)) return "Пересмотреть при поступлении нового доказательства по этой линии.";
     return raw;
   }
 
@@ -681,13 +683,13 @@
     });
     (decisionsKnown ? j.today.founder_decisions : []).forEach(function (row, i) {
       var key = String(row.decision_id || "decision|" + i);
-      var it = { kind: "decision", key: key, raw: row, title: row.question || "Решение Основателя" };
+      var it = { kind: "decision", key: key, raw: row, title: humanActionText(row.question || "Решение Основателя") };
       FP.decisions.push(it);
       FP.decisionByKey[key] = it;
     });
     (recentDecisionsKnown ? j.today.recent_founder_decisions : []).forEach(function (row, i) {
       var key = String(row.lifecycle_id || row.decision_source_event_id || "recentdecision|" + i);
-      var it = { kind: "recentdecision", key: key, raw: row, title: row.question || "Решение Основателя" };
+      var it = { kind: "recentdecision", key: key, raw: row, title: humanActionText(row.question || "Решение Основателя") };
       FP.recentDecisions.push(it);
       FP.recentDecisionByKey[key] = it;
     });
@@ -3151,7 +3153,7 @@
     return inspector({
       badge: "<span class='cc-obj-badge strategy'>?</span>",
       title: d.title, sub: "Формальное решение Основателя · Founder Projection",
-      what: para(r.question || d.title),
+      what: para(humanActionText(r.question || d.title)),
       where: crumbs([{ t: "ICAM" }, { t: "Решения Основателя", cur: true }]),
       now: (r.presentation_state ? "<div>" + codeTag(r.presentation_state, "tag") + "</div>" : "") +
         (r.authority_mode ? muted("Режим полномочий: " + human(r.authority_mode)) : ""),
@@ -3180,7 +3182,7 @@
       badge:"<span class='cc-obj-badge strategy'>✓</span>",
       title:d.title,
       sub:"Закрытое решение Основателя · "+human(r.decision_effect||"решение"),
-      what:para(r.question||d.title),
+      what:para(humanActionText(r.question||d.title)),
       where:crumbs([{t:"ICAM"},{t:"Решения Основателя"},{t:"история",cur:true}]),
       now:"<div class='cc-insp-state'><small>Решение</small><em>"+E(human(r.decision_effect||"не передано"))+"</em></div>"+
         "<div class='cc-insp-state'><small>Передача</small><em>"+E(routed?(f.target_branch_id+" · "+human(f.status||"статус не передан")):"handoff не передан")+"</em></div>"+
