@@ -905,6 +905,8 @@
       blockerRecords: blockerRecords, inboxItems: inboxItems, events: events,
       dangling: lines.filter(function (l) { return l.objMissing && !l.closed; }),
       marketCount: msActivated && msSignalsKnown ? ms.signals.length : null,
+      marketReturned: ms && ms.counts && ms.counts.returned != null ? Number(ms.counts.returned) : (msActivated && msSignalsKnown ? ms.signals.length : null),
+      marketStored: ms && ms.counts && ms.counts.stored_total != null ? Number(ms.counts.stored_total) : null,
       marketState: ms ? ms.activation_state : null,
       marketSignalsKnown: msSignalsKnown
     };
@@ -1154,10 +1156,10 @@
     var scanOk = scanCov ? scannerCount(scanCov.ok_count) : null;
     var scanDegraded = scanCov && String(scanCov.status || "").indexOf("DEGRADED") === 0;
     var marketLabel = !ok("marketSignals") ? "источник недоступен" :
-      (M.marketCount != null ? M.marketCount : (M.marketState === "NOT_ACTIVATED" ? "не активирован" : (M.marketSignalsKnown ? "состояние активации не передано" : "signals[] не передан")));
+      (M.marketStored != null ? M.marketStored : (M.marketCount != null ? M.marketCount : (M.marketState === "NOT_ACTIVATED" ? "не активирован" : (M.marketSignalsKnown ? "состояние активации не передано" : "signals[] не передан"))));
     var marketSub = !ok("scannerDiagnostics") ? "диагностика Scanner недоступна" :
       (scanCov && scanTotal != null && scanOk != null ?
-        ("накоплено в хранилище · текущий Scanner " + scanOk + "/" + scanTotal + " источников") :
+        ((M.marketStored != null ? "накоплено в хранилище" : "в текущем чтении") + (M.marketReturned != null ? " · в текущем чтении " + M.marketReturned : "") + " · Scanner " + scanOk + "/" + scanTotal + " источников") :
         "свежесть и покрытие Scanner не подтверждены");
     chips.push("<a class='cc-meta" + (scanDegraded ? " warn" : "") + "' href='#signals'><i>◉</i>рыночные сигналы: <b>" + E(marketLabel) + "</b><span class='cc-meta-sub'>" + E(marketSub) + "</span></a>");
     chips.push("<a class='cc-meta' href='#placement'><i>⌖</i>качество карты: <b>" + (q ? (q.activeKnown ? q.active : "≥ " + q.active) + " в активной очереди" : "Не проверено") + "</b>" +

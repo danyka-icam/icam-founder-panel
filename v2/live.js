@@ -1788,7 +1788,7 @@
     return m[String(kind || "").toUpperCase()] || "Материальное изменение";
   }
 
-  function renderFounderRadar(radar) {
+  function renderFounderRadar(radar, marketSignals, scannerDiagnostics) {
     var page=document.querySelector('[data-page-panel="signals"]');
     if(!page)return;
     function arr(k){return radar&&Array.isArray(radar[k])?radar[k]:[];}
@@ -1927,7 +1927,11 @@
     if(stamp)stamp.innerHTML='<div class="cc-stamp"><span class="cc-pulse ok"></span><span>Радар · данные поступают</span></div>';
 
     var opportunities=arr("opportunities"), waiting=arr("waiting"), upcoming=arr("upcoming"), predictions=arr("predictions");
-    var field=radar.field||{}, sigs=Array.isArray(field.signals)?field.signals.slice(0,6):[];
+    var field=radar.field||{}, fieldSignals=Array.isArray(field.signals)?field.signals:[], sigs=fieldSignals.slice(0,6);
+    var marketCounts=marketSignals&&marketSignals.counts||{}, scannerRun=scannerDiagnostics&&scannerDiagnostics.scanner&&scannerDiagnostics.scanner.run_summary||{};
+    var returnedSignals=marketCounts.returned!=null?Number(marketCounts.returned):(marketSignals&&Array.isArray(marketSignals.signals)?marketSignals.signals.length:null);
+    var storedSignals=marketCounts.stored_total!=null?Number(marketCounts.stored_total):null;
+    var emittedNow=scannerRun.signals_emitted!=null?Number(scannerRun.signals_emitted):null;
     var learning=arr("atlas_learning"), reputation=arr("reputation");
     var allForImportant=[];
     opportunities.forEach(function(x){allForImportant.push([x,"opportunities"]);});
@@ -1942,7 +1946,7 @@
       '<div class="cc-kpi radar-kpi risk"><span class="cc-kpi-icon">!</span><span class="cc-kpi-body"><small>Важных сейчас</small><strong>'+importantN+'</strong><em>выделены оранжевым</em></span></div>'+
       '<div class="cc-kpi radar-kpi wait"><span class="cc-kpi-icon">○</span><span class="cc-kpi-body"><small>Ждём</small><strong>'+waiting.length+'</strong><em>внешние ответы и исходы</em></span></div>'+
       '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">◷</span><span class="cc-kpi-body"><small>Ближайшие даты</small><strong>'+upcoming.length+'</strong><em>из тех же источников, что «Во времени»</em></span></div>'+
-      '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">↗</span><span class="cc-kpi-body"><small>Внешних сигналов</small><strong>'+sigs.length+'</strong><em>отобранный поток поля</em></span></div>';
+      '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">↗</span><span class="cc-kpi-body"><small>Последний цикл Scanner</small><strong>'+esc(emittedNow==null?"—":emittedNow)+'</strong><em>'+(storedSignals!=null?esc(storedSignals)+" накоплено · ":"")+(returnedSignals!=null?esc(returnedSignals)+" в текущем чтении · ":"")+esc(fieldSignals.length)+' отобрано в радар</em></span></div>';
 
     if(box("opportunities"))box("opportunities").innerHTML=listHTML(opportunities,"opportunities","Подтверждённых внешних окон для действия сейчас нет.",6);
     if(box("waiting"))box("waiting").innerHTML=listHTML(waiting,"waiting","Внешних ожиданий и ожидаемых исходов сейчас нет.",7);
@@ -1951,7 +1955,8 @@
 
     if(box("field")){
       var cov=field.source_coverage||{}, covText=(cov.ok_count!=null&&cov.total_sources!=null)?("Покрытие Scanner: "+cov.ok_count+" из "+cov.total_sources+" источников."):"Покрытие Scanner не подтверждено.";
-      box("field").innerHTML='<div class="radar-source-note">'+esc(covText)+'</div>'+listHTML(sigs,"field","Новых отобранных внешних сигналов нет.",6);
+      var flowText=[emittedNow!=null?("последний цикл: "+emittedNow+" новый сигнал"):null,storedSignals!=null?("накоплено: "+storedSignals):null,returnedSignals!=null?("текущее чтение: "+returnedSignals):null,("в радаре: "+fieldSignals.length)].filter(Boolean).join(" · ");
+      box("field").innerHTML='<div class="radar-source-note">'+esc(covText+" "+flowText)+"</div>"+listHTML(sigs,"field","Новых отобранных внешних сигналов нет.",6);
     }
     if(box("learning"))box("learning").innerHTML=listHTML(learning.map(function(x){return Object.assign({},x,{title:x.title||"ATLAS",why:[x.stage?("Этап: "+humanCode(x.stage)):"",x.result?("результат получен"):"",x.next?("дальше: "+humanCode(x.next)):""].filter(Boolean).join(" · "),date:x.next_date});}),"learning","Исследовательские контуры не передали текущий этап.",5);
     if(box("reputation"))box("reputation").innerHTML=listHTML(reputation,"reputation","Новых внешних репутационных или институциональных точек нет.",6);
@@ -2942,7 +2947,7 @@
       renderRegistry(objects, blockers, portfolioAdmission);
       renderDocuments(hubHealth, testingSummary);
       renderTesting(testingSummary, testingRunner);
-      renderFounderRadar(radar);
+      renderFounderRadar(radar, marketSignals, scannerDiagnostics);
       renderManualCommercial(manualCommercial);
       renderScannerDiagnostics(scannerDiagnostics);
       renderOperationsProjection(opsProjection);
