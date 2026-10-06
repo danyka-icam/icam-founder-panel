@@ -1682,6 +1682,13 @@
     if (healthOk && health.system_attention_open != null) systemOpenRaw = health.system_attention_open;
     else if (inboxOk && inbox.summary && inbox.summary.system_attention != null) systemOpenRaw = inbox.summary.system_attention;
     var systemOpen = numberOrNull(systemOpenRaw);
+    var systemItemsKnown = !!(inboxOk && Array.isArray(inbox.system_attention));
+    var systemItems = systemItemsKnown ? inbox.system_attention : [];
+    var systemGroups = {};
+    systemItems.forEach(function(x){var k=String(x.issue_type||"UNKNOWN");(systemGroups[k]=systemGroups[k]||[]).push(x);});
+    var systemRecent = systemItems.filter(function(x){var d=daysSince(x.last_seen_at||x.opened_at);return d!=null&&d<STALE_DAYS;});
+    var systemOld = systemItems.filter(function(x){var d=daysSince(x.last_seen_at||x.opened_at);return d!=null&&d>=STALE_DAYS;});
+    var systemTestDerived = systemItems.filter(function(x){return /TEST|FIXTURE/i.test([x.source_system,x.reason,x.title].filter(Boolean).join(" "));});
     put("system", systemOpen == null ? "—" : systemOpen);
 
     var readiness = page.querySelector('[data-fnd="readiness-card"]');
@@ -1689,33 +1696,45 @@
       var state = !healthOk && !hubOk && !objectsOk ? "Источники основания недоступны" : "Полная готовность основания не доказана";
       readiness.innerHTML =
         "<div class='foundation-source-summary warn'><strong>" + esc(state) + "</strong>" +
-        "<p>Панель подтверждает отдельные read-состояния Continuity и Hub, но не имеет единого источника, " +
-        "который одновременно доказывает recovery/readback, целостность полномочий и полный Foundation readiness. " +
-        "Поэтому зелёный PASS здесь не выводится.</p></div>";
+        "<p>Панель подтверждает отдельные состояния чтения Continuity и Hub, но не имеет единого источника, " +
+        "который одновременно доказывает восстановление и обратное чтение, целостность полномочий и полную готовность основания. " +
+        "Поэтому состояние «полностью готово» здесь не выводится.</p></div>";
     }
 
     var attention = page.querySelector('[data-fnd="attention"]');
     if (attention) {
       if (systemOpen == null) {
-        attention.innerHTML = unavailableHTML("SYSTEM-вопросы не подтверждены", "Continuity health / Входящие Основателя не дали текущего счётчика.");
+        attention.innerHTML = unavailableHTML("Системные записи внимания не подтверждены", "Continuity health / Входящие Основателя не дали текущего счётчика.");
       } else if (systemOpen === 0) {
         attention.innerHTML =
-          "<div class='foundation-source-summary'><strong>0 открытых SYSTEM-вопросов по Continuity</strong>" +
-          "<p>Это подтверждает только текущий счётчик Continuity health и не является доказательством общей готовности Foundation.</p></div>";
-      } else {
+          "<div class='foundation-source-summary'><strong>0 открытых системных записей внимания по Continuity</strong>" +
+          "<p>Это подтверждает только текущий счётчик Continuity и не является доказательством общей готовности основания.</p></div>";
+      } else if (!systemItemsKnown) {
         attention.innerHTML =
-          "<div class='foundation-source-summary bad'><strong>" + esc(systemOpen) + " SYSTEM-вопрос(ов) требуют разбора</strong>" +
-          "<p>Источник подтверждает количество, но не даёт этому экрану права придумывать подробности инцидентов.</p></div>";
+          "<div class='foundation-source-summary warn'><strong>" + esc(systemOpen) + " открытых системных записей</strong>" +
+          "<p>Детали system_attention[] не переданы, поэтому Панель не группирует их и не делает вывод о числе независимых проблем.</p></div>";
+      } else {
+        var systemLabels={SYNC_HEALTH_DEGRADED:"Деградация синхронизации / свежести",MEANING_ASSESSMENT_REJECTED:"Отклонённая смысловая оценка",INGRESS_PACKET_NOT_INGESTED:"Пакеты входа не доведены до состояния объекта",PROJECTION_REJECTED:"Отклонённая проекция"};
+        var groupRows=Object.keys(systemGroups).map(function(k){
+          var xs=systemGroups[k], latest=xs.slice().sort(function(a,b){return String(b.last_seen_at||b.opened_at||"").localeCompare(String(a.last_seen_at||a.opened_at||""));})[0]||{};
+          var age=daysSince(latest.last_seen_at||latest.opened_at);
+          var testN=xs.filter(function(x){return /TEST|FIXTURE/i.test([x.source_system,x.reason,x.title].filter(Boolean).join(" "));}).length;
+          return "<div class='foundation-live-item'><b>"+esc(systemLabels[k]||humanCode(k))+"</b><span>"+esc(xs.length)+" записей"+(testN?" · "+esc(testN)+" явно тестового происхождения":"")+(age==null?"":" · последнее появление "+esc(age)+" дн. назад")+"</span></div>";
+        }).join("");
+        attention.innerHTML =
+          "<div class='foundation-source-summary warn'><strong>" + esc(systemOpen) + " открытых записей · " + esc(Object.keys(systemGroups).length) + " класса</strong>" +
+          "<p>"+esc(systemRecent.length)+" записей появлялись менее "+esc(STALE_DAYS)+" дней назад; "+esc(systemOld.length)+" давно не повторялись. "+esc(systemTestDerived.length)+" записей явно происходят из тестовых идентификаторов/фикстур и не считаются отдельными производственными авариями.</p></div>" +
+          "<div class='foundation-live-list'>"+groupRows+"</div>";
       }
     }
 
     var continuity = page.querySelector('[data-fnd="backbone-continuity"]');
     if (continuity) {
-      if (!healthOk) continuity.innerHTML = unavailableHTML("Continuity health недоступен", "Операционная истина не получила подтверждённого health-read.");
+      if (!healthOk) continuity.innerHTML = unavailableHTML("Проверка здоровья Continuity недоступна", "Операционная истина не получила подтверждённого чтения состояния.");
       else continuity.innerHTML =
         "<div class='foundation-live-list'>" +
-        "<div class='foundation-live-item'><b>Health endpoint</b><span>" + (health.ok === true ? "источник сообщает OK" : (health.ok === false ? "источник сообщает деградацию" : "поле health.ok не передано")) + "</span></div>" +
-        "<div class='foundation-live-item'><b>Системное внимание</b><span>" + esc(systemOpen == null ? "не указано" : systemOpen) + "</span></div></div>";
+        "<div class='foundation-live-item'><b>Проверка здоровья Continuity</b><span>" + (health.ok === true ? "источник сообщает OK" : (health.ok === false ? "источник сообщает деградацию" : "поле health.ok не передано")) + "</span></div>" +
+        "<div class='foundation-live-item'><b>Системное внимание</b><span>" + esc(systemOpen == null ? "не указано" : systemOpen + " записей" + (systemItemsKnown ? " · " + Object.keys(systemGroups).length + " класса" : "")) + "</span></div></div>";
     }
 
     var durability = page.querySelector('[data-fnd="backbone-durability"]');
@@ -1725,9 +1744,10 @@
         var rq = hub.review_queue || {};
         durability.innerHTML =
           "<div class='foundation-live-list'>" +
-          "<div class='foundation-live-item'><b>Durable / indexed</b><span>" + esc(hub.objects_on_disk == null ? "—" : hub.objects_on_disk) + " объектов на диске</span></div>" +
-          "<div class='foundation-live-item'><b>Ручной разбор</b><span>" + esc(rq.manual_review_required == null ? "—" : rq.manual_review_required) + "</span></div>" +
-          "<div class='foundation-live-item'><b>Граница доказательства</b><span>sync-health не доказывает сам по себе byte-for-byte readback/recovery PASS.</span></div></div>";
+          "<div class='foundation-live-item'><b>Объекты на диске</b><span>" + esc(hub.objects_on_disk == null ? "—" : hub.objects_on_disk) + "</span></div>" +
+          "<div class='foundation-live-item'><b>Действующая очередь разбора</b><span>" + esc(rq.actionable_review == null ? "—" : rq.actionable_review) + "</span></div>" +
+          "<div class='foundation-live-item'><b>Карантин без владельца</b><span>" + esc(rq.unassigned_review_quarantine == null ? "—" : rq.unassigned_review_quarantine) + "</span></div>" +
+          "<div class='foundation-live-item'><b>Граница доказательства</b><span>Состояние синхронизации само по себе не доказывает побайтовое обратное чтение и успешное восстановление.</span></div></div>";
       }
     }
 
@@ -1751,30 +1771,32 @@
       projection.innerHTML =
         "<div class='foundation-live-list'>" +
         "<div class='foundation-live-item'><b>Текущий цикл чтения</b><span>" + esc(ok) + "/" + esc(names.length) + " известных базовых GET-проекций ответили</span></div>" +
-        "<div class='foundation-live-item'><b>Граница доказательства</b><span>успешный fetch не доказывает семантическую корректность всего источника.</span></div></div>";
+        "<div class='foundation-live-item'><b>Граница доказательства</b><span>успешное чтение не доказывает семантическую корректность всего источника.</span></div></div>";
     }
 
     var durableDetail = page.querySelector('[data-fnd="durability-detail"]');
     if (durableDetail) {
-      if (!hubOk) durableDetail.innerHTML = unavailableHTML("Durability read-model недоступен", "Ни запись, ни обратное чтение не объявляются успешными по отсутствию ошибки на экране.");
+      if (!hubOk) durableDetail.innerHTML = unavailableHTML("Проекция долговечности недоступна", "Ни запись, ни обратное чтение не объявляются успешными только по отсутствию ошибки на экране.");
       else {
         var rq2 = hub.review_queue || {};
         durableDetail.innerHTML =
           "<div class='foundation-live-list'>" +
-          "<div class='foundation-live-item'><b>Сохранено / индексировано</b><span>" + esc(hub.objects_on_disk == null ? "—" : hub.objects_on_disk) + "</span></div>" +
+          "<div class='foundation-live-item'><b>Объекты на диске</b><span>" + esc(hub.objects_on_disk == null ? "—" : hub.objects_on_disk) + "</span></div>" +
+          "<div class='foundation-live-item'><b>Действующая очередь разбора</b><span>" + esc(rq2.actionable_review == null ? "—" : rq2.actionable_review) + "</span></div>" +
+          "<div class='foundation-live-item'><b>Карантин без владельца</b><span>" + esc(rq2.unassigned_review_quarantine == null ? "—" : rq2.unassigned_review_quarantine) + "</span></div>" +
           "<div class='foundation-live-item'><b>Неизвестная классификация</b><span>" + esc(rq2.unknown_classification == null ? "—" : rq2.unknown_classification) + "</span></div>" +
-          "<div class='foundation-live-item'><b>Byte-for-byte readback</b><span>отдельный подтверждённый контракт в v2 пока не подключён</span></div></div>";
+          "<div class='foundation-live-item'><b>Побайтовое обратное чтение</b><span>отдельный подтверждённый контракт в v2 пока не подключён</span></div></div>";
       }
     }
 
     var change = page.querySelector('[data-fnd="last-change"]');
     if (change) {
       if (!objectsOk) change.innerHTML = unavailableHTML("Continuity objects недоступны", "Последнее изменение Foundation не выводится из истории чата.");
-      else if (!objectsItemsKnown) change.innerHTML = unavailableHTML("FND-001 не проверен", "Endpoint Continuity objects ответил, но items[] не передан.");
+      else if (!objectsItemsKnown) change.innerHTML = unavailableHTML("FND-001 не проверен", "Continuity objects ответил, но поле items[] не передано.");
       else {
         var fnd = objectsResp.items.find(function (o) { return String(o.object_id || "") === "FND-001"; });
         if (!fnd) change.innerHTML =
-          "<div class='foundation-source-summary warn'><strong>FND-001 не найден в текущей object projection</strong><p>Панель не подставляет другой объект по имени или сходству.</p></div>";
+          "<div class='foundation-source-summary warn'><strong>FND-001 не найден в текущей проекции объектов</strong><p>Панель не подставляет другой объект по имени или сходству.</p></div>";
         else change.innerHTML =
           "<div class='foundation-live-list'><div class='foundation-live-item'><b>" + esc(fnd.name || "FND-001") + "</b>" +
           "<span>" + esc(fnd.last_summary || "последнее summary не указано") + "</span>" +
