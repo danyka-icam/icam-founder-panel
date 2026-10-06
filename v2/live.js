@@ -2201,7 +2201,7 @@
     var type=String(a.event_type||"").toUpperCase();
     var blocked=/BLOCKED|BLOCKER/.test(type);
     var tone=blocked?"tone-critical":"tone-return";
-    var title=blocked?"Последняя проверка ветки · есть blocker":"Последняя проверка ветки";
+    var title=blocked?"Последнее материальное событие ветки · BLOCKED-событие":"Последнее материальное событие ветки";
     var when=a.received_at||a.valid_at;
     return "<div class='live-item-clean branch-activity "+tone+"' data-direction-role='"+(blocked?"decision":"evidence")+"'>"+
       "<div class='live-item-clean-head'><h3>"+esc(title)+"</h3>"+chip(type)+"</div>"+
@@ -2213,7 +2213,7 @@
       kv("Следующий подтверждённый шаг",a.next_milestone||"—")+
       kv("Когда поступило",when?ago(when):"—")+
       "</div>"+
-      "<small>"+esc(a.evidence_ceiling||"Это отдельное наблюдение ветки; оно не заменяет каноническое состояние объекта.")+"</small></div>";
+      "<small>"+esc((a.evidence_ceiling||"Это отдельное наблюдение ветки; оно не заменяет каноническое состояние объекта.")+" event_type="+type+" описывает именно это материальное событие, а не текущий статус нормализованной проекции страницы.")+"</small></div>";
   }
 
   function renderBrazilPortalProjection(data) {
