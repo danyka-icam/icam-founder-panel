@@ -1100,19 +1100,19 @@ def build():
         if match:
             o["funding_project_candidate"]=match
     patterns=pattern_projection(field,opportunities)
-    coverage=radar_coverage_projection(field,opportunities)
+    radar_coverage=radar_coverage_projection(field,opportunities)
     movement=movement_projection(opportunities,field,waiting)
     movement_flow=movement_flow_projection(movement,opportunities,field)
     critical_sources=["signals","temporal","activity"]
     degraded=[{"source":k,"error":errors.get(k)} for k in critical_sources if errors.get(k)]
-    coverage=(field or {}).get("source_coverage") or {}
+    source_coverage=(field or {}).get("source_coverage") or {}
     limited=[]
-    if coverage.get("total_sources") is not None and coverage.get("ok_count") is not None and coverage.get("ok_count") < coverage.get("total_sources"):
-        failing=coverage.get("failing") or []
+    if source_coverage.get("total_sources") is not None and source_coverage.get("ok_count") is not None and source_coverage.get("ok_count") < source_coverage.get("total_sources"):
+        failing=source_coverage.get("failing") or []
         unexpected=[f for f in failing if not f.get("known_degraded")]
         expected=[f for f in failing if f.get("known_degraded")]
         if unexpected:
-            degraded.append({"source":"market_scanner_coverage","error":str(coverage.get("ok_count"))+"/"+str(coverage.get("total_sources"))+" sources healthy","failing":unexpected})
+            degraded.append({"source":"market_scanner_coverage","error":str(source_coverage.get("ok_count"))+"/"+str(source_coverage.get("total_sources"))+" sources healthy","failing":unexpected})
         if expected:
             limited.append({"source":"market_scanner_coverage","note":"known external access limits","failing":expected})
     movement["source_guard"]={
@@ -1120,7 +1120,7 @@ def build():
       "degraded":degraded,
       "limited":limited,
       "critical_sources":critical_sources,
-      "market_source_coverage":coverage
+      "market_source_coverage":source_coverage
     }
     gap_counts={}
     for o in opportunities:
@@ -1146,7 +1146,7 @@ def build():
       "funding_profile":funding_profile,
       "waiting":waiting,"upcoming":upcoming,"predictions":predictions,
       "patterns":patterns,
-      "coverage":coverage,
+      "coverage":radar_coverage,
       "movement":movement,
       "movement_flow":movement_flow,
       "field":field,
