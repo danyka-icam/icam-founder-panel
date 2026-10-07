@@ -20,7 +20,6 @@ URLS={
  "activity":"http://127.0.0.1:8825/api/activity-inbox",
  "company_profile":"http://127.0.0.1:8846/api/v1/company-eligibility-profile",
  "funding_projects":"http://127.0.0.1:8846/api/v1/funding-project-candidates",
- "commercial_signal_source":"http://127.0.0.1:8083/founder-ui-preview/commercial/dashboard.json",
 }
 
 def now(): return datetime.now(timezone.utc).isoformat()
@@ -599,13 +598,8 @@ def strategic_projection(opportunities,field):
         axes=set(str(v) for v in (x.get("axis") or []))
         if "authority_access" in axes:
             put("authority",x,"Внешнее окно участия, способное дать репутацию, доступ к рабочей группе, стандарту или профессиональному сообществу.")
-        elif x.get("signal_type")=="commercial-door" or "commercial_procurement" in axes:
-            blob=str(x.get("title") or "").lower()
-            buying_trigger=bool(re.search(r"(?:\bto invest\b|\binvest(?:s|ed|ment)?\b.{0,28}(?:\$|billion|million|bn|m)\b|\bwins?\b.{0,40}\bcontract\b|\bawarded?\b.{0,40}\bcontract\b|\bcontract\b.{0,32}(?:\$|billion|million|bn|m)\b|\bacqui(?:res?|red|sition)\b|\bexpansion\b|\bexpand(?:s|ed|ing)?\b.{0,28}\bcapacity\b|\bto build\b|\bwill build\b|\bprocurement\b|\btender\b|\brfp\b|\bjoint venture\b|\bpartnership\b|\bgigafactor(?:y|ies)\b|\btransformation program\b|\bmoderni[sz]ation program\b)",blob))
-            if "commercial_procurement" in axes or buying_trigger:
-                put("commercial",x,"Публичное внешнее событие с признаками реального коммерческого окна.")
-            else:
-                put("field",x,"Событие у компании из нашего target-set, но покупочный/инвестиционный триггер пока не подтверждён.")
+        elif "commercial_procurement" in axes:
+            put("commercial",x,"Независимо обнаруженное внешнее procurement-окно, которое ещё не принадлежит коммерческой автоматизации.")
         elif "institutional_policy" in axes or "standards_protocols" in axes:
             if x.get("radar_class")=="ACTION_NOW":
                 put("product",x,"Изменение стандарта/правил требует немедленной проверки влияния на продукт.")
@@ -872,74 +866,6 @@ def field_projection(signals):
         source_coverage["failing"]=fl
     return {"signals":out,"counts":counts,"source_coverage":source_coverage}
 
-def commercial_door_projection(dashboard):
-    rows=[]
-    now_dt=datetime.now(timezone.utc)
-    seen=set()
-    for prod in (dashboard or {}).get("products") or []:
-        for x in prod.get("items") or []:
-            if x.get("_source_kind")!="live_runtime": continue
-            if str(x.get("red_team_verdict") or "").upper()!="GO": continue
-            title=str(x.get("why_now") or x.get("fresh_signal_title") or "").strip()
-            if not title: continue
-            company=str(x.get("company") or "").strip()
-            signal_id=str(x.get("signal_id") or "").strip()
-            key=(company.lower(),title.lower())
-            if key in seen: continue
-            seen.add(key)
-            event_date=iso_date_from(x.get("created_at"),x.get("qualified_updated_at"))
-            raw_fresh=x.get("fresh_signal_at")
-            if raw_fresh:
-                try:
-                    dt=parsedate_to_datetime(str(raw_fresh))
-                    if dt.tzinfo is None: dt=dt.replace(tzinfo=timezone.utc)
-                    event_date=dt.astimezone(timezone.utc).date().isoformat()
-                    if (now_dt-dt.astimezone(timezone.utc)).days>45: continue
-                except Exception:
-                    pass
-            source_count=int(x.get("source_count") or 0)
-            primary_count=int(x.get("primary_source_count") or 0)
-            flags=[str(v) for v in (x.get("red_team_flags") or [])]
-            bright=[]
-            if primary_count>0 or "PRIMARY_EVIDENCE" in flags: bright.append("PRIMARY_EVIDENCE")
-            if source_count>=2: bright.append("CORROBORATED_GTE_2_SOURCES")
-            if "STRUCTURAL_MECHANISM" in flags: bright.append("STRUCTURAL_MECHANISM")
-            if "MECHANISM_CONFIRMED" in flags: bright.append("MECHANISM_CONFIRMED")
-            if not bright: continue
-            prior=int(x.get("prior_contact_count") or 0)
-            rows.append({
-              "radar_id":item_id("commercial-door",signal_id,company,title),
-              "signal_id":signal_id or None,
-              "signal_type":"commercial-door",
-              "entity":company,
-              "title":title,
-              "observed_at":x.get("qualified_updated_at") or x.get("created_at"),
-              "published_at":event_date,
-              "status":"external_signal",
-              "radar_class":"REVIEW",
-              "summary_ru":"Внешнее изменение у "+company+": "+title if company else title,
-              "why":"Публичное событие прошло коммерческий red-team как содержательный внешний сигнал. Радар показывает только саму дверь, не операционную задачу.",
-              "next_step_ru":("Обновить внешний контекст существующего коммерческого кейса; новую отправку не создавать."
-                              if prior>0 else
-                              "Проверить, создаёт ли событие новый коммерческий вход; при подтверждении передать во вкладку «Коммерция»."),
-              "destination":{"kind":"commercial_signal","label":"Коммерция / внешняя дверь",
-                             "route":"Сигнал передаётся в коммерческий контур как контекст. Отправка, follow-up и маршрут контакта остаются только во вкладке «Коммерция»."},
-              "source":{"name":x.get("fresh_signal_source") or company or "commercial discovery","url":None},
-              "source_url":None,
-              "evidence":[
-                "source_count="+str(source_count),
-                "primary_source_count="+str(primary_count),
-                "red_team_verdict=GO"
-              ]+flags[:6],
-              "radar_visible":True,
-              "bright_reasons":bright,
-              "repeat_count":1,
-              "existing_commercial_case":prior>0,
-              "source_ref":{"kind":"commercial_door_signal","signal_id":signal_id,"company":company}
-            })
-    rows.sort(key=lambda x:(x.get("published_at") is None,x.get("published_at") or "9999",x.get("title") or ""),reverse=True)
-    return rows[:24]
-
 def radar_coverage_projection(field, opportunities):
     try:
         cfg=json.loads(MARKET_SOURCE_MAP.read_text(encoding="utf-8"))
@@ -1007,10 +933,10 @@ def radar_coverage_projection(field, opportunities):
       },
       {
         "key":"commercial_doors","label":"Внешние коммерческие двери",
-        "status":"PARTIAL" if (any(x.get("signal_type")=="commercial-door" for x in ((field or {}).get("signals") or [])) or any("commercial_procurement" in (x.get("axis") or []) for x in sources)) else "GAP",
-        "basis":"Активный target-set + официальные procurement feeds: "+", ".join([x.get("entity") or x.get("id") for x in sources if "commercial_procurement" in (x.get("axis") or [])])+". Отправки и follow-up в Радар не попадают.",
+        "status":"PARTIAL" if any("commercial_procurement" in (x.get("axis") or []) for x in sources) else "GAP",
+        "basis":"Только независимые внешние procurement feeds: "+", ".join([x.get("entity") or x.get("id") for x in sources if "commercial_procurement" in (x.get("axis") or [])])+". Сигналы target-set и коммерческой автоматизации сюда не поступают.",
         "source_count":sum(1 for x in sources if "commercial_procurement" in (x.get("axis") or [])),
-        "gap":"ЕС уже на полноценном API; Бразилия и США пока частичные машинные контуры.",
+        "gap":"ЕС уже на полноценном API; Бразилия и США пока частичные машинные контуры. Коммерческая автоматизация намеренно исключена из источников Радара.",
         "subcoverage":[
           {"key":"eu","label":"ЕС / TED","status":"COVERED","note":"Открытый TED Search API, свежие notices диффом."},
           {"key":"br","label":"Бразилия / PNCP","status":"PARTIAL","note":"Официальный PNCP подключён, но пока без устойчивого API-потока по релевантным открытым предложениям."},
@@ -1420,11 +1346,6 @@ def build():
 
     sig=data.get("signals") or {}
     field=field_projection(sig)
-    door_signals=commercial_door_projection(data.get("commercial_signal_source") or {})
-    if door_signals:
-        field["signals"]=(field.get("signals") or [])+door_signals
-        field.setdefault("counts",{})["visible"]=int((field.get("counts") or {}).get("visible") or 0)+len(door_signals)
-        field["counts"]["commercial_doors"]=len(door_signals)
     opportunities=opportunities_projection(sig,upcoming,data.get("company_profile") or {})
     opportunities,field,lifecycle=apply_lifecycle(opportunities,field,data.get("activity") or {})
     fp=(data.get("funding_projects") or {}).get("projects") or []
@@ -1441,7 +1362,7 @@ def build():
     strategy=strategic_projection(opportunities,field)
     movement=movement_projection(opportunities,field,waiting)
     movement_flow=movement_flow_projection(movement,opportunities,field)
-    critical_sources=["signals","upcoming","commercial_signal_source","temporal","activity"]
+    critical_sources=["signals","upcoming","temporal","activity"]
     degraded=[{"source":k,"error":errors.get(k)} for k in critical_sources if errors.get(k)]
     source_coverage=(field or {}).get("source_coverage") or {}
     limited=[]
@@ -1477,7 +1398,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.38","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.39","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
