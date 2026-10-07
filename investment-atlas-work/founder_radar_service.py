@@ -593,6 +593,13 @@ def strategic_projection(opportunities,field):
             put("field",x,"Внешний контекст без подтверждённого текущего действия.")
     tier_rank={"STRONG":0,"PROMISING":1,"CONTEXT":2}
     for k,v in lanes.items():
+        dedup={}
+        for x in v["items"]:
+            nk=re.sub(r"\s+"," ",str(x.get("title") or "").strip().lower())
+            prev=dedup.get(nk)
+            if prev is None or tier_rank.get(x.get("leverage_tier"),9)<tier_rank.get(prev.get("leverage_tier"),9):
+                dedup[nk]=x
+        v["items"]=list(dedup.values())
         v["items"].sort(key=lambda x:(tier_rank.get(x.get("leverage_tier"),9),{"ACTION_NOW":0,"REVIEW":1,"WATCH":2}.get(x.get("radar_class"),3),x.get("date") is None,x.get("date") or "9999"))
         v["count"]=len(v["items"])
         v["tier_counts"]={t:sum(1 for x in v["items"] if x.get("leverage_tier")==t) for t in ("STRONG","PROMISING","CONTEXT")}
@@ -1416,7 +1423,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.32","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.33","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
