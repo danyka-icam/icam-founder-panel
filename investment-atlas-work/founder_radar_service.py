@@ -592,6 +592,8 @@ def strategic_projection(opportunities,field):
         else:
             put("research",x,"Исследовательское или грантовое окно, способное дать капитал, доказательство или доступ.")
     for x in (field or {}).get("signals") or []:
+        if x.get("radar_visible") is False:
+            continue
         axes=set(str(v) for v in (x.get("axis") or []))
         if "authority_access" in axes:
             put("authority",x,"Внешнее окно участия, способное дать репутацию, доступ к рабочей группе, стандарту или профессиональному сообществу.")
@@ -1473,7 +1475,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.36","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.37","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
