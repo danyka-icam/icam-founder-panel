@@ -12,6 +12,7 @@ ACTIONS_TOKENS_FILE=os.environ.get("STEWARD_ACTIONS_TOKENS_FILE","/etc/context-s
 DECISION_LIFECYCLE_URL=os.environ.get("STEWARD_DECISION_LIFECYCLE_URL","http://127.0.0.1:8814/api/founder-decisions/lifecycles?status=OPEN")
 DECISION_PRESENTATION_URL=os.environ.get("STEWARD_DECISION_PRESENTATION_URL","http://127.0.0.1:8816/api/founder-decisions/presentation")
 COMMERCIAL_DASHBOARD=os.environ.get("STEWARD_COMMERCIAL_DASHBOARD","/opt/icam/preview/founder-ui-preview/commercial/dashboard.json")
+FOUNDER_RADAR_URL=os.environ.get("STEWARD_FOUNDER_RADAR_URL","http://127.0.0.1:8843/api/v1/founder-radar")
 RU_STOP=set("и в во на к ко с со из от до по для а но или это как что где мы вы я у о об не ли же бы за про при этот эта эти уже ещё мне нам сейчас".split())
 GENERIC=set("research signal signals twin факт событие исследование прогноз точка система рабочая память".split())
 
@@ -98,6 +99,65 @@ def clean_fact(r):
     text=re.sub(r"\b(?:sha256|path|filename|durable_location|received_at|verified_at|idempotency_key|signal_id)\b\s+\S+","",text,flags=re.I)
     text=re.sub(r"\s+"," ",text).strip()
     return text[:420]
+def is_priority_question(q):
+    n=norm(q)
+    return bool(re.search(r"(что|чего).{0,24}(срочн|важн).{0,24}(делать|сделать|сейчас)|что делать сейчас|за что взяться|с чего начать|приоритет.{0,12}сейчас|самое срочное",n))
+
+def founder_priority_context(ctx):
+    out=dict(ctx or {})
+    try:
+        radar=read_json_url(FOUNDER_RADAR_URL)
+    except Exception as e:
+        out["founder_priority_brief"]={"available":False,"reason":type(e).__name__}
+        return out
+    movement=radar.get("movement") or {}
+    flow=radar.get("movement_flow") or {}
+    due=[x for x in (movement.get("items") or []) if x.get("state")=="ACTION_DUE"]
+    due=due[:20]
+    queue=(flow.get("bottleneck_queue") or [])[:20]
+    out["kind"]="founder_priority_brief"
+    out["title"]="Что наиболее срочно делать сейчас"
+    out["founder_priority_brief"]={
+      "available":True,
+      "generated_at":radar.get("generated_at"),
+      "source_guard":movement.get("source_guard") or {},
+      "counts":movement.get("counts") or {},
+      "action_due":[{k:x.get(k) for k in ("title","domain","state","date","priority","next_step","route","meta","source_ref")} for x in due],
+      "bottleneck_queue":[{k:x.get(k) for k in ("title","domain","state","date","priority","required_move","next_step","route","bottleneck_kind","source_ref")} for x in queue],
+      "flow_bottlenecks":(flow.get("bottlenecks") or [])[:10],
+      "rule":"Сначала ACTION_DUE с ближайшим подтверждённым сроком; затем ACTION_DUE без даты; затем переходы, блокирующие движение. WAITING_EXTERNAL не считать задачей Основателя без наступившего follow-up."
+    }
+    return out
+
+def priority_answer(ctx):
+    b=(ctx or {}).get("founder_priority_brief") or {}
+    if not b.get("available"):
+        return "Сейчас я не могу безопасно назвать приоритет: живая карта движения недоступна. Это не считаю тишиной — сначала нужно восстановить источник."
+    due=b.get("action_due") or []
+    guard=(b.get("source_guard") or {}).get("status") or "UNKNOWN"
+    lines=[]
+    for i,x in enumerate(due[:7],1):
+        dom={"research_funding":"исследования/финансирование","research_field":"исследовательское поле","field":"поле","commercial":"коммерция","commercial_signal":"коммерческий сигнал"}.get(x.get("domain"),x.get("domain") or "контур")
+        tail=[]
+        if x.get("date"): tail.append("срок "+str(x.get("date")))
+        if x.get("next_step"): tail.append(str(x.get("next_step")))
+        elif x.get("route"): tail.append(str(x.get("route")))
+        lines.append(f"{i}. {x.get('title') or 'Объект'} — {dom}. "+(" · ".join(tail) if tail else "требует текущего хода."))
+    if not lines:
+        q=b.get("bottleneck_queue") or []
+        for i,x in enumerate(q[:5],1):
+            lines.append(f"{i}. {x.get('title') or 'Объект'} — {x.get('required_move') or 'нужен следующий переход'}.")
+    head="Самое срочное сейчас по живой карте движения:"
+    if not lines: head+=" активных действий с подтверждённой срочностью нет."
+    else: head+="\n"+"\n".join(lines)
+    waits=(b.get("counts") or {}).get("WAITING_EXTERNAL",0)
+    head+=f"\n\nОтдельно: {waits} объектов сейчас у внешней стороны — я не поднимаю их как твою работу, пока не наступил follow-up или не пришёл ответ."
+    if guard=="DEGRADED":
+        head+="\n\nВажно: покрытие источников деградировано, поэтому приоритет неполный."
+    elif guard=="LIMITED":
+        head+="\n\nПокрытие ограничено только известным внешним ограничением; критичные живые источники доступны."
+    return head
+
 def question_intent(q):
     n=norm(q)
     if re.search(r"где|в какой ветке|какая ветка|где это было|where",n): return "where"
@@ -259,6 +319,8 @@ SYSTEM="""Ты Steward Navigator — рабочий навигатор Осно�
 Отвечай по-русски и обычным человеческим языком, как коллега.
 Сначала идентифицируй выбранный объект/ветку, затем отвечай. Не смешивай соседние темы из-за общего слова.
 Используй только CONTEXT и EVIDENCE. Если точной связи нет, прямо скажи об этом.
+Тебя зовут Стю. В пользовательском общении называй себя только «Стю», не «Стюард», не «Steward Navigator» и не «Навигатор».
+Если CONTEXT.kind == "founder_priority_brief", это живая сводка Founder Panel. Приоритет: ACTION_DUE с ближайшим подтверждённым сроком → другие ACTION_DUE → bottleneck_queue. WAITING_EXTERNAL не превращай в задачу Основателя без наступившего follow-up. Обязательно учитывай source_guard: при DEGRADED скажи, что обзор неполный. Не придумывай приоритет вне переданной карты движения.
 Основной ответ: что это; к какой работе относится; что известно; чего ждём/какой следующий шаг, если подтверждено.
 Не выводи пути файлов, SHA-256, JSON и служебные поля без прямой просьбы о технических деталях.
 Технические доказательства интерфейс показывает отдельно.
@@ -547,7 +609,7 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path=="/health":
             mode="openai_agent+retrieval_fallback"
-            return self.j({"ok":True,"service":"steward-navigator","version":"0.6","index_records":len(load_index()),"language_model":mode})
+            return self.j({"ok":True,"service":"steward-navigator","version":"0.7","index_records":len(load_index()),"language_model":mode})
         return self.j({"error":"not_found"},404)
 
     def do_POST(self):
@@ -592,15 +654,22 @@ class H(BaseHTTPRequestHandler):
         if not q:
             return self.j({"error":"question_required"},400)
         context=commercial_context(body.get("context") or {})
+        if is_priority_question(q):
+            context=founder_priority_context(context)
         history=body.get("history") or []
         ev=retrieve(q,context)
         if "диагностика market scanner" in norm(context.get("title","")):
             ev=[]
         mode="contextual_retrieval_fallback"
-        ans=context_answer(q,context,ev)
+        if is_priority_question(q):
+            ans=priority_answer(context)
+            mode="founder_priority_live"
+        else:
+            ans=context_answer(q,context,ev)
         try:
-            ans=agent_answer(q,ev,history,context)
-            mode="openai_agent"
+            if not is_priority_question(q):
+                ans=agent_answer(q,ev,history,context)
+                mode="openai_agent"
         except Exception:
             if OLLAMA_MODEL:
                 try:

@@ -2765,7 +2765,7 @@
     if (x.stewardContext && typeof x.stewardContext==="object") Object.keys(x.stewardContext).forEach(function(k){stewardRaw[k]=x.stewardContext[k];});
     var stewardContext=E(JSON.stringify(stewardRaw));
     return "<div class='cc-insp-head'>" + x.badge + "<div><h3>" + E(x.title) + "</h3><small>" + E(x.sub) + "</small></div></div>" +
-      "<button type='button' class='cc-steward-ask' data-cc-steward-context='"+stewardContext+"'><span>Спросить Стюарда</span><small>объяснить, найти контекст или связанные материалы</small></button>" +
+      "<button type='button' class='cc-steward-ask' data-cc-steward-context='"+stewardContext+"'><span>Спросить Стю</span><small>объяснить, найти контекст или связанные материалы</small></button>" +
       section("Что это", x.what || muted("не передано источником")) +
       section("Где в системе", x.where || muted("не определено")) +
       section("Сейчас", x.now || muted("источник не передаёт текущее состояние")) +
@@ -3402,10 +3402,10 @@
     d=document.createElement("div");
     d.className="cc-steward-dialog";
     d.setAttribute("data-cc-steward-dialog","");
-    d.innerHTML="<div class='cc-steward-shell'><header><div><small>Steward Navigator</small><h3>Рабочая память</h3></div><button type='button' data-cc-steward-close aria-label='Закрыть'>×</button></header>"+
+    d.innerHTML="<div class='cc-steward-shell'><header><div><small>СТЮ</small><h3>Рабочая память и движение</h3></div><button type='button' data-cc-steward-close aria-label='Закрыть'>×</button></header>"+
       "<div class='cc-steward-context' data-cc-steward-context-view></div>"+
-      "<div class='cc-steward-thread' data-cc-steward-thread><div class='cc-steward-intro'>Можно спросить обычным языком: «что это за сигнал?», «где мы это тестировали?», «какой пакет был связан с этой темой?». Стюард отвечает только по найденной рабочей памяти и не придумывает отсутствующие связи.</div></div>"+
-      "<form data-cc-steward-form><textarea rows='3' data-cc-steward-input placeholder='Спроси Стюарда…'></textarea><button type='submit'>Спросить</button></form>"+
+      "<div class='cc-steward-thread' data-cc-steward-thread><div class='cc-steward-intro'>Можно спросить обычным языком: «что это за сигнал?», «где мы это тестировали?», «какой пакет был связан с этой темой?». Стю отвечает только по найденной рабочей памяти и не придумывает отсутствующие связи.</div></div>"+
+      "<form data-cc-steward-form><textarea rows='3' data-cc-steward-input placeholder='Спроси Стю…'></textarea><button type='submit'>Спросить</button></form>"+
       "<footer data-cc-steward-status>Поиск по рабочей памяти · только рабочий контекст ICAM / ATLAS / AICLAVIS</footer></div>";
     document.body.appendChild(d);
     return d;
@@ -3417,7 +3417,7 @@
     d._stewardContext=ctx;
     d._stewardHistory=[];
     var thread=d.querySelector("[data-cc-steward-thread]");
-    if(thread) thread.innerHTML="<div class='cc-steward-intro'>Спрашивай обычным языком. Стюард разберёт выбранную точку, сверит рабочую память и внутреннюю карту ATLAS/AICLAVIS и отдельно отметит доказанные связи и смысловую близость.</div>";
+    if(thread) thread.innerHTML="<div class='cc-steward-intro'>Спрашивай обычным языком. Стю разберёт выбранную точку, сверит рабочую память и внутреннюю карту ATLAS/AICLAVIS и отдельно отметит доказанные связи и смысловую близость.</div>";
     var c=d.querySelector("[data-cc-steward-context-view]");
     c.innerHTML="<b>"+E(ctx.title||"Текущий объект")+"</b>"+(ctx.sub?"<span>"+E(ctx.sub)+"</span>":"");
     d.classList.add("open");
@@ -3471,7 +3471,7 @@
     thread.insertAdjacentHTML("beforeend",stewardBubble("user",question));
     thread.insertAdjacentHTML("beforeend","<div class='cc-steward-msg assistant pending'>Разбираю вопрос и проверяю рабочий контекст…</div>");
     thread.scrollTop=thread.scrollHeight;
-    status.textContent="Стюард сверяет память, связи и живое состояние системы…";
+    status.textContent="Стю сверяет память, связи и живое состояние системы…";
     if(closeStatusCommand(question)){proposeStewardClose(d,question,thread,status);return;}
     fetch("/founder-ui-preview/api/steward-navigator/query",{
       method:"POST",credentials:"same-origin",cache:"no-store",
@@ -3489,8 +3489,8 @@
       thread.scrollTop=thread.scrollHeight;
     }).catch(function(){
       var p=thread.querySelector(".pending"); if(p)p.remove();
-      thread.insertAdjacentHTML("beforeend",stewardBubble("assistant","Стюард сейчас недоступен. Я не буду подменять агентный ответ догадкой; попробуй ещё раз через минуту."));
-      status.textContent="Стюард временно недоступен";
+      thread.insertAdjacentHTML("beforeend",stewardBubble("assistant","Стю сейчас недоступен. Я не буду подменять агентный ответ догадкой; попробуй ещё раз через минуту."));
+      status.textContent="Стю временно недоступен";
       thread.scrollTop=thread.scrollHeight;
     });
   }

@@ -1845,3 +1845,5 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .movement-queue-main small{display:block;font-size:7.3px;color:var(--muted-2)}.movement-queue-main b{display:block;margin-top:2px;font-size:9px;font-weight:500;color:#e1e7e5}.movement-queue-main span{display:block;margin-top:2px;font-size:8px;line-height:1.35;color:var(--muted)}
 .movement-queue-row>em{justify-self:end;font-size:7.5px;font-style:normal;color:#c6aa75}
 @media(max-width:620px){.movement-queue-row{grid-template-columns:22px 1fr}.movement-queue-row>em{grid-column:2;justify-self:start}}
+.radar-top-tools{display:flex;align-items:center;gap:8px}.stu-priority-ask{width:auto!important;margin:0!important;padding:7px 10px!important;min-width:170px}.stu-priority-ask b{font-size:9px!important}.stu-priority-ask span{font-size:8px!important}
+@media(max-width:650px){.radar-top-tools{align-items:flex-end;flex-direction:column}.stu-priority-ask{min-width:0;width:100%!important}}
