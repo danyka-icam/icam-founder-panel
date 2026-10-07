@@ -799,6 +799,38 @@ def movement_projection(opportunities, field, waiting, commercial):
       "rule":"Movement Layer is a read-only cross-domain projection. Domain systems remain canonical owners; this layer may expose missing movement but never invent or mutate route/owner/next-step."
     }
 
+def movement_execution_classification(item):
+    state=str((item or {}).get("state") or "")
+    domain=str((item or {}).get("domain") or "")
+    meta=(item or {}).get("meta") or {}
+    # Founder involvement is explicit and narrow. The movement layer never
+    # invents authority; it only classifies the next transition.
+    if domain=="commercial":
+        kind=str(meta.get("kind") or "")
+        if kind in {"MANUAL_FORM","MANUAL_CONTACT_RESEARCH","VERIFY_SENT"} or state=="ACTION_DUE":
+            return {"class":"FOUNDER","label":"требует Основателя",
+                    "reason":"Следующий коммерческий шаг находится на ручной границе или требует явного подтверждения."}
+        if state=="WAITING_EXTERNAL":
+            return {"class":"AUTO","label":"система наблюдает",
+                    "reason":"Ход у внешней стороны; система должна следить за ответом/follow-up без ручного вмешательства."}
+    if domain=="research_funding":
+        if state=="ACTION_DUE":
+            return {"class":"SYSTEM_REVIEW","label":"сначала системный разбор",
+                    "reason":"Срок близко, но до действия нужно снять подтверждённые блокеры допуска/маршрута; это не автоматически решение Основателя."}
+        if state in {"QUALIFIED","ROUTE_IDENTIFIED","DETECTED"}:
+            return {"class":"SYSTEM_REVIEW","label":"системный разбор",
+                    "reason":"Следующий переход — квалификация или маршрутизация по правилам программы."}
+    if domain in {"research_field","field","commercial_signal"}:
+        if state in {"DETECTED","QUALIFIED","ROUTE_IDENTIFIED"}:
+            return {"class":"AUTO" if state=="ROUTE_IDENTIFIED" else "SYSTEM_REVIEW",
+                    "label":"система может продвинуть" if state=="ROUTE_IDENTIFIED" else "нужен системный разбор",
+                    "reason":"Это внешний сигнал; содержательная квалификация и передача в владеющий контур не требуют решения Основателя по умолчанию."}
+    if domain=="external_wait" or state=="WAITING_EXTERNAL":
+        return {"class":"AUTO","label":"система наблюдает",
+                "reason":"Это внешнее ожидание; ручное действие не требуется до нового сигнала или наступившего follow-up."}
+    return {"class":"SYSTEM_REVIEW","label":"нужен системный разбор",
+            "reason":"Безопасный автоматический переход не доказан; сначала требуется системная проверка."}
+
 def movement_flow_projection(movement, opportunities, field, commercial):
     items=(movement or {}).get("items") or []
     # This is a throughput/control projection, not a success score.
@@ -893,15 +925,24 @@ def movement_flow_projection(movement, opportunities, field, commercial):
             bottleneck_queue.append({**x,"bottleneck_kind":"DETECTED_NOT_QUALIFIED",
                                      "required_move":"Провести первичную квалификацию: релевантность, доказательства, срок, возможный маршрут."})
     bq_rank={"ACTION_DUE":0,"QUALIFIED":1,"ROUTE_IDENTIFIED":2,"DETECTED":3}
-    bottleneck_queue.sort(key=lambda x:(0 if x.get("priority")=="HIGH" else 1,
-                                        x.get("date") is None,x.get("date") or "9999",
-                                        bq_rank.get(x.get("state"),9),x.get("title") or ""))
+    for x in bottleneck_queue:
+        x["execution"]=movement_execution_classification(x)
+    bottleneck_queue.sort(key=lambda x:(
+        {"FOUNDER":0,"SYSTEM_REVIEW":1,"AUTO":2}.get((x.get("execution") or {}).get("class"),9),
+        0 if x.get("priority")=="HIGH" else 1,
+        x.get("date") is None,x.get("date") or "9999",
+        bq_rank.get(x.get("state"),9),x.get("title") or ""))
     bottlenecks.sort(key=lambda x:-int(x.get("count") or 0))
+    execution_counts={"FOUNDER":0,"SYSTEM_REVIEW":0,"AUTO":0}
+    for x in bottleneck_queue:
+        c=(x.get("execution") or {}).get("class")
+        if c in execution_counts: execution_counts[c]+=1
     return {
-      "contract":"aiclavis.movement-flow.v0.1",
+      "contract":"aiclavis.movement-flow.v0.2",
       "streams":out,
       "bottlenecks":bottlenecks,
       "bottleneck_queue":bottleneck_queue[:40],
+      "execution_counts":execution_counts,
       "rule":"No synthetic conversion score. Every stage is counted from explicit live movement or domain state; external outcomes require observed external state."
     }
 
@@ -1032,7 +1073,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.15","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.16","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
@@ -1059,7 +1100,7 @@ class H(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p=self.path.split("?",1)[0]
-        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.15","read_only":True})
+        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.16","read_only":True})
         if p=="/api/v1/founder-radar": return self.sendj(build())
         return self.sendj({"error":"not_found"},404)
     def log_message(self,*a): pass
