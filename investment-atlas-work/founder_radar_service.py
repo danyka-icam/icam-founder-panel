@@ -213,7 +213,7 @@ def funding_funnel(row):
 
     # Effort is a preparation estimate, not a cost claim.
     if eligibility=="NEEDS_CALL_DOCUMENT_REVIEW":
-        effort={"status":"UNKNOWN_UNTIL_RULES","label":"неизвестно до разбора edital"}
+        effort={"status":"UNKNOWN_UNTIL_RULES","label":"неизвестно до разбора полного документа конкурса"}
     elif len(missing) >= 5:
         effort={"status":"HIGH","label":"высокие подготовительные усилия"}
     elif len(missing) >= 2:
@@ -241,7 +241,7 @@ def funding_funnel(row):
     else:
         deadline={"status":"DISTANT","label":"не срочно","days_left":days}
 
-    partner_terms=["universidade","university","instituiç","instituic","parceir","partner","consórc","consorc"]
+    partner_terms=["universidade","university","parceria","parceiro","parceira","partner","consórc","consorc"]
     partner_signal=any(k in text for k in partner_terms)
     if eligibility=="NOT_ELIGIBLE":
         stage="ELIGIBILITY"; decision="DROP"; decision_label="отбросить"
