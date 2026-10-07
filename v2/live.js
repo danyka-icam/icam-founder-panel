@@ -1856,19 +1856,18 @@
       return m[s]||s;
     }
     function daysTo(v){if(!v)return null;var d=new Date(String(v).length===10?v+"T12:00:00":v);if(isNaN(d))return null;return Math.ceil((d-Date.now())/86400000);}
-    function important(x,kind){
-      var d=daysTo(x&&x.date);
-      if(d!=null&&d>=0&&d<=14)return true;
-      var st=String(x&&x.status||"").toLowerCase();
-      if(kind==="opportunities"&&(st==="act"||st==="opportunity"))return true;
-      if(kind==="predictions"&&/due|reveal|resolution|outcome/.test(st))return true;
-      if(kind==="field"){
-        var enr=x&&x.enrichment||{};
-        var a=String(enr.recommended_action||x.status||"").toLowerCase();
-        if(a==="act"||a==="opportunity")return true;
-        if(Number(x&&x.relevance_score)>=70)return true;
-      }
-      return false;
+    function attentionClass(x,kind){
+      var declared=String(x&&x.radar_class||"").toUpperCase();
+      if(["ACTION_NOW","REVIEW","WATCH","BACKGROUND"].indexOf(declared)>=0)return declared;
+      var d=daysTo(x&&x.date),st=String(x&&x.status||"").toLowerCase();
+      if(kind==="predictions"&&/due|reveal|resolution|outcome/.test(st)&&d!=null&&d>=0&&d<=14)return "ACTION_NOW";
+      if(d!=null&&d>=0&&d<=7)return "ACTION_NOW";
+      return "WATCH";
+    }
+    function important(x,kind){return attentionClass(x,kind)==="ACTION_NOW";}
+    function attentionLabel(x,kind){
+      var c=attentionClass(x,kind);
+      return ({ACTION_NOW:"нужно сейчас",REVIEW:"нужно разобрать",WATCH:"наблюдать",BACKGROUND:"фон"})[c]||"наблюдать";
     }
     var inspectorItems={};
     function radarSectionLabel(kind){
@@ -1881,14 +1880,17 @@
       return m[r.kind]||humanCode(r.kind||"источник не указан");
     }
     function itemHTML(x,kind,i){
-      var key=kind+":"+i;
+      var key=kind+":"+(x.radar_id||x.signal_id||i);
       inspectorItems[key]={item:x,kind:kind};
-      var imp=important(x,kind);
-      var meta=[dateRu(x.date),branch(x),sourceLabel(x)].filter(Boolean).join(" · ");
-      var state=imp?"важно сейчас":(x.status?humanCode(x.status):"наблюдаем");
-      return '<button type="button" class="radar-signal-card'+(imp?' important':'')+'" data-radar-select="'+esc(key)+'">'+
-        '<div class="radar-signal-head"><span class="radar-mini-hex">'+(imp?'!':'•')+'</span><div><b>'+esc(cut(textRu(x.title||"Сигнал"),115))+'</b><small>'+esc(meta||"контекст не передан")+'</small></div><em>'+esc(state)+'</em></div>'+
-        (x.why?'<p>'+esc(cut(textRu(x.why),190))+'</p>':'')+
+      var cls=attentionClass(x,kind),imp=cls==="ACTION_NOW",review=cls==="REVIEW",background=cls==="BACKGROUND";
+      var meta=[dateRu(x.date||x.latest_observed_at||x.observed_at),branch(x),sourceLabel(x),x.repeat_count>1?("повторов: "+x.repeat_count):""].filter(Boolean).join(" · ");
+      var summary=x.summary_ru||x.summary||x.why||"";
+      var dest=x.destination&&x.destination.label?x.destination.label:"";
+      var next=x.next_step_ru||"";
+      return '<button type="button" class="radar-signal-card radar-'+esc(cls.toLowerCase())+(imp?' important':'')+(review?' review':'')+(background?' background':'')+'" data-radar-select="'+esc(key)+'">'+
+        '<div class="radar-signal-head"><span class="radar-mini-hex">'+(imp?'!':review?'↳':background?'·':'•')+'</span><div><b>'+esc(cut(textRu(x.title||"Сигнал"),115))+'</b><small>'+esc(meta||"контекст не передан")+'</small></div><em>'+esc(attentionLabel(x,kind))+'</em></div>'+
+        (summary?'<p class="radar-card-summary">'+esc(cut(textRu(summary),210))+'</p>':'')+
+        ((dest||next)?'<div class="radar-card-route">'+(dest?'<b>'+esc(dest)+'</b>':'')+(next?'<span>'+esc(cut(next,180))+'</span>':'')+'</div>':'')+
       '</button>';
     }
     function listHTML(items,kind,empty,limit){
@@ -1900,10 +1902,13 @@
       var host=page.querySelector("[data-radar-inspector]");
       var rec=inspectorItems[key];
       if(!host||!rec)return;
-      var x=rec.item||{}, kind=rec.kind, imp=important(x,kind);
+      var x=rec.item||{}, kind=rec.kind, cls=attentionClass(x,kind), imp=cls==="ACTION_NOW";
       var ctx=x.context||{}, ref=x.source_ref||{};
       var why=x.why||x.why_it_matters_ru||(x.enrichment&&x.enrichment.why_it_matters_ru)||"Источник не передал отдельное объяснение значимости.";
-      var source=sourceLabel(x);
+      var summaryText=x.summary_ru||x.summary||"";
+      var nextStep=x.next_step_ru||"";
+      var destination=x.destination||{};
+      var source=sourceLabel(x),sourceUrl=x.opportunity_url||x.source_url||(x.source&&x.source.url)||"";
       var ctxLine=[ctx.world,ctx.line,ctx.branch].filter(Boolean);
       var evidence="";
       if(Array.isArray(x.evidence)&&x.evidence.length)evidence=x.evidence.length+" свидетельств";
@@ -1927,7 +1932,19 @@
         date:x.date||"",
         layer:kind,
         source:source,
+        source_url:sourceUrl,
+        attention_class:cls,
+        attention_label:attentionLabel(x,kind),
+        summary:textRu(summaryText),
         why:textRu(why),
+        next_step:nextStep,
+        destination:destination,
+        recommended_action:x.recommended_action||"",
+        architecture_proximity:x.architecture_proximity,
+        market_significance:x.market_significance,
+        architecture_convergence:x.architecture_convergence,
+        repeat_count:x.repeat_count||1,
+        evidence:Array.isArray(x.evidence)?x.evidence:[],
         signal_id:ref.signal_id||x.signal_id||"",
         radar_id:x.radar_id||"",
         source_ref:ref,
@@ -1941,9 +1958,11 @@
         details:[ctx.world,ctx.line,ctx.branch].filter(Boolean).join(" → ")
       };
       host.innerHTML=
-        '<div class="cc-insp-title">Сигнал</div>'+
-        '<div class="cc-insp-head"><span class="radar-insp-mark '+(imp?'important':'')+'">'+(imp?'!':'•')+'</span><div><h3>'+esc(textRu(x.title||"Сигнал"))+'</h3><small>'+esc(imp?"важно сейчас":"наблюдаем")+'</small></div></div>'+
-        '<div class="cc-insp-sec"><h4>Почему на радаре</h4><p>'+esc(textRu(why))+'</p></div>'+
+        '<div class="cc-insp-title">Сигнальный радар</div>'+
+        '<div class="cc-insp-head"><span class="radar-insp-mark '+(imp?'important':cls==="REVIEW"?'review':'')+'">'+(imp?'!':cls==="REVIEW"?'↳':cls==="BACKGROUND"?'·':'•')+'</span><div><h3>'+esc(textRu(x.title||"Сигнал"))+'</h3><small>'+esc(attentionLabel(x,kind))+'</small></div></div>'+
+        (summaryText?'<div class="cc-insp-sec"><h4>Что произошло</h4><p>'+esc(textRu(summaryText))+'</p></div>':'')+
+        '<div class="cc-insp-sec"><h4>Почему это имеет значение</h4><p>'+esc(textRu(why))+'</p></div>'+
+        ((destination.label||nextStep)?'<div class="cc-insp-sec radar-route-sec"><h4>Куда вести сигнал</h4>'+(destination.label?'<b>'+esc(destination.label)+'</b>':'')+(destination.route?'<p>'+esc(destination.route)+'</p>':'')+(nextStep?'<small>Следующий шаг: '+esc(nextStep)+'</small>':'')+'</div>':'')+
         (x.date?'<div class="cc-insp-sec"><h4>Дата</h4><p>'+esc(dateRu(x.date))+'</p></div>':'')+
         (kind==="opportunities"?'<div class="cc-insp-sec"><h4>Допуск и статус</h4><p>'+esc(eligibilityLabel(x.eligibility_status)+(x.program_type?" · "+x.program_type:"")+(x.official_status?" · источник: "+humanCode(x.official_status):""))+'</p>'+
           (eligReq.length?'<small class="radar-elig-head">Что уже известно из источника</small><ul class="radar-elig-list">'+eligReq.map(function(v){return "<li>"+esc(v)+"</li>";}).join("")+"</ul>":"")+
@@ -1953,10 +1972,11 @@
           (x.eligibility_next_check?'<div class="radar-elig-next"><b>Следующая проверка</b><span>'+esc(x.eligibility_next_check)+'</span></div>':'')+
           '</div>':'')+
         (ctxLine.length?'<div class="cc-insp-sec"><h4>Контекст</h4><div class="cc-crumbs">'+ctxLine.map(function(v){return '<span>'+esc(v)+'</span>';}).join('<i>→</i>')+'</div></div>':'')+
-        '<div class="cc-insp-sec"><h4>Источник</h4><p>'+esc(source)+'</p>'+(evidence?'<small>'+esc(evidence)+'</small>':'')+'</div>'+
+        '<div class="cc-insp-sec"><h4>Источник</h4><p>'+esc(source)+'</p>'+(sourceUrl?'<a class="radar-source-link" href="'+esc(sourceUrl)+'" target="_blank" rel="noopener">Открыть первоисточник ↗</a>':'')+(evidence?'<small>'+esc(evidence)+(x.repeat_count>1?' · схлопнуто повторов: '+esc(x.repeat_count):'')+'</small>':'')+'</div>'+
+        ((x.architecture_proximity!=null||x.market_significance!=null)?'<div class="cc-insp-sec"><h4>Оценка аналитического слоя</h4><p>Близость к архитектуре: '+esc(x.architecture_proximity==null?"—":x.architecture_proximity)+' · значимость для рынка: '+esc(x.market_significance==null?"—":x.market_significance)+'</p></div>':'')+
         (x.status?'<div class="cc-insp-sec"><h4>Состояние источника</h4><p>'+esc(humanCode(x.status))+'</p></div>':'')+
         '<div class="cc-insp-sec"><h4>Граница</h4><p>Панель показывает запись источника и не повышает её до действия, решения или причинной связи без отдельного подтверждения.</p></div>'+
-        '<button type="button" class="cc-steward-ask"><b>Спросить Навигатора</b><span>объяснить сигнал, источник, связь или следующий шаг</span></button>';
+        '<button type="button" class="cc-steward-ask"><b>Разобрать со Стюардом</b><span>что произошло → насколько это важно → куда вести → что делать следующим шагом</span></button>';
       var stewardBtn=host.querySelector(".cc-steward-ask");
       if(stewardBtn)stewardBtn.setAttribute("data-cc-steward-context",JSON.stringify(stewardCtx));
       page.querySelectorAll("[data-radar-select]").forEach(function(b){b.classList.toggle("selected",b.getAttribute("data-radar-select")===key);});
@@ -1971,36 +1991,44 @@
     if(stamp)stamp.innerHTML='<div class="cc-stamp"><span class="cc-pulse ok"></span><span>Радар · данные поступают</span></div>';
 
     var opportunities=arr("opportunities"), waiting=arr("waiting"), upcoming=arr("upcoming"), predictions=arr("predictions");
-    var field=radar.field||{}, fieldSignals=Array.isArray(field.signals)?field.signals:[], sigs=fieldSignals.slice(0,6);
+    var field=radar.field||{}, fieldSignals=Array.isArray(field.signals)?field.signals:[], fieldCounts=field.counts||{};
     var marketCounts=marketSignals&&marketSignals.counts||{}, scannerRun=scannerDiagnostics&&scannerDiagnostics.scanner&&scannerDiagnostics.scanner.run_summary||{};
     var returnedSignals=marketCounts.returned!=null?Number(marketCounts.returned):(marketSignals&&Array.isArray(marketSignals.signals)?marketSignals.signals.length:null);
     var storedSignals=marketCounts.stored_total!=null?Number(marketCounts.stored_total):null;
     var emittedNow=scannerRun.signals_emitted!=null?Number(scannerRun.signals_emitted):null;
     var learning=arr("atlas_learning"), reputation=arr("reputation");
-    var allForImportant=[];
-    opportunities.forEach(function(x){allForImportant.push([x,"opportunities"]);});
-    waiting.forEach(function(x){allForImportant.push([x,"waiting"]);});
-    predictions.forEach(function(x){allForImportant.push([x,"predictions"]);});
-    sigs.forEach(function(x){allForImportant.push([x,"field"]);});
-    learning.forEach(function(x){allForImportant.push([x,"learning"]);});
-    reputation.forEach(function(x){allForImportant.push([x,"reputation"]);});
-    var importantN=allForImportant.filter(function(p){return important(p[0],p[1]);}).length;
+    function byClass(items,c){return (items||[]).filter(function(x){return attentionClass(x,"field")===c;});}
+    function byOppClass(items,c){return (items||[]).filter(function(x){return attentionClass(x,"opportunities")===c;});}
+    var urgentOpp=byOppClass(opportunities,"ACTION_NOW"), reviewOpp=byOppClass(opportunities,"REVIEW"), watchOpp=byOppClass(opportunities,"WATCH");
+    var urgentField=byClass(fieldSignals,"ACTION_NOW"), reviewField=byClass(fieldSignals,"REVIEW"), watchField=byClass(fieldSignals,"WATCH"), backgroundField=byClass(fieldSignals,"BACKGROUND");
+    var urgentN=urgentOpp.length+urgentField.length;
+    var reviewN=reviewOpp.length+reviewField.length;
+    var watchN=watchOpp.length+watchField.length;
     var summary=page.querySelector("[data-radar-summary]");
     if(summary)summary.innerHTML=
-      '<div class="cc-kpi radar-kpi risk"><span class="cc-kpi-icon">!</span><span class="cc-kpi-body"><small>Важных сейчас</small><strong>'+importantN+'</strong><em>выделены оранжевым</em></span></div>'+
-      '<div class="cc-kpi radar-kpi wait"><span class="cc-kpi-icon">○</span><span class="cc-kpi-body"><small>Ждём</small><strong>'+waiting.length+'</strong><em>внешние ответы и исходы</em></span></div>'+
-      '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">◷</span><span class="cc-kpi-body"><small>Ближайшие даты</small><strong>'+upcoming.length+'</strong><em>из тех же источников, что «Во времени»</em></span></div>'+
-      '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">↗</span><span class="cc-kpi-body"><small>Последний цикл Scanner</small><strong>'+esc(emittedNow==null?"—":emittedNow)+'</strong><em>'+(storedSignals!=null?esc(storedSignals)+" накоплено · ":"")+(returnedSignals!=null?esc(returnedSignals)+" в текущем чтении · ":"")+esc(fieldSignals.length)+' отобрано в радар</em></span></div>';
+      '<div class="cc-kpi radar-kpi risk"><span class="cc-kpi-icon">!</span><span class="cc-kpi-body"><small>Нужно сейчас</small><strong>'+urgentN+'</strong><em>срок или подтверждённое окно действия</em></span></div>'+
+      '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">↳</span><span class="cc-kpi-body"><small>На разбор</small><strong>'+reviewN+'</strong><em>сильные сигналы и окна, где нужен анализ</em></span></div>'+
+      '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">•</span><span class="cc-kpi-body"><small>Наблюдать</small><strong>'+watchN+'</strong><em>ранние сигналы без основания бежать</em></span></div>'+
+      '<div class="cc-kpi radar-kpi wait"><span class="cc-kpi-icon">○</span><span class="cc-kpi-body"><small>Ждём</small><strong>'+waiting.length+'</strong><em>внешние ответы и исходы</em></span></div>';
 
-    if(box("opportunities"))box("opportunities").innerHTML=listHTML(opportunities,"opportunities","Подтверждённых внешних окон для действия сейчас нет.",6);
+    if(box("opportunities")){
+      box("opportunities").innerHTML=
+        '<div class="radar-lane-head urgent"><b>Срочные окна</b><span>дедлайн близко; сначала проверить допуск, затем маршрут действия</span></div>'+listHTML(urgentOpp,"opportunities","Срочных подтверждённых окон сейчас нет.",8)+
+        '<div class="radar-lane-head review"><b>Окна на проверку</b><span>открыты, но соответствие aiclavis или полный документ ещё требуют разбора</span></div>'+listHTML(reviewOpp,"opportunities","Дополнительных окон на проверку нет.",8)+
+        (watchOpp.length?'<details class="radar-background"><summary>Наблюдать за окнами · '+watchOpp.length+'</summary>'+listHTML(watchOpp,"opportunities","",10)+'</details>':"");
+    }
     if(box("waiting"))box("waiting").innerHTML=listHTML(waiting,"waiting","Внешних ожиданий и ожидаемых исходов сейчас нет.",7);
     var ps=predictions.slice().sort(function(a,b){return String(a.date||"9999").localeCompare(String(b.date||"9999"));});
     if(box("predictions"))box("predictions").innerHTML=listHTML(ps,"predictions","Открытых прогнозных точек сейчас нет.",7);
 
     if(box("field")){
       var cov=field.source_coverage||{}, covText=(cov.ok_count!=null&&cov.total_sources!=null)?("Покрытие Scanner: "+cov.ok_count+" из "+cov.total_sources+" источников."):"Покрытие Scanner не подтверждено.";
-      var flowText=[emittedNow!=null?("последний цикл: "+emittedNow+" новый сигнал"):null,storedSignals!=null?("накоплено: "+storedSignals):null,returnedSignals!=null?("текущее чтение: "+returnedSignals):null,("в радаре: "+fieldSignals.length)].filter(Boolean).join(" · ");
-      box("field").innerHTML='<div class="radar-source-note">'+esc(covText+" "+flowText)+"</div>"+listHTML(sigs,"field","Новых отобранных внешних сигналов нет.",6);
+      var flowText=[emittedNow!=null?("последний цикл: "+emittedNow+" новый сигнал"):null,fieldCounts.raw!=null?("сырых: "+fieldCounts.raw):null,fieldCounts.clusters!=null?("смысловых: "+fieldCounts.clusters):null,fieldCounts.collapsed_repeats?("схлопнуто повторов: "+fieldCounts.collapsed_repeats):null].filter(Boolean).join(" · ");
+      box("field").innerHTML='<div class="radar-source-note">'+esc(covText+" "+flowText)+'</div>'+
+        (urgentField.length?'<div class="radar-lane-head urgent"><b>Срочно проверить</b><span>есть основание для немедленного разбора</span></div>'+listHTML(urgentField,"field","",10):"")+
+        '<div class="radar-lane-head review"><b>Нужно разобрать</b><span>сильная близость к нашей архитектуре или траектории; ещё не действие</span></div>'+listHTML(reviewField,"field","Сильных сигналов на разбор сейчас нет.",12)+
+        '<div class="radar-lane-head watch"><b>Наблюдать</b><span>ранняя информация; ждём подтверждения или накопления картины</span></div>'+listHTML(watchField,"field","Сигналов наблюдения сейчас нет.",12)+
+        (backgroundField.length?'<details class="radar-background"><summary>Фон · '+backgroundField.length+'</summary>'+listHTML(backgroundField,"field","",12)+'</details>':"");
     }
     if(box("learning"))box("learning").innerHTML=listHTML(learning.map(function(x){return Object.assign({},x,{title:x.title||"ATLAS",why:[x.stage?("Этап: "+humanCode(x.stage)):"",x.result?("результат получен"):"",x.next?("дальше: "+humanCode(x.next)):""].filter(Boolean).join(" · "),date:x.next_date});}),"learning","Исследовательские контуры не передали текущий этап.",5);
     if(box("reputation"))box("reputation").innerHTML=listHTML(reputation,"reputation","Новых внешних репутационных или институциональных точек нет.",6);
