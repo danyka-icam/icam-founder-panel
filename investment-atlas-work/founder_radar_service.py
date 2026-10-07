@@ -261,8 +261,47 @@ def evaluate_known_rules(row,gap):
     failures=sorted(set(failures))
     return {"status":"PASS" if not failures else "FAIL","passed":not failures,"failures":failures}
 
+def program_overlay(row, company_profile=None):
+    title=str((row or {}).get("title") or "")
+    if "Finep Mais Inovação Brasil - Rodada 2" in title and "Tecnologias Digitais" in title:
+        return {
+          "official_deadline_verified":{
+            "value":"2026-10-14T17:00",
+            "status":"VERIFIED_CURRENT_OFFICIAL_PAGE",
+            "source_url":"https://www.finep.gov.br/e/chamada-publica/222684/755485"
+          },
+          "economics":{
+            "funding_type":"NON_REPAYABLE_SUBSIDY",
+            "finep_request_min_brl":5000000,
+            "finep_request_max_simple_brl":25000000,
+            "finep_request_max_network_brl":40000000,
+            "micro_small_counterpart_pct_min":5,
+            "estimated_min_total_project_brl_if_micro_small_simple":5263157.89,
+            "estimated_min_counterpart_brl_if_micro_small_simple":263157.89,
+            "basis":"official Finep Annex 1 / presentation"
+          },
+          "partnership":{
+            "required":True,
+            "minimum":"at least one ICT in simple arrangement",
+            "network":"at least two Brazilian coexecuting companies plus at least one ICT",
+            "status":"CONFIRMED_BY_OFFICIAL_ANNEX"
+          },
+          "candidate_project_fit":{
+            "status":"STRONG_CANDIDATE_NOT_YET_VERIFIED",
+            "theme":"Linha Temática 1.1 – Plataformas Nacionais para Operação e Escala de Sistemas de IA",
+            "why":"Official line includes orchestration/management of multiple AI models and agents plus monitoring of performance, quality, security and reliability. Existing aiclavis artifacts demonstrate adjacent implemented architecture, but the grant project scope and TRL are not yet frozen.",
+            "does_not_prove":["project eligibility","TRL 3-8","merit score","Brazilian-national-component preference"]
+          },
+          "effort_override":{"status":"HIGH","label":"высокие усилия: проект от R$ 5 млн + обязательная ICT + TRL/пакет"},
+          "upside_override":{"status":"QUANTIFIED_HIGH","label":"не менее R$ 5 млн запрашиваемой безвозвратной субсидии"},
+          "route_override":{"decision":"PARTNER","label":"искать ICT-партнёра параллельно с проверкой проекта",
+                            "reason":"ICT обязательна даже для Arranjo Simples; это подтверждённая часть маршрута, а не предположение."}
+        }
+    return {}
+
 def funding_funnel(row,company_profile=None):
     x=dict(row or {})
+    overlay=program_overlay(x,company_profile or {})
     eligibility=str(x.get("eligibility_status") or "UNCHECKED").upper()
     gap=profile_gap(x,company_profile or {})
     rule_eval=evaluate_known_rules(x,gap)
@@ -287,7 +326,9 @@ def funding_funnel(row,company_profile=None):
              "basis":"NO_CANONICAL_COMPANY_PROFILE"}
 
     # Effort is a preparation estimate, not a cost claim.
-    if eligibility=="NEEDS_CALL_DOCUMENT_REVIEW":
+    if (overlay.get("effort_override")):
+        effort=overlay["effort_override"]
+    elif eligibility=="NEEDS_CALL_DOCUMENT_REVIEW":
         effort={"status":"UNKNOWN_UNTIL_RULES","label":"неизвестно до разбора полного документа конкурса"}
     elif len(missing) >= 5:
         effort={"status":"HIGH","label":"высокие подготовительные усилия"}
@@ -297,7 +338,9 @@ def funding_funnel(row,company_profile=None):
         effort={"status":"LOW_OR_UNKNOWN","label":"низкие или ещё не определены"}
 
     kind=str(x.get("program_type") or "").lower()
-    if any(k in kind for k in ["não reembolsável","grant","subven"]):
+    if overlay.get("upside_override"):
+        upside=overlay["upside_override"]
+    elif any(k in kind for k in ["não reembolsável","grant","subven"]):
         upside={"status":"HIGH_POTENTIAL","label":"высокий потенциальный выигрыш",
                 "basis":"NON_DILUTIVE_OR_GRANT_TYPE_AMOUNT_NOT_VERIFIED"}
     else:
@@ -342,6 +385,9 @@ def funding_funnel(row,company_profile=None):
 
     profile_next=gap.get("next_fact_key")
     blocker=(("Company Eligibility Profile: "+profile_next) if profile_next else (missing[0] if missing else x.get("eligibility_next_check")))
+    if overlay.get("route_override") and eligibility!="NOT_ELIGIBLE":
+        rr=overlay["route_override"]
+        decision=rr["decision"]; decision_label=rr["label"]; reason=rr["reason"]
     readiness=(company_profile or {}).get("readiness") or {}
     # Company readiness status is advisory only unless a program-specific rule
     # explicitly makes it an eligibility condition. Do not infer ineligibility
@@ -372,6 +418,7 @@ def funding_funnel(row,company_profile=None):
       "partner_signal_unverified":partner_signal and eligibility!="ELIGIBLE",
       "company_profile_gap":gap,
       "known_rule_evaluation":rule_eval,
+      "program_overlay":overlay,
       "applicant_readiness_advisory":{
         "status":readiness.get("blocking_status"),
         "application_ready":readiness.get("application_ready"),
@@ -727,7 +774,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.8","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.9","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
@@ -752,7 +799,7 @@ class H(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p=self.path.split("?",1)[0]
-        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.8","read_only":True})
+        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.9","read_only":True})
         if p=="/api/v1/founder-radar": return self.sendj(build())
         return self.sendj({"error":"not_found"},404)
     def log_message(self,*a): pass
