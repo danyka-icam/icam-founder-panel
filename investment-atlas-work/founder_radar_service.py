@@ -891,11 +891,19 @@ def build():
     critical_sources=["signals","commercial","temporal","activity"]
     degraded=[{"source":k,"error":errors.get(k)} for k in critical_sources if errors.get(k)]
     coverage=(field or {}).get("source_coverage") or {}
+    limited=[]
     if coverage.get("total_sources") is not None and coverage.get("ok_count") is not None and coverage.get("ok_count") < coverage.get("total_sources"):
-        degraded.append({"source":"market_scanner_coverage","error":str(coverage.get("ok_count"))+"/"+str(coverage.get("total_sources"))+" sources healthy"})
+        failing=coverage.get("failing") or []
+        unexpected=[f for f in failing if not f.get("known_degraded")]
+        expected=[f for f in failing if f.get("known_degraded")]
+        if unexpected:
+            degraded.append({"source":"market_scanner_coverage","error":str(coverage.get("ok_count"))+"/"+str(coverage.get("total_sources"))+" sources healthy","failing":unexpected})
+        if expected:
+            limited.append({"source":"market_scanner_coverage","note":"known external access limits","failing":expected})
     movement["source_guard"]={
-      "status":"DEGRADED" if degraded else "HEALTHY",
+      "status":"DEGRADED" if degraded else ("LIMITED" if limited else "HEALTHY"),
       "degraded":degraded,
+      "limited":limited,
       "critical_sources":critical_sources,
       "commercial_generated_at":(data.get("commercial") or {}).get("generated_at"),
       "market_source_coverage":coverage
@@ -917,7 +925,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.12","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.13","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
@@ -943,7 +951,7 @@ class H(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p=self.path.split("?",1)[0]
-        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.12","read_only":True})
+        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.13","read_only":True})
         if p=="/api/v1/founder-radar": return self.sendj(build())
         return self.sendj({"error":"not_found"},404)
     def log_message(self,*a): pass

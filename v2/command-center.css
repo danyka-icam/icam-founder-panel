@@ -1822,3 +1822,4 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .movement-source-guard{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:8px;padding:7px 9px;border:1px solid rgba(89,192,156,.22);border-radius:8px;background:rgba(89,192,156,.025)}
 .movement-source-guard b{font-size:8px;letter-spacing:.06em;color:#a8d8ca}.movement-source-guard span{font-size:8px;line-height:1.35;color:var(--muted)}
 .movement-source-guard.degraded{border-color:rgba(225,129,78,.4);background:rgba(225,129,78,.04)}.movement-source-guard.degraded b{color:#e8b27d}
+.movement-source-guard.limited{border-color:rgba(210,174,89,.28);background:rgba(210,174,89,.03)}.movement-source-guard.limited b{color:#dac58e}
