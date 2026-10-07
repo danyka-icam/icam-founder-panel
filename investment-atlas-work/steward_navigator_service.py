@@ -152,6 +152,16 @@ def priority_answer(ctx):
     else: head+="\n"+"\n".join(lines)
     waits=(b.get("counts") or {}).get("WAITING_EXTERNAL",0)
     head+=f"\n\nОтдельно: {waits} объектов сейчас у внешней стороны — я не поднимаю их как твою работу, пока не наступил follow-up или не пришёл ответ."
+    ec=b.get("execution_counts") or {}
+    founder_items=[x for x in (b.get("execution_queue") or []) if ((x.get("execution") or {}).get("class")=="FOUNDER")]
+    system_items=[x for x in (b.get("execution_queue") or []) if ((x.get("execution") or {}).get("class")=="SYSTEM_REVIEW")]
+    auto_items=[x for x in (b.get("execution_queue") or []) if ((x.get("execution") or {}).get("class")=="AUTO")]
+    head+=f"
+
+Разделение работы: лично тебе сейчас требуется {len(founder_items)} активных действий; системный разбор — {len(system_items)}; система может вести сама — {len(auto_items)}."
+    if founder_items:
+        head+="
+Твои действия: "+ "; ".join(str(x.get("title") or "объект") for x in founder_items[:7])+"."
     if guard=="DEGRADED":
         head+="\n\nВажно: покрытие источников деградировано, поэтому приоритет неполный."
     elif guard=="LIMITED":

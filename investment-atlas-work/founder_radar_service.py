@@ -933,15 +933,27 @@ def movement_flow_projection(movement, opportunities, field, commercial):
         x.get("date") is None,x.get("date") or "9999",
         bq_rank.get(x.get("state"),9),x.get("title") or ""))
     bottlenecks.sort(key=lambda x:-int(x.get("count") or 0))
+    execution_queue=[]
+    for x in items:
+        if x.get("state") in {"CLOSED","PARKED","REFERENCE_ONLY"}: continue
+        y=dict(x)
+        y["execution"]=movement_execution_classification(y)
+        execution_queue.append(y)
+    execution_queue.sort(key=lambda x:(
+        {"FOUNDER":0,"SYSTEM_REVIEW":1,"AUTO":2}.get((x.get("execution") or {}).get("class"),9),
+        0 if x.get("priority")=="HIGH" else 1,
+        x.get("date") is None,x.get("date") or "9999",
+        x.get("title") or ""))
     execution_counts={"FOUNDER":0,"SYSTEM_REVIEW":0,"AUTO":0}
-    for x in bottleneck_queue:
+    for x in execution_queue:
         c=(x.get("execution") or {}).get("class")
         if c in execution_counts: execution_counts[c]+=1
     return {
-      "contract":"aiclavis.movement-flow.v0.2",
+      "contract":"aiclavis.movement-flow.v0.3",
       "streams":out,
       "bottlenecks":bottlenecks,
       "bottleneck_queue":bottleneck_queue[:40],
+      "execution_queue":execution_queue[:80],
       "execution_counts":execution_counts,
       "rule":"No synthetic conversion score. Every stage is counted from explicit live movement or domain state; external outcomes require observed external state."
     }
@@ -1073,7 +1085,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.16","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.17","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
@@ -1100,7 +1112,7 @@ class H(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p=self.path.split("?",1)[0]
-        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.16","read_only":True})
+        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.17","read_only":True})
         if p=="/api/v1/founder-radar": return self.sendj(build())
         return self.sendj({"error":"not_found"},404)
     def log_message(self,*a): pass
