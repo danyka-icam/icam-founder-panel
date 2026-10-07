@@ -1,32 +1,229 @@
 {
   "schema": "aiclavis.company-eligibility-profile.v0.1",
-  "entity_id": "AICLAVIS-APPLICANT-ENTITY",
-  "entity_label": "aiclavis — applicant entity",
-  "status": "BOOTSTRAP_UNKNOWN",
+  "entity_id": "BR-DIAMANTE-LOJA-48188839000121",
+  "entity_label": "DIAMANTE LOJA COMERCIO VAREJISTA DE INFORMATICA LTDA",
+  "status": "PARTIALLY_VERIFIED_WITH_READINESS_BLOCKER",
   "rule": "Only VERIFIED facts may satisfy an external eligibility requirement. UNKNOWN never passes. CONFLICT blocks admission until reconciled.",
   "facts": {
-    "legal_entity_brazil": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "headquarters_brazil": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "administration_brazil": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "for_profit": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "legal_form": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "legal_status_active": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "company_size_class": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "startup_legal_status": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "annual_revenue_band_brl": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "cnpq_institution_directory_registered": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "eligible_project_coordinator": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "coordinator_formal_company_link": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "coordinator_lattes_current": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "candidate_ai_project_defined": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "nib_mission_alignment": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "counterpart_20pct_capacity": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "project_theme": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "trl_initial": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "trl_target": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "university_partner_available": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "research_institution_partner_available": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "consortium_capability": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null},
-    "santa_catarina_presence": {"value": null, "status": "UNKNOWN", "source_refs": [], "verified_at": null}
+    "legal_entity_brazil": {
+      "value": true,
+      "status": "VERIFIED",
+      "source_refs": [
+        {
+          "kind": "official_document",
+          "filename": "CNPJ DIAMANTE LOJA.pdf",
+          "sha256": "8963def8cae2cfddaceefb6c0a9ac073b5a32cc49d3776004715758f62dd183c"
+        },
+        {
+          "kind": "official_document",
+          "filename": "empresa-certidao-inteiro-teor-00.pdf",
+          "sha256": "a370b465e304a629ff6842956658050d25ca1fecc3a9e319f3afd31603282c6b"
+        }
+      ],
+      "verified_at": "2026-10-07T00:00:00Z",
+      "note": "CNPJ and JUCERJA registration establish a Brazilian legal entity."
+    },
+    "headquarters_brazil": {
+      "value": true,
+      "status": "VERIFIED",
+      "source_refs": [
+        {
+          "kind": "official_document",
+          "filename": "CNPJ DIAMANTE LOJA.pdf",
+          "sha256": "8963def8cae2cfddaceefb6c0a9ac073b5a32cc49d3776004715758f62dd183c"
+        },
+        {
+          "kind": "official_document",
+          "filename": "empresa-certidao-inteiro-teor-00.pdf",
+          "sha256": "a370b465e304a629ff6842956658050d25ca1fecc3a9e319f3afd31603282c6b"
+        }
+      ],
+      "verified_at": "2026-10-07T00:00:00Z",
+      "note": "Registered head office address is in Rio de Janeiro/RJ, Brazil."
+    },
+    "administration_brazil": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "for_profit": {
+      "value": true,
+      "status": "VERIFIED",
+      "source_refs": [
+        {
+          "kind": "official_document",
+          "filename": "empresa-certidao-inteiro-teor-00.pdf",
+          "sha256": "a370b465e304a629ff6842956658050d25ca1fecc3a9e319f3afd31603282c6b",
+          "issuer": "JUCERJA",
+          "issued_at": "2022-10-05"
+        }
+      ],
+      "verified_at": "2026-10-07T00:00:00Z",
+      "note": "Contrato Social prevê balanço de resultado econômico e atribui à empresária os lucros ou perdas apuradas."
+    },
+    "legal_form": {
+      "value": "SOCIEDADE_EMPRESARIA_LIMITADA",
+      "status": "VERIFIED",
+      "source_refs": [
+        {
+          "kind": "official_document",
+          "filename": "CNPJ DIAMANTE LOJA.pdf",
+          "sha256": "8963def8cae2cfddaceefb6c0a9ac073b5a32cc49d3776004715758f62dd183c"
+        },
+        {
+          "kind": "official_document",
+          "filename": "empresa-certidao-inteiro-teor-00.pdf",
+          "sha256": "a370b465e304a629ff6842956658050d25ca1fecc3a9e319f3afd31603282c6b"
+        }
+      ],
+      "verified_at": "2026-10-07T00:00:00Z"
+    },
+    "legal_status_active": {
+      "value": false,
+      "status": "VERIFIED",
+      "source_refs": [
+        {
+          "kind": "official_record",
+          "filename": "consulta20260928184108198.pdf",
+          "file_id": "file_00000000cf608230abc10836f6e88127",
+          "issuer": "Redesim / CNPJ",
+          "issued_at": "2026-09-28"
+        }
+      ],
+      "verified_at": "2026-10-07T00:00:00Z",
+      "note": "Redesim issued 2026-09-28 shows Situação Cadastral: Inapta."
+    },
+    "company_size_class": {
+      "value": "MICROEMPRESA",
+      "status": "VERIFIED",
+      "source_refs": [
+        {
+          "kind": "official_document",
+          "filename": "CNPJ DIAMANTE LOJA.pdf",
+          "sha256": "8963def8cae2cfddaceefb6c0a9ac073b5a32cc49d3776004715758f62dd183c"
+        },
+        {
+          "kind": "official_document",
+          "filename": "empresa-certidao-inteiro-teor-00.pdf",
+          "sha256": "a370b465e304a629ff6842956658050d25ca1fecc3a9e319f3afd31603282c6b"
+        }
+      ],
+      "verified_at": "2026-10-07T00:00:00Z"
+    },
+    "startup_legal_status": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "annual_revenue_band_brl": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "cnpq_institution_directory_registered": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "eligible_project_coordinator": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "coordinator_formal_company_link": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "coordinator_lattes_current": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "candidate_ai_project_defined": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "nib_mission_alignment": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "counterpart_20pct_capacity": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "project_theme": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "trl_initial": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "trl_target": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "university_partner_available": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "research_institution_partner_available": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "consortium_capability": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    },
+    "santa_catarina_presence": {
+      "value": null,
+      "status": "UNKNOWN",
+      "source_refs": [],
+      "verified_at": null
+    }
+  },
+  "entity_role": "CANDIDATE_BRAZIL_APPLICANT_ENTITY",
+  "relationship_to_aiclavis": "CANDIDATE_APPLICANT_ENTITY_NOT_BRAND_IDENTITY",
+  "readiness": {
+    "application_ready": false,
+    "blocking_status": "CNPJ_INAPTA",
+    "as_of": "2026-09-28",
+    "reason": "Latest official Redesim evidence shows the candidate applicant CNPJ as INAPTA.",
+    "reversible": true,
+    "fiscal_regularization_deadline": "2026-10-30",
+    "pending_penalties_confirmed": true,
+    "penalty_notice": {
+      "communication": "22476948",
+      "issued_at": "2026-09-19",
+      "file_id": "file_00000000b6948230b4044088d78a7483",
+      "note": "RFB notice lists outstanding assessed penalties and asks for regularization by 2026-10-30."
+    },
+    "required_resolution": "Regularizar pendências e obter nova evidência oficial de Situação Cadastral ATIVA antes de tratar a entidade como application-ready."
   }
 }
