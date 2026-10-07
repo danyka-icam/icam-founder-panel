@@ -541,7 +541,7 @@ def strategic_projection(opportunities,field):
         ms=int(x.get("market_significance") or 0)
         days=x.get("days_left")
         blob=str(x.get("title") or "").lower()
-        buying_trigger=bool(re.search(r"\b(invest|investment|billion|million|contract|award|acqui|expansion|expand|capacity|build|construction|procurement|tender|rfp|partnership|joint venture|transformation program|modernization|modernisation|gigafactor)\b",blob))
+        buying_trigger=bool(re.search(r"(?:\bto invest\b|\binvest(?:s|ed|ment)?\b.{0,28}(?:\$|billion|million|bn|m)\b|\bwins?\b.{0,40}\bcontract\b|\bawarded?\b.{0,40}\bcontract\b|\bcontract\b.{0,32}(?:\$|billion|million|bn|m)\b|\bacqui(?:res?|red|sition)\b|\bexpansion\b|\bexpand(?:s|ed|ing)?\b.{0,28}\bcapacity\b|\bto build\b|\bwill build\b|\bprocurement\b|\btender\b|\brfp\b|\bjoint venture\b|\bpartnership\b|\bgigafactor(?:y|ies)\b|\btransformation program\b|\bmoderni[sz]ation program\b)",blob))
         if cls=="ACTION_NOW" or route in {"APPLY","PARTNER"}:
             return ("STRONG","сильный вход","есть текущее окно действия или подтверждённый маршрут")
         if "PROCUREMENT_WINDOW_CHANGE" in reasons:
@@ -575,7 +575,7 @@ def strategic_projection(opportunities,field):
         axes=set(str(v) for v in (x.get("axis") or []))
         if x.get("signal_type")=="commercial-door" or "commercial_procurement" in axes:
             blob=str(x.get("title") or "").lower()
-            buying_trigger=bool(re.search(r"\b(invest|investment|billion|million|contract|award|acqui|expansion|expand|capacity|build|construction|procurement|tender|rfp|partnership|joint venture|transformation program|modernization|modernisation|gigafactor)\b",blob))
+            buying_trigger=bool(re.search(r"(?:\bto invest\b|\binvest(?:s|ed|ment)?\b.{0,28}(?:\$|billion|million|bn|m)\b|\bwins?\b.{0,40}\bcontract\b|\bawarded?\b.{0,40}\bcontract\b|\bcontract\b.{0,32}(?:\$|billion|million|bn|m)\b|\bacqui(?:res?|red|sition)\b|\bexpansion\b|\bexpand(?:s|ed|ing)?\b.{0,28}\bcapacity\b|\bto build\b|\bwill build\b|\bprocurement\b|\btender\b|\brfp\b|\bjoint venture\b|\bpartnership\b|\bgigafactor(?:y|ies)\b|\btransformation program\b|\bmoderni[sz]ation program\b)",blob))
             if "commercial_procurement" in axes or buying_trigger:
                 put("commercial",x,"Публичное внешнее событие с признаками реального коммерческого окна.")
             else:
@@ -1416,7 +1416,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.31","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.32","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
