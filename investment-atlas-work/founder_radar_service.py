@@ -16,6 +16,7 @@ URLS={
  "investment":"http://127.0.0.1:8842/api/v1/investment-lab/summary",
  "activity":"http://127.0.0.1:8825/api/activity-inbox",
  "company_profile":"http://127.0.0.1:8846/api/v1/company-eligibility-profile",
+ "funding_projects":"http://127.0.0.1:8846/api/v1/funding-project-candidates",
 }
 
 def now(): return datetime.now(timezone.utc).isoformat()
@@ -756,6 +757,15 @@ def build():
     sig=data.get("signals") or {}
     field=field_projection(sig)
     opportunities=opportunities_projection(sig,upcoming,data.get("company_profile") or {})
+    fp=(data.get("funding_projects") or {}).get("projects") or []
+    for o in opportunities:
+        title=str(o.get("title") or "")
+        match=None
+        for pr in fp:
+            if str(pr.get("opportunity_match") or "") in title:
+                match=pr; break
+        if match:
+            o["funding_project_candidate"]=match
     patterns=pattern_projection(field,opportunities)
     gap_counts={}
     for o in opportunities:
@@ -774,7 +784,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.9","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.10","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
@@ -799,7 +809,7 @@ class H(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p=self.path.split("?",1)[0]
-        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.9","read_only":True})
+        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.10","read_only":True})
         if p=="/api/v1/founder-radar": return self.sendj(build())
         return self.sendj({"error":"not_found"},404)
     def log_message(self,*a): pass

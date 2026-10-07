@@ -6,6 +6,7 @@ import json, os
 
 PORT=int(os.environ.get("COMPANY_ELIGIBILITY_PORT","8844"))
 PROFILE=Path(os.environ.get("COMPANY_ELIGIBILITY_PROFILE","/var/lib/aiclavis-company-eligibility/profile.json"))
+PROJECTS=Path(os.environ.get("FUNDING_PROJECT_CANDIDATES","/var/lib/aiclavis-company-eligibility/project_candidates.json"))
 
 def load():
     d=json.loads(PROFILE.read_text())
@@ -38,6 +39,9 @@ class H(BaseHTTPRequestHandler):
             if p=="/health":
                 d=load(); return self.sendj({"ok":True,"service":"aiclavis-company-eligibility","version":"0.1","schema":d.get("schema"),"read_only":True})
             if p=="/api/v1/company-eligibility-profile": return self.sendj(load())
+            if p=="/api/v1/funding-project-candidates":
+                d=json.loads(PROJECTS.read_text()); d["read_only"]=True
+                return self.sendj(d)
             return self.sendj({"error":"not_found"},404)
         except Exception as e:
             return self.sendj({"error":type(e).__name__,"detail":str(e)[:200]},500)
