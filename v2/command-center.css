@@ -1969,3 +1969,9 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 }
 .movement-row{border-left:0;border-right:0;border-bottom:0;background:transparent}
 .movement-queue-row{border-left:0;border-right:0;border-bottom:0;background:transparent}
+
+
+/* Right inspector close button lives inside the panel */
+.cc-inspector{padding-top:48px}
+.cc-inspector>.cc-inspector-close{position:absolute;right:10px;top:10px;display:grid;place-items:center;width:32px;height:32px;border-radius:9px;font-size:22px;line-height:1}
+.cc-page-grid.inspector-collapsed>.cc-inspector>.cc-inspector-close{display:none}

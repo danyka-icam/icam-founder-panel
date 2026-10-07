@@ -3379,7 +3379,7 @@
       close.type="button"; close.className="cc-inspector-close"; close.setAttribute("aria-label","Закрыть панель деталей"); close.textContent="×";
       var open=document.createElement("button");
       open.type="button"; open.className="cc-inspector-open"; open.textContent="Показать детали";
-      grid.appendChild(close); grid.appendChild(open);
+      inspector.appendChild(close); grid.appendChild(open);
       setInspectorCollapsed(grid,true);
       close.addEventListener("click",function(){setInspectorCollapsed(grid,true);});
       open.addEventListener("click",function(){setInspectorCollapsed(grid,false);});
