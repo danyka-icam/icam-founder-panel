@@ -2013,7 +2013,7 @@
     if(stamp)stamp.innerHTML='<div class="cc-stamp"><span class="cc-pulse ok"></span><span>Радар · данные поступают</span></div>';
 
     var patterns=arr("patterns"), opportunities=arr("opportunities"), waiting=arr("waiting"), upcoming=arr("upcoming"), predictions=arr("predictions");
-    var field=radar.field||{}, fieldSignals=Array.isArray(field.signals)?field.signals:[], fieldCounts=field.counts||{};
+    var field=radar.field||{}, fieldSignalsAll=Array.isArray(field.signals)?field.signals:[], fieldSignals=fieldSignalsAll.filter(function(x){return x.radar_visible!==false;}), fieldCounts=field.counts||{};
     var fundingProfile=radar.funding_profile||{}, fundingProfileSummary=fundingProfile.profile_summary||{}, fundingGaps=Array.isArray(fundingProfile.top_unresolved_facts)?fundingProfile.top_unresolved_facts:[];
     var marketCounts=marketSignals&&marketSignals.counts||{}, scannerRun=scannerDiagnostics&&scannerDiagnostics.scanner&&scannerDiagnostics.scanner.run_summary||{};
     var returnedSignals=marketCounts.returned!=null?Number(marketCounts.returned):(marketSignals&&Array.isArray(marketSignals.signals)?marketSignals.signals.length:null);
@@ -2039,8 +2039,11 @@
     if(box("movement-queue")){
       function mqDomain(d){return ({research_funding:"исследования / финансирование",research_field:"исследовательское поле",field:"поле",commercial_signal:"коммерческий сигнал",commercial:"коммерция",external_wait:"внешнее ожидание"})[d]||humanCode(d);}
       function mqState(s){return ({DETECTED:"квалифицировать",QUALIFIED:"назначить маршрут",ROUTE_IDENTIFIED:"передать в работу"})[s]||humanCode(s);}
-      var q=movementQueue.slice(0,18);
-      box("movement-queue").innerHTML=q.length?'<div class="movement-queue-list">'+q.map(function(x,i){return '<div class="movement-queue-row"><span class="movement-queue-rank">'+(i+1)+'</span><div class="movement-queue-main"><small>'+esc(mqDomain(x.domain))+' · '+esc(mqState(x.state))+(x.date?' · '+esc(dateRu(x.date)):'')+'</small><b>'+esc(x.title||"Объект")+'</b><span>'+esc(x.required_move||"")+'</span></div><em>'+esc(x.priority==="HIGH"?"срочно":"следующий переход")+'</em></div>';}).join('')+'</div>':'<div class="movement-zero-loss">Очередь переходов пуста: обнаруженные объекты не зависли между стадиями.</div>';
+      var autoQueue=movementQueue.filter(function(x){return x.execution&&x.execution.class==="AUTO";});
+      var q=movementQueue.filter(function(x){return !(x.execution&&x.execution.class==="AUTO");}).slice(0,18);
+      box("movement-queue").innerHTML=
+        (autoQueue.length?'<div class="movement-auto-note"><b>Автоматически вне твоей очереди · '+autoQueue.length+'</b><span>Маршрут уже определён; эти переходы остаются в системной карте, но не требуют твоего внимания.</span></div>':'')+
+        (q.length?'<div class="movement-queue-list">'+q.map(function(x,i){return '<div class="movement-queue-row"><span class="movement-queue-rank">'+(i+1)+'</span><div class="movement-queue-main"><small>'+esc(mqDomain(x.domain))+' · '+esc(mqState(x.state))+(x.date?' · '+esc(dateRu(x.date)):'')+'</small><b>'+esc(x.title||"Объект")+'</b><span>'+esc(x.required_move||"")+'</span></div><em>'+esc(x.priority==="HIGH"?"срочно":"системный разбор")+'</em></div>';}).join('')+'</div>':'<div class="movement-zero-loss">Очередь переходов пуста: всё либо движется автоматически, либо ждёт внешнее событие.</div>');
     }
     if(box("movement-flow")){
       var sf=["research_funding","field"];
@@ -2136,7 +2139,7 @@
 
     if(box("field")){
       var cov=field.source_coverage||{}, covText=(cov.ok_count!=null&&cov.total_sources!=null)?("Покрытие внешнего сканера: "+cov.ok_count+" из "+cov.total_sources+" источников."):"Покрытие внешнего сканера не подтверждено.";
-      var flowText=[emittedNow!=null?("последний цикл: "+emittedNow+" новый сигнал"):null,fieldCounts.raw!=null?("сырых: "+fieldCounts.raw):null,fieldCounts.clusters!=null?("смысловых: "+fieldCounts.clusters):null,fieldCounts.collapsed_repeats?("схлопнуто повторов: "+fieldCounts.collapsed_repeats):null].filter(Boolean).join(" · ");
+      var flowText=[emittedNow!=null?("последний цикл: "+emittedNow+" новый сигнал"):null,fieldCounts.visible!=null?("в Радаре: "+fieldCounts.visible):null,fieldCounts.suppressed?("в фон отведено: "+fieldCounts.suppressed):null,fieldCounts.collapsed_repeats?("схлопнуто повторов: "+fieldCounts.collapsed_repeats):null].filter(Boolean).join(" · ");
       box("field").innerHTML='<div class="radar-source-note">'+esc(covText+" "+flowText)+'</div>'+
         (urgentField.length?'<div class="radar-lane-head urgent"><b>Срочно проверить</b><span>есть основание для немедленного разбора</span></div>'+listHTML(urgentField,"field","",10):"")+
         '<div class="radar-lane-head review"><b>Нужно разобрать</b><span>сильная близость к нашей архитектуре или траектории; ещё не действие</span></div>'+listHTML(reviewField,"field","Сильных сигналов на разбор сейчас нет.",12)+

@@ -573,7 +573,7 @@ def field_projection(signals):
         elif typ=="capability-release":
             destination={"kind":"market","label":"Рынок / конкурентная среда","route":"Проверить подтверждённое продуктовое или архитектурное изменение до коммерческого действия."}
         else:
-            destination={"kind":"radar","label":"Сигнальный радар","route":"Сначала определить владеющий контур; автоматически действие не создавать."}
+            destination={"kind":"radar","label":"Радар","route":"Сначала определить владеющий контур; автоматически действие не создавать."}
         next_step={
           "ACTION_NOW":"Проверить маршрут действия и срок; если доказательства достаточны — передать во владеющий контур.",
           "REVIEW":"Разобрать содержательно: меняет ли это нашу модель, архитектуру, исследовательскую или коммерческую траекторию.",
@@ -581,6 +581,14 @@ def field_projection(signals):
           "BACKGROUND":"Фоновый сигнал. Действий не требуется; хранить для накопления картины."
         }[lane]
         src=s.get("source") or {}
+        repeat_count=len(grp)
+        bright_reasons=[]
+        if lane=="ACTION_NOW": bright_reasons.append("ACTION_NOW")
+        if ap>=75: bright_reasons.append("ARCHITECTURE_PROXIMITY_GTE_75")
+        if ms>=60: bright_reasons.append("MARKET_SIGNIFICANCE_GTE_60")
+        if repeat_count>=3: bright_reasons.append("REPEATED_GTE_3")
+        if typ!="research-signal" and lane=="REVIEW": bright_reasons.append("NON_RESEARCH_REVIEW")
+        radar_visible=bool(bright_reasons)
         out.append({
           "radar_id":item_id("field",s.get("signal_id"),key[0],key[1],key[2]),
           "signal_id":s.get("signal_id"),"signal_type":s.get("signal_type"),"entity":s.get("entity"),
@@ -593,13 +601,20 @@ def field_projection(signals):
           "market_significance":enr.get("market_significance"),"architecture_convergence":enr.get("architecture_convergence"),
           "relevance_score":s.get("relevance_score"),"impact_score":s.get("impact_score"),"confidence":s.get("confidence"),
           "axis":s.get("axis") or [],"source":src,"source_url":src.get("url"),"evidence":s.get("evidence") or [],
-          "repeat_count":len(grp),"first_observed_at":grp[0].get("observed_at"),"latest_observed_at":s.get("observed_at"),
+          "radar_visible":radar_visible,"bright_reasons":bright_reasons,
+          "repeat_count":repeat_count,"first_observed_at":grp[0].get("observed_at"),"latest_observed_at":s.get("observed_at"),
           "source_signal_ids":[x.get("signal_id") for x in grp if x.get("signal_id")],
           "source_ref":{"kind":"market_signal","signal_id":s.get("signal_id")}
         })
     out.sort(key=lambda x:(rank.get(x.get("radar_class"),9),-int(x.get("market_significance") or 0),-int(x.get("architecture_proximity") or 0),str(x.get("latest_observed_at") or "")),reverse=False)
     counts={k:sum(1 for x in out if x.get("radar_class")==k) for k in rank}
-    counts.update({"raw":len(rows),"clusters":len(out),"collapsed_repeats":max(0,len(rows)-len(out))})
+    counts.update({
+      "raw":len(rows),
+      "clusters":len(out),
+      "collapsed_repeats":max(0,len(rows)-len(out)),
+      "visible":sum(1 for x in out if x.get("radar_visible")),
+      "suppressed":sum(1 for x in out if not x.get("radar_visible"))
+    })
     return {"signals":out,"counts":counts,"source_coverage":signals.get("source_coverage") if signals else None}
 
 def pattern_projection(field,opportunities):
@@ -706,6 +721,7 @@ def movement_projection(opportunities, field, waiting, commercial):
             {"route_decision":decision,"eligibility_status":elig,"days_left":x.get("days_left")})
     # External field — only actionable/review/watch signals, background is noise for movement.
     for x in ((field or {}).get("signals") or []):
+        if not x.get("radar_visible"): continue
         cls=str(x.get("radar_class") or "BACKGROUND").upper()
         if cls=="BACKGROUND": continue
         dest=x.get("destination") or {}
@@ -1029,7 +1045,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.18","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.19","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,

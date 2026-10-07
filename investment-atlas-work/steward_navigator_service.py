@@ -123,7 +123,9 @@ def founder_priority_context(ctx):
       "source_guard":movement.get("source_guard") or {},
       "counts":movement.get("counts") or {},
       "action_due":[{k:x.get(k) for k in ("title","domain","state","date","priority","next_step","route","meta","source_ref")} for x in due],
-      "bottleneck_queue":[{k:x.get(k) for k in ("title","domain","state","date","priority","required_move","next_step","route","bottleneck_kind","source_ref")} for x in queue],
+      "bottleneck_queue":[{k:x.get(k) for k in ("title","domain","state","date","priority","required_move","next_step","route","bottleneck_kind","source_ref","execution")} for x in queue],
+      "execution_counts":flow.get("execution_counts") or {},
+      "execution_queue":[{k:x.get(k) for k in ("title","domain","state","date","priority","next_step","route","execution","source_ref")} for x in (flow.get("execution_queue") or [])[:40]],
       "flow_bottlenecks":(flow.get("bottlenecks") or [])[:10],
       "rule":"Сначала ACTION_DUE с ближайшим подтверждённым сроком; затем ACTION_DUE без даты; затем переходы, блокирующие движение. WAITING_EXTERNAL не считать задачей Основателя без наступившего follow-up."
     }
@@ -156,12 +158,9 @@ def priority_answer(ctx):
     founder_items=[x for x in (b.get("execution_queue") or []) if ((x.get("execution") or {}).get("class")=="FOUNDER")]
     system_items=[x for x in (b.get("execution_queue") or []) if ((x.get("execution") or {}).get("class")=="SYSTEM_REVIEW")]
     auto_items=[x for x in (b.get("execution_queue") or []) if ((x.get("execution") or {}).get("class")=="AUTO")]
-    head+=f"
-
-Разделение работы: лично тебе сейчас требуется {len(founder_items)} активных действий; системный разбор — {len(system_items)}; система может вести сама — {len(auto_items)}."
+    head+=f"\n\nРазделение работы: лично тебе сейчас требуется {len(founder_items)} активных действий; системный разбор — {len(system_items)}; система может вести сама — {len(auto_items)}."
     if founder_items:
-        head+="
-Твои действия: "+ "; ".join(str(x.get("title") or "объект") for x in founder_items[:7])+"."
+        head+="\nТвои действия: "+ "; ".join(str(x.get("title") or "объект") for x in founder_items[:7])+"."
     if guard=="DEGRADED":
         head+="\n\nВажно: покрытие источников деградировано, поэтому приоритет неполный."
     elif guard=="LIMITED":
@@ -619,7 +618,7 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path=="/health":
             mode="openai_agent+retrieval_fallback"
-            return self.j({"ok":True,"service":"steward-navigator","version":"0.7","index_records":len(load_index()),"language_model":mode})
+            return self.j({"ok":True,"service":"steward-navigator","version":"0.9","index_records":len(load_index()),"language_model":mode})
         return self.j({"error":"not_found"},404)
 
     def do_POST(self):

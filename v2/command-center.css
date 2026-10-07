@@ -1920,3 +1920,7 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 /* Radar is external-signal-only: two movement streams */
 .radar-flow-panel .movement-flow-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:900px){.radar-flow-panel .movement-flow-grid{grid-template-columns:1fr}}
+
+.movement-auto-note{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:8px;padding:9px 11px;border:1px solid rgba(106,168,216,.22);border-radius:8px;background:rgba(106,168,216,.035)}
+.movement-auto-note b{font-size:9px;color:#b7d3e8}.movement-auto-note span{font-size:8.5px;line-height:1.4;color:var(--muted)}
+@media(max-width:620px){.movement-auto-note{display:block}.movement-auto-note span{display:block;margin-top:3px}}
