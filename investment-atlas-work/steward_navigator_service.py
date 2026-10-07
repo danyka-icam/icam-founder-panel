@@ -657,7 +657,7 @@ class H(BaseHTTPRequestHandler):
         if is_priority_question(q):
             context=founder_priority_context(context)
         history=body.get("history") or []
-        ev=retrieve(q,context)
+        ev=[] if is_priority_question(q) else retrieve(q,context)
         if "диагностика market scanner" in norm(context.get("title","")):
             ev=[]
         mode="contextual_retrieval_fallback"
