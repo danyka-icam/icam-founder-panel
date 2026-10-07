@@ -1879,6 +1879,16 @@
       if(x&&x.source&&x.source.name)return x.source.name;
       return m[r.kind]||humanCode(r.kind||"источник не указан");
     }
+    function brightReasonRu(v){
+      return ({
+        ACTION_NOW:"нужно сейчас",
+        ARCHITECTURE_PROXIMITY_GTE_75:"сильная архитектурная близость",
+        MARKET_SIGNIFICANCE_GTE_60:"высокая рыночная значимость",
+        CORROBORATED_GTE_2_SOURCES:"независимо подтверждено",
+        EVIDENCE_CHANGED_GTE_2:"доказательная картина изменилась",
+        NON_RESEARCH_REVIEW:"внешнее изменение требует разбора"
+      })[String(v||"")]||humanCode(v||"");
+    }
     function itemHTML(x,kind,i){
       var key=kind+":"+(x.pattern_id||x.radar_id||x.signal_id||i);
       inspectorItems[key]={item:x,kind:kind};
@@ -1888,6 +1898,8 @@
       var summary=x.summary_ru||x.summary||x.why||"";
       var dest=x.destination&&x.destination.label?x.destination.label:"";
       var next=x.next_step_ru||"";
+      var brightReasons=Array.isArray(x.bright_reasons)?x.bright_reasons:[];
+      var brightNote=brightReasons.length?'<div class="radar-bright-reasons">'+brightReasons.slice(0,3).map(function(v){return '<span>'+esc(brightReasonRu(v))+'</span>';}).join('')+'</div>':'';
       var funnel='';
       if(kind==="opportunities"&&x.funnel_checks){
         var fc=x.funnel_checks||{}, order=[["FOUND","found"],["ELIGIBILITY","eligibility"],["FIT","strategic_fit"],["EFFORT/UPSIDE","effort_upside"],["DEADLINE","deadline"],["DECISION","decision"]];
@@ -1897,6 +1909,7 @@
       return '<button type="button" class="radar-signal-card radar-'+esc(cls.toLowerCase())+(imp?' important':'')+(review?' review':'')+(background?' background':'')+'" data-radar-select="'+esc(key)+'">'+
         '<div class="radar-signal-head"><span class="radar-mini-hex">'+(imp?'!':review?'↳':background?'·':'•')+'</span><div><b>'+esc(cut(textRu(x.title||"Сигнал"),115))+'</b><small>'+esc(meta||"контекст не передан")+'</small></div><em>'+esc(attentionLabel(x,kind))+'</em></div>'+
         funnel+
+        brightNote+
         (summary?'<p class="radar-card-summary">'+esc(cut(textRu(summary),210))+'</p>':'')+
         ((dest||next)?'<div class="radar-card-route">'+(dest?'<b>'+esc(dest)+'</b>':'')+(next?'<span>'+esc(cut(next,180))+'</span>':'')+'</div>':'')+
       '</button>';

@@ -17,7 +17,6 @@ URLS={
  "activity":"http://127.0.0.1:8825/api/activity-inbox",
  "company_profile":"http://127.0.0.1:8846/api/v1/company-eligibility-profile",
  "funding_projects":"http://127.0.0.1:8846/api/v1/funding-project-candidates",
- "commercial":"http://127.0.0.1:8083/founder-ui-preview/commercial/dashboard.json",
 }
 
 def now(): return datetime.now(timezone.utc).isoformat()
@@ -582,11 +581,22 @@ def field_projection(signals):
         }[lane]
         src=s.get("source") or {}
         repeat_count=len(grp)
+        distinct_sources={
+            str((g.get("source") or {}).get("name") or (g.get("source") or {}).get("url") or "").strip()
+            for g in grp
+            if str((g.get("source") or {}).get("name") or (g.get("source") or {}).get("url") or "").strip()
+        }
+        evidence_variants={
+            json.dumps(g.get("evidence") or [],ensure_ascii=False,sort_keys=True)
+            for g in grp
+            if g.get("evidence")
+        }
         bright_reasons=[]
         if lane=="ACTION_NOW": bright_reasons.append("ACTION_NOW")
         if ap>=75: bright_reasons.append("ARCHITECTURE_PROXIMITY_GTE_75")
         if ms>=60: bright_reasons.append("MARKET_SIGNIFICANCE_GTE_60")
-        if repeat_count>=3: bright_reasons.append("REPEATED_GTE_3")
+        if len(distinct_sources)>=2: bright_reasons.append("CORROBORATED_GTE_2_SOURCES")
+        if len(evidence_variants)>=2 and lane!="BACKGROUND": bright_reasons.append("EVIDENCE_CHANGED_GTE_2")
         if typ!="research-signal" and lane=="REVIEW": bright_reasons.append("NON_RESEARCH_REVIEW")
         radar_visible=bool(bright_reasons)
         out.append({
@@ -695,7 +705,7 @@ def pattern_projection(field,opportunities):
     patterns.sort(key=lambda x:(order.get(x.get("status"),9),-int(x.get("signal_count") or 0),x.get("title") or ""))
     return patterns
 
-def movement_projection(opportunities, field, waiting, commercial):
+def movement_projection(opportunities, field, waiting):
     items=[]
     nowd=datetime.now(timezone.utc).date()
     def add(domain,title,state,source_ref,next_step=None,route=None,date=None,priority="NORMAL",meta=None):
@@ -773,7 +783,7 @@ def movement_projection(opportunities, field, waiting, commercial):
         if g.get("domain") in domains: domains[g["domain"]]["gaps"]+=1
     items.sort(key=lambda x:(rank.get(x.get("state"),99),x.get("date") is None,x.get("date") or "9999",x.get("title") or ""))
     return {
-      "contract":"aiclavis.movement-layer.v0.1",
+      "contract":"aiclavis.movement-layer.v0.2",
       "states":["DETECTED","QUALIFIED","ROUTE_IDENTIFIED","IN_MOTION","WAITING_EXTERNAL","ACTION_DUE","CLOSED","PARKED","REFERENCE_ONLY"],
       "counts":counts,"domains":domains,"active_total":len(active),"movement_gaps":gaps[:20],
       "items":items[:160],
@@ -812,7 +822,7 @@ def movement_execution_classification(item):
     return {"class":"SYSTEM_REVIEW","label":"нужен системный разбор",
             "reason":"Безопасный автоматический переход не доказан; сначала требуется системная проверка."}
 
-def movement_flow_projection(movement, opportunities, field, commercial):
+def movement_flow_projection(movement, opportunities, field):
     items=(movement or {}).get("items") or []
     # This is a throughput/control projection, not a success score.
     # "entered" means present in the live movement layer; "qualified" means
@@ -923,7 +933,7 @@ def movement_flow_projection(movement, opportunities, field, commercial):
         c=(x.get("execution") or {}).get("class")
         if c in execution_counts: execution_counts[c]+=1
     return {
-      "contract":"aiclavis.movement-flow.v0.4",
+      "contract":"aiclavis.movement-flow.v0.5",
       "streams":out,
       "bottlenecks":bottlenecks,
       "bottleneck_queue":bottleneck_queue[:40],
@@ -1021,8 +1031,8 @@ def build():
         if match:
             o["funding_project_candidate"]=match
     patterns=pattern_projection(field,opportunities)
-    movement=movement_projection(opportunities,field,waiting,data.get("commercial") or {})
-    movement_flow=movement_flow_projection(movement,opportunities,field,data.get("commercial") or {})
+    movement=movement_projection(opportunities,field,waiting)
+    movement_flow=movement_flow_projection(movement,opportunities,field)
     critical_sources=["signals","temporal","activity"]
     degraded=[{"source":k,"error":errors.get(k)} for k in critical_sources if errors.get(k)]
     coverage=(field or {}).get("source_coverage") or {}
@@ -1059,7 +1069,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.20","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.21","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
