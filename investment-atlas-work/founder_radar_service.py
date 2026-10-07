@@ -188,6 +188,109 @@ def prediction_projection(twin,predictions):
         if k in seen: continue
         seen.add(k); res.append(x)
     return res
+def funding_funnel(row):
+    x=dict(row or {})
+    eligibility=str(x.get("eligibility_status") or "UNCHECKED").upper()
+    score=int(x.get("relevance_score") or 0)
+    requirements=x.get("eligibility_requirements") or []
+    missing=x.get("eligibility_missing_facts") or []
+    text=" ".join(str(v or "") for v in [x.get("title"),x.get("program_type")," ".join(requirements)," ".join(missing)]).lower()
+
+    # Strategic fit is intentionally preliminary until a canonical company profile
+    # exists. Scanner relevance can support a hypothesis, never prove fit.
+    if score >= 90:
+        fit={"status":"STRONG_PRELIMINARY","label":"сильное предварительное","score":score,
+             "basis":"SCANNER_RELEVANCE_ONLY"}
+    elif score >= 80:
+        fit={"status":"PLAUSIBLE","label":"вероятное","score":score,
+             "basis":"SCANNER_RELEVANCE_ONLY"}
+    elif score:
+        fit={"status":"REVIEW","label":"нужно проверить","score":score,
+             "basis":"SCANNER_RELEVANCE_ONLY"}
+    else:
+        fit={"status":"UNASSESSED","label":"не оценено","score":None,
+             "basis":"NO_CANONICAL_COMPANY_PROFILE"}
+
+    # Effort is a preparation estimate, not a cost claim.
+    if eligibility=="NEEDS_CALL_DOCUMENT_REVIEW":
+        effort={"status":"UNKNOWN_UNTIL_RULES","label":"неизвестно до разбора edital"}
+    elif len(missing) >= 5:
+        effort={"status":"HIGH","label":"высокие подготовительные усилия"}
+    elif len(missing) >= 2:
+        effort={"status":"MEDIUM","label":"средние подготовительные усилия"}
+    else:
+        effort={"status":"LOW_OR_UNKNOWN","label":"низкие или ещё не определены"}
+
+    kind=str(x.get("program_type") or "").lower()
+    if any(k in kind for k in ["não reembolsável","grant","subven"]):
+        upside={"status":"HIGH_POTENTIAL","label":"высокий потенциальный выигрыш",
+                "basis":"NON_DILUTIVE_OR_GRANT_TYPE_AMOUNT_NOT_VERIFIED"}
+    else:
+        upside={"status":"UNKNOWN","label":"размер выигрыша не подтверждён",
+                "basis":"AMOUNT_NOT_VERIFIED"}
+
+    days=x.get("days_left")
+    if days is None:
+        deadline={"status":"UNKNOWN","label":"срок не извлечён","days_left":None}
+    elif days <= 3:
+        deadline={"status":"CRITICAL","label":"критично","days_left":days}
+    elif days <= 14:
+        deadline={"status":"NEAR","label":"близко","days_left":days}
+    elif days <= 45:
+        deadline={"status":"ACTIVE","label":"есть время","days_left":days}
+    else:
+        deadline={"status":"DISTANT","label":"не срочно","days_left":days}
+
+    partner_terms=["universidade","university","instituiç","instituic","parceir","partner","consórc","consorc"]
+    partner_signal=any(k in text for k in partner_terms)
+    if eligibility=="NOT_ELIGIBLE":
+        stage="ELIGIBILITY"; decision="DROP"; decision_label="отбросить"
+        reason="Критерий допуска не пройден по подтверждённым данным."
+    elif eligibility=="ELIGIBLE":
+        stage="STRATEGIC_FIT"
+        if partner_signal:
+            decision="PARTNER"; decision_label="искать партнёра"
+            reason="Допуск подтверждён, но структура программы указывает на партнёрский контур."
+        elif fit["status"]=="STRONG_PRELIMINARY":
+            decision="APPLY"; decision_label="готовить подачу"
+            reason="Допуск подтверждён и предварительное стратегическое соответствие сильное; перед подачей проверить effort/upside."
+            stage="EFFORT_UPSIDE"
+        else:
+            decision="WATCH"; decision_label="проверить соответствие"
+            reason="Допуск подтверждён, но стратегическое соответствие ещё недостаточно сильное для решения о подаче."
+    else:
+        stage="ELIGIBILITY"; decision="WATCH"; decision_label="снять блокер допуска"
+        if partner_signal:
+            reason="Сначала проверить правила допуска и роль партнёра; партнёрство не считать обязательным, пока это не подтверждено документом."
+        else:
+            reason="Сначала снять юридический/организационный блокер допуска; до этого решение APPLY запрещено."
+
+    blocker=(missing[0] if missing else x.get("eligibility_next_check"))
+    checks={
+      "found":{"status":"PASS","label":"найдено"},
+      "eligibility":{"status":"PASS" if eligibility=="ELIGIBLE" else "FAIL" if eligibility=="NOT_ELIGIBLE" else "PENDING",
+                     "label":eligibility},
+      "strategic_fit":{"status":"PRELIMINARY" if fit["status"]!="UNASSESSED" else "PENDING","label":fit["label"]},
+      "effort_upside":{"status":"PRELIMINARY","label":effort["label"]+" · "+upside["label"]},
+      "deadline":{"status":deadline["status"],"label":deadline["label"]},
+      "decision":{"status":decision,"label":decision_label}
+    }
+    x.update({
+      "funnel_stage":stage,
+      "funnel_checks":checks,
+      "strategic_fit":fit,
+      "effort":effort,
+      "upside":upside,
+      "deadline_pressure":deadline,
+      "route_decision":decision,
+      "route_decision_label":decision_label,
+      "route_decision_reason":reason,
+      "blocking_fact":blocker,
+      "partner_signal_unverified":partner_signal and eligibility!="ELIGIBLE",
+      "funnel_rule":"FOUND → ELIGIBILITY → STRATEGIC FIT → EFFORT/UPSIDE → DEADLINE → APPLY / PARTNER / WATCH / DROP"
+    })
+    return x
+
 def opportunities_projection(signals,upcoming):
     out=[]
     rows=(signals.get("signals",[]) if signals else []) or []
@@ -246,7 +349,7 @@ def opportunities_projection(signals,upcoming):
             next_step="Разобрать официальный документ конкурса и только затем решать вопрос о соответствии aiclavis."
         else:
             next_step="Проверить условия допуска и срок; не считать окно пригодным для aiclavis до подтверждения."
-        out.append({
+        item={
             "radar_id":item_id("opp",k),"opportunity_key":k,
             "title":s.get("title") or s.get("entity") or "Внешняя возможность",
             "kind":"official_opportunity","date":deadline,"days_left":days_left,"radar_class":radar_class,
@@ -270,7 +373,8 @@ def opportunities_projection(signals,upcoming):
                        "eligibility_source_conflicts":source_conflicts},
             "source_ref":{"kind":"market_signal","signal_id":s.get("signal_id"),
                           "opportunity_key":k}
-        })
+        }
+        out.append(funding_funnel(item))
 
     # Preserve pre-existing dated/commercial opportunities from canonical
     # temporal/activity sources and legacy non-opportunity market signals.
@@ -282,16 +386,16 @@ def opportunities_projection(signals,upcoming):
         blob=" ".join(str(x or "") for x in [s.get("title"),s.get("entity"),s.get("signal_type")]).lower()
         commercial=bool(re.search(r"tender|тендер|grant|грант|conference|конферен|rfp|partnership|partner|commercial|program|award",blob))
         if action in ("act","opportunity") or commercial:
-            out.append({"radar_id":item_id("opp",s.get("signal_id")),
+            out.append(funding_funnel({"radar_id":item_id("opp",s.get("signal_id")),
                         "title":s.get("title") or s.get("entity") or "Внешняя возможность",
                         "kind":"market_signal","date":iso_date_from(s.get("deadline"),s.get("observed_at")),
                         "why":enr.get("why_it_matters_ru") or s.get("why_it_matters_ru"),
                         "status":action or "watch","source":s.get("source"),
-                        "source_ref":{"kind":"market_signal","signal_id":s.get("signal_id")}})
+                        "source_ref":{"kind":"market_signal","signal_id":s.get("signal_id")}}))
     for x in upcoming:
         blob=" ".join(str(z or "") for z in [x.get("title"),(x.get("context") or {}).get("line"),(x.get("context") or {}).get("branch")]).lower()
         if re.search(r"conference|конферен|tender|тендер|grant|грант|application|заявк|program|программ|outreach|партн|partner",blob):
-            out.append({**x,"radar_id":item_id("opp-date",x.get("radar_id")),"kind":"dated_opportunity"})
+            out.append(funding_funnel({**x,"radar_id":item_id("opp-date",x.get("radar_id")),"kind":"dated_opportunity"}))
     return sorted(out,key=lambda x:({"ACTION_NOW":0,"REVIEW":1,"WATCH":2}.get(x.get("radar_class"),3),x.get("date") is None,x.get("date") or "9999",-int(x.get("relevance_score") or 0)))
 
 def field_projection(signals):
@@ -515,7 +619,7 @@ def build():
     field=field_projection(sig)
     opportunities=opportunities_projection(sig,upcoming)
     patterns=pattern_projection(field,opportunities)
-    return {"schema":"aiclavis.founder-radar.v0.4","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.5","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
@@ -539,7 +643,7 @@ class H(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p=self.path.split("?",1)[0]
-        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.4","read_only":True})
+        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.5","read_only":True})
         if p=="/api/v1/founder-radar": return self.sendj(build())
         return self.sendj({"error":"not_found"},404)
     def log_message(self,*a): pass

@@ -1745,3 +1745,31 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .radar-pattern-members ul{margin:7px 0 0;padding-left:17px}
 .radar-pattern-members li{margin:4px 0;font-size:9px;line-height:1.35;color:var(--muted)}
 @media(max-width:900px){.radar-patterns-panel .radar-card-list{grid-template-columns:1fr}}
+
+/* Funding funnel — Founder Radar */
+.funding-funnel-summary{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin:0 0 9px}
+.funding-funnel-summary>div{padding:8px 7px;border:1px solid var(--line-soft);border-radius:8px;background:rgba(255,255,255,.018);text-align:center}
+.funding-funnel-summary small{display:block;font-size:7.5px;letter-spacing:.04em;color:var(--muted-2)}
+.funding-funnel-summary b{display:block;margin-top:3px;font:400 17px var(--cc-serif);color:#e9f2ef}
+.funding-rule{line-height:1.45}
+.funding-mini-funnel{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin:9px 0 0 37px}
+.funding-mini-funnel span{min-width:0;padding:5px 5px;border:1px solid var(--line-soft);border-radius:6px;background:rgba(255,255,255,.015)}
+.funding-mini-funnel i{display:block;font-style:normal;font-size:6.8px;letter-spacing:.035em;color:var(--muted-2)}
+.funding-mini-funnel b{display:block;margin-top:2px;font-size:7.8px;font-weight:500;line-height:1.25;color:#c8d2cf;overflow:hidden;text-overflow:ellipsis}
+.funding-mini-funnel .pass,.funding-mini-funnel .apply{border-color:rgba(63,207,166,.28);background:rgba(63,207,166,.045)}
+.funding-mini-funnel .pending,.funding-mini-funnel .preliminary,.funding-mini-funnel .near,.funding-mini-funnel .active{border-color:rgba(159,140,226,.25);background:rgba(159,140,226,.035)}
+.funding-mini-funnel .critical,.funding-mini-funnel .fail,.funding-mini-funnel .drop{border-color:rgba(227,165,72,.35);background:rgba(227,165,72,.055)}
+.funding-route{margin:7px 0 0 37px;padding:7px 9px;border-left:2px solid rgba(159,140,226,.35);background:rgba(159,140,226,.025);border-radius:0 7px 7px 0}
+.funding-route b{display:block;font-size:9px;color:#d9cff7}
+.funding-route span{display:block;margin-top:3px;font-size:8.5px;line-height:1.35;color:var(--muted)}
+.funding-route.apply{border-left-color:rgba(63,207,166,.5);background:rgba(63,207,166,.035)}.funding-route.apply b{color:#bfeadd}
+.funding-route.partner{border-left-color:rgba(100,168,232,.5)}.funding-route.partner b{color:#bcdaf3}
+.funding-route.drop{border-left-color:rgba(227,165,72,.5)}.funding-route.drop b{color:#e6c58e}
+.funding-inspector-route{padding:9px 10px;border:1px solid var(--line-soft);border-radius:9px;background:rgba(255,255,255,.018)}
+.funding-inspector-route b,.funding-inspector-route span{display:block}.funding-inspector-route b{font-size:11px;color:#ddd3f4}.funding-inspector-route span{margin-top:4px;font-size:9.5px;line-height:1.4;color:var(--muted)}
+.funding-inspector-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.funding-inspector-grid>div{padding:7px 8px;border:1px solid var(--line-soft);border-radius:7px;background:rgba(255,255,255,.012)}
+.funding-inspector-grid small{display:block;font-size:8px;color:var(--muted-2);margin-bottom:3px}.funding-inspector-grid b{display:block;font-size:9px;line-height:1.35;color:#dfe7e4}
+.funding-evidence-boundary{display:block;margin-top:8px;padding-top:7px;border-top:1px solid var(--line-soft);line-height:1.4;color:#c6ad7c!important}
+@media(max-width:1050px){.funding-funnel-summary{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:700px){.funding-mini-funnel{grid-template-columns:repeat(3,minmax(0,1fr));margin-left:0}.funding-route{margin-left:0}.funding-funnel-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.funding-inspector-grid{grid-template-columns:1fr}}

@@ -1888,8 +1888,15 @@
       var summary=x.summary_ru||x.summary||x.why||"";
       var dest=x.destination&&x.destination.label?x.destination.label:"";
       var next=x.next_step_ru||"";
+      var funnel='';
+      if(kind==="opportunities"&&x.funnel_checks){
+        var fc=x.funnel_checks||{}, order=[["FOUND","found"],["ELIGIBILITY","eligibility"],["FIT","strategic_fit"],["EFFORT/UPSIDE","effort_upside"],["DEADLINE","deadline"],["DECISION","decision"]];
+        funnel='<div class="funding-mini-funnel">'+order.map(function(z){var q=fc[z[1]]||{};return '<span class="'+esc(String(q.status||"").toLowerCase())+'"><i>'+esc(z[0])+'</i><b>'+esc(cut(q.label||"—",34))+'</b></span>';}).join('')+'</div>'+
+          '<div class="funding-route '+esc(String(x.route_decision||"watch").toLowerCase())+'"><b>'+esc(x.route_decision||"WATCH")+' · '+esc(x.route_decision_label||"")+'</b>'+(x.blocking_fact?'<span>Блокер: '+esc(cut(x.blocking_fact,155))+'</span>':'')+'</div>';
+      }
       return '<button type="button" class="radar-signal-card radar-'+esc(cls.toLowerCase())+(imp?' important':'')+(review?' review':'')+(background?' background':'')+'" data-radar-select="'+esc(key)+'">'+
         '<div class="radar-signal-head"><span class="radar-mini-hex">'+(imp?'!':review?'↳':background?'·':'•')+'</span><div><b>'+esc(cut(textRu(x.title||"Сигнал"),115))+'</b><small>'+esc(meta||"контекст не передан")+'</small></div><em>'+esc(attentionLabel(x,kind))+'</em></div>'+
+        funnel+
         (summary?'<p class="radar-card-summary">'+esc(cut(textRu(summary),210))+'</p>':'')+
         ((dest||next)?'<div class="radar-card-route">'+(dest?'<b>'+esc(dest)+'</b>':'')+(next?'<span>'+esc(cut(next,180))+'</span>':'')+'</div>':'')+
       '</button>';
@@ -1971,6 +1978,7 @@
         (x.evidence_ceiling?'<div class="cc-insp-sec radar-ceiling"><h4>Потолок доказательств</h4><p>'+esc(x.evidence_ceiling)+'</p></div>':'')+
         (x.signal_count!=null?'<div class="cc-insp-sec"><h4>Из чего собран паттерн</h4><p>'+esc(x.signal_count)+' сигналов'+(x.distinct_days!=null?" · "+esc(x.distinct_days)+" дней":"")+(x.distinct_institutions!=null?" · "+esc(x.distinct_institutions)+" института":"")+'</p>'+(Array.isArray(x.signals)&&x.signals.length?'<details class="radar-pattern-members"><summary>Показать составляющие</summary><ul>'+x.signals.slice(0,12).map(function(s){return "<li>"+esc(s.title||s.signal_id||s.radar_id||"сигнал")+"</li>";}).join("")+" </ul></details>":"")+'</div>':'')+
         (x.date?'<div class="cc-insp-sec"><h4>Дата</h4><p>'+esc(dateRu(x.date))+'</p></div>':'')+
+        (kind==="opportunities"&&x.funnel_checks?'<div class="cc-insp-sec funding-inspector"><h4>Воронка финансирования</h4><div class="funding-inspector-route '+esc(String(x.route_decision||"watch").toLowerCase())+'"><b>'+esc(x.route_decision||"WATCH")+' · '+esc(x.route_decision_label||"")+'</b><span>'+esc(x.route_decision_reason||"")+'</span></div><div class="funding-inspector-grid"><div><small>Текущий этап</small><b>'+esc(humanCode(x.funnel_stage||"—"))+'</b></div><div><small>Стратегическое соответствие</small><b>'+esc((x.strategic_fit||{}).label||"—")+'</b></div><div><small>Усилия</small><b>'+esc((x.effort||{}).label||"—")+'</b></div><div><small>Потенциальный выигрыш</small><b>'+esc((x.upside||{}).label||"—")+'</b></div><div><small>Срок</small><b>'+esc((x.deadline_pressure||{}).label||"—")+'</b></div><div><small>Блокер</small><b>'+esc(x.blocking_fact||"нет подтверждённого блокера")+'</b></div></div><small class="funding-evidence-boundary">Предварительная оценка соответствия не заменяет юридическую проверку допуска. APPLY запрещён до ELIGIBLE.</small></div>':'')+
         (kind==="opportunities"?'<div class="cc-insp-sec"><h4>Допуск и статус</h4><p>'+esc(eligibilityLabel(x.eligibility_status)+(x.program_type?" · "+x.program_type:"")+(x.official_status?" · источник: "+humanCode(x.official_status):""))+'</p>'+
           (eligReq.length?'<small class="radar-elig-head">Что уже известно из источника</small><ul class="radar-elig-list">'+eligReq.map(function(v){return "<li>"+esc(v)+"</li>";}).join("")+"</ul>":"")+
           (eligMissing.length?'<small class="radar-elig-head">Чего не хватает для решения</small><ul class="radar-elig-list missing">'+eligMissing.map(function(v){return "<li>"+esc(v)+"</li>";}).join("")+"</ul>":"")+
@@ -2021,10 +2029,14 @@
 
     if(box("patterns"))box("patterns").innerHTML=listHTML(patterns,"patterns","Пока недостаточно независимых сигналов для устойчивого паттерна.",8);
     if(box("opportunities")){
-      box("opportunities").innerHTML=
-        '<div class="radar-lane-head urgent"><b>Срочные окна</b><span>срок близко; сначала проверить допуск, затем маршрут действия</span></div>'+listHTML(urgentOpp,"opportunities","Срочных подтверждённых окон сейчас нет.",8)+
-        '<div class="radar-lane-head review"><b>Окна на проверку</b><span>открыты, но соответствие aiclavis или полный документ ещё требуют разбора</span></div>'+listHTML(reviewOpp,"opportunities","Дополнительных окон на проверку нет.",8)+
-        (watchOpp.length?'<details class="radar-background"><summary>Наблюдать за окнами · '+watchOpp.length+'</summary>'+listHTML(watchOpp,"opportunities","",10)+'</details>':"");
+      var fd={APPLY:0,PARTNER:0,WATCH:0,DROP:0}, fs={FOUND:0,ELIGIBILITY:0,STRATEGIC_FIT:0,EFFORT_UPSIDE:0,DEADLINE:0};
+      opportunities.forEach(function(x){var d=String(x.route_decision||"WATCH").toUpperCase();fd[d]=(fd[d]||0)+1;var st=String(x.funnel_stage||"FOUND").toUpperCase();fs[st]=(fs[st]||0)+1;});
+      var funnelSummary='<div class="funding-funnel-summary"><div><small>FOUND</small><b>'+opportunities.length+'</b></div><div><small>ELIGIBILITY</small><b>'+fs.ELIGIBILITY+'</b></div><div><small>FIT</small><b>'+fs.STRATEGIC_FIT+'</b></div><div><small>EFFORT/UPSIDE</small><b>'+fs.EFFORT_UPSIDE+'</b></div><div><small>APPLY</small><b>'+fd.APPLY+'</b></div><div><small>PARTNER</small><b>'+fd.PARTNER+'</b></div><div><small>WATCH</small><b>'+fd.WATCH+'</b></div><div><small>DROP</small><b>'+fd.DROP+'</b></div></div>'+
+        '<div class="radar-source-note funding-rule">FOUND → ELIGIBILITY → STRATEGIC FIT → EFFORT/UPSIDE → DEADLINE → APPLY / PARTNER / WATCH / DROP. До подтверждённого допуска карточка не может перейти в APPLY.</div>';
+      box("opportunities").innerHTML=funnelSummary+
+        '<div class="radar-lane-head urgent"><b>Срочно снять блокер</b><span>срок близко; это не означает, что подача уже разрешена</span></div>'+listHTML(urgentOpp,"opportunities","Срочных блокеров сейчас нет.",8)+
+        '<div class="radar-lane-head review"><b>Продвинуть по воронке</b><span>проверить допуск, соответствие, усилия и потенциальный выигрыш</span></div>'+listHTML(reviewOpp,"opportunities","Дополнительных программ на разбор нет.",8)+
+        (watchOpp.length?'<details class="radar-background"><summary>Наблюдать · '+watchOpp.length+'</summary>'+listHTML(watchOpp,"opportunities","",10)+'</details>':"");
     }
     if(box("waiting"))box("waiting").innerHTML=listHTML(waiting,"waiting","Внешних ожиданий и ожидаемых исходов сейчас нет.",7);
     var ps=predictions.slice().sort(function(a,b){return String(a.date||"9999").localeCompare(String(b.date||"9999"));});
