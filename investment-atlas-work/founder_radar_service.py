@@ -868,6 +868,7 @@ def movement_flow_projection(movement, opportunities, field, commercial):
     }
 
     bottlenecks=[]
+    bottleneck_queue=[]
     for k,v in out.items():
         l=v.get("leakage") or {}
         if l.get("qualified_not_handed_off",0):
@@ -879,11 +880,28 @@ def movement_flow_projection(movement, opportunities, field, commercial):
         if l.get("detected_not_qualified",0):
             bottlenecks.append({"stream":k,"kind":"DETECTED_NOT_QUALIFIED","count":l["detected_not_qualified"],
                                 "message":"Входы обнаружены, но ещё не квалифицированы."})
+    # Concrete queue: show the exact objects behind aggregate bottlenecks.
+    for x in items:
+        st=x.get("state")
+        if st=="QUALIFIED":
+            bottleneck_queue.append({**x,"bottleneck_kind":"QUALIFIED_NOT_HANDED_OFF",
+                                     "required_move":"Назначить явный маршрут / решение: работать, партнёр, наблюдать или отбросить."})
+        elif st=="ROUTE_IDENTIFIED":
+            bottleneck_queue.append({**x,"bottleneck_kind":"ROUTE_NOT_IN_MOTION",
+                                     "required_move":"Подтвердить передачу во владеющий контур или вернуть в наблюдение."})
+        elif st=="DETECTED":
+            bottleneck_queue.append({**x,"bottleneck_kind":"DETECTED_NOT_QUALIFIED",
+                                     "required_move":"Провести первичную квалификацию: релевантность, доказательства, срок, возможный маршрут."})
+    bq_rank={"ACTION_DUE":0,"QUALIFIED":1,"ROUTE_IDENTIFIED":2,"DETECTED":3}
+    bottleneck_queue.sort(key=lambda x:(0 if x.get("priority")=="HIGH" else 1,
+                                        x.get("date") is None,x.get("date") or "9999",
+                                        bq_rank.get(x.get("state"),9),x.get("title") or ""))
     bottlenecks.sort(key=lambda x:-int(x.get("count") or 0))
     return {
       "contract":"aiclavis.movement-flow.v0.1",
       "streams":out,
       "bottlenecks":bottlenecks,
+      "bottleneck_queue":bottleneck_queue[:40],
       "rule":"No synthetic conversion score. Every stage is counted from explicit live movement or domain state; external outcomes require observed external state."
     }
 
@@ -1014,7 +1032,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.14","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.15","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
@@ -1041,7 +1059,7 @@ class H(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p=self.path.split("?",1)[0]
-        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.14","read_only":True})
+        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.15","read_only":True})
         if p=="/api/v1/founder-radar": return self.sendj(build())
         return self.sendj({"error":"not_found"},404)
     def log_message(self,*a): pass
