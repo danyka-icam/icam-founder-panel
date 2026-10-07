@@ -343,11 +343,10 @@ def funding_funnel(row,company_profile=None):
     profile_next=gap.get("next_fact_key")
     blocker=(("Company Eligibility Profile: "+profile_next) if profile_next else (missing[0] if missing else x.get("eligibility_next_check")))
     readiness=(company_profile or {}).get("readiness") or {}
-    if readiness.get("application_ready") is False:
-        decision="WATCH"; decision_label="сначала восстановить готовность заявителя"; stage="ELIGIBILITY"
-        reason="Кандидат-заявитель пока не готов к подаче: "+str(readiness.get("blocking_status") or "READINESS_BLOCKER")+"."
-        blocker="Company Eligibility Profile readiness: "+str(readiness.get("blocking_status") or "NOT_READY")
-    elif rule_eval.get("status")=="FAIL":
+    # Company readiness status is advisory only unless a program-specific rule
+    # explicitly makes it an eligibility condition. Do not infer ineligibility
+    # from CNPJ status alone.
+    if rule_eval.get("status")=="FAIL":
         decision="DROP"; decision_label="отбросить"; stage="ELIGIBILITY"
         reason="Подтверждённые факты профиля не проходят формализованные условия допуска этой программы."
     checks={
@@ -373,6 +372,12 @@ def funding_funnel(row,company_profile=None):
       "partner_signal_unverified":partner_signal and eligibility!="ELIGIBLE",
       "company_profile_gap":gap,
       "known_rule_evaluation":rule_eval,
+      "applicant_readiness_advisory":{
+        "status":readiness.get("blocking_status"),
+        "application_ready":readiness.get("application_ready"),
+        "as_of":readiness.get("as_of"),
+        "note":"Информационный риск. Не влияет на eligibility без явного требования конкретной программы."
+      },
       "funnel_rule":"FOUND → ELIGIBILITY → STRATEGIC FIT → EFFORT/UPSIDE → DEADLINE → APPLY / PARTNER / WATCH / DROP"
     })
     return x
@@ -722,7 +727,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.7","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.8","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
@@ -747,7 +752,7 @@ class H(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p=self.path.split("?",1)[0]
-        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.7","read_only":True})
+        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.8","read_only":True})
         if p=="/api/v1/founder-radar": return self.sendj(build())
         return self.sendj({"error":"not_found"},404)
     def log_message(self,*a): pass
