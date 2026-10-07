@@ -2034,6 +2034,19 @@
       '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">•</span><span class="cc-kpi-body"><small>Наблюдать</small><strong>'+watchN+'</strong><em>ранние сигналы без основания бежать</em></span></div>'+
       '<div class="cc-kpi radar-kpi wait"><span class="cc-kpi-icon">○</span><span class="cc-kpi-body"><small>Ждём</small><strong>'+waiting.length+'</strong><em>внешние ответы и исходы</em></span></div>';
 
+    var movement=radar.movement||{}, movementItems=Array.isArray(movement.items)?movement.items:[], movementCounts=movement.counts||{}, movementGaps=Array.isArray(movement.movement_gaps)?movement.movement_gaps:[];
+    if(box("movement")){
+      function mvStateRu(s){return ({DETECTED:"обнаружено",QUALIFIED:"квалифицировано",ROUTED:"маршрут есть",IN_MOTION:"в движении",WAITING_EXTERNAL:"ждём внешнее",ACTION_DUE:"пора действовать",CLOSED:"закрыто",PARKED:"отложено"})[s]||humanCode(s);}
+      function mvDomainRu(d){return ({research_funding:"исследования / финансирование",research_field:"исследовательское поле",field:"поле",commercial_signal:"коммерческий сигнал",commercial:"коммерция",external_wait:"внешние ожидания"})[d]||humanCode(d);}
+      var stages=["DETECTED","QUALIFIED","ROUTED","IN_MOTION","WAITING_EXTERNAL","ACTION_DUE"];
+      var top=movementItems.filter(function(x){return ["ACTION_DUE","IN_MOTION","ROUTED","QUALIFIED"].indexOf(x.state)>=0;}).slice(0,12);
+      box("movement").innerHTML=
+        '<div class="movement-stage-strip">'+stages.map(function(st){return '<div class="'+(st==="ACTION_DUE"?"due":"")+'"><small>'+esc(mvStateRu(st))+'</small><b>'+esc(movementCounts[st]||0)+'</b></div>';}).join('')+'</div>'+
+        '<div class="movement-health"><div><small>Активных объектов</small><b>'+esc(movement.active_total||0)+'</b><span>без закрытых и отложенных</span></div><div class="'+(movementGaps.length?"warn":"ok")+'"><small>Разрывы движения</small><b>'+esc(movementGaps.length)+'</b><span>'+(movementGaps.length?"нет маршрута или следующего шага":"активные объекты не потеряли ход")+'</span></div><div><small>Нужно сейчас</small><b>'+esc(movementCounts.ACTION_DUE||0)+'</b><span>срок / ручное действие / follow-up</span></div><div><small>Ждём внешнюю сторону</small><b>'+esc(movementCounts.WAITING_EXTERNAL||0)+'</b><span>не считать это бездействием</span></div></div>'+
+        '<div class="movement-stream-head"><b>Живой поток</b><span>наверх выходят объекты, которые надо двигать, а не весь архив радара</span></div>'+
+        (top.length?'<div class="movement-stream">'+top.map(function(x){return '<div class="movement-row '+String(x.state||"").toLowerCase()+'"><span class="movement-state">'+esc(mvStateRu(x.state))+'</span><div><b>'+esc(x.title||"Объект")+'</b><small>'+esc(mvDomainRu(x.domain))+(x.date?" · "+esc(dateRu(x.date)):"")+'</small></div><em>'+esc(x.next_step||x.route||"следующий шаг не передан")+'</em></div>';}).join('')+'</div>':'<div class="cc-empty"><b>Активного движения нет</b></div>')+
+        (movementGaps.length?'<details class="movement-gaps"><summary>Разрывы движения · '+movementGaps.length+'</summary>'+movementGaps.map(function(x){return '<div><b>'+esc(x.title||"Объект")+'</b><span>'+esc(mvDomainRu(x.domain))+' · '+esc(x.gap==="NO_ROUTE"?"нет маршрута":"нет следующего шага")+'</span></div>';}).join('')+'</details>':'');
+    }
     if(box("patterns"))box("patterns").innerHTML=listHTML(patterns,"patterns","Пока недостаточно независимых сигналов для устойчивого паттерна.",8);
     if(box("opportunities")){
       function fundingFactRu(k){return ({

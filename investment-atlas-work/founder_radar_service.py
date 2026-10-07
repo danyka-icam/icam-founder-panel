@@ -17,6 +17,7 @@ URLS={
  "activity":"http://127.0.0.1:8825/api/activity-inbox",
  "company_profile":"http://127.0.0.1:8846/api/v1/company-eligibility-profile",
  "funding_projects":"http://127.0.0.1:8846/api/v1/funding-project-candidates",
+ "commercial":"http://127.0.0.1:8083/founder-ui-preview/commercial/dashboard.json",
 }
 
 def now(): return datetime.now(timezone.utc).isoformat()
@@ -679,6 +680,122 @@ def pattern_projection(field,opportunities):
     patterns.sort(key=lambda x:(order.get(x.get("status"),9),-int(x.get("signal_count") or 0),x.get("title") or ""))
     return patterns
 
+def movement_projection(opportunities, field, waiting, commercial):
+    items=[]
+    nowd=datetime.now(timezone.utc).date()
+    def add(domain,title,state,source_ref,next_step=None,route=None,date=None,priority="NORMAL",meta=None):
+        items.append({
+          "movement_id":item_id("move",domain,title,(source_ref or {}).get("kind"),(source_ref or {}).get("signal_id"),(source_ref or {}).get("id")),
+          "domain":domain,"title":title,"state":state,"next_step":next_step,"route":route,
+          "date":date,"priority":priority,"source_ref":source_ref or {},"meta":meta or {}
+        })
+    # Institutional / research funding doors
+    for x in opportunities or []:
+        if x.get("kind") not in {"official_opportunity","dated_opportunity"}: continue
+        rc=str(x.get("radar_class") or "WATCH").upper()
+        decision=str(x.get("route_decision") or "WATCH").upper()
+        elig=str(x.get("eligibility_status") or "UNCHECKED").upper()
+        if decision=="DROP": state="CLOSED"
+        elif rc=="ACTION_NOW": state="ACTION_DUE"
+        elif decision in {"APPLY","PARTNER"}: state="ROUTED"
+        elif elig in {"NEEDS_COMPANY_FACTS","NEEDS_CALL_DOCUMENT_REVIEW","ELIGIBLE"}: state="QUALIFIED"
+        else: state="DETECTED"
+        add("research_funding",x.get("title") or "Возможность",state,x.get("source_ref"),
+            x.get("next_step_ru"),(x.get("destination") or {}).get("route"),x.get("date"),
+            "HIGH" if rc=="ACTION_NOW" else "NORMAL",
+            {"route_decision":decision,"eligibility_status":elig,"days_left":x.get("days_left")})
+    # External field — only actionable/review/watch signals, background is noise for movement.
+    for x in ((field or {}).get("signals") or []):
+        cls=str(x.get("radar_class") or "BACKGROUND").upper()
+        if cls=="BACKGROUND": continue
+        dest=x.get("destination") or {}
+        routed=bool(dest.get("kind") and dest.get("kind")!="radar")
+        if cls=="ACTION_NOW": state="ACTION_DUE"
+        elif cls=="REVIEW": state="ROUTED" if routed else "QUALIFIED"
+        else: state="DETECTED"
+        dom="field"
+        if dest.get("kind")=="research": dom="research_field"
+        elif dest.get("kind") in {"commercial","market"}: dom="commercial_signal"
+        add(dom,x.get("title") or "Сигнал",state,x.get("source_ref"),x.get("next_step_ru"),dest.get("route"),
+            iso_date_from(x.get("published_at"),x.get("observed_at")),"HIGH" if cls=="ACTION_NOW" else "NORMAL",
+            {"radar_class":cls,"destination":dest.get("label"),"repeat_count":x.get("repeat_count")})
+    # Explicit external waits.
+    for x in waiting or []:
+        add("external_wait",x.get("title") or "Ожидание","WAITING_EXTERNAL",x.get("source_ref"),
+            x.get("next_step_ru"),(x.get("destination") or {}).get("route"),x.get("date"),"NORMAL",
+            {"context":x.get("context") or {}})
+    # Commercial truth stays owned by commercial dashboard.
+    c=commercial or {}
+    manual=c.get("manual_queue") or []
+    for x in manual:
+        add("commercial",x.get("company") or x.get("item_id") or "Коммерческая дверь","ACTION_DUE",
+            {"kind":"commercial_manual","id":x.get("item_id")},
+            x.get("action_label") or x.get("next") or x.get("reason"),x.get("route"),iso_date_from(x.get("deadline")),
+            "HIGH",{"product":x.get("product_name"),"why_now":x.get("why_now"),"kind":x.get("kind")})
+    live_ids=set()
+    for x in c.get("waiting_live") or []:
+        live_ids.add(str(x.get("case_id") or x.get("id") or ""))
+        due=iso_date_from(x.get("followup_due_at"))
+        state="WAITING_EXTERNAL"
+        priority="NORMAL"
+        if due:
+            try:
+                if datetime.strptime(due,"%Y-%m-%d").date() <= nowd: state="ACTION_DUE"; priority="HIGH"
+            except Exception: pass
+        add("commercial",x.get("company") or x.get("case_id") or "Коммерческая дверь",state,
+            {"kind":"commercial_case","id":x.get("case_id") or x.get("id")},
+            ("Повторный контакт по расписанию" if state=="ACTION_DUE" else "Ждём ответ рынка"),
+            x.get("channel") or x.get("send_mode"),due,priority,{"product":x.get("product_name"),"sent_at":x.get("sent_at")})
+    for p in c.get("products") or []:
+        for x in p.get("items") or []:
+            xid=str(x.get("id") or "")
+            if xid and xid in live_ids: continue
+            stage=str(x.get("stage") or x.get("status") or "").upper()
+            if stage in {"NO_GO","CLOSED","DROP"}: state="CLOSED"
+            elif stage in {"HOLD","DEFER","WATCH","WATCH_POST_AWARD"}: state="PARKED"
+            elif stage in {"WAITING","SUBMITTED","SENT"}: state="WAITING_EXTERNAL"
+            elif stage in {"REPLIED","CONVERSATION","PROPOSAL","PROPOSAL_SENT"}: state="IN_MOTION"
+            else: continue
+            add("commercial",x.get("company") or xid or "Коммерческая дверь",state,
+                {"kind":"commercial_case","id":xid},x.get("next"),x.get("route"),
+                iso_date_from(x.get("followup_due_at"),x.get("deadline")),"NORMAL",
+                {"product":p.get("name"),"stage":stage,"source_kind":x.get("_source_kind")})
+    # De-duplicate identical source objects while keeping higher movement urgency.
+    rank={"ACTION_DUE":0,"IN_MOTION":1,"ROUTED":2,"QUALIFIED":3,"WAITING_EXTERNAL":4,"DETECTED":5,"PARKED":6,"CLOSED":7}
+    dedup={}
+    for x in items:
+        ref=x.get("source_ref") or {}
+        k=(x.get("domain"),ref.get("kind"),ref.get("id") or ref.get("signal_id") or x.get("title"))
+        prev=dedup.get(k)
+        if prev is None or rank.get(x.get("state"),99)<rank.get(prev.get("state"),99): dedup[k]=x
+    items=list(dedup.values())
+    counts={k:sum(1 for x in items if x.get("state")==k) for k in rank}
+    active=[x for x in items if x.get("state") not in {"CLOSED","PARKED"}]
+    gaps=[]
+    for x in active:
+        if x.get("state") in {"QUALIFIED","ROUTED","IN_MOTION","ACTION_DUE"} and not x.get("next_step"):
+            gaps.append({**x,"gap":"NO_NEXT_STEP"})
+        elif x.get("state")=="QUALIFIED" and not x.get("route"):
+            gaps.append({**x,"gap":"NO_ROUTE"})
+    domains={}
+    for x in items:
+        d=x.get("domain")
+        domains.setdefault(d,{"total":0,"action_due":0,"waiting_external":0,"in_motion":0,"gaps":0})
+        domains[d]["total"]+=1
+        if x.get("state")=="ACTION_DUE": domains[d]["action_due"]+=1
+        if x.get("state")=="WAITING_EXTERNAL": domains[d]["waiting_external"]+=1
+        if x.get("state") in {"IN_MOTION","ROUTED"}: domains[d]["in_motion"]+=1
+    for g in gaps:
+        if g.get("domain") in domains: domains[g["domain"]]["gaps"]+=1
+    items.sort(key=lambda x:(rank.get(x.get("state"),99),x.get("date") is None,x.get("date") or "9999",x.get("title") or ""))
+    return {
+      "contract":"aiclavis.movement-layer.v0.1",
+      "states":["DETECTED","QUALIFIED","ROUTED","IN_MOTION","WAITING_EXTERNAL","ACTION_DUE","CLOSED","PARKED"],
+      "counts":counts,"domains":domains,"active_total":len(active),"movement_gaps":gaps[:20],
+      "items":items[:160],
+      "rule":"Movement Layer is a read-only cross-domain projection. Domain systems remain canonical owners; this layer may expose missing movement but never invent or mutate route/owner/next-step."
+    }
+
 def attention_projection(inbox,founder):
     out=[]
     formal=(founder or {}).get("today") or {}
@@ -767,6 +884,7 @@ def build():
         if match:
             o["funding_project_candidate"]=match
     patterns=pattern_projection(field,opportunities)
+    movement=movement_projection(opportunities,field,waiting,data.get("commercial") or {})
     gap_counts={}
     for o in opportunities:
         for c in ((o.get("company_profile_gap") or {}).get("checks") or []):
@@ -784,13 +902,14 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.10","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.11","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
       "funding_profile":funding_profile,
       "waiting":waiting,"upcoming":upcoming,"predictions":predictions,
       "patterns":patterns,
+      "movement":movement,
       "field":field,
       "atlas_learning":[radar_semantics(x,"learning") for x in learning_projection(data.get("signal_lab") or {},data.get("twin") or {})],
       "investment":investment_projection(data.get("investment")),"reputation":reputation,
@@ -809,7 +928,7 @@ class H(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p=self.path.split("?",1)[0]
-        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.10","read_only":True})
+        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.11","read_only":True})
         if p=="/api/v1/founder-radar": return self.sendj(build())
         return self.sendj({"error":"not_found"},404)
     def log_message(self,*a): pass
