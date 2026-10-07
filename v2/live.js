@@ -1910,6 +1910,7 @@
       var host=page.querySelector("[data-radar-inspector]");
       var rec=inspectorItems[key];
       if(!host||!rec)return;
+      openInspectorHost(host);
       var x=rec.item||{}, kind=rec.kind, cls=attentionClass(x,kind), imp=cls==="ACTION_NOW";
       var ctx=x.context||{}, ref=x.source_ref||{};
       var why=x.why||x.why_it_matters_ru||(x.enrichment&&x.enrichment.why_it_matters_ru)||"Источник не передал отдельное объяснение значимости.";
@@ -2034,7 +2035,7 @@
       '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">•</span><span class="cc-kpi-body"><small>Наблюдать</small><strong>'+watchN+'</strong><em>ранние сигналы без основания бежать</em></span></div>'+
       '<div class="cc-kpi radar-kpi wait"><span class="cc-kpi-icon">○</span><span class="cc-kpi-body"><small>Ждём</small><strong>'+waiting.length+'</strong><em>внешние ответы и исходы</em></span></div>';
 
-    var movementFlow=radar.movement_flow||{}, movementStreams=movementFlow.streams||{}, movementBottlenecks=Array.isArray(movementFlow.bottlenecks)?movementFlow.bottlenecks:[], movementQueue=Array.isArray(movementFlow.bottleneck_queue)?movementFlow.bottleneck_queue:[];
+    var movementFlow=radar.movement_flow||{}, movementStreams=movementFlow.streams||{}, movementBottlenecks=Array.isArray(movementFlow.bottlenecks)?movementFlow.bottlenecks:[], movementQueue=Array.isArray(movementFlow.bottleneck_queue)?movementFlow.bottleneck_queue:[], movementExecution=Array.isArray(movementFlow.execution_queue)?movementFlow.execution_queue:[];
     if(box("movement-queue")){
       function mqDomain(d){return ({research_funding:"исследования / финансирование",research_field:"исследовательское поле",field:"поле",commercial_signal:"коммерческий сигнал",commercial:"коммерция",external_wait:"внешнее ожидание"})[d]||humanCode(d);}
       function mqState(s){return ({DETECTED:"квалифицировать",QUALIFIED:"назначить маршрут",ROUTE_IDENTIFIED:"передать в работу"})[s]||humanCode(s);}
@@ -2059,6 +2060,20 @@
         (movementBottlenecks.length?'<div class="movement-bottlenecks"><div class="movement-stream-head"><b>Где машина теряет движение</b><span>это очереди на улучшение процесса, а не рейтинг успеха</span></div>'+movementBottlenecks.slice(0,6).map(function(x){return '<div><b>'+esc(streamName(x.stream,movementStreams[x.stream]))+'</b><span>'+esc(x.message)+'</span><em>'+esc(x.count)+'</em></div>';}).join('')+'</div>':'<div class="movement-zero-loss">Явных потерь между стадиями сейчас не обнаружено.</div>');
     }
     var movement=radar.movement||{}, movementItems=Array.isArray(movement.items)?movement.items:[], movementCounts=movement.counts||{}, movementGaps=Array.isArray(movement.movement_gaps)?movement.movement_gaps:[];
+    if(box("urgent-now")){
+      function urgentExec(x){
+        var hit=movementExecution.find(function(y){return String(y.title||"")===String(x.title||"")&&String(y.domain||"")===String(x.domain||"");});
+        var c=hit&&hit.execution&&hit.execution.class;
+        if(c)return c;
+        if(x.domain==="commercial")return "FOUNDER";
+        if(x.domain==="research_funding")return "SYSTEM_REVIEW";
+        return "SYSTEM_REVIEW";
+      }
+      function urgentOwnerRu(c){return ({FOUNDER:"ТЕБЕ",SYSTEM_REVIEW:"СТЮ / СИСТЕМА",AUTO:"АВТО"})[c]||"СИСТЕМА";}
+      function urgentDomainRu(d){return ({research_funding:"исследования / финансирование",commercial:"коммерция",research_field:"исследовательское поле",field:"поле"})[d]||humanCode(d||"контур");}
+      var urgentNow=movementItems.filter(function(x){return x.state==="ACTION_DUE";}).slice(0,12);
+      box("urgent-now").innerHTML=urgentNow.length?'<div class="radar-urgent-list">'+urgentNow.map(function(x,i){var ec=urgentExec(x);return '<div class="radar-urgent-row '+String(ec).toLowerCase()+'"><span class="radar-urgent-index">'+(i+1)+'</span><div class="radar-urgent-main"><small>'+esc(urgentDomainRu(x.domain))+(x.date?' · '+esc(dateRu(x.date)):'')+'</small><b>'+esc(x.title||"Объект")+'</b><span>'+esc(x.next_step||x.route||"требует текущего хода")+'</span></div><em>'+esc(urgentOwnerRu(ec))+'</em></div>';}).join('')+'</div>':'<div class="movement-zero-loss">Срочных текущих ходов нет.</div>';
+    }
     if(box("movement")){
       function mvStateRu(s){return ({DETECTED:"обнаружено",QUALIFIED:"квалифицировано",ROUTE_IDENTIFIED:"направление определено",IN_MOTION:"в движении",WAITING_EXTERNAL:"ждём внешнее",ACTION_DUE:"пора действовать",CLOSED:"закрыто",PARKED:"отложено"})[s]||humanCode(s);}
       function mvDomainRu(d){return ({research_funding:"исследования / финансирование",research_field:"исследовательское поле",field:"поле",commercial_signal:"коммерческий сигнал",commercial:"коммерция",external_wait:"внешние ожидания"})[d]||humanCode(d);}
@@ -3296,9 +3311,49 @@
     STALE_DAYS: STALE_DAYS, CRITICAL_DAYS: CRITICAL_DAYS
   };
 
+  function inspectorStorageKey(grid){
+    var page=grid&&grid.closest("[data-page-panel]");
+    return "aiclavis:inspector:"+(page&&page.getAttribute("data-page-panel")||"page");
+  }
+  function setInspectorCollapsed(grid,collapsed,persist){
+    if(!grid)return;
+    grid.classList.toggle("inspector-collapsed",!!collapsed);
+    if(persist!==false){try{localStorage.setItem(inspectorStorageKey(grid),collapsed?"closed":"open");}catch(_){}}
+  }
+  function openInspectorHost(host){
+    var grid=host&&host.closest(".cc-page-grid");
+    if(grid)setInspectorCollapsed(grid,false,true);
+  }
+  function initInspectorCollapse(){
+    document.querySelectorAll(".cc-page-grid").forEach(function(grid){
+      var inspector=null;
+      for(var i=0;i<grid.children.length;i++){if(grid.children[i].classList&&grid.children[i].classList.contains("cc-inspector")){inspector=grid.children[i];break;}}
+      if(!inspector||grid.getAttribute("data-inspector-ready")==="1")return;
+      grid.setAttribute("data-inspector-ready","1");
+      var close=document.createElement("button");
+      close.type="button"; close.className="cc-inspector-close"; close.setAttribute("aria-label","Закрыть панель деталей"); close.textContent="×";
+      var open=document.createElement("button");
+      open.type="button"; open.className="cc-inspector-open"; open.textContent="Показать детали";
+      grid.appendChild(close); grid.appendChild(open);
+      var saved=null; try{saved=localStorage.getItem(inspectorStorageKey(grid));}catch(_){}
+      setInspectorCollapsed(grid,saved!=="open",false);
+      close.addEventListener("click",function(){setInspectorCollapsed(grid,true,true);});
+      open.addEventListener("click",function(){setInspectorCollapsed(grid,false,true);});
+    });
+    if(!document.body.getAttribute("data-inspector-esc")){
+      document.body.setAttribute("data-inspector-esc","1");
+      document.addEventListener("keydown",function(e){
+        if(e.key!=="Escape")return;
+        var active=document.querySelector(".page.active .cc-page-grid:not(.inspector-collapsed), .cc-page.active .cc-page-grid:not(.inspector-collapsed)");
+        if(active)setInspectorCollapsed(active,true,true);
+      });
+    }
+  }
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
+    document.addEventListener("DOMContentLoaded", function(){initInspectorCollapse();boot();});
   } else {
+    initInspectorCollapse();
     boot();
   }
 
