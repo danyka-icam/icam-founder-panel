@@ -1927,3 +1927,30 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .radar-bright-reasons{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0 0 43px}
 .radar-bright-reasons span{padding:3px 6px;border:1px solid rgba(227,165,72,.22);border-radius:999px;background:rgba(227,165,72,.045);font-size:9px;line-height:1.2;color:#d8bd88}
 @media(max-width:620px){.radar-bright-reasons{margin-left:0}}
+
+/* Radar source coverage map */
+.radar-coverage-panel{border-color:rgba(116,153,173,.24)}
+.radar-coverage-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:8px}
+.radar-coverage-summary>span{padding:7px 9px;border:1px solid var(--line-soft);border-radius:8px;background:rgba(255,255,255,.012)}
+.radar-coverage-summary small{display:block;font-size:8px;color:var(--muted-2)}.radar-coverage-summary b{display:block;margin-top:2px;font:400 17px var(--cc-serif)}
+.radar-coverage-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.radar-coverage-lane{padding:10px;border:1px solid var(--line-soft);border-left:4px solid #668;border-radius:8px;background:rgba(255,255,255,.012)}
+.radar-coverage-lane.covered{border-left-color:#58b69d}.radar-coverage-lane.partial{border-left-color:#d1a65e}.radar-coverage-lane.gap{border-left-color:#dd735b;background:rgba(221,115,91,.035)}
+.radar-coverage-lane>div{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.radar-coverage-lane small{font-size:8px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-2)}.radar-coverage-lane b{font-size:11.5px;color:#e3e9e7}
+.radar-coverage-lane>span{display:block;margin-top:5px;font-size:9.5px;line-height:1.4;color:var(--muted)}.radar-coverage-lane em{display:block;margin-top:5px;font-size:9.3px;line-height:1.4;font-style:normal;color:#dda188}
+.radar-coverage-rule{margin-top:8px;padding-top:7px;border-top:1px solid var(--line-soft);font-size:8.8px;line-height:1.4;color:var(--muted-2)}
+@media(max-width:760px){.radar-coverage-grid{grid-template-columns:1fr}.radar-coverage-summary{grid-template-columns:repeat(3,1fr)}}
+
+
+/* Radar source coverage map */
+.radar-coverage-panel{border-color:rgba(116,153,173,.24)}
+.radar-coverage-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:8px}
+.radar-coverage-summary>span{padding:7px 9px;border:1px solid var(--line-soft);border-radius:8px;background:rgba(255,255,255,.012)}
+.radar-coverage-summary small{display:block;font-size:8px;color:var(--muted-2)}.radar-coverage-summary b{display:block;margin-top:2px;font:400 17px var(--cc-serif)}
+.radar-coverage-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.radar-coverage-lane{padding:10px;border:1px solid var(--line-soft);border-left:4px solid #668;border-radius:8px;background:rgba(255,255,255,.012)}
+.radar-coverage-lane.covered{border-left-color:#58b69d}.radar-coverage-lane.partial{border-left-color:#d1a65e}.radar-coverage-lane.gap{border-left-color:#dd735b;background:rgba(221,115,91,.035)}
+.radar-coverage-lane>div{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.radar-coverage-lane small{font-size:8px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-2)}.radar-coverage-lane b{font-size:11.5px;color:#e3e9e7}
+.radar-coverage-lane>span{display:block;margin-top:5px;font-size:9.5px;line-height:1.4;color:var(--muted)}.radar-coverage-lane em{display:block;margin-top:5px;font-size:9.3px;line-height:1.4;font-style:normal;color:#dda188}
+.radar-coverage-rule{margin-top:8px;padding-top:7px;border-top:1px solid var(--line-soft);font-size:8.8px;line-height:1.4;color:var(--muted-2)}
+@media(max-width:760px){.radar-coverage-grid{grid-template-columns:1fr}.radar-coverage-summary{grid-template-columns:repeat(3,1fr)}}

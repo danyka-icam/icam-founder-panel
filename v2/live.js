@@ -2048,6 +2048,15 @@
       '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">•</span><span class="cc-kpi-body"><small>Наблюдать</small><strong>'+watchN+'</strong><em>ранние сигналы без основания бежать</em></span></div>'+
       '<div class="cc-kpi radar-kpi wait"><span class="cc-kpi-icon">○</span><span class="cc-kpi-body"><small>Ждём</small><strong>'+waiting.length+'</strong><em>внешние ответы и исходы</em></span></div>';
 
+    var coverage=radar.coverage||{}, coverageLanes=Array.isArray(coverage.lanes)?coverage.lanes:[];
+    if(box("coverage")){
+      function covRu(s){return ({COVERED:"покрыто",PARTIAL:"частично",GAP:"слепая зона"})[s]||humanCode(s);}
+      box("coverage").innerHTML=
+        '<div class="radar-coverage-summary"><span><small>Покрыто</small><b>'+esc((coverage.counts||{}).COVERED||0)+'</b></span><span><small>Частично</small><b>'+esc((coverage.counts||{}).PARTIAL||0)+'</b></span><span><small>Слепые зоны</small><b>'+esc((coverage.counts||{}).GAP||0)+'</b></span></div>'+
+        '<div class="radar-coverage-grid">'+coverageLanes.map(function(x){return '<div class="radar-coverage-lane '+String(x.status||"GAP").toLowerCase()+'"><div><small>'+esc(covRu(x.status))+'</small><b>'+esc(x.label||"Контур")+'</b></div><span>'+esc(x.basis||"")+'</span>'+(x.gap?'<em>'+esc(x.gap)+'</em>':'')+'</div>';}).join('')+'</div>'+
+        '<div class="radar-coverage-rule">'+esc(coverage.rule||"")+'</div>';
+    }
+
     var movementFlow=radar.movement_flow||{}, movementStreams=movementFlow.streams||{}, movementBottlenecks=Array.isArray(movementFlow.bottlenecks)?movementFlow.bottlenecks:[], movementQueue=Array.isArray(movementFlow.bottleneck_queue)?movementFlow.bottleneck_queue:[], movementAutoQueue=Array.isArray(movementFlow.auto_queue)?movementFlow.auto_queue:[], movementExecution=Array.isArray(movementFlow.execution_queue)?movementFlow.execution_queue:[];
     if(box("movement-queue")){
       function mqDomain(d){return ({research_funding:"исследования / финансирование",research_field:"исследовательское поле",field:"поле",commercial_signal:"коммерческий сигнал",commercial:"коммерция",external_wait:"внешнее ожидание"})[d]||humanCode(d);}

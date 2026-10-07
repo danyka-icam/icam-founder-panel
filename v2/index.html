@@ -1473,7 +1473,7 @@
 .progress-row em{font-size:10px}
 
 </style>
-<link rel="stylesheet" href="command-center.css?v=20261007-radar-v21"/>
+<link rel="stylesheet" href="command-center.css?v=20261007-radar-v22"/>
 </head>
 <body>
 <div class="app-shell">
@@ -3067,6 +3067,7 @@
 <div class="cc-body radar-body" data-cc-body>
 <section class="radar-summary" data-radar-summary></section>
 <div class="radar-signal-grid">
+<article class="cc-panel radar-panel radar-wide radar-coverage-panel"><header><h2>Покрытие Радара</h2><small>где мы действительно видим внешнее поле, а где отсутствие сигнала ещё ничего не означает</small></header><div data-radar="coverage"><div class="cc-loading">Проверяем покрытие…</div></div></article>
 <article class="cc-panel radar-panel radar-wide radar-urgent-panel"><header><h2>Срочно сейчас</h2><small>только объекты с подтверждённым текущим ходом — видно сразу, без открытия карточки и без обращения к Стю</small></header><div data-radar="urgent-now"><div class="cc-loading">Собираем срочное…</div></div></article>
 <article class="cc-panel radar-panel radar-wide radar-bottleneck-panel"><header><h2>Очередь движения</h2><small>только сигналы, которым ещё нужен системный разбор или решение; автоматические переходы не занимают твоё внимание</small></header><div data-radar="movement-queue"><div class="cc-loading">Собираем очередь…</div></div></article>
 <article class="cc-panel radar-panel radar-wide radar-flow-panel"><header><h2>Потоки и потери</h2><small>вошло → квалифицировано → передано в работу → внешний результат; без искусственного общего балла</small></header><div data-radar="movement-flow"><div class="cc-loading">Считаем переходы…</div></div></article>
@@ -3808,7 +3809,7 @@
   route();
 })();
 </script>
-<script src="live.js?v=20261007-radar-v21"></script>
+<script src="live.js?v=20261007-radar-v22"></script>
 <script src="command-center.js?v=20261007-stu-priority-v1"></script>
 </body>
 </html>

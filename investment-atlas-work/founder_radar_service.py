@@ -2,9 +2,11 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib import request
 from datetime import datetime, timezone
+from pathlib import Path
 import json, os, re, hashlib
 
 PORT=int(os.environ.get("FOUNDER_RADAR_PORT","8843"))
+MARKET_SOURCE_MAP=Path(os.environ.get("FOUNDER_RADAR_MARKET_SOURCE_MAP","/srv/market-scanner/MARKET_SCANNER_SOURCE_MAP_v0.1.json"))
 BASE=os.environ.get("FOUNDER_RADAR_BASE","http://127.0.0.1:8083")
 URLS={
  "inbox":BASE+"/founder-ui-preview/api/continuity/founder-inbox",
@@ -627,6 +629,73 @@ def field_projection(signals):
     })
     return {"signals":out,"counts":counts,"source_coverage":signals.get("source_coverage") if signals else None}
 
+def radar_coverage_projection(field, opportunities):
+    try:
+        cfg=json.loads(MARKET_SOURCE_MAP.read_text(encoding="utf-8"))
+        sources=cfg.get("sources") or []
+        cfg_error=None
+    except Exception as e:
+        sources=[]; cfg_error=type(e).__name__+": "+str(e)[:120]
+    ids=[str(x.get("id") or "") for x in sources]
+    modes=[str(x.get("mode") or "") for x in sources]
+    axes={str(a) for x in sources for a in (x.get("axis") or [])}
+    opp_sources=sorted({str((x.get("source") or {}).get("name") or "") for x in (opportunities or []) if (x.get("source") or {}).get("name")})
+    sc=(field or {}).get("source_coverage") or {}
+    configured=len(sources)
+    healthy=sc.get("ok_count")
+    total=sc.get("total_sources")
+    market_health={
+      "configured_sources":configured,
+      "healthy_sources":healthy,
+      "reported_total":total,
+      "status":("LIMITED" if sc.get("failing") else "HEALTHY"),
+      "known_failures":[{"source_id":x.get("source_id"),"known":bool(x.get("known_degraded")),"error":x.get("error")} for x in (sc.get("failing") or [])]
+    }
+    lanes=[
+      {
+        "key":"research_architecture","label":"Исследования и архитектура",
+        "status":"COVERED" if ("arxiv" in ids or "research" in axes) else "GAP",
+        "basis":"arXiv + тематические оси digital twin / decision intelligence / ontology / agents",
+        "source_count":sum(1 for x in sources if x.get("mode")=="arxiv" or "research" in (x.get("axis") or [])),
+        "gap":None
+      },
+      {
+        "key":"funding_calls","label":"Гранты и публичные конкурсы",
+        "status":"COVERED" if len(opp_sources)>=3 else ("PARTIAL" if opp_sources else "GAP"),
+        "basis":"официальный opportunity-scanner: "+(", ".join(opp_sources) if opp_sources else "источники не подтверждены"),
+        "source_count":len(opp_sources),
+        "gap":None if len(opp_sources)>=3 else "Нужно расширить набор официальных институтов."
+      },
+      {
+        "key":"technology_market","label":"Технологии, конкуренты и рынок",
+        "status":"COVERED" if configured>=8 else ("PARTIAL" if configured else "GAP"),
+        "basis":"Market Scanner: "+", ".join([x.get("entity") or x.get("id") for x in sources if x.get("mode")!="arxiv"][:10]),
+        "source_count":sum(1 for x in sources if x.get("mode")!="arxiv"),
+        "gap":None
+      },
+      {
+        "key":"institutional_policy","label":"Институциональные и регуляторные сдвиги",
+        "status":"PARTIAL" if opp_sources else "GAP",
+        "basis":"Сейчас видим институты главным образом через конкурсы и программы финансирования.",
+        "source_count":len(opp_sources),
+        "gap":"Нет отдельного контура policy / regulation / standards."
+      },
+      {
+        "key":"commercial_doors","label":"Внешние коммерческие двери",
+        "status":"GAP",
+        "basis":"Ручная коммерческая работа намеренно вынесена из Радара; отдельный внешний scanner дверей ещё не подключён.",
+        "source_count":0,
+        "gap":"Нужен отдельный контур tender / procurement / CAPEX-expansion / partnership windows."
+      }
+    ]
+    counts={k:sum(1 for x in lanes if x["status"]==k) for k in ["COVERED","PARTIAL","GAP"]}
+    return {
+      "contract":"aiclavis.radar-coverage.v0.1",
+      "lanes":lanes,"counts":counts,"market_health":market_health,
+      "source_map_error":cfg_error,
+      "rule":"Отсутствие сигнала не трактуется как отсутствие события, если соответствующий коридор имеет PARTIAL или GAP coverage."
+    }
+
 def pattern_projection(field,opportunities):
     rows=(field or {}).get("signals") or []
     patterns=[]
@@ -1031,6 +1100,7 @@ def build():
         if match:
             o["funding_project_candidate"]=match
     patterns=pattern_projection(field,opportunities)
+    coverage=radar_coverage_projection(field,opportunities)
     movement=movement_projection(opportunities,field,waiting)
     movement_flow=movement_flow_projection(movement,opportunities,field)
     critical_sources=["signals","temporal","activity"]
@@ -1069,13 +1139,14 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.21","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.22","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
       "funding_profile":funding_profile,
       "waiting":waiting,"upcoming":upcoming,"predictions":predictions,
       "patterns":patterns,
+      "coverage":coverage,
       "movement":movement,
       "movement_flow":movement_flow,
       "field":field,
