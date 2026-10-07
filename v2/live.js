@@ -2035,12 +2035,12 @@
       '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">•</span><span class="cc-kpi-body"><small>Наблюдать</small><strong>'+watchN+'</strong><em>ранние сигналы без основания бежать</em></span></div>'+
       '<div class="cc-kpi radar-kpi wait"><span class="cc-kpi-icon">○</span><span class="cc-kpi-body"><small>Ждём</small><strong>'+waiting.length+'</strong><em>внешние ответы и исходы</em></span></div>';
 
-    var movementFlow=radar.movement_flow||{}, movementStreams=movementFlow.streams||{}, movementBottlenecks=Array.isArray(movementFlow.bottlenecks)?movementFlow.bottlenecks:[], movementQueue=Array.isArray(movementFlow.bottleneck_queue)?movementFlow.bottleneck_queue:[], movementExecution=Array.isArray(movementFlow.execution_queue)?movementFlow.execution_queue:[];
+    var movementFlow=radar.movement_flow||{}, movementStreams=movementFlow.streams||{}, movementBottlenecks=Array.isArray(movementFlow.bottlenecks)?movementFlow.bottlenecks:[], movementQueue=Array.isArray(movementFlow.bottleneck_queue)?movementFlow.bottleneck_queue:[], movementAutoQueue=Array.isArray(movementFlow.auto_queue)?movementFlow.auto_queue:[], movementExecution=Array.isArray(movementFlow.execution_queue)?movementFlow.execution_queue:[];
     if(box("movement-queue")){
       function mqDomain(d){return ({research_funding:"исследования / финансирование",research_field:"исследовательское поле",field:"поле",commercial_signal:"коммерческий сигнал",commercial:"коммерция",external_wait:"внешнее ожидание"})[d]||humanCode(d);}
       function mqState(s){return ({DETECTED:"квалифицировать",QUALIFIED:"назначить маршрут",ROUTE_IDENTIFIED:"передать в работу"})[s]||humanCode(s);}
-      var autoQueue=movementQueue.filter(function(x){return x.execution&&x.execution.class==="AUTO";});
-      var q=movementQueue.filter(function(x){return !(x.execution&&x.execution.class==="AUTO");}).slice(0,18);
+      var autoQueue=movementAutoQueue.slice(0,18);
+      var q=movementQueue.slice(0,18);
       box("movement-queue").innerHTML=
         (autoQueue.length?'<div class="movement-auto-note"><b>Автоматически вне твоей очереди · '+autoQueue.length+'</b><span>Маршрут уже определён; эти переходы остаются в системной карте, но не требуют твоего внимания.</span></div>':'')+
         (q.length?'<div class="movement-queue-list">'+q.map(function(x,i){return '<div class="movement-queue-row"><span class="movement-queue-rank">'+(i+1)+'</span><div class="movement-queue-main"><small>'+esc(mqDomain(x.domain))+' · '+esc(mqState(x.state))+(x.date?' · '+esc(dateRu(x.date)):'')+'</small><b>'+esc(x.title||"Объект")+'</b><span>'+esc(x.required_move||"")+'</span></div><em>'+esc(x.priority==="HIGH"?"срочно":"системный разбор")+'</em></div>';}).join('')+'</div>':'<div class="movement-zero-loss">Очередь переходов пуста: всё либо движется автоматически, либо ждёт внешнее событие.</div>');

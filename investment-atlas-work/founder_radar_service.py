@@ -833,10 +833,19 @@ def movement_flow_projection(movement, opportunities, field, commercial):
         action_due=sum(1 for x in xs if x.get("state")=="ACTION_DUE")
         detected_only=sum(1 for x in xs if x.get("state")=="DETECTED")
         qual_not_handed=sum(1 for x in xs if x.get("state")=="QUALIFIED")
-        route_not_motion=sum(1 for x in xs if x.get("state")=="ROUTE_IDENTIFIED")
+        route_not_motion=sum(
+            1 for x in xs
+            if x.get("state")=="ROUTE_IDENTIFIED"
+            and (movement_execution_classification(x).get("class")!="AUTO")
+        )
+        auto_ready=sum(
+            1 for x in xs
+            if x.get("state")=="ROUTE_IDENTIFIED"
+            and (movement_execution_classification(x).get("class")=="AUTO")
+        )
         out[key]={
           "label":cfg["label"],"entered":entered,"qualified":qualified,"handed_off":handed,
-          "external_result_or_wait":external,"action_due":action_due,
+          "external_result_or_wait":external,"action_due":action_due,"auto_ready":auto_ready,
           "leakage":{"detected_not_qualified":detected_only,
                      "qualified_not_handed_off":qual_not_handed,
                      "route_identified_not_in_motion":route_not_motion}
@@ -888,11 +897,15 @@ def movement_flow_projection(movement, opportunities, field, commercial):
     bq_rank={"ACTION_DUE":0,"QUALIFIED":1,"ROUTE_IDENTIFIED":2,"DETECTED":3}
     for x in bottleneck_queue:
         x["execution"]=movement_execution_classification(x)
-    bottleneck_queue.sort(key=lambda x:(
+    auto_queue=[x for x in bottleneck_queue if (x.get("execution") or {}).get("class")=="AUTO"]
+    bottleneck_queue=[x for x in bottleneck_queue if (x.get("execution") or {}).get("class")!="AUTO"]
+    queue_sort=lambda x:(
         {"FOUNDER":0,"SYSTEM_REVIEW":1,"AUTO":2}.get((x.get("execution") or {}).get("class"),9),
         0 if x.get("priority")=="HIGH" else 1,
         x.get("date") is None,x.get("date") or "9999",
-        bq_rank.get(x.get("state"),9),x.get("title") or ""))
+        bq_rank.get(x.get("state"),9),x.get("title") or "")
+    bottleneck_queue.sort(key=queue_sort)
+    auto_queue.sort(key=queue_sort)
     bottlenecks.sort(key=lambda x:-int(x.get("count") or 0))
     execution_queue=[]
     for x in items:
@@ -910,13 +923,14 @@ def movement_flow_projection(movement, opportunities, field, commercial):
         c=(x.get("execution") or {}).get("class")
         if c in execution_counts: execution_counts[c]+=1
     return {
-      "contract":"aiclavis.movement-flow.v0.3",
+      "contract":"aiclavis.movement-flow.v0.4",
       "streams":out,
       "bottlenecks":bottlenecks,
       "bottleneck_queue":bottleneck_queue[:40],
+      "auto_queue":auto_queue[:40],
       "execution_queue":execution_queue[:80],
       "execution_counts":execution_counts,
-      "rule":"No synthetic conversion score. Every stage is counted from explicit live movement or domain state; external outcomes require observed external state."
+      "rule":"No synthetic conversion score. AUTO transitions are tracked separately and are not counted as bottlenecks. Every stage is counted from explicit live movement or domain state; external outcomes require observed external state."
     }
 
 def attention_projection(inbox,founder):
@@ -1045,7 +1059,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.19","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.20","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
