@@ -1871,19 +1871,20 @@
     }
     var inspectorItems={};
     function radarSectionLabel(kind){
-      return ({opportunities:"возможности",waiting:"ожидания",predictions:"прогнозы и даты",field:"поле и рынок",learning:"обучение ATLAS",investment:"инвестиционный ATLAS",reputation:"репутация и присутствие"})[kind]||humanCode(kind||"сигнал");
+      return ({patterns:"нарастающие паттерны",opportunities:"возможности",waiting:"ожидания",predictions:"прогнозы и даты",field:"поле и рынок",learning:"обучение ATLAS",investment:"инвестиционный ATLAS",reputation:"репутация и присутствие"})[kind]||humanCode(kind||"сигнал");
     }
     function sourceLabel(x){
       var r=x&&x.source_ref||{};
-      var m={market_signal:"Market Scanner",temporal_branch_waiting:"Temporal Universe",temporal_branch_next:"Temporal Universe",activity_event:"Activity Inbox",twin_state:"DT",signal_lab:"ATLAS Signal Lab",founder_decision:"Founder Projection"};
+      var m={radar_pattern:"Founder Radar",market_signal:"Market Scanner",temporal_branch_waiting:"Temporal Universe",temporal_branch_next:"Temporal Universe",activity_event:"Activity Inbox",twin_state:"DT",signal_lab:"ATLAS Signal Lab",founder_decision:"Founder Projection"};
       if(x&&x.source&&x.source.name)return x.source.name;
       return m[r.kind]||humanCode(r.kind||"источник не указан");
     }
     function itemHTML(x,kind,i){
-      var key=kind+":"+(x.radar_id||x.signal_id||i);
+      var key=kind+":"+(x.pattern_id||x.radar_id||x.signal_id||i);
       inspectorItems[key]={item:x,kind:kind};
       var cls=attentionClass(x,kind),imp=cls==="ACTION_NOW",review=cls==="REVIEW",background=cls==="BACKGROUND";
-      var meta=[dateRu(x.date||x.latest_observed_at||x.observed_at),branch(x),sourceLabel(x),x.repeat_count>1?("повторов: "+x.repeat_count):""].filter(Boolean).join(" · ");
+      var period=(x.first_seen||x.last_seen)?([x.first_seen?dateRu(x.first_seen):"",x.last_seen&&x.last_seen!==x.first_seen?dateRu(x.last_seen):""].filter(Boolean).join(" → ")):"";
+      var meta=[dateRu(x.date||x.latest_observed_at||x.observed_at),period,branch(x),sourceLabel(x),x.signal_count!=null?("сигналов: "+x.signal_count):"",x.distinct_institutions!=null?("институтов: "+x.distinct_institutions):"",x.repeat_count>1?("повторов: "+x.repeat_count):""].filter(Boolean).join(" · ");
       var summary=x.summary_ru||x.summary||x.why||"";
       var dest=x.destination&&x.destination.label?x.destination.label:"";
       var next=x.next_step_ru||"";
@@ -1944,6 +1945,10 @@
         market_significance:x.market_significance,
         architecture_convergence:x.architecture_convergence,
         repeat_count:x.repeat_count||1,
+        pattern_id:x.pattern_id||"",
+        signal_count:x.signal_count,
+        evidence_ceiling:x.evidence_ceiling||"",
+        pattern_signals:Array.isArray(x.signals)?x.signals:[],
         evidence:Array.isArray(x.evidence)?x.evidence:[],
         signal_id:ref.signal_id||x.signal_id||"",
         radar_id:x.radar_id||"",
@@ -1962,7 +1967,9 @@
         '<div class="cc-insp-head"><span class="radar-insp-mark '+(imp?'important':cls==="REVIEW"?'review':'')+'">'+(imp?'!':cls==="REVIEW"?'↳':cls==="BACKGROUND"?'·':'•')+'</span><div><h3>'+esc(textRu(x.title||"Сигнал"))+'</h3><small>'+esc(attentionLabel(x,kind))+'</small></div></div>'+
         (summaryText?'<div class="cc-insp-sec"><h4>Что произошло</h4><p>'+esc(textRu(summaryText))+'</p></div>':'')+
         '<div class="cc-insp-sec"><h4>Почему это имеет значение</h4><p>'+esc(textRu(why))+'</p></div>'+
-        ((destination.label||nextStep)?'<div class="cc-insp-sec radar-route-sec"><h4>Куда вести сигнал</h4>'+(destination.label?'<b>'+esc(destination.label)+'</b>':'')+(destination.route?'<p>'+esc(destination.route)+'</p>':'')+(nextStep?'<small>Следующий шаг: '+esc(nextStep)+'</small>':'')+'</div>':'')+
+        ((destination.label||nextStep)?'<div class="cc-insp-sec radar-route-sec"><h4>Куда вести '+(kind==="patterns"?"паттерн":"сигнал")+'</h4>'+(destination.label?'<b>'+esc(destination.label)+'</b>':'')+(destination.route?'<p>'+esc(destination.route)+'</p>':'')+(nextStep?'<small>Следующий шаг: '+esc(nextStep)+'</small>':'')+'</div>':'')+
+        (x.evidence_ceiling?'<div class="cc-insp-sec radar-ceiling"><h4>Потолок доказательств</h4><p>'+esc(x.evidence_ceiling)+'</p></div>':'')+
+        (x.signal_count!=null?'<div class="cc-insp-sec"><h4>Из чего собран паттерн</h4><p>'+esc(x.signal_count)+' сигналов'+(x.distinct_days!=null?" · "+esc(x.distinct_days)+" дней":"")+(x.distinct_institutions!=null?" · "+esc(x.distinct_institutions)+" института":"")+'</p>'+(Array.isArray(x.signals)&&x.signals.length?'<details class="radar-pattern-members"><summary>Показать составляющие</summary><ul>'+x.signals.slice(0,12).map(function(s){return "<li>"+esc(s.title||s.signal_id||s.radar_id||"сигнал")+"</li>";}).join("")+" </ul></details>":"")+'</div>':'')+
         (x.date?'<div class="cc-insp-sec"><h4>Дата</h4><p>'+esc(dateRu(x.date))+'</p></div>':'')+
         (kind==="opportunities"?'<div class="cc-insp-sec"><h4>Допуск и статус</h4><p>'+esc(eligibilityLabel(x.eligibility_status)+(x.program_type?" · "+x.program_type:"")+(x.official_status?" · источник: "+humanCode(x.official_status):""))+'</p>'+
           (eligReq.length?'<small class="radar-elig-head">Что уже известно из источника</small><ul class="radar-elig-list">'+eligReq.map(function(v){return "<li>"+esc(v)+"</li>";}).join("")+"</ul>":"")+
@@ -1985,12 +1992,12 @@
     var stamp=page.querySelector("[data-radar-stamp]");
     if(!sourceState.radar.ok||!radar){
       if(stamp)stamp.innerHTML='<div class="cc-stamp"><span class="cc-pulse bad"></span><span>Радар недоступен</span></div>';
-      ["opportunities","waiting","predictions","field","learning","investment","reputation"].forEach(function(k){var e=box(k);if(e)e.innerHTML='<div class="cc-unavailable"><b>Источник радара недоступен</b><span>Старые значения не подставляются.</span></div>';});
+      ["patterns","opportunities","waiting","predictions","field","learning","investment","reputation"].forEach(function(k){var e=box(k);if(e)e.innerHTML='<div class="cc-unavailable"><b>Источник радара недоступен</b><span>Старые значения не подставляются.</span></div>';});
       return;
     }
     if(stamp)stamp.innerHTML='<div class="cc-stamp"><span class="cc-pulse ok"></span><span>Радар · данные поступают</span></div>';
 
-    var opportunities=arr("opportunities"), waiting=arr("waiting"), upcoming=arr("upcoming"), predictions=arr("predictions");
+    var patterns=arr("patterns"), opportunities=arr("opportunities"), waiting=arr("waiting"), upcoming=arr("upcoming"), predictions=arr("predictions");
     var field=radar.field||{}, fieldSignals=Array.isArray(field.signals)?field.signals:[], fieldCounts=field.counts||{};
     var marketCounts=marketSignals&&marketSignals.counts||{}, scannerRun=scannerDiagnostics&&scannerDiagnostics.scanner&&scannerDiagnostics.scanner.run_summary||{};
     var returnedSignals=marketCounts.returned!=null?Number(marketCounts.returned):(marketSignals&&Array.isArray(marketSignals.signals)?marketSignals.signals.length:null);
@@ -2011,6 +2018,7 @@
       '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">•</span><span class="cc-kpi-body"><small>Наблюдать</small><strong>'+watchN+'</strong><em>ранние сигналы без основания бежать</em></span></div>'+
       '<div class="cc-kpi radar-kpi wait"><span class="cc-kpi-icon">○</span><span class="cc-kpi-body"><small>Ждём</small><strong>'+waiting.length+'</strong><em>внешние ответы и исходы</em></span></div>';
 
+    if(box("patterns"))box("patterns").innerHTML=listHTML(patterns,"patterns","Пока недостаточно независимых сигналов для устойчивого паттерна.",8);
     if(box("opportunities")){
       box("opportunities").innerHTML=
         '<div class="radar-lane-head urgent"><b>Срочные окна</b><span>дедлайн близко; сначала проверить допуск, затем маршрут действия</span></div>'+listHTML(urgentOpp,"opportunities","Срочных подтверждённых окон сейчас нет.",8)+
