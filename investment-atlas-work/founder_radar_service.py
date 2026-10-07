@@ -540,13 +540,17 @@ def strategic_projection(opportunities,field):
         ap=int(x.get("architecture_proximity") or 0)
         ms=int(x.get("market_significance") or 0)
         days=x.get("days_left")
+        blob=str(x.get("title") or "").lower()
+        buying_trigger=bool(re.search(r"\b(invest|investment|billion|million|contract|award|acqui|expansion|expand|capacity|build|construction|procurement|tender|rfp|partnership|joint venture|transformation program|modernization|modernisation|gigafactor)\b",blob))
         if cls=="ACTION_NOW" or route in {"APPLY","PARTNER"}:
             return ("STRONG","сильный вход","есть текущее окно действия или подтверждённый маршрут")
-        if ("PRIMARY_EVIDENCE" in reasons and ({"STRUCTURAL_MECHANISM","MECHANISM_CONFIRMED"} & reasons)):
-            return ("STRONG","сильный вход","первичный источник и подтверждённый структурный механизм")
+        if "PROCUREMENT_WINDOW_CHANGE" in reasons:
+            return ("STRONG","сильный вход","открыто подтверждённое procurement-окно")
+        if buying_trigger and ("PRIMARY_EVIDENCE" in reasons or ({"STRUCTURAL_MECHANISM","MECHANISM_CONFIRMED"} & reasons)):
+            return ("STRONG","сильный вход","есть подтверждённый покупочный/инвестиционный триггер")
         if days is not None and isinstance(days,(int,float)) and 0 <= days <= 14:
             return ("STRONG","сильный вход","близкий подтверждённый срок")
-        if cls=="REVIEW" or ap>=75 or ms>=60 or "PROCUREMENT_WINDOW_CHANGE" in reasons or "INSTITUTIONAL_PRIMARY_CHANGE" in reasons or "STANDARD_PRIMARY_CHANGE" in reasons:
+        if cls=="REVIEW" or ap>=75 or ms>=60 or "INSTITUTIONAL_PRIMARY_CHANGE" in reasons or "STANDARD_PRIMARY_CHANGE" in reasons:
             return ("PROMISING","перспективный","есть основание для содержательного разбора, но не для немедленного действия")
         return ("CONTEXT","фон контура","полезно держать в контексте; текущего хода не доказано")
     def put(k,x,why):
@@ -570,7 +574,12 @@ def strategic_projection(opportunities,field):
     for x in (field or {}).get("signals") or []:
         axes=set(str(v) for v in (x.get("axis") or []))
         if x.get("signal_type")=="commercial-door" or "commercial_procurement" in axes:
-            put("commercial",x,"Публичное внешнее событие, которое может открыть коммерческий вход.")
+            blob=str(x.get("title") or "").lower()
+            buying_trigger=bool(re.search(r"\b(invest|investment|billion|million|contract|award|acqui|expansion|expand|capacity|build|construction|procurement|tender|rfp|partnership|joint venture|transformation program|modernization|modernisation|gigafactor)\b",blob))
+            if "commercial_procurement" in axes or buying_trigger:
+                put("commercial",x,"Публичное внешнее событие с признаками реального коммерческого окна.")
+            else:
+                put("field",x,"Событие у компании из нашего target-set, но покупочный/инвестиционный триггер пока не подтверждён.")
         elif "institutional_policy" in axes or "standards_protocols" in axes:
             if x.get("radar_class")=="ACTION_NOW":
                 put("product",x,"Изменение стандарта/правил требует немедленной проверки влияния на продукт.")
@@ -1407,7 +1416,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.30","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.31","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
