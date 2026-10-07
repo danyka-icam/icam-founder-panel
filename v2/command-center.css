@@ -1955,3 +1955,17 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .radar-coverage-rule{margin-top:8px;padding-top:7px;border-top:1px solid var(--line-soft);font-size:8.8px;line-height:1.4;color:var(--muted-2)}
 @media(max-width:760px){.radar-coverage-grid{grid-template-columns:1fr}.radar-coverage-summary{grid-template-columns:repeat(3,1fr)}}
 .radar-lane-head.commercial-door{margin-top:12px;border-left-color:#77a7d1}.radar-lane-head.commercial-door b{color:#bad3e8}.radar-lane-head.commercial-door span{color:#8299aa}
+
+
+/* Radar interaction restoration */
+.radar-urgent-row,.movement-queue-row,.movement-row{
+  appearance:none;-webkit-appearance:none;width:100%;font:inherit;color:inherit;text-align:left;cursor:pointer
+}
+.radar-urgent-row:hover,.movement-queue-row:hover,.movement-row:hover{
+  border-color:rgba(63,207,166,.34);background-color:rgba(63,207,166,.035)
+}
+.radar-urgent-row.selected,.movement-queue-row.selected,.movement-row.selected{
+  outline:none;box-shadow:0 0 0 1px rgba(63,207,166,.22),0 0 22px rgba(63,207,166,.08)
+}
+.movement-row{border-left:0;border-right:0;border-bottom:0;background:transparent}
+.movement-queue-row{border-left:0;border-right:0;border-bottom:0;background:transparent}

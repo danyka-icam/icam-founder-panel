@@ -2070,7 +2070,11 @@
       var q=movementQueue.slice(0,18);
       box("movement-queue").innerHTML=
         (autoQueue.length?'<div class="movement-auto-note"><b>Автоматически вне твоей очереди · '+autoQueue.length+'</b><span>Маршрут уже определён; эти переходы остаются в системной карте, но не требуют твоего внимания.</span></div>':'')+
-        (q.length?'<div class="movement-queue-list">'+q.map(function(x,i){return '<div class="movement-queue-row"><span class="movement-queue-rank">'+(i+1)+'</span><div class="movement-queue-main"><small>'+esc(mqDomain(x.domain))+' · '+esc(mqState(x.state))+(x.date?' · '+esc(dateRu(x.date)):'')+'</small><b>'+esc(x.title||"Объект")+'</b><span>'+esc(x.required_move||"")+'</span></div><em>'+esc(x.priority==="HIGH"?"срочно":"системный разбор")+'</em></div>';}).join('')+'</div>':'<div class="movement-zero-loss">Очередь переходов пуста: всё либо движется автоматически, либо ждёт внешнее событие.</div>');
+        (q.length?'<div class="movement-queue-list">'+q.map(function(x,i){
+          var key="movement-queue:"+(x.movement_id||i);
+          inspectorItems[key]={item:Object.assign({},x,{why:"Объект находится в очереди движения, потому что следующий переход ещё не подтверждён.",summary_ru:x.required_move||x.next_step||"Требуется следующий системный переход.",radar_class:x.priority==="HIGH"?"ACTION_NOW":"REVIEW"}),kind:"movement"};
+          return '<button type="button" data-radar-select="'+esc(key)+'" class="movement-queue-row"><span class="movement-queue-rank">'+(i+1)+'</span><div class="movement-queue-main"><small>'+esc(mqDomain(x.domain))+' · '+esc(mqState(x.state))+(x.date?' · '+esc(dateRu(x.date)):'')+'</small><b>'+esc(x.title||"Объект")+'</b><span>'+esc(x.required_move||"")+'</span></div><em>'+esc(x.priority==="HIGH"?"срочно":"системный разбор")+'</em></button>';
+        }).join('')+'</div>':'<div class="movement-zero-loss">Очередь переходов пуста: всё либо движется автоматически, либо ждёт внешнее событие.</div>');
     }
     if(box("movement-flow")){
       var sf=["research_funding","field"];
@@ -2102,7 +2106,11 @@
       function urgentOwnerRu(c){return ({FOUNDER:"ТЕБЕ",SYSTEM_REVIEW:"СТЮ / СИСТЕМА",AUTO:"АВТО"})[c]||"СИСТЕМА";}
       function urgentDomainRu(d){return ({research_funding:"исследования / финансирование",commercial:"коммерция",research_field:"исследовательское поле",field:"поле"})[d]||humanCode(d||"контур");}
       var urgentNow=movementItems.filter(function(x){return x.state==="ACTION_DUE";}).slice(0,12);
-      box("urgent-now").innerHTML=urgentNow.length?'<div class="radar-urgent-list">'+urgentNow.map(function(x,i){var ec=urgentExec(x);return '<div class="radar-urgent-row '+String(ec).toLowerCase()+'"><span class="radar-urgent-index">'+(i+1)+'</span><div class="radar-urgent-main"><small>'+esc(urgentDomainRu(x.domain))+(x.date?' · '+esc(dateRu(x.date)):'')+'</small><b>'+esc(x.title||"Объект")+'</b><span>'+esc(x.next_step||x.route||"требует текущего хода")+'</span></div><em>'+esc(urgentOwnerRu(ec))+'</em></div>';}).join('')+'</div>':'<div class="movement-zero-loss">Срочных текущих ходов нет.</div>';
+      box("urgent-now").innerHTML=urgentNow.length?'<div class="radar-urgent-list">'+urgentNow.map(function(x,i){
+        var ec=urgentExec(x), key="movement-urgent:"+(x.movement_id||i);
+        inspectorItems[key]={item:Object.assign({},x,{why:"Этот объект поднят в «Срочно сейчас», потому что его текущее состояние — ACTION_DUE.",summary_ru:x.next_step||x.route||"Требуется текущий ход.",radar_class:"ACTION_NOW"}),kind:"movement"};
+        return '<button type="button" data-radar-select="'+esc(key)+'" class="radar-urgent-row '+String(ec).toLowerCase()+'"><span class="radar-urgent-index">'+(i+1)+'</span><div class="radar-urgent-main"><small>'+esc(urgentDomainRu(x.domain))+(x.date?' · '+esc(dateRu(x.date)):'')+'</small><b>'+esc(x.title||"Объект")+'</b><span>'+esc(x.next_step||x.route||"требует текущего хода")+'</span></div><em>'+esc(urgentOwnerRu(ec))+'</em></button>';
+      }).join('')+'</div>':'<div class="movement-zero-loss">Срочных текущих ходов нет.</div>';
     }
     if(box("movement")){
       function mvStateRu(s){return ({DETECTED:"обнаружено",QUALIFIED:"квалифицировано",ROUTE_IDENTIFIED:"направление определено",IN_MOTION:"в движении",WAITING_EXTERNAL:"ждём внешнее",ACTION_DUE:"пора действовать",CLOSED:"закрыто",PARKED:"отложено"})[s]||humanCode(s);}
@@ -2117,7 +2125,11 @@
         '<div class="movement-stage-strip">'+stages.map(function(st){return '<div class="'+(st==="ACTION_DUE"?"due":"")+'"><small>'+esc(mvStateRu(st))+'</small><b>'+esc(movementCounts[st]||0)+'</b></div>';}).join('')+'</div>'+
         '<div class="movement-health"><div><small>Активных объектов</small><b>'+esc(movement.active_total||0)+'</b><span>без закрытых и отложенных</span></div><div class="'+(movementGaps.length?"warn":"ok")+'"><small>Разрывы движения</small><b>'+esc(movementGaps.length)+'</b><span>'+(movementGaps.length?"нет маршрута или следующего шага":"активные объекты не потеряли ход")+'</span></div><div><small>Нужно сейчас</small><b>'+esc(movementCounts.ACTION_DUE||0)+'</b><span>срок / ручное действие / follow-up</span></div><div><small>Ждём внешнюю сторону</small><b>'+esc(movementCounts.WAITING_EXTERNAL||0)+'</b><span>не считать это бездействием · архивных импортов: '+esc(movementCounts.REFERENCE_ONLY||0)+'</span></div></div>'+
         '<div class="movement-stream-head"><b>Живой поток</b><span>наверх выходят объекты, которые надо двигать, а не весь архив радара</span></div>'+
-        (top.length?'<div class="movement-stream">'+top.map(function(x){return '<div class="movement-row '+String(x.state||"").toLowerCase()+'"><span class="movement-state">'+esc(mvStateRu(x.state))+'</span><div><b>'+esc(x.title||"Объект")+'</b><small>'+esc(mvDomainRu(x.domain))+(x.date?" · "+esc(dateRu(x.date)):"")+'</small></div><em>'+esc(x.next_step||x.route||"следующий шаг не передан")+'</em></div>';}).join('')+'</div>':'<div class="cc-empty"><b>Активного движения нет</b></div>')+
+        (top.length?'<div class="movement-stream">'+top.map(function(x,i){
+          var key="movement-live:"+(x.movement_id||i);
+          inspectorItems[key]={item:Object.assign({},x,{why:"Объект находится в живом потоке Радара на стадии «"+mvStateRu(x.state)+"».",summary_ru:x.next_step||x.route||"Следующий шаг не передан.",radar_class:x.state==="ACTION_DUE"?"ACTION_NOW":"REVIEW"}),kind:"movement"};
+          return '<button type="button" data-radar-select="'+esc(key)+'" class="movement-row '+String(x.state||"").toLowerCase()+'"><span class="movement-state">'+esc(mvStateRu(x.state))+'</span><div><b>'+esc(x.title||"Объект")+'</b><small>'+esc(mvDomainRu(x.domain))+(x.date?" · "+esc(dateRu(x.date)):"")+'</small></div><em>'+esc(x.next_step||x.route||"следующий шаг не передан")+'</em></button>';
+        }).join('')+'</div>':'<div class="cc-empty"><b>Активного движения нет</b></div>')+
         (movementGaps.length?'<details class="movement-gaps"><summary>Разрывы движения · '+movementGaps.length+'</summary>'+movementGaps.map(function(x){return '<div><b>'+esc(x.title||"Объект")+'</b><span>'+esc(mvDomainRu(x.domain))+' · '+esc(x.gap==="NO_ROUTE"?"нет маршрута":"нет следующего шага")+'</span></div>';}).join('')+'</details>':'');
     }
     if(box("patterns"))box("patterns").innerHTML=listHTML(patterns,"patterns","Пока недостаточно независимых сигналов для устойчивого паттерна.",8);
@@ -2209,7 +2221,14 @@
       }
     }
 
-    page.querySelectorAll("[data-radar-select]").forEach(function(btn){btn.addEventListener("click",function(){showInspector(btn.getAttribute("data-radar-select"),true);});});
+    if(page.getAttribute("data-radar-clicks-ready")!=="1"){
+      page.setAttribute("data-radar-clicks-ready","1");
+      page.addEventListener("click",function(e){
+        var btn=e.target&&e.target.closest?e.target.closest("[data-radar-select]"):null;
+        if(!btn||!page.contains(btn))return;
+        showInspector(btn.getAttribute("data-radar-select"),true);
+      });
+    }
     var firstImportant=page.querySelector("[data-radar-select].important");
     var first=firstImportant||page.querySelector("[data-radar-select]");
     if(first)showInspector(first.getAttribute("data-radar-select"),false);
