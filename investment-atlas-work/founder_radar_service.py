@@ -542,6 +542,26 @@ def strategic_projection(opportunities,field):
         days=x.get("days_left")
         blob=str(x.get("title") or "").lower()
         buying_trigger=bool(re.search(r"(?:\bto invest\b|\binvest(?:s|ed|ment)?\b.{0,28}(?:\$|billion|million|bn|m)\b|\bwins?\b.{0,40}\bcontract\b|\bawarded?\b.{0,40}\bcontract\b|\bcontract\b.{0,32}(?:\$|billion|million|bn|m)\b|\bacqui(?:res?|red|sition)\b|\bexpansion\b|\bexpand(?:s|ed|ing)?\b.{0,28}\bcapacity\b|\bto build\b|\bwill build\b|\bprocurement\b|\btender\b|\brfp\b|\bjoint venture\b|\bpartnership\b|\bgigafactor(?:y|ies)\b|\btransformation program\b|\bmoderni[sz]ation program\b)",blob))
+        # Authority/access requires a concrete participation window, not a conference/news mention.
+        if "authority_access" in set(str(v) for v in (x.get("axis") or [])):
+            access_trigger=bool(re.search(r"(?:call for proposals|call for papers|cfp|public comment|comment period|call for participation|ways to engage|join (?:the )?mailing list|working group|meeting schedule|workshop|listening session|register|registration|roundtable|consortium)",blob))
+            if access_trigger and cls=="ACTION_NOW":
+                return ("STRONG","сильный вход","есть открытое и срочное окно участия")
+            if access_trigger:
+                return ("PROMISING","перспективный","есть конкретный механизм участия; нужно подтвердить, что окно открыто сейчас")
+            return ("CONTEXT","фон контура","источник важен для доступа, но текущего окна участия не доказано")
+        # Funding/research calls require stronger evidence than scanner relevance.
+        if x.get("kind")=="official_opportunity" or x.get("funnel_stage"):
+            candidate=x.get("funding_project_candidate") or {}
+            overlay=(x.get("program_overlay") or {}).get("candidate_project_fit") or {}
+            eligibility=str(x.get("eligibility_status") or "")
+            if route in {"APPLY","PARTNER"} and (candidate or overlay):
+                return ("STRONG","сильный вход","есть конкретный проектный кандидат и подтверждённый маршрут")
+            if candidate or overlay:
+                return ("PROMISING","перспективный","есть конкретная проектная линия; остаются проверяемые разрывы допуска/пакета")
+            if eligibility in {"NEEDS_CALL_DOCUMENT_REVIEW","NEEDS_COMPANY_FACTS","UNCHECKED",""}:
+                return ("CONTEXT","фон контура","пока есть только предварительная релевантность; допуск или проектная линия не подтверждены")
+            return ("CONTEXT","фон контура","нет подтверждённого проектного маршрута")
         if cls=="ACTION_NOW" or route in {"APPLY","PARTNER"}:
             return ("STRONG","сильный вход","есть текущее окно действия или подтверждённый маршрут")
         if "PROCUREMENT_WINDOW_CHANGE" in reasons:
@@ -573,7 +593,9 @@ def strategic_projection(opportunities,field):
             put("research",x,"Исследовательское или грантовое окно, способное дать капитал, доказательство или доступ.")
     for x in (field or {}).get("signals") or []:
         axes=set(str(v) for v in (x.get("axis") or []))
-        if x.get("signal_type")=="commercial-door" or "commercial_procurement" in axes:
+        if "authority_access" in axes:
+            put("authority",x,"Внешнее окно участия, способное дать репутацию, доступ к рабочей группе, стандарту или профессиональному сообществу.")
+        elif x.get("signal_type")=="commercial-door" or "commercial_procurement" in axes:
             blob=str(x.get("title") or "").lower()
             buying_trigger=bool(re.search(r"(?:\bto invest\b|\binvest(?:s|ed|ment)?\b.{0,28}(?:\$|billion|million|bn|m)\b|\bwins?\b.{0,40}\bcontract\b|\bawarded?\b.{0,40}\bcontract\b|\bcontract\b.{0,32}(?:\$|billion|million|bn|m)\b|\bacqui(?:res?|red|sition)\b|\bexpansion\b|\bexpand(?:s|ed|ing)?\b.{0,28}\bcapacity\b|\bto build\b|\bwill build\b|\bprocurement\b|\btender\b|\brfp\b|\bjoint venture\b|\bpartnership\b|\bgigafactor(?:y|ies)\b|\btransformation program\b|\bmoderni[sz]ation program\b)",blob))
             if "commercial_procurement" in axes or buying_trigger:
@@ -752,12 +774,15 @@ def field_projection(signals):
         institutional_primary="institutional_policy" in axes
         standards_primary="standards_protocols" in axes
         procurement_primary="commercial_procurement" in axes
-        if (institutional_primary or standards_primary or procurement_primary) and lane in {"BACKGROUND","WATCH"}:
+        authority_primary="authority_access" in axes
+        if (institutional_primary or standards_primary or procurement_primary or authority_primary) and lane in {"BACKGROUND","WATCH"}:
             lane="REVIEW"
         if lane=="REVIEW" and typ=="research-signal":
             destination={"kind":"research","label":"Исследовательский ATLAS","route":"Проверить, меняет ли сигнал модель, архитектуру или исследовательскую очередь ATLAS."}
         elif typ=="research-signal":
             destination={"kind":"research","label":"ICAM / Наука","route":"Сохранить как внешний научный сигнал; повышать только при подтверждённом влиянии на программу."}
+        elif authority_primary:
+            destination={"kind":"authority_access","label":"Авторитет и доступ","route":"Проверить, существует ли реальное окно участия: CFP, public comment, working group, workshop, registration или call for participation. Внутреннее действие создавать только после подтверждения открытого окна."}
         elif procurement_primary:
             destination={"kind":"commercial_signal","label":"Коммерция / внешняя дверь","route":"Проверить допуск, релевантность и экономику окна. Только после подтверждения передавать во вкладку «Коммерция»; отправку автоматически не создавать."}
         elif standards_primary:
@@ -795,8 +820,15 @@ def field_projection(signals):
         if institutional_primary and lane=="REVIEW": bright_reasons.append("INSTITUTIONAL_PRIMARY_CHANGE")
         if standards_primary and lane=="REVIEW": bright_reasons.append("STANDARD_PRIMARY_CHANGE")
         if procurement_primary and lane=="REVIEW": bright_reasons.append("PROCUREMENT_WINDOW_CHANGE")
+        if authority_primary and lane=="REVIEW": bright_reasons.append("AUTHORITY_ACCESS_CHANGE")
         if typ!="research-signal" and lane=="REVIEW": bright_reasons.append("NON_RESEARCH_REVIEW")
         radar_visible=bool(bright_reasons)
+        # One-time NIST access baseline from 2026-10-07 was ingested before the
+        # access-feed rule was tightened. Keep it in history, never as active Radar.
+        baseline_authority_titles={"Access: AI Consortium","Access: NIST AI Consortium","Access: RFI","Access: ARIA Workshop","Access: Learn More"}
+        if authority_primary and str(src.get("name") or "")=="nist-ai-engagement" and str(s.get("title") or "") in baseline_authority_titles and str(s.get("observed_at") or "").startswith("2026-10-07T23:"):
+            radar_visible=False
+            bright_reasons=[]
         out.append({
           "radar_id":item_id("field",s.get("signal_id"),key[0],key[1],key[2]),
           "signal_id":s.get("signal_id"),"signal_type":s.get("signal_type"),"entity":s.get("entity"),
@@ -823,7 +855,18 @@ def field_projection(signals):
       "visible":sum(1 for x in out if x.get("radar_visible")),
       "suppressed":sum(1 for x in out if not x.get("radar_visible"))
     })
-    return {"signals":out,"counts":counts,"source_coverage":signals.get("source_coverage") if signals else None}
+    source_coverage=(signals.get("source_coverage") if signals else None)
+    if isinstance(source_coverage,dict):
+        source_coverage=dict(source_coverage)
+        fl=[]
+        for f in (source_coverage.get("failing") or []):
+            y=dict(f)
+            if y.get("source_id")=="br-pncp":
+                y["known_degraded"]=True
+                y["known_degraded_reason"]="PNCP public page is an explicitly PARTIAL procurement source and intermittently resets remote connections; not sole Brazil coverage."
+            fl.append(y)
+        source_coverage["failing"]=fl
+    return {"signals":out,"counts":counts,"source_coverage":source_coverage}
 
 def commercial_door_projection(dashboard):
     rows=[]
@@ -943,6 +986,13 @@ def radar_coverage_projection(field, opportunities):
         "basis":"Отдельные первичные источники policy / regulation / standards: "+", ".join([x.get("entity") or x.get("id") for x in sources if "institutional_policy" in (x.get("axis") or [])]),
         "source_count":sum(1 for x in sources if "institutional_policy" in (x.get("axis") or [])),
         "gap":None if sum(1 for x in sources if "institutional_policy" in (x.get("axis") or []))>=3 else "Нужно расширить отдельный контур policy / regulation / standards."
+      },
+      {
+        "key":"authority_access","label":"Авторитет и институциональный доступ",
+        "status":"COVERED" if sum(1 for x in sources if "authority_access" in (x.get("axis") or []))>=4 else ("PARTIAL" if any("authority_access" in (x.get("axis") or []) for x in sources) else "GAP"),
+        "basis":"Отдельные первичные источники участия: "+", ".join([x.get("entity") or x.get("id") for x in sources if "authority_access" in (x.get("axis") or [])]),
+        "source_count":sum(1 for x in sources if "authority_access" in (x.get("axis") or [])),
+        "gap":None if sum(1 for x in sources if "authority_access" in (x.get("axis") or []))>=4 else "Нужно расширить CFP / public comment / working-group feeds."
       },
       {
         "key":"standards_protocols","label":"Стандарты и протоколы",
@@ -1423,7 +1473,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.33","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.36","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,

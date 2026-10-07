@@ -578,7 +578,185 @@
         "data platform",
         "innovation"
       ]
+    },
+    {
+      "id": "aaif-events-access",
+      "mode": "link_feed",
+      "entity": "Agentic AI Foundation / Events",
+      "url": "https://aaif.io/events",
+      "axis": [
+        "authority_access",
+        "agentic_ai",
+        "events"
+      ],
+      "priority": 95,
+      "watch_terms": [
+        "Call for Proposals",
+        "CFP",
+        "Call for Papers",
+        "registration",
+        "Register",
+        "workshop",
+        "roundtable",
+        "community event",
+        "MCPCon",
+        "AGNTCon",
+        "MCP Dev Summit"
+      ],
+      "emit_on_first_links": false,
+      "emit_limit": 5,
+      "access_terms": [
+        "call for proposals",
+        "call for papers",
+        "cfp",
+        "public comment",
+        "comment period",
+        "working group",
+        "workshop",
+        "register",
+        "registration",
+        "participation",
+        "join",
+        "roundtable"
+      ]
+    },
+    {
+      "id": "linux-foundation-ai-events",
+      "mode": "link_feed",
+      "entity": "Linux Foundation / AI Events",
+      "url": "https://events.linuxfoundation.org/calendar/ai-conferences/",
+      "axis": [
+        "authority_access",
+        "agentic_ai",
+        "events"
+      ],
+      "priority": 91,
+      "watch_terms": [
+        "CFP Status",
+        "Call for Proposals",
+        "Call for Papers",
+        "Register",
+        "workshop",
+        "Agentics Day",
+        "MCP",
+        "AI agents"
+      ],
+      "emit_on_first_links": false,
+      "emit_limit": 5,
+      "access_terms": [
+        "call for proposals",
+        "call for papers",
+        "cfp",
+        "public comment",
+        "comment period",
+        "working group",
+        "workshop",
+        "register",
+        "registration",
+        "participation",
+        "join",
+        "roundtable"
+      ]
+    },
+    {
+      "id": "openid-authzen-participation",
+      "mode": "link_feed",
+      "entity": "OpenID AuthZEN / Participation",
+      "url": "https://openid.net/wg/authzen/",
+      "axis": [
+        "authority_access",
+        "standards_protocols",
+        "authorization"
+      ],
+      "priority": 96,
+      "watch_terms": [
+        "Participation",
+        "join the mailing list",
+        "contribute",
+        "Working Group",
+        "Meeting Schedule",
+        "weekly",
+        "Interop",
+        "certification"
+      ],
+      "emit_on_first_links": false,
+      "emit_limit": 5,
+      "access_terms": [
+        "call for proposals",
+        "call for papers",
+        "cfp",
+        "public comment",
+        "comment period",
+        "working group",
+        "workshop",
+        "register",
+        "registration",
+        "participation",
+        "join",
+        "roundtable"
+      ]
+    },
+    {
+      "id": "nist-ai-engagement",
+      "mode": "link_feed",
+      "entity": "NIST / AI Engagement",
+      "url": "https://www.nist.gov/super-intelligence/itl-super-intelligence-engagement",
+      "axis": [
+        "authority_access",
+        "institutional_policy",
+        "standards"
+      ],
+      "priority": 95,
+      "watch_terms": [
+        "public comment",
+        "Ways to Engage",
+        "Consortium",
+        "Request for Information",
+        "RFI",
+        "workshop",
+        "listening session",
+        "input",
+        "stakeholder"
+      ],
+      "emit_on_first_links": false,
+      "first_emit_limit": 3,
+      "access_terms": [
+        "AI Consortium",
+        "public comment",
+        "request for information",
+        "RFI",
+        "listening session"
+      ]
+    },
+    {
+      "id": "nist-ai-standards-access",
+      "mode": "link_feed",
+      "entity": "NIST / AI Standards Participation",
+      "url": "https://www.nist.gov/super-intelligence/super-intelligence-standards",
+      "axis": [
+        "authority_access",
+        "institutional_policy",
+        "standards"
+      ],
+      "priority": 94,
+      "watch_terms": [
+        "public comment",
+        "input",
+        "listening session",
+        "workshop",
+        "stakeholder",
+        "draft",
+        "comment period"
+      ],
+      "emit_on_first_links": false,
+      "first_emit_limit": 3,
+      "access_terms": [
+        "public comment",
+        "comment period",
+        "input and listening session",
+        "listening session"
+      ]
     }
   ],
-  "updated_at": "2026-10-07T22:10:00Z"
+  "updated_at": "2026-10-07T23:15:00Z"
 }

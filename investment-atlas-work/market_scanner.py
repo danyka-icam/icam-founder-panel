@@ -98,7 +98,7 @@ def arxiv(raw,s):
         if ts:es.append({"id":e.findtext("a:id","",ns),"title":title,"published":e.findtext("a:published","",ns),"terms":ts})
     return {"entries":es[:25]}
 def signal(s,typ,evidence,title=None,published=None):
-    sid="mkt-"+hashlib.sha256((s["id"]+typ+json.dumps(evidence,sort_keys=True)).encode()).hexdigest()[:20];score=min(100,s["priority"]+({"pricing-change":5,"positioning-shift":5,"research-signal":3,"procurement-window":5}.get(typ,0)))
+    sid="mkt-"+hashlib.sha256((s["id"]+typ+json.dumps(evidence,sort_keys=True)).encode()).hexdigest()[:20];score=min(100,s["priority"]+({"pricing-change":5,"positioning-shift":5,"research-signal":3,"procurement-window":5,"authority-window":5}.get(typ,0)))
     return {"schema":"atlas.market-signal.v1","signal_id":sid,"observed_at":now(),"published_at":published,"entity":s["entity"],"signal_type":typ,"title":title or f"{s['entity']}: обнаружено изменение","summary_ru":"Обнаружено семантически значимое изменение публичного источника.","why_it_matters_ru":"Затронуты оси: "+", ".join(s["axis"]), "axis":s["axis"],"relevance_score":score,"impact_score":score,"confidence":"high" if typ=="pricing-change" else "medium","source":{"name":s["id"],"url":s["url"]},"evidence":evidence[:8],"status":"important" if score>=90 else "watch","dedupe_key":sid}
 def run():
     cfg=load(CFG,{"sources":[]});state=load(STATE,{"sources":{},"seen":[]});rep={"started_at":now(),"sources":[]};n=0;err=0
@@ -120,9 +120,25 @@ def run():
                     add(OUT,signal(s,"procurement-window",ev,title="EU procurement: "+e["title"],published=e.get("published")));n+=1
             else:
                 cur=htmlsnap(raw,s)
+                authority_access="authority_access" in (s.get("axis") or [])
+                if prev is None and authority_access and s.get("emit_on_first_links"):
+                    access_terms=[str(v).lower() for v in (s.get("access_terms") or ["call for proposals","call for papers","cfp","public comment","comment period","working group","workshop","register","registration","participation","join"])]
+                    picked=[]
+                    for x in cur.get("links",[]):
+                        txt=(str(x.get("text") or "")+" "+str(x.get("href") or "")).lower()
+                        if any(t in txt for t in access_terms):
+                            picked.append(x)
+                    for x in picked[:int(s.get("first_emit_limit") or 4)]:
+                        add(OUT,signal(s,"authority-window",["current access link: "+x["text"]+" | "+str(x["href"])],title="Access: "+x["text"]));n+=1
                 if prev and cur["semantic_hash"]!=prev.get("semantic_hash"):
                     ev=[];ol={(x["text"],x["href"]) for x in prev.get("links",[])}
                     nl=[x for x in cur["links"] if (x["text"],x["href"]) not in ol]
+                    if authority_access and nl:
+                        access_terms=[str(v).lower() for v in (s.get("access_terms") or ["call for proposals","call for papers","cfp","public comment","comment period","working group","workshop","register","registration","participation","join"])]
+                        access=[x for x in nl if any(t in (str(x.get("text") or "")+" "+str(x.get("href") or "")).lower() for t in access_terms)]
+                        for x in access[:int(s.get("emit_limit") or 5)]:
+                            add(OUT,signal(s,"authority-window",["new access link: "+x["text"]+" | "+str(x["href"])],title="Access: "+x["text"]));n+=1
+                        nl=[x for x in nl if x not in access]
                     if nl:ev+=["new link: "+x["text"]+" | "+str(x["href"]) for x in nl[:5]]
                     if prev.get("prices")!=cur.get("prices"):ev+=["prices before: "+", ".join(prev.get("prices",[])[:10]),"prices after: "+", ".join(cur.get("prices",[])[:10])]
                     at=sorted(set(cur["terms"])-set(prev.get("terms",[])));rt=sorted(set(prev.get("terms",[]))-set(cur["terms"]))

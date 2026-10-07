@@ -1892,7 +1892,8 @@
         MECHANISM_CONFIRMED:"механизм подтверждён",
         INSTITUTIONAL_PRIMARY_CHANGE:"изменился первичный институциональный источник",
         STANDARD_PRIMARY_CHANGE:"изменился официальный стандарт / протокол",
-        PROCUREMENT_WINDOW_CHANGE:"открылось / изменилось procurement-окно"
+        PROCUREMENT_WINDOW_CHANGE:"открылось / изменилось procurement-окно",
+        AUTHORITY_ACCESS_CHANGE:"изменилось окно участия / институционального доступа"
       })[String(v||"")]||humanCode(v||"");
     }
     function itemHTML(x,kind,i){
