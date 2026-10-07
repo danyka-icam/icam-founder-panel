@@ -1890,7 +1890,8 @@
         PRIMARY_EVIDENCE:"есть первичный источник",
         STRUCTURAL_MECHANISM:"подтверждён структурный механизм",
         MECHANISM_CONFIRMED:"механизм подтверждён",
-        INSTITUTIONAL_PRIMARY_CHANGE:"изменился первичный институциональный источник"
+        INSTITUTIONAL_PRIMARY_CHANGE:"изменился первичный институциональный источник",
+        STANDARD_PRIMARY_CHANGE:"изменился официальный стандарт / протокол"
       })[String(v||"")]||humanCode(v||"");
     }
     function itemHTML(x,kind,i){

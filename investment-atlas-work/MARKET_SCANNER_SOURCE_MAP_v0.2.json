@@ -395,7 +395,49 @@
         "infraestrutura de IA",
         "Plano Brasileiro de Inteligência Artificial"
       ]
+    },
+    {
+      "id": "openid-authzen-specs",
+      "mode": "link_feed",
+      "entity": "OpenID AuthZEN",
+      "url": "https://openid.net/wg/authzen/specifications/",
+      "axis": [
+        "standards_protocols",
+        "authorization",
+        "agent_governance"
+      ],
+      "priority": 93,
+      "watch_terms": [
+        "Authorization API",
+        "COAZ",
+        "MCP",
+        "certification",
+        "Final Specification",
+        "Working Group Draft",
+        "interop"
+      ]
+    },
+    {
+      "id": "mcp-spec-releases",
+      "mode": "link_feed",
+      "entity": "Model Context Protocol",
+      "url": "https://github.com/modelcontextprotocol/modelcontextprotocol/releases",
+      "axis": [
+        "standards_protocols",
+        "agent_protocol",
+        "authorization"
+      ],
+      "priority": 94,
+      "watch_terms": [
+        "specification",
+        "release",
+        "authorization",
+        "security",
+        "routing",
+        "extensions",
+        "MCP"
+      ]
     }
   ],
-  "updated_at": "2026-10-07T21:46:00Z"
+  "updated_at": "2026-10-07T21:55:00Z"
 }
