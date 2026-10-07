@@ -93,7 +93,7 @@ def radar_semantics(row,kind):
             except Exception: days=None
             x["radar_class"]="ACTION_NOW" if days is not None and 0 <= days <= 7 else "REVIEW"
         else: x["radar_class"]="WATCH"
-        next_step="Проверить следующую контрольную точку по его собственному протоколу и не смешивать исследовательский результат с рыночным подтверждением."
+        next_step="Проверить следующую контрольную точку по протоколу этого контура и не смешивать исследовательский результат с рыночным подтверждением."
     if dest: x["destination"]=dest
     if why: x["why"]=why
     if next_step: x["next_step_ru"]=next_step

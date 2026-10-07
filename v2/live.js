@@ -2010,12 +2010,12 @@
     var urgentField=byClass(fieldSignals,"ACTION_NOW"), reviewField=byClass(fieldSignals,"REVIEW"), watchField=byClass(fieldSignals,"WATCH"), backgroundField=byClass(fieldSignals,"BACKGROUND");
     function countClass(items,kind,c){return (items||[]).filter(function(x){return attentionClass(x,kind)===c;}).length;}
     var urgentN=urgentOpp.length+urgentField.length+countClass(predictions,"predictions","ACTION_NOW")+countClass(learning,"learning","ACTION_NOW");
-    var reviewN=reviewOpp.length+reviewField.length+countClass(patterns,"patterns","REVIEW")+countClass(predictions,"predictions","REVIEW")+countClass(learning,"learning","REVIEW");
+    var reviewN=reviewOpp.length+reviewField.length+countClass(predictions,"predictions","REVIEW")+countClass(learning,"learning","REVIEW");
     var watchN=watchOpp.length+watchField.length+countClass(predictions,"predictions","WATCH")+countClass(learning,"learning","WATCH")+countClass(reputation,"reputation","WATCH");
     var summary=page.querySelector("[data-radar-summary]");
     if(summary)summary.innerHTML=
       '<div class="cc-kpi radar-kpi risk"><span class="cc-kpi-icon">!</span><span class="cc-kpi-body"><small>Нужно сейчас</small><strong>'+urgentN+'</strong><em>срок или подтверждённое окно действия</em></span></div>'+
-      '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">↳</span><span class="cc-kpi-body"><small>На разбор</small><strong>'+reviewN+'</strong><em>сильные сигналы и окна, где нужен анализ</em></span></div>'+
+      '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">↳</span><span class="cc-kpi-body"><small>На разбор</small><strong>'+reviewN+'</strong><em>отдельные сигналы и окна · сверху сведено паттернов: '+patterns.length+'</em></span></div>'+
       '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">•</span><span class="cc-kpi-body"><small>Наблюдать</small><strong>'+watchN+'</strong><em>ранние сигналы без основания бежать</em></span></div>'+
       '<div class="cc-kpi radar-kpi wait"><span class="cc-kpi-icon">○</span><span class="cc-kpi-body"><small>Ждём</small><strong>'+waiting.length+'</strong><em>внешние ответы и исходы</em></span></div>';
 
