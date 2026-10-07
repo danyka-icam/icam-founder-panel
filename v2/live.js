@@ -1886,7 +1886,10 @@
         MARKET_SIGNIFICANCE_GTE_60:"высокая рыночная значимость",
         CORROBORATED_GTE_2_SOURCES:"независимо подтверждено",
         EVIDENCE_CHANGED_GTE_2:"доказательная картина изменилась",
-        NON_RESEARCH_REVIEW:"внешнее изменение требует разбора"
+        NON_RESEARCH_REVIEW:"внешнее изменение требует разбора",
+        PRIMARY_EVIDENCE:"есть первичный источник",
+        STRUCTURAL_MECHANISM:"подтверждён структурный механизм",
+        MECHANISM_CONFIRMED:"механизм подтверждён"
       })[String(v||"")]||humanCode(v||"");
     }
     function itemHTML(x,kind,i){
@@ -2027,6 +2030,8 @@
 
     var patterns=arr("patterns"), opportunities=arr("opportunities"), waiting=arr("waiting"), upcoming=arr("upcoming"), predictions=arr("predictions");
     var field=radar.field||{}, fieldSignalsAll=Array.isArray(field.signals)?field.signals:[], fieldSignals=fieldSignalsAll.filter(function(x){return x.radar_visible!==false;}), fieldCounts=field.counts||{};
+    var commercialDoorSignals=fieldSignals.filter(function(x){return x.signal_type==="commercial-door";});
+    var coreFieldSignals=fieldSignals.filter(function(x){return x.signal_type!=="commercial-door";});
     var fundingProfile=radar.funding_profile||{}, fundingProfileSummary=fundingProfile.profile_summary||{}, fundingGaps=Array.isArray(fundingProfile.top_unresolved_facts)?fundingProfile.top_unresolved_facts:[];
     var marketCounts=marketSignals&&marketSignals.counts||{}, scannerRun=scannerDiagnostics&&scannerDiagnostics.scanner&&scannerDiagnostics.scanner.run_summary||{};
     var returnedSignals=marketCounts.returned!=null?Number(marketCounts.returned):(marketSignals&&Array.isArray(marketSignals.signals)?marketSignals.signals.length:null);
@@ -2036,7 +2041,7 @@
     function byClass(items,c){return (items||[]).filter(function(x){return attentionClass(x,"field")===c;});}
     function byOppClass(items,c){return (items||[]).filter(function(x){return attentionClass(x,"opportunities")===c;});}
     var urgentOpp=byOppClass(opportunities,"ACTION_NOW"), reviewOpp=byOppClass(opportunities,"REVIEW"), watchOpp=byOppClass(opportunities,"WATCH");
-    var urgentField=byClass(fieldSignals,"ACTION_NOW"), reviewField=byClass(fieldSignals,"REVIEW"), watchField=byClass(fieldSignals,"WATCH"), backgroundField=byClass(fieldSignals,"BACKGROUND");
+    var urgentField=byClass(coreFieldSignals,"ACTION_NOW"), reviewField=byClass(coreFieldSignals,"REVIEW"), watchField=byClass(coreFieldSignals,"WATCH"), backgroundField=byClass(coreFieldSignals,"BACKGROUND");
     function countClass(items,kind,c){return (items||[]).filter(function(x){return attentionClass(x,kind)===c;}).length;}
     var urgentN=urgentOpp.length+urgentField.length+countClass(predictions,"predictions","ACTION_NOW")+countClass(learning,"learning","ACTION_NOW");
     var reviewN=reviewOpp.length+reviewField.length+countClass(predictions,"predictions","REVIEW")+countClass(learning,"learning","REVIEW");
@@ -2164,6 +2169,7 @@
       var flowText=[emittedNow!=null?("последний цикл: "+emittedNow+" новый сигнал"):null,fieldCounts.visible!=null?("в Радаре: "+fieldCounts.visible):null,fieldCounts.suppressed?("в фон отведено: "+fieldCounts.suppressed):null,fieldCounts.collapsed_repeats?("схлопнуто повторов: "+fieldCounts.collapsed_repeats):null].filter(Boolean).join(" · ");
       box("field").innerHTML='<div class="radar-source-note">'+esc(covText+" "+flowText)+'</div>'+
         (urgentField.length?'<div class="radar-lane-head urgent"><b>Срочно проверить</b><span>есть основание для немедленного разбора</span></div>'+listHTML(urgentField,"field","",10):"")+
+        (commercialDoorSignals.length?'<div class="radar-lane-head commercial-door"><b>Внешние коммерческие двери</b><span>яркие события снаружи; отправки и follow-up живут только во вкладке «Коммерция»</span></div>'+listHTML(commercialDoorSignals,"field","",8):"")+
         '<div class="radar-lane-head review"><b>Нужно разобрать</b><span>сильная близость к нашей архитектуре или траектории; ещё не действие</span></div>'+listHTML(reviewField,"field","Сильных сигналов на разбор сейчас нет.",12)+
         '<div class="radar-lane-head watch"><b>Наблюдать</b><span>ранняя информация; ждём подтверждения или накопления картины</span></div>'+listHTML(watchField,"field","Сигналов наблюдения сейчас нет.",12)+
         (backgroundField.length?'<details class="radar-background"><summary>Фон · '+backgroundField.length+'</summary>'+listHTML(backgroundField,"field","",12)+'</details>':"");

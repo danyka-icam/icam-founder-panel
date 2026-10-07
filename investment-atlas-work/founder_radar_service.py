@@ -3,6 +3,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib import request
 from datetime import datetime, timezone
 from pathlib import Path
+from email.utils import parsedate_to_datetime
 import json, os, re, hashlib
 
 PORT=int(os.environ.get("FOUNDER_RADAR_PORT","8843"))
@@ -19,6 +20,7 @@ URLS={
  "activity":"http://127.0.0.1:8825/api/activity-inbox",
  "company_profile":"http://127.0.0.1:8846/api/v1/company-eligibility-profile",
  "funding_projects":"http://127.0.0.1:8846/api/v1/funding-project-candidates",
+ "commercial_signal_source":"http://127.0.0.1:8083/founder-ui-preview/commercial/dashboard.json",
 }
 
 def now(): return datetime.now(timezone.utc).isoformat()
@@ -629,6 +631,74 @@ def field_projection(signals):
     })
     return {"signals":out,"counts":counts,"source_coverage":signals.get("source_coverage") if signals else None}
 
+def commercial_door_projection(dashboard):
+    rows=[]
+    now_dt=datetime.now(timezone.utc)
+    seen=set()
+    for prod in (dashboard or {}).get("products") or []:
+        for x in prod.get("items") or []:
+            if x.get("_source_kind")!="live_runtime": continue
+            if str(x.get("red_team_verdict") or "").upper()!="GO": continue
+            title=str(x.get("why_now") or x.get("fresh_signal_title") or "").strip()
+            if not title: continue
+            company=str(x.get("company") or "").strip()
+            signal_id=str(x.get("signal_id") or "").strip()
+            key=(company.lower(),title.lower())
+            if key in seen: continue
+            seen.add(key)
+            event_date=iso_date_from(x.get("created_at"),x.get("qualified_updated_at"))
+            raw_fresh=x.get("fresh_signal_at")
+            if raw_fresh:
+                try:
+                    dt=parsedate_to_datetime(str(raw_fresh))
+                    if dt.tzinfo is None: dt=dt.replace(tzinfo=timezone.utc)
+                    event_date=dt.astimezone(timezone.utc).date().isoformat()
+                    if (now_dt-dt.astimezone(timezone.utc)).days>45: continue
+                except Exception:
+                    pass
+            source_count=int(x.get("source_count") or 0)
+            primary_count=int(x.get("primary_source_count") or 0)
+            flags=[str(v) for v in (x.get("red_team_flags") or [])]
+            bright=[]
+            if primary_count>0 or "PRIMARY_EVIDENCE" in flags: bright.append("PRIMARY_EVIDENCE")
+            if source_count>=2: bright.append("CORROBORATED_GTE_2_SOURCES")
+            if "STRUCTURAL_MECHANISM" in flags: bright.append("STRUCTURAL_MECHANISM")
+            if "MECHANISM_CONFIRMED" in flags: bright.append("MECHANISM_CONFIRMED")
+            if not bright: continue
+            prior=int(x.get("prior_contact_count") or 0)
+            rows.append({
+              "radar_id":item_id("commercial-door",signal_id,company,title),
+              "signal_id":signal_id or None,
+              "signal_type":"commercial-door",
+              "entity":company,
+              "title":title,
+              "observed_at":x.get("qualified_updated_at") or x.get("created_at"),
+              "published_at":event_date,
+              "status":"external_signal",
+              "radar_class":"REVIEW",
+              "summary_ru":"Внешнее изменение у "+company+": "+title if company else title,
+              "why":"Публичное событие прошло коммерческий red-team как содержательный внешний сигнал. Радар показывает только саму дверь, не операционную задачу.",
+              "next_step_ru":("Обновить внешний контекст существующего коммерческого кейса; новую отправку не создавать."
+                              if prior>0 else
+                              "Проверить, создаёт ли событие новый коммерческий вход; при подтверждении передать во вкладку «Коммерция»."),
+              "destination":{"kind":"commercial_signal","label":"Коммерция / внешняя дверь",
+                             "route":"Сигнал передаётся в коммерческий контур как контекст. Отправка, follow-up и маршрут контакта остаются только во вкладке «Коммерция»."},
+              "source":{"name":x.get("fresh_signal_source") or company or "commercial discovery","url":None},
+              "source_url":None,
+              "evidence":[
+                "source_count="+str(source_count),
+                "primary_source_count="+str(primary_count),
+                "red_team_verdict=GO"
+              ]+flags[:6],
+              "radar_visible":True,
+              "bright_reasons":bright,
+              "repeat_count":1,
+              "existing_commercial_case":prior>0,
+              "source_ref":{"kind":"commercial_door_signal","signal_id":signal_id,"company":company}
+            })
+    rows.sort(key=lambda x:(x.get("published_at") is None,x.get("published_at") or "9999",x.get("title") or ""),reverse=True)
+    return rows[:24]
+
 def radar_coverage_projection(field, opportunities):
     try:
         cfg=json.loads(MARKET_SOURCE_MAP.read_text(encoding="utf-8"))
@@ -682,10 +752,10 @@ def radar_coverage_projection(field, opportunities):
       },
       {
         "key":"commercial_doors","label":"Внешние коммерческие двери",
-        "status":"GAP",
-        "basis":"Ручная коммерческая работа намеренно вынесена из Радара; отдельный внешний scanner дверей ещё не подключён.",
-        "source_count":0,
-        "gap":"Нужен отдельный контур tender / procurement / CAPEX-expansion / partnership windows."
+        "status":"PARTIAL" if any(x.get("signal_type")=="commercial-door" for x in ((field or {}).get("signals") or [])) else "GAP",
+        "basis":"Есть внешний signal-feed по активному коммерческому target-set; отправки и follow-up в Радар не попадают.",
+        "source_count":sum(1 for x in ((field or {}).get("signals") or []) if x.get("signal_type")=="commercial-door"),
+        "gap":"Пока покрыт активный target-set, но нет широкого tender / procurement / CAPEX-expansion / partnership scanner."
       }
     ]
     counts={k:sum(1 for x in lanes if x["status"]==k) for k in ["COVERED","PARTIAL","GAP"]}
@@ -810,7 +880,7 @@ def movement_projection(opportunities, field, waiting):
         else: state="DETECTED"
         dom="field"
         if dest.get("kind")=="research": dom="research_field"
-        elif dest.get("kind") in {"commercial","market"}: dom="commercial_signal"
+        elif dest.get("kind") in {"commercial","commercial_signal","market"}: dom="commercial_signal"
         add(dom,x.get("title") or "Сигнал",state,x.get("source_ref"),x.get("next_step_ru"),dest.get("route"),
             iso_date_from(x.get("published_at"),x.get("observed_at")),"HIGH" if cls=="ACTION_NOW" else "NORMAL",
             {"radar_class":cls,"destination":dest.get("label"),"repeat_count":x.get("repeat_count")})
@@ -1089,6 +1159,11 @@ def build():
 
     sig=data.get("signals") or {}
     field=field_projection(sig)
+    door_signals=commercial_door_projection(data.get("commercial_signal_source") or {})
+    if door_signals:
+        field["signals"]=(field.get("signals") or [])+door_signals
+        field.setdefault("counts",{})["visible"]=int((field.get("counts") or {}).get("visible") or 0)+len(door_signals)
+        field["counts"]["commercial_doors"]=len(door_signals)
     opportunities=opportunities_projection(sig,upcoming,data.get("company_profile") or {})
     fp=(data.get("funding_projects") or {}).get("projects") or []
     for o in opportunities:
@@ -1139,7 +1214,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.22","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.23","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,

@@ -1954,3 +1954,4 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .radar-coverage-lane>span{display:block;margin-top:5px;font-size:9.5px;line-height:1.4;color:var(--muted)}.radar-coverage-lane em{display:block;margin-top:5px;font-size:9.3px;line-height:1.4;font-style:normal;color:#dda188}
 .radar-coverage-rule{margin-top:8px;padding-top:7px;border-top:1px solid var(--line-soft);font-size:8.8px;line-height:1.4;color:var(--muted-2)}
 @media(max-width:760px){.radar-coverage-grid{grid-template-columns:1fr}.radar-coverage-summary{grid-template-columns:repeat(3,1fr)}}
+.radar-lane-head.commercial-door{margin-top:12px;border-left-color:#77a7d1}.radar-lane-head.commercial-door b{color:#bad3e8}.radar-lane-head.commercial-door span{color:#8299aa}
