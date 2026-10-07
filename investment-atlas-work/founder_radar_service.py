@@ -569,10 +569,16 @@ def field_projection(signals):
         else:
             lane="BACKGROUND"
         typ=str(s.get("signal_type") or "")
+        axes=set(str(v) for v in (s.get("axis") or []))
+        institutional_primary="institutional_policy" in axes
+        if institutional_primary and lane in {"BACKGROUND","WATCH"}:
+            lane="REVIEW"
         if lane=="REVIEW" and typ=="research-signal":
             destination={"kind":"research","label":"Исследовательский ATLAS","route":"Проверить, меняет ли сигнал модель, архитектуру или исследовательскую очередь ATLAS."}
         elif typ=="research-signal":
             destination={"kind":"research","label":"ICAM / Наука","route":"Сохранить как внешний научный сигнал; повышать только при подтверждённом влиянии на программу."}
+        elif institutional_primary:
+            destination={"kind":"institutional","label":"Институциональное поле / стандарты","route":"Проверить, меняет ли официальное изменение требования, стандарты, governance-практику или траекторию ATLAS/aiclavis. Действие автоматически не создавать."}
         elif typ=="capability-release":
             destination={"kind":"market","label":"Рынок / конкурентная среда","route":"Проверить подтверждённое продуктовое или архитектурное изменение до коммерческого действия."}
         else:
@@ -601,6 +607,7 @@ def field_projection(signals):
         if ms>=60: bright_reasons.append("MARKET_SIGNIFICANCE_GTE_60")
         if len(distinct_sources)>=2: bright_reasons.append("CORROBORATED_GTE_2_SOURCES")
         if len(evidence_variants)>=2 and lane!="BACKGROUND": bright_reasons.append("EVIDENCE_CHANGED_GTE_2")
+        if institutional_primary and lane=="REVIEW": bright_reasons.append("INSTITUTIONAL_PRIMARY_CHANGE")
         if typ!="research-signal" and lane=="REVIEW": bright_reasons.append("NON_RESEARCH_REVIEW")
         radar_visible=bool(bright_reasons)
         out.append({
@@ -745,10 +752,10 @@ def radar_coverage_projection(field, opportunities):
       },
       {
         "key":"institutional_policy","label":"Институциональные и регуляторные сдвиги",
-        "status":"PARTIAL" if opp_sources else "GAP",
-        "basis":"Сейчас видим институты главным образом через конкурсы и программы финансирования.",
-        "source_count":len(opp_sources),
-        "gap":"Нет отдельного контура policy / regulation / standards."
+        "status":"COVERED" if sum(1 for x in sources if "institutional_policy" in (x.get("axis") or []))>=3 else ("PARTIAL" if any("institutional_policy" in (x.get("axis") or []) for x in sources) else "GAP"),
+        "basis":"Отдельные первичные источники policy / regulation / standards: "+", ".join([x.get("entity") or x.get("id") for x in sources if "institutional_policy" in (x.get("axis") or [])]),
+        "source_count":sum(1 for x in sources if "institutional_policy" in (x.get("axis") or [])),
+        "gap":None if sum(1 for x in sources if "institutional_policy" in (x.get("axis") or []))>=3 else "Нужно расширить отдельный контур policy / regulation / standards."
       },
       {
         "key":"commercial_doors","label":"Внешние коммерческие двери",
@@ -1214,7 +1221,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.23","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.24","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,

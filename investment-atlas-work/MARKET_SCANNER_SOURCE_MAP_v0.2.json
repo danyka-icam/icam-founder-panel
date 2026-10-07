@@ -1,0 +1,401 @@
+{
+  "schema": "atlas.market-scanner.sources.v1",
+  "version": "0.1",
+  "default_interval_seconds": 21600,
+  "sources": [
+    {
+      "id": "palantir-ontology",
+      "entity": "Palantir",
+      "mode": "page_watch",
+      "url": "https://www.palantir.com/docs/foundry/architecture-center/ontology-system",
+      "priority": 100,
+      "axis": [
+        "world-model",
+        "ontology",
+        "decision-graph",
+        "agents"
+      ],
+      "watch_terms": [
+        "digital representation of your world",
+        "cybernetic enterprise",
+        "decision graph",
+        "continuous learning",
+        "agent",
+        "ontology",
+        "change data capture",
+        "stream"
+      ]
+    },
+    {
+      "id": "palantir-pricing",
+      "entity": "Palantir",
+      "mode": "page_watch",
+      "url": "https://aws.amazon.com/marketplace/pp/prodview-a5m5xespbqyci",
+      "priority": 95,
+      "axis": [
+        "pricing",
+        "enterprise-adoption"
+      ],
+      "watch_terms": [
+        "Pricing",
+        "Foundry Unit",
+        "Cost/month",
+        "private pricing",
+        "overage"
+      ]
+    },
+    {
+      "id": "aera-main",
+      "entity": "Aera Technology",
+      "mode": "link_feed",
+      "url": "https://www.aeratechnology.com/",
+      "priority": 100,
+      "axis": [
+        "decision-intelligence",
+        "agents",
+        "decision-memory",
+        "execution"
+      ],
+      "watch_terms": [
+        "decision intelligence",
+        "agentic",
+        "decision",
+        "learns",
+        "acts",
+        "reasoning",
+        "memory",
+        "autonomous",
+        "procurement"
+      ]
+    },
+    {
+      "id": "aera-pricing",
+      "entity": "Aera Technology",
+      "mode": "page_watch",
+      "url": "https://aws.amazon.com/marketplace/pp/prodview-2eleg2lr5dcuk",
+      "priority": 95,
+      "axis": [
+        "pricing",
+        "decision-intelligence"
+      ],
+      "watch_terms": [
+        "Pricing",
+        "12-month contract",
+        "Decision Cloud",
+        "Cost/12 months",
+        "variable pricing"
+      ]
+    },
+    {
+      "id": "microsoft-digital-twin",
+      "entity": "Microsoft Fabric",
+      "mode": "page_watch",
+      "url": "https://learn.microsoft.com/en-us/fabric/real-time-intelligence/digital-twin-builder/overview",
+      "priority": 95,
+      "axis": [
+        "digital-twin",
+        "real-time",
+        "ontology",
+        "alerts"
+      ],
+      "watch_terms": [
+        "Digital Twin Builder",
+        "ontology",
+        "semantic relationships",
+        "Real-Time",
+        "Activator",
+        "alerts",
+        "actions",
+        "agent"
+      ]
+    },
+    {
+      "id": "microsoft-rti",
+      "entity": "Microsoft Fabric",
+      "mode": "page_watch",
+      "url": "https://www.microsoft.com/en-us/microsoft-fabric/features/real-time-intelligence",
+      "priority": 90,
+      "axis": [
+        "real-time",
+        "event-stream",
+        "digital-twin",
+        "simulation"
+      ],
+      "watch_terms": [
+        "real-time",
+        "digital replica",
+        "simulate",
+        "Activator",
+        "triggers",
+        "stream"
+      ]
+    },
+    {
+      "id": "celonis",
+      "entity": "Celonis",
+      "mode": "link_feed",
+      "url": "https://www.celonis.com/news",
+      "priority": 90,
+      "axis": [
+        "process-intelligence",
+        "digital-twin",
+        "agents"
+      ],
+      "watch_terms": [
+        "Process Intelligence Graph",
+        "digital twin",
+        "agent",
+        "AI",
+        "operations",
+        "orchestration"
+      ],
+      "source_repaired_at": "2026-10-04",
+      "source_repair_basis": "Official Celonis Newsroom; live server HTTP 200"
+    },
+    {
+      "id": "cosmotech",
+      "entity": "Cosmo Tech",
+      "mode": "link_feed",
+      "url": "https://cosmotech.com/",
+      "priority": 90,
+      "axis": [
+        "simulation",
+        "digital-twin",
+        "what-if",
+        "decision"
+      ],
+      "watch_terms": [
+        "Simulation Twin",
+        "digital twin",
+        "what-if",
+        "decision",
+        "scenario",
+        "optimization"
+      ]
+    },
+    {
+      "id": "dataminr",
+      "entity": "Dataminr",
+      "mode": "link_feed",
+      "url": "https://www.dataminr.com/press/",
+      "priority": 88,
+      "axis": [
+        "external-sensing",
+        "real-time",
+        "risk",
+        "business-impact"
+      ],
+      "watch_terms": [
+        "real-time",
+        "external",
+        "business impact",
+        "AI agent",
+        "event",
+        "risk",
+        "telemetry"
+      ]
+    },
+    {
+      "id": "quid",
+      "entity": "Quid",
+      "mode": "link_feed",
+      "url": "https://www.quid.com/knowledge-hub/product-releases",
+      "priority": 85,
+      "axis": [
+        "market-intelligence",
+        "external-sensing",
+        "agents"
+      ],
+      "watch_terms": [
+        "Q Agents",
+        "market intelligence",
+        "consumer intelligence",
+        "agent",
+        "competitive",
+        "signal"
+      ],
+      "source_repaired_at": "2026-10-04",
+      "source_repair_basis": "Official Quid Product Releases; live server HTTP 200"
+    },
+    {
+      "id": "gartner-dto",
+      "entity": "Gartner / DTO category",
+      "mode": "page_watch",
+      "url": "https://www.gartner.com/en/documents/8166629",
+      "priority": 85,
+      "axis": [
+        "category-signal",
+        "digital-twin"
+      ],
+      "watch_terms": [
+        "Digital Twin of an Organization",
+        "Magic Quadrant",
+        "DTO"
+      ],
+      "known_degraded": true,
+      "known_degraded_since": "2026-09-01",
+      "known_degraded_reason": "HTTP 403 Forbidden -- Gartner blocks non-browser User-Agents on this document URL; confirmed live via direct curl 2026-09-04. Not a broken link, a bot-blocking wall.",
+      "known_degraded_action": "No fix within this scanner: it is stdlib-only, read-only public HTTP by design (QA.md), and spoofing a browser UA to bypass an access wall is not a legitimate workaround. Source stays in the loop, honestly erroring, until a public non-gated equivalent (e.g. a Gartner press release mirror) is identified."
+    },
+    {
+      "id": "arxiv",
+      "entity": "Research",
+      "mode": "arxiv",
+      "url": "https://export.arxiv.org/api/query?search_query=all:%22digital+twin%22+OR+all:%22decision+intelligence%22+OR+all:%22enterprise+ontology%22+OR+all:%22decision+graph%22&sortBy=submittedDate&sortOrder=descending&max_results=25",
+      "priority": 80,
+      "axis": [
+        "research",
+        "world-model",
+        "decision-intelligence",
+        "simulation",
+        "epistemics"
+      ],
+      "watch_terms": [
+        "digital twin",
+        "decision intelligence",
+        "enterprise ontology",
+        "decision graph",
+        "causal",
+        "provenance",
+        "uncertainty",
+        "agentic",
+        "simulation",
+        "world model"
+      ]
+    },
+    {
+      "id": "transporeon-press",
+      "entity": "Transporeon / Trimble",
+      "mode": "link_feed",
+      "url": "https://www.transporeon.com/en/company/press",
+      "priority": 94,
+      "axis": [
+        "agents",
+        "workflow-execution",
+        "logistics",
+        "human-in-loop",
+        "autonomous-operations"
+      ],
+      "watch_terms": [
+        "agent",
+        "autonomous",
+        "workflow",
+        "execution",
+        "orchestration",
+        "human-in-the-loop",
+        "procurement",
+        "transport execution",
+        "AI"
+      ]
+    },
+    {
+      "id": "reply-logistics-news",
+      "entity": "Reply / Logistics Reply",
+      "mode": "link_feed",
+      "url": "https://www.reply.com/en/newsroom",
+      "priority": 91,
+      "axis": [
+        "agents",
+        "authority",
+        "warehouse-execution",
+        "human-oversight",
+        "autonomous-operations"
+      ],
+      "watch_terms": [
+        "agent",
+        "authority",
+        "warehouse",
+        "execution",
+        "governed autonomy",
+        "human oversight",
+        "workflow",
+        "AI"
+      ]
+    },
+    {
+      "id": "nist-ai-standards",
+      "mode": "link_feed",
+      "entity": "NIST / AI Standards",
+      "url": "https://www.nist.gov/super-intelligence/super-intelligence-standards",
+      "axis": [
+        "institutional_policy",
+        "standards",
+        "governance"
+      ],
+      "priority": 89,
+      "watch_terms": [
+        "AI RMF",
+        "standards",
+        "governance",
+        "conformity",
+        "evaluation",
+        "risk management",
+        "public draft"
+      ]
+    },
+    {
+      "id": "eu-ai-act-enforcement",
+      "mode": "link_feed",
+      "entity": "European Commission / AI Act",
+      "url": "https://digital-strategy.ec.europa.eu/en/policies/enforcement-ai-act",
+      "axis": [
+        "institutional_policy",
+        "regulation",
+        "governance"
+      ],
+      "priority": 92,
+      "watch_terms": [
+        "AI Act",
+        "enforcement",
+        "obligations",
+        "standards",
+        "GPAI",
+        "transparency",
+        "high-risk",
+        "AI Office"
+      ]
+    },
+    {
+      "id": "linux-foundation-agentic-ai",
+      "mode": "link_feed",
+      "entity": "Linux Foundation / Agentic AI",
+      "url": "https://www.linuxfoundation.org/blog/tag/ai-ml",
+      "axis": [
+        "institutional_policy",
+        "agentic_ai",
+        "standards"
+      ],
+      "priority": 88,
+      "watch_terms": [
+        "agentic AI",
+        "MCP",
+        "AGENTS.md",
+        "agentgateway",
+        "open standards",
+        "governance",
+        "interoperability"
+      ]
+    },
+    {
+      "id": "mcti-ai-policy",
+      "mode": "link_feed",
+      "entity": "MCTI / AI Policy Brazil",
+      "url": "https://www.gov.br/mcti/pt-br/acompanhe-o-mcti/noticias",
+      "axis": [
+        "institutional_policy",
+        "brazil",
+        "ai_policy"
+      ],
+      "priority": 91,
+      "watch_terms": [
+        "inteligência artificial",
+        "PBIA",
+        "governança",
+        "regulação",
+        "infraestrutura de IA",
+        "Plano Brasileiro de Inteligência Artificial"
+      ]
+    }
+  ],
+  "updated_at": "2026-10-07T21:46:00Z"
+}

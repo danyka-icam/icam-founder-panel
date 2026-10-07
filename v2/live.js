@@ -1889,7 +1889,8 @@
         NON_RESEARCH_REVIEW:"внешнее изменение требует разбора",
         PRIMARY_EVIDENCE:"есть первичный источник",
         STRUCTURAL_MECHANISM:"подтверждён структурный механизм",
-        MECHANISM_CONFIRMED:"механизм подтверждён"
+        MECHANISM_CONFIRMED:"механизм подтверждён",
+        INSTITUTIONAL_PRIMARY_CHANGE:"изменился первичный институциональный источник"
       })[String(v||"")]||humanCode(v||"");
     }
     function itemHTML(x,kind,i){
