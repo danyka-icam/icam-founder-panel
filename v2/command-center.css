@@ -1773,3 +1773,19 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .funding-evidence-boundary{display:block;margin-top:8px;padding-top:7px;border-top:1px solid var(--line-soft);line-height:1.4;color:#c6ad7c!important}
 @media(max-width:1050px){.funding-funnel-summary{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:700px){.funding-mini-funnel{grid-template-columns:repeat(3,minmax(0,1fr));margin-left:0}.funding-route{margin-left:0}.funding-funnel-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.funding-inspector-grid{grid-template-columns:1fr}}
+
+/* Company Eligibility Profile */
+.funding-profile-box{margin-bottom:10px;padding:11px 12px;border:1px solid rgba(126,214,195,.18);border-radius:10px;background:linear-gradient(110deg,rgba(63,207,166,.04),rgba(8,19,24,.42))}
+.funding-profile-head{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.funding-profile-head small{display:block;font-size:8px;letter-spacing:.07em;color:var(--muted-2)}
+.funding-profile-head b{display:block;margin-top:3px;font:400 15px var(--cc-serif);color:#e8f2ef}
+.funding-profile-head span{display:block;margin-top:3px;font-size:9px;color:var(--muted)}
+.funding-profile-head em{font:400 22px var(--cc-serif);font-style:normal;color:#bfeadd}
+.funding-gap-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 12px;margin-top:10px;padding-top:9px;border-top:1px solid var(--line-soft)}
+.funding-gap-list>div{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:6px;align-items:center;min-width:0}
+.funding-gap-list span{width:18px;height:18px;display:grid;place-items:center;border:1px solid rgba(159,140,226,.28);border-radius:50%;font-size:7.5px;color:#cfc2f2}
+.funding-gap-list b{font-size:8.8px;font-weight:500;color:#d7e0dd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.funding-gap-list em{font-size:8px;font-style:normal;color:var(--muted-2);white-space:nowrap}
+.funding-profile-progress{display:flex;justify-content:space-between;gap:10px;margin-top:8px;padding:7px 8px;border:1px solid var(--line-soft);border-radius:7px;background:rgba(63,207,166,.02);font-size:8.5px}
+.funding-profile-progress span{color:var(--muted)}.funding-profile-progress b{color:#c9e7de}
+@media(max-width:850px){.funding-gap-list{grid-template-columns:1fr}.funding-profile-head{align-items:flex-start}.funding-gap-list>div{grid-template-columns:20px minmax(0,1fr)}.funding-gap-list em{grid-column:2}}

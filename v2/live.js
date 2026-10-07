@@ -1978,7 +1978,9 @@
         (x.evidence_ceiling?'<div class="cc-insp-sec radar-ceiling"><h4>Потолок доказательств</h4><p>'+esc(x.evidence_ceiling)+'</p></div>':'')+
         (x.signal_count!=null?'<div class="cc-insp-sec"><h4>Из чего собран паттерн</h4><p>'+esc(x.signal_count)+' сигналов'+(x.distinct_days!=null?" · "+esc(x.distinct_days)+" дней":"")+(x.distinct_institutions!=null?" · "+esc(x.distinct_institutions)+" института":"")+'</p>'+(Array.isArray(x.signals)&&x.signals.length?'<details class="radar-pattern-members"><summary>Показать составляющие</summary><ul>'+x.signals.slice(0,12).map(function(s){return "<li>"+esc(s.title||s.signal_id||s.radar_id||"сигнал")+"</li>";}).join("")+" </ul></details>":"")+'</div>':'')+
         (x.date?'<div class="cc-insp-sec"><h4>Дата</h4><p>'+esc(dateRu(x.date))+'</p></div>':'')+
-        (kind==="opportunities"&&x.funnel_checks?'<div class="cc-insp-sec funding-inspector"><h4>Воронка финансирования</h4><div class="funding-inspector-route '+esc(String(x.route_decision||"watch").toLowerCase())+'"><b>'+esc(x.route_decision||"WATCH")+' · '+esc(x.route_decision_label||"")+'</b><span>'+esc(x.route_decision_reason||"")+'</span></div><div class="funding-inspector-grid"><div><small>Текущий этап</small><b>'+esc(humanCode(x.funnel_stage||"—"))+'</b></div><div><small>Стратегическое соответствие</small><b>'+esc((x.strategic_fit||{}).label||"—")+'</b></div><div><small>Усилия</small><b>'+esc((x.effort||{}).label||"—")+'</b></div><div><small>Потенциальный выигрыш</small><b>'+esc((x.upside||{}).label||"—")+'</b></div><div><small>Срок</small><b>'+esc((x.deadline_pressure||{}).label||"—")+'</b></div><div><small>Блокер</small><b>'+esc(x.blocking_fact||"нет подтверждённого блокера")+'</b></div></div><small class="funding-evidence-boundary">Предварительная оценка соответствия не заменяет юридическую проверку допуска. APPLY запрещён до ELIGIBLE.</small></div>':'')+
+        (kind==="opportunities"&&x.funnel_checks?'<div class="cc-insp-sec funding-inspector"><h4>Воронка финансирования</h4><div class="funding-inspector-route '+esc(String(x.route_decision||"watch").toLowerCase())+'"><b>'+esc(x.route_decision||"WATCH")+' · '+esc(x.route_decision_label||"")+'</b><span>'+esc(x.route_decision_reason||"")+'</span></div><div class="funding-inspector-grid"><div><small>Текущий этап</small><b>'+esc(humanCode(x.funnel_stage||"—"))+'</b></div><div><small>Стратегическое соответствие</small><b>'+esc((x.strategic_fit||{}).label||"—")+'</b></div><div><small>Усилия</small><b>'+esc((x.effort||{}).label||"—")+'</b></div><div><small>Потенциальный выигрыш</small><b>'+esc((x.upside||{}).label||"—")+'</b></div><div><small>Срок</small><b>'+esc((x.deadline_pressure||{}).label||"—")+'</b></div><div><small>Блокер</small><b>'+esc(x.blocking_fact||"нет подтверждённого блокера")+'</b></div></div>'+
+          (x.company_profile_gap&&x.company_profile_gap.required?'<div class="funding-profile-progress"><span>Профиль для этой программы</span><b>'+esc(x.company_profile_gap.verified)+' / '+esc(x.company_profile_gap.required)+' фактов подтверждено</b></div>':'')+
+          '<small class="funding-evidence-boundary">Предварительная оценка соответствия не заменяет юридическую проверку допуска. APPLY запрещён до ELIGIBLE.</small></div>':'')+
         (kind==="opportunities"?'<div class="cc-insp-sec"><h4>Допуск и статус</h4><p>'+esc(eligibilityLabel(x.eligibility_status)+(x.program_type?" · "+x.program_type:"")+(x.official_status?" · источник: "+humanCode(x.official_status):""))+'</p>'+
           (eligReq.length?'<small class="radar-elig-head">Что уже известно из источника</small><ul class="radar-elig-list">'+eligReq.map(function(v){return "<li>"+esc(v)+"</li>";}).join("")+"</ul>":"")+
           (eligMissing.length?'<small class="radar-elig-head">Чего не хватает для решения</small><ul class="radar-elig-list missing">'+eligMissing.map(function(v){return "<li>"+esc(v)+"</li>";}).join("")+"</ul>":"")+
@@ -2007,6 +2009,7 @@
 
     var patterns=arr("patterns"), opportunities=arr("opportunities"), waiting=arr("waiting"), upcoming=arr("upcoming"), predictions=arr("predictions");
     var field=radar.field||{}, fieldSignals=Array.isArray(field.signals)?field.signals:[], fieldCounts=field.counts||{};
+    var fundingProfile=radar.funding_profile||{}, fundingProfileSummary=fundingProfile.profile_summary||{}, fundingGaps=Array.isArray(fundingProfile.top_unresolved_facts)?fundingProfile.top_unresolved_facts:[];
     var marketCounts=marketSignals&&marketSignals.counts||{}, scannerRun=scannerDiagnostics&&scannerDiagnostics.scanner&&scannerDiagnostics.scanner.run_summary||{};
     var returnedSignals=marketCounts.returned!=null?Number(marketCounts.returned):(marketSignals&&Array.isArray(marketSignals.signals)?marketSignals.signals.length:null);
     var storedSignals=marketCounts.stored_total!=null?Number(marketCounts.stored_total):null;
@@ -2029,9 +2032,36 @@
 
     if(box("patterns"))box("patterns").innerHTML=listHTML(patterns,"patterns","Пока недостаточно независимых сигналов для устойчивого паттерна.",8);
     if(box("opportunities")){
+      function fundingFactRu(k){return ({
+        legal_entity_brazil:"Бразильское юрлицо-заявитель",
+        headquarters_brazil:"Штаб-квартира в Бразилии",
+        administration_brazil:"Управление компанией в Бразилии",
+        for_profit:"Коммерческая организация",
+        legal_form:"Юридическая форма",
+        legal_status_active:"Активный юридический статус",
+        company_size_class:"Категория размера компании",
+        startup_legal_status:"Статус startup",
+        annual_revenue_band_brl:"Диапазон годовой выручки",
+        cnpq_institution_directory_registered:"Регистрация в Diretório CNPq",
+        eligible_project_coordinator:"Допустимый координатор проекта",
+        coordinator_formal_company_link:"Формальная связь координатора с компанией",
+        coordinator_lattes_current:"Актуальный Currículo Lattes координатора",
+        candidate_ai_project_defined:"Определён проект по ИИ",
+        nib_mission_alignment:"Соответствие миссии Nova Indústria Brasil",
+        counterpart_20pct_capacity:"Возможность обеспечить 20% софинансирования",
+        project_theme:"Тематическая линия проекта",
+        trl_initial:"Начальный TRL",
+        trl_target:"Целевой TRL",
+        university_partner_available:"Доступный университет-партнёр",
+        research_institution_partner_available:"Исследовательский партнёр",
+        consortium_capability:"Возможность участия в консорциуме",
+        santa_catarina_presence:"Подтверждённое присутствие в Санта-Катарине"
+      })[k]||humanCode(k||"факт");}
       var fd={APPLY:0,PARTNER:0,WATCH:0,DROP:0}, fs={FOUND:0,ELIGIBILITY:0,STRATEGIC_FIT:0,EFFORT_UPSIDE:0,DEADLINE:0};
       opportunities.forEach(function(x){var d=String(x.route_decision||"WATCH").toUpperCase();fd[d]=(fd[d]||0)+1;var st=String(x.funnel_stage||"FOUND").toUpperCase();fs[st]=(fs[st]||0)+1;});
-      var funnelSummary='<div class="funding-funnel-summary"><div><small>FOUND</small><b>'+opportunities.length+'</b></div><div><small>ELIGIBILITY</small><b>'+fs.ELIGIBILITY+'</b></div><div><small>FIT</small><b>'+fs.STRATEGIC_FIT+'</b></div><div><small>EFFORT/UPSIDE</small><b>'+fs.EFFORT_UPSIDE+'</b></div><div><small>APPLY</small><b>'+fd.APPLY+'</b></div><div><small>PARTNER</small><b>'+fd.PARTNER+'</b></div><div><small>WATCH</small><b>'+fd.WATCH+'</b></div><div><small>DROP</small><b>'+fd.DROP+'</b></div></div>'+
+      var profileBox='<div class="funding-profile-box"><div class="funding-profile-head"><div><small>КАНОНИЧЕСКИЙ ПРОФИЛЬ ЗАЯВИТЕЛЯ</small><b>'+esc(fundingProfileSummary.verified==null?"—":fundingProfileSummary.verified)+' подтверждено из '+esc(fundingProfileSummary.facts_total==null?"—":fundingProfileSummary.facts_total)+'</b><span>Неизвестный факт никогда не считается выполненным условием программы.</span></div><em>'+esc(fundingProfileSummary.coverage_pct==null?"—":fundingProfileSummary.coverage_pct+"%")+'</em></div>'+
+        (fundingGaps.length?'<div class="funding-gap-list">'+fundingGaps.slice(0,7).map(function(g,i){return '<div><span>'+(i+1)+'</span><b>'+esc(fundingFactRu(g.key))+'</b><em>блокирует '+esc(g.blocked_opportunities)+' '+(Number(g.blocked_opportunities)===1?"программу":"программы")+'</em></div>';}).join('')+'</div>':'')+'</div>';
+      var funnelSummary=profileBox+'<div class="funding-funnel-summary"><div><small>FOUND</small><b>'+opportunities.length+'</b></div><div><small>ELIGIBILITY</small><b>'+fs.ELIGIBILITY+'</b></div><div><small>FIT</small><b>'+fs.STRATEGIC_FIT+'</b></div><div><small>EFFORT/UPSIDE</small><b>'+fs.EFFORT_UPSIDE+'</b></div><div><small>APPLY</small><b>'+fd.APPLY+'</b></div><div><small>PARTNER</small><b>'+fd.PARTNER+'</b></div><div><small>WATCH</small><b>'+fd.WATCH+'</b></div><div><small>DROP</small><b>'+fd.DROP+'</b></div></div>'+
         '<div class="radar-source-note funding-rule">FOUND → ELIGIBILITY → STRATEGIC FIT → EFFORT/UPSIDE → DEADLINE → APPLY / PARTNER / WATCH / DROP. До подтверждённого допуска карточка не может перейти в APPLY.</div>';
       box("opportunities").innerHTML=funnelSummary+
         '<div class="radar-lane-head urgent"><b>Срочно снять блокер</b><span>срок близко; это не означает, что подача уже разрешена</span></div>'+listHTML(urgentOpp,"opportunities","Срочных блокеров сейчас нет.",8)+

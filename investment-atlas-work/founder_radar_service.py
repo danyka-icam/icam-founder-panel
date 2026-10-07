@@ -15,6 +15,7 @@ URLS={
  "temporal":BASE+"/founder-star-view/api/temporal-universe",
  "investment":"http://127.0.0.1:8842/api/v1/investment-lab/summary",
  "activity":"http://127.0.0.1:8825/api/activity-inbox",
+ "company_profile":"http://127.0.0.1:8846/api/v1/company-eligibility-profile",
 }
 
 def now(): return datetime.now(timezone.utc).isoformat()
@@ -188,9 +189,83 @@ def prediction_projection(twin,predictions):
         if k in seen: continue
         seen.add(k); res.append(x)
     return res
-def funding_funnel(row):
+def opportunity_fact_keys(row):
+    title=str(row.get("title") or "").lower()
+    if "nº 29/2026" in title or "no 29/2026" in title or "rhae ia" in title:
+        return [
+          "legal_entity_brazil","headquarters_brazil","administration_brazil","for_profit",
+          "company_size_class","eligible_project_coordinator","coordinator_formal_company_link",
+          "coordinator_lattes_current","cnpq_institution_directory_registered",
+          "candidate_ai_project_defined","nib_mission_alignment","counterpart_20pct_capacity"
+        ]
+    if "tecnologias digitais" in title:
+        return ["legal_entity_brazil","headquarters_brazil","for_profit","legal_form",
+                "project_theme","trl_initial","trl_target"]
+    if "semicondutores" in title:
+        return ["legal_entity_brazil","legal_form","company_size_class","startup_legal_status",
+                "annual_revenue_band_brl"]
+    if "startups inovadoras" in title:
+        return ["legal_entity_brazil","legal_form","startup_legal_status","annual_revenue_band_brl"]
+    return []
+
+def profile_gap(row,profile):
+    facts=(profile or {}).get("facts") or {}
+    keys=opportunity_fact_keys(row)
+    checks=[]
+    for k in keys:
+        f=facts.get(k) or {"status":"UNKNOWN","value":None,"source_refs":[]}
+        checks.append({"key":k,"status":str(f.get("status") or "UNKNOWN").upper(),
+                       "value":f.get("value"),"source_refs":f.get("source_refs") or [],
+                       "verified_at":f.get("verified_at")})
+    verified=sum(1 for x in checks if x["status"]=="VERIFIED")
+    conflicts=sum(1 for x in checks if x["status"]=="CONFLICT")
+    unresolved=[x for x in checks if x["status"]!="VERIFIED"]
+    return {
+      "required_fact_keys":keys,"checks":checks,"required":len(keys),"verified":verified,
+      "conflicts":conflicts,"unresolved":len(unresolved),
+      "coverage_pct":round((verified/len(keys)*100),1) if keys else None,
+      "next_fact_key":unresolved[0]["key"] if unresolved else None
+    }
+
+def evaluate_known_rules(row,gap):
+    # This evaluator is deliberately narrow: it only applies rules explicitly
+    # extracted into the current opportunity record. Unknown facts never pass.
+    checks={x["key"]:x for x in gap.get("checks") or []}
+    if not checks or any(x["status"]!="VERIFIED" for x in checks.values()):
+        return {"status":"PENDING_PROFILE_FACTS","passed":None,"failures":[]}
+    title=str(row.get("title") or "").lower()
+    failures=[]
+    def v(k): return checks[k].get("value") if k in checks else None
+    if "rhae ia" in title or "29/2026" in title:
+        for k in ["legal_entity_brazil","headquarters_brazil","administration_brazil","for_profit",
+                  "eligible_project_coordinator","coordinator_formal_company_link","coordinator_lattes_current",
+                  "cnpq_institution_directory_registered","candidate_ai_project_defined",
+                  "nib_mission_alignment","counterpart_20pct_capacity"]:
+            if v(k) is not True: failures.append(k)
+        allowed={"MICRO","MICROEMPRESA","SMALL","PEQUENA","PEQUENA EMPRESA","STARTUP"}
+        if str(v("company_size_class") or "").strip().upper() not in allowed: failures.append("company_size_class")
+    elif "tecnologias digitais" in title:
+        for k in ["legal_entity_brazil","headquarters_brazil","for_profit"]:
+            if v(k) is not True: failures.append(k)
+        excluded={"MEI","EMPRESARIO INDIVIDUAL","EMPRESÁRIO INDIVIDUAL","COOPERATIVA","NONPROFIT","SEM FINS LUCRATIVOS"}
+        if str(v("legal_form") or "").strip().upper() in excluded: failures.append("legal_form")
+        try:
+            ti=float(v("trl_initial")); tt=float(v("trl_target"))
+            if not (3 <= ti <= 8 and 3 <= tt <= 8): failures.extend(["trl_initial","trl_target"])
+            if tt==8 and not (3 <= ti <= 6): failures.append("trl_initial")
+        except Exception:
+            failures.extend(["trl_initial","trl_target"])
+        if not v("project_theme"): failures.append("project_theme")
+    else:
+        return {"status":"NO_FORMAL_EVALUATOR","passed":None,"failures":[]}
+    failures=sorted(set(failures))
+    return {"status":"PASS" if not failures else "FAIL","passed":not failures,"failures":failures}
+
+def funding_funnel(row,company_profile=None):
     x=dict(row or {})
     eligibility=str(x.get("eligibility_status") or "UNCHECKED").upper()
+    gap=profile_gap(x,company_profile or {})
+    rule_eval=evaluate_known_rules(x,gap)
     score=int(x.get("relevance_score") or 0)
     requirements=x.get("eligibility_requirements") or []
     missing=x.get("eligibility_missing_facts") or []
@@ -265,7 +340,11 @@ def funding_funnel(row):
         else:
             reason="Сначала снять юридический/организационный блокер допуска; до этого решение APPLY запрещено."
 
-    blocker=(missing[0] if missing else x.get("eligibility_next_check"))
+    profile_next=gap.get("next_fact_key")
+    blocker=(("Company Eligibility Profile: "+profile_next) if profile_next else (missing[0] if missing else x.get("eligibility_next_check")))
+    if rule_eval.get("status")=="FAIL":
+        decision="DROP"; decision_label="отбросить"; stage="ELIGIBILITY"
+        reason="Подтверждённые факты профиля не проходят формализованные условия допуска этой программы."
     checks={
       "found":{"status":"PASS","label":"найдено"},
       "eligibility":{"status":"PASS" if eligibility=="ELIGIBLE" else "FAIL" if eligibility=="NOT_ELIGIBLE" else "PENDING",
@@ -287,11 +366,13 @@ def funding_funnel(row):
       "route_decision_reason":reason,
       "blocking_fact":blocker,
       "partner_signal_unverified":partner_signal and eligibility!="ELIGIBLE",
+      "company_profile_gap":gap,
+      "known_rule_evaluation":rule_eval,
       "funnel_rule":"FOUND → ELIGIBILITY → STRATEGIC FIT → EFFORT/UPSIDE → DEADLINE → APPLY / PARTNER / WATCH / DROP"
     })
     return x
 
-def opportunities_projection(signals,upcoming):
+def opportunities_projection(signals,upcoming,company_profile=None):
     out=[]
     rows=(signals.get("signals",[]) if signals else []) or []
 
@@ -374,7 +455,7 @@ def opportunities_projection(signals,upcoming):
             "source_ref":{"kind":"market_signal","signal_id":s.get("signal_id"),
                           "opportunity_key":k}
         }
-        out.append(funding_funnel(item))
+        out.append(funding_funnel(item,company_profile))
 
     # Preserve pre-existing dated/commercial opportunities from canonical
     # temporal/activity sources and legacy non-opportunity market signals.
@@ -391,11 +472,11 @@ def opportunities_projection(signals,upcoming):
                         "kind":"market_signal","date":iso_date_from(s.get("deadline"),s.get("observed_at")),
                         "why":enr.get("why_it_matters_ru") or s.get("why_it_matters_ru"),
                         "status":action or "watch","source":s.get("source"),
-                        "source_ref":{"kind":"market_signal","signal_id":s.get("signal_id")}}))
+                        "source_ref":{"kind":"market_signal","signal_id":s.get("signal_id")}},company_profile))
     for x in upcoming:
         blob=" ".join(str(z or "") for z in [x.get("title"),(x.get("context") or {}).get("line"),(x.get("context") or {}).get("branch")]).lower()
         if re.search(r"conference|конферен|tender|тендер|grant|грант|application|заявк|program|программ|outreach|партн|partner",blob):
-            out.append(funding_funnel({**x,"radar_id":item_id("opp-date",x.get("radar_id")),"kind":"dated_opportunity"}))
+            out.append(funding_funnel({**x,"radar_id":item_id("opp-date",x.get("radar_id")),"kind":"dated_opportunity"},company_profile))
     return sorted(out,key=lambda x:({"ACTION_NOW":0,"REVIEW":1,"WATCH":2}.get(x.get("radar_class"),3),x.get("date") is None,x.get("date") or "9999",-int(x.get("relevance_score") or 0)))
 
 def field_projection(signals):
@@ -617,12 +698,25 @@ def build():
 
     sig=data.get("signals") or {}
     field=field_projection(sig)
-    opportunities=opportunities_projection(sig,upcoming)
+    opportunities=opportunities_projection(sig,upcoming,data.get("company_profile") or {})
     patterns=pattern_projection(field,opportunities)
-    return {"schema":"aiclavis.founder-radar.v0.5","generated_at":now(),"read_only":True,
+    gap_counts={}
+    for o in opportunities:
+        for c in ((o.get("company_profile_gap") or {}).get("checks") or []):
+            if c.get("status")!="VERIFIED":
+                gap_counts[c.get("key")]=gap_counts.get(c.get("key"),0)+1
+    profile=data.get("company_profile") or {}
+    funding_profile={
+      "profile_schema":profile.get("schema"),
+      "profile_summary":profile.get("summary") or {},
+      "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
+      "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
+    }
+    return {"schema":"aiclavis.founder-radar.v0.6","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
+      "funding_profile":funding_profile,
       "waiting":waiting,"upcoming":upcoming,"predictions":predictions,
       "patterns":patterns,
       "field":field,
@@ -643,7 +737,7 @@ class H(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p=self.path.split("?",1)[0]
-        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.5","read_only":True})
+        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.6","read_only":True})
         if p=="/api/v1/founder-radar": return self.sendj(build())
         return self.sendj({"error":"not_found"},404)
     def log_message(self,*a): pass
