@@ -2016,6 +2016,7 @@
         '<div class="cc-insp-sec"><h4>Источник</h4><p>'+esc(source)+'</p>'+(sourceUrl?'<a class="radar-source-link" href="'+esc(sourceUrl)+'" target="_blank" rel="noopener">Открыть первоисточник ↗</a>':'')+(evidence?'<small>'+esc(evidence)+(x.repeat_count>1?' · схлопнуто повторов: '+esc(x.repeat_count):'')+'</small>':'')+'</div>'+
         ((x.architecture_proximity!=null||x.market_significance!=null)?'<div class="cc-insp-sec"><h4>Оценка аналитического слоя</h4><p>Близость к архитектуре: '+esc(x.architecture_proximity==null?"—":x.architecture_proximity)+' · значимость для рынка: '+esc(x.market_significance==null?"—":x.market_significance)+'</p></div>':'')+
         (x.status?'<div class="cc-insp-sec"><h4>Состояние источника</h4><p>'+esc(humanCode(x.status))+'</p></div>':'')+
+        (x.lifecycle?'<div class="cc-insp-sec radar-lifecycle"><h4>Жизненный цикл</h4><p>'+esc(({ACTIVE:"Активен",RESOLVED:"Закрыт действием",STALE:"Ушёл из активного окна",EXPIRED:"Срок истёк"})[x.lifecycle.state]||humanCode(x.lifecycle.state))+'</p><small>'+esc(x.lifecycle.reason||"")+(x.lifecycle.age_days!=null?' · в Радаре '+esc(x.lifecycle.age_days)+' дн.':'')+(x.lifecycle.retention_days!=null?' · активное окно '+esc(x.lifecycle.retention_days)+' дн.':'')+'</small></div>':'')+
         '<div class="cc-insp-sec"><h4>Граница</h4><p>Панель показывает запись источника и не повышает её до действия, решения или причинной связи без отдельного подтверждения.</p></div>'+
         '<button type="button" class="cc-steward-ask"><b>Разобрать со Стю</b><span>что произошло → насколько это важно → куда вести → что делать следующим шагом</span></button>';
       var stewardBtn=host.querySelector(".cc-steward-ask");
@@ -2055,6 +2056,44 @@
       '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">↳</span><span class="cc-kpi-body"><small>На разбор</small><strong>'+reviewN+'</strong><em>отдельные сигналы и окна · сверху сведено паттернов: '+patterns.length+'</em></span></div>'+
       '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">•</span><span class="cc-kpi-body"><small>Наблюдать</small><strong>'+watchN+'</strong><em>ранние сигналы без основания бежать</em></span></div>'+
       '<div class="cc-kpi radar-kpi wait"><span class="cc-kpi-icon">○</span><span class="cc-kpi-body"><small>Ждём</small><strong>'+waiting.length+'</strong><em>внешние ответы и исходы</em></span></div>';
+
+    var strategy=radar.strategy||{}, strategyLanes=strategy.lanes||{}, lifecycle=radar.lifecycle||{};
+    var directEl=page.querySelector("[data-radar-strategy-direct]"), fieldEl=page.querySelector("[data-radar-strategy-field]"), retiredEl=page.querySelector("[data-radar-retired]");
+    if(directEl)directEl.textContent=strategy.direct_leverage_count==null?"—":strategy.direct_leverage_count;
+    if(fieldEl)fieldEl.textContent=strategy.field_count==null?"—":strategy.field_count;
+    if(retiredEl)retiredEl.textContent=lifecycle.retired_count==null?"—":lifecycle.retired_count;
+    function originalForStrategy(x){
+      var rid=String(x&&x.radar_id||"");
+      var all=[].concat(opportunities||[],fieldSignals||[],reputation||[],waiting||[]);
+      for(var i=0;i<all.length;i++)if(String(all[i]&&all[i].radar_id||"")===rid)return all[i];
+      return x||{};
+    }
+    function strategyLaneHTML(key,icon){
+      var lane=strategyLanes[key]||{}, items=Array.isArray(lane.items)?lane.items:[];
+      var top=items.slice(0,4);
+      return '<section class="radar-strategy-card '+esc(key)+'"><header><span class="radar-strategy-diamond">'+esc(icon)+'</span><div><small>'+esc(lane.role||"")+'</small><h3>'+esc(lane.label||key)+'</h3></div><b>'+esc(lane.count||0)+'</b></header>'+
+        (top.length?'<div class="radar-strategy-items">'+top.map(function(x,i){
+          var orig=originalForStrategy(x), sk="strategy:"+key+":"+(x.radar_id||i);
+          inspectorItems[sk]={item:orig,kind:(key==="research"?"opportunities":"field")};
+          var att=x.radar_class==="ACTION_NOW"?"сейчас":(x.radar_class==="REVIEW"?"разобрать":"");
+          return '<button type="button" data-radar-select="'+esc(sk)+'"><i></i><div><b>'+esc(x.title||"Сигнал")+'</b><small>'+esc(x.why||"")+'</small></div>'+(att?'<em>'+esc(att)+'</em>':'')+'</button>';
+        }).join('')+'</div>':'<div class="radar-strategy-empty">Сейчас активных входов нет.</div>')+
+        (items.length>4?'<footer>ещё '+(items.length-4)+' в контуре</footer>':'')+'</section>';
+    }
+    if(box("strategy")){
+      box("strategy").innerHTML=
+        strategyLaneHTML("commercial","◆")+
+        strategyLaneHTML("authority","◇")+
+        strategyLaneHTML("research","◆")+
+        strategyLaneHTML("product","◇");
+    }
+    if(box("strategy-field")){
+      var fl=(strategyLanes.field&&Array.isArray(strategyLanes.field.items))?strategyLanes.field.items:[];
+      box("strategy-field").innerHTML=fl.length?'<div class="radar-field-strip">'+fl.slice(0,10).map(function(x,i){
+        var orig=originalForStrategy(x), sk="strategy:field:"+(x.radar_id||i); inspectorItems[sk]={item:orig,kind:"field"};
+        return '<button type="button" data-radar-select="'+esc(sk)+'"><span></span><div><b>'+esc(x.title||"Сигнал")+'</b><small>'+esc(x.why||"")+'</small></div></button>';
+      }).join('')+'</div>':'<div class="movement-zero-loss">Фоновых сигналов сейчас нет.</div>';
+    }
 
     var coverage=radar.coverage||{}, coverageLanes=Array.isArray(coverage.lanes)?coverage.lanes:[];
     if(box("coverage")){

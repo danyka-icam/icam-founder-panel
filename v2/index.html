@@ -1473,7 +1473,7 @@
 .progress-row em{font-size:10px}
 
 </style>
-<link rel="stylesheet" href="command-center.css?v=20261007-radar-v31"/>
+<link rel="stylesheet" href="command-center.css?v=20261007-radar-v33"/>
 </head>
 <body>
 <div class="app-shell">
@@ -3065,8 +3065,19 @@
 </header>
 <div class="cc-page-grid">
 <div class="cc-body radar-body" data-cc-body>
+<section class="radar-strategy-machine">
+  <div class="radar-objective-card">
+    <span class="radar-objective-diamond" aria-hidden="true"></span>
+    <div><small>ГЛАВНАЯ ЦЕЛЬ</small><h2>Сильная международная aiclavis / ATLAS</h2><p>Все активные сигналы должны либо двигать коммерцию, авторитет и доступ, исследования и капитал, продукт — либо оставаться в боковом контуре поля.</p></div>
+    <div class="radar-objective-counts"><span><b data-radar-strategy-direct>—</b><small>двигают цель</small></span><span><b data-radar-strategy-field>—</b><small>только поле</small></span><span><b data-radar-retired>—</b><small>снято автоматически</small></span></div>
+  </div>
+  <div class="radar-strategy-grid" data-radar="strategy"><div class="cc-loading">Собираем стратегические входы…</div></div>
+  <article class="cc-panel radar-panel radar-wide radar-field-side"><header><h2>Поле</h2><small>важно знать, но это не должно конкурировать с реальными входами и действиями</small></header><div data-radar="strategy-field"><div class="cc-loading">Собираем фон поля…</div></div></article>
+</section>
 <section class="radar-summary" data-radar-summary></section>
-<div class="radar-signal-grid">
+<details class="radar-underhood">
+<summary><b>Под капотом Радара</b><span>покрытие · воронки · очереди движения · техническая диагностика</span></summary>
+<div class="radar-signal-grid radar-diagnostics-grid">
 <article class="cc-panel radar-panel radar-wide radar-coverage-panel"><header><h2>Покрытие Радара</h2><small>где мы действительно видим внешнее поле, а где отсутствие сигнала ещё ничего не означает</small></header><div data-radar="coverage"><div class="cc-loading">Проверяем покрытие…</div></div></article>
 <article class="cc-panel radar-panel radar-wide radar-urgent-panel"><header><h2>Срочно сейчас</h2><small>только объекты с подтверждённым текущим ходом — видно сразу, без открытия карточки и без обращения к Стю</small></header><div data-radar="urgent-now"><div class="cc-loading">Собираем срочное…</div></div></article>
 <article class="cc-panel radar-panel radar-wide radar-bottleneck-panel"><header><h2>Очередь движения</h2><small>только сигналы, которым ещё нужен системный разбор или решение; автоматические переходы не занимают твоё внимание</small></header><div data-radar="movement-queue"><div class="cc-loading">Собираем очередь…</div></div></article>
@@ -3081,6 +3092,7 @@
 <article class="cc-panel radar-panel"><header><h2>Репутация и присутствие</h2><small>публикации, научные и институциональные внешние следы</small></header><div data-radar="reputation"><div class="cc-loading">Читаем…</div></div></article>
 
 </div>
+</details>
 </div>
 <aside class="cc-inspector radar-inspector" data-radar-inspector>
 <div class="cc-insp-idle"><b>Радар</b><span>Выберите сигнал слева. Здесь появятся источник, дата, контекст и причина, почему он находится на радаре.</span></div>
@@ -3809,7 +3821,7 @@
   route();
 })();
 </script>
-<script src="live.js?v=20261007-radar-v31"></script>
+<script src="live.js?v=20261007-radar-v33"></script>
 <script src="command-center.js?v=20261007-stu-priority-v1"></script>
 </body>
 </html>

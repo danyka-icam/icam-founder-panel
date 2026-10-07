@@ -434,6 +434,151 @@ def funding_funnel(row,company_profile=None):
     })
     return x
 
+def explicit_resolution_refs(activity):
+    # Only exact machine-readable references close a Radar card. Human prose is
+    # deliberately ignored to prevent accidental semantic identity.
+    refs=set()
+    terminal={"COMPLETED","SUBMITTED","SENT","PUBLISHED","REGISTERED","ACCEPTED","DECLINED","CANCELLED","CLOSED"}
+    for x in (activity or {}).get("items") or []:
+        et=str(x.get("event_type") or "").upper()
+        raw=str(x.get("source_event_type_raw") or "").upper()
+        if et not in terminal and not any(t in raw for t in terminal):
+            continue
+        vals=[]
+        vals.extend(x.get("evidence_refs") or [])
+        vals.extend([x.get("source_event_id"),x.get("object_id")])
+        for v in vals:
+            sv=str(v or "").strip()
+            for prefix in ("radar-id:","radar_id:","signal-id:","signal_id:","opportunity-key:","opportunity_key:"):
+                if sv.startswith(prefix):
+                    refs.add(sv[len(prefix):].strip())
+    return refs
+
+def lifecycle_policy(item,kind,resolved_refs=None):
+    resolved_refs=resolved_refs or set()
+    rid=str(item.get("radar_id") or "")
+    sid=str(item.get("signal_id") or "")
+    okey=str(item.get("opportunity_key") or "")
+    if any(v and v in resolved_refs for v in (rid,sid,okey)):
+        return {"state":"RESOLVED","active":False,"reason":"Подтверждённое действие/закрытие пришло из Hub/Activity по точной ссылке на сигнал.","retention_days":0}
+    today=datetime.now(timezone.utc).date()
+    deadline=iso_date_from(item.get("date"),item.get("deadline"))
+    if deadline:
+        try:
+            d=datetime.strptime(deadline,"%Y-%m-%d").date()
+            if d < today:
+                return {"state":"EXPIRED","active":False,"reason":"Срок окна истёк.","retention_days":0}
+        except Exception: pass
+    observed=iso_date_from(item.get("latest_observed_at"),item.get("observed_at"),item.get("published_at"),item.get("created_at"))
+    age=None
+    if observed:
+        try: age=(today-datetime.strptime(observed,"%Y-%m-%d").date()).days
+        except Exception: pass
+    axes=set(str(v) for v in (item.get("axis") or []))
+    stype=str(item.get("signal_type") or "")
+    if kind=="opportunity":
+        ttl=None if deadline else 21
+    elif stype=="commercial-door" or "commercial_procurement" in axes:
+        ttl=14 if "commercial_procurement" in axes else 30
+    elif "institutional_policy" in axes or "standards_protocols" in axes:
+        ttl=30
+    elif stype=="research-signal":
+        ttl=7
+    else:
+        ttl=14
+    if ttl is not None and age is not None and age>ttl:
+        return {"state":"STALE","active":False,"reason":"Сигнал вышел из активного окна внимания и остаётся только в истории.","retention_days":ttl,"age_days":age}
+    return {"state":"ACTIVE","active":True,"reason":"Сигнал находится в активном окне внимания.","retention_days":ttl,"age_days":age}
+
+def apply_lifecycle(opportunities,field,activity):
+    refs=explicit_resolution_refs(activity)
+    retired=[]
+    active_opps=[]
+    for x in opportunities or []:
+        lc=lifecycle_policy(x,"opportunity",refs); x["lifecycle"]=lc
+        if lc["active"]: active_opps.append(x)
+        else: retired.append({"title":x.get("title"),"radar_id":x.get("radar_id"),"kind":"opportunity","lifecycle":lc})
+    active_field=[]
+    for x in (field or {}).get("signals") or []:
+        lc=lifecycle_policy(x,"field",refs); x["lifecycle"]=lc
+        if lc["active"]: active_field.append(x)
+        else:
+            x["radar_visible"]=False
+            retired.append({"title":x.get("title"),"radar_id":x.get("radar_id"),"kind":"field","lifecycle":lc})
+    if isinstance(field,dict):
+        field["signals"]=active_field
+        field.setdefault("counts",{})["retired"]=len([x for x in retired if x["kind"]=="field"])
+        field["counts"]["visible"]=sum(1 for x in active_field if x.get("radar_visible"))
+    return active_opps,field,{
+      "contract":"aiclavis.radar-lifecycle.v0.1",
+      "retired_count":len(retired),
+      "retired":retired[:80],
+      "resolution_refs_seen":len(refs),
+      "rules":{
+        "deadline_windows":"до подтверждённого дедлайна/закрытия",
+        "procurement_without_deadline_days":14,
+        "research_field_days":7,
+        "institutional_and_standards_days":30,
+        "commercial_door_days":30,
+        "fallback_days":14,
+        "manual_rule":"Ручная уборка не требуется. Явное отклонение должно приходить как каноническое событие Hub/Activity с точной ссылкой на radar_id/signal_id/opportunity_key."
+      }
+    }
+
+def strategic_projection(opportunities,field,waiting,reputation):
+    lanes={
+      "commercial":{"label":"Коммерческие двери","role":"выручка и рыночное доказательство","items":[]},
+      "authority":{"label":"Авторитет и доступ","role":"репутация, публикации, конференции, фокус-группы и институциональный доступ","items":[]},
+      "research":{"label":"Исследования и капитал","role":"гранты, программы и исследовательские входы","items":[]},
+      "product":{"label":"Продукт и позиционирование","role":"изменения, которые реально требуют пересмотра ATLAS/aiclavis","items":[]},
+      "field":{"label":"Поле","role":"важно знать, но прямо сейчас не требует движения","items":[]}
+    }
+    def put(k,x,why):
+        if not x:return
+        lanes[k]["items"].append({
+          "radar_id":x.get("radar_id"),"title":x.get("title"),"date":x.get("date") or x.get("published_at"),
+          "radar_class":x.get("radar_class"),"why":why,"source":x.get("source"),
+          "kind":x.get("kind") or x.get("signal_type"),"destination":x.get("destination"),
+          "lifecycle":x.get("lifecycle"),"source_ref":x.get("source_ref")
+        })
+    for x in opportunities or []:
+        blob=" ".join(str(v or "") for v in [x.get("title"),x.get("program_type"),x.get("kind")]).lower()
+        if re.search(r"conference|конферен|focus group|focus-group|фокус|working group|workshop|publication|публикац|journal|award|prize|прем",blob):
+            put("authority",x,"Внешний вход, усиливающий доступ или авторитет компании.")
+        elif re.search(r"tender|rfp|procurement|contract|supplier|тендер|закуп",blob):
+            put("commercial",x,"Внешнее окно потенциальной выручки.")
+        else:
+            put("research",x,"Исследовательское или грантовое окно, способное дать капитал, доказательство или доступ.")
+    for x in (field or {}).get("signals") or []:
+        axes=set(str(v) for v in (x.get("axis") or []))
+        if x.get("signal_type")=="commercial-door" or "commercial_procurement" in axes:
+            put("commercial",x,"Публичное внешнее событие, которое может открыть коммерческий вход.")
+        elif "institutional_policy" in axes or "standards_protocols" in axes:
+            if x.get("radar_class")=="ACTION_NOW":
+                put("product",x,"Изменение стандарта/правил требует немедленной проверки влияния на продукт.")
+            else:
+                put("field",x,"Изменение правил или стандарта; учитывать в траектории, но не создавать действие без отдельного основания.")
+        elif x.get("signal_type")=="research-signal":
+            put("field",x,"Движение исследовательского поля; информация для ориентации, не самостоятельная задача.")
+        elif x.get("radar_class")=="ACTION_NOW":
+            put("product",x,"Внешнее изменение требует проверки продуктовой или архитектурной реакции.")
+        else:
+            put("field",x,"Внешний контекст без подтверждённого текущего действия.")
+    for x in reputation or []:
+        put("authority",x,"Публикационный или институциональный след, усиливающий доверие и доступ.")
+    for k,v in lanes.items():
+        v["items"].sort(key=lambda x:({"ACTION_NOW":0,"REVIEW":1,"WATCH":2}.get(x.get("radar_class"),3),x.get("date") is None,x.get("date") or "9999"))
+        v["count"]=len(v["items"])
+    direct=sum(lanes[k]["count"] for k in ("commercial","authority","research","product"))
+    return {
+      "contract":"aiclavis.radar-strategy.v0.1",
+      "objective":"Вывести aiclavis / ATLAS на уровень сильной международной премиальной компании.",
+      "principle":"Сигнал получает центральное место только если он двигает коммерцию, авторитет/доступ, исследования/капитал или продукт. Остальное остаётся в боковом контуре поля.",
+      "direct_leverage_count":direct,
+      "field_count":lanes["field"]["count"],
+      "lanes":lanes
+    }
+
 def opportunities_projection(signals,upcoming,company_profile=None):
     out=[]
     rows=(signals.get("signals",[]) if signals else []) or []
@@ -1193,6 +1338,7 @@ def build():
         field.setdefault("counts",{})["visible"]=int((field.get("counts") or {}).get("visible") or 0)+len(door_signals)
         field["counts"]["commercial_doors"]=len(door_signals)
     opportunities=opportunities_projection(sig,upcoming,data.get("company_profile") or {})
+    opportunities,field,lifecycle=apply_lifecycle(opportunities,field,data.get("activity") or {})
     fp=(data.get("funding_projects") or {}).get("projects") or []
     for o in opportunities:
         title=str(o.get("title") or "")
@@ -1204,6 +1350,7 @@ def build():
             o["funding_project_candidate"]=match
     patterns=pattern_projection(field,opportunities)
     radar_coverage=radar_coverage_projection(field,opportunities)
+    strategy=strategic_projection(opportunities,field,waiting,reputation)
     movement=movement_projection(opportunities,field,waiting)
     movement_flow=movement_flow_projection(movement,opportunities,field)
     critical_sources=["signals","upcoming","commercial_signal_source","temporal","activity"]
@@ -1242,10 +1389,12 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.27","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.28","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
+      "strategy":strategy,
+      "lifecycle":lifecycle,
       "funding_profile":funding_profile,
       "waiting":waiting,"upcoming":upcoming,"predictions":predictions,
       "patterns":patterns,
