@@ -42,6 +42,63 @@ def founder_relevant_wait(ctx,title,date):
     if any(k in (ctx.get("line") or "").lower() for k in ["выход на рынок","институциональные возможности","научное присутствие"]):return True
     return False
 
+def radar_semantics(row,kind):
+    x=dict(row or {}); ctx=x.get("context") or {}; title=str(x.get("title") or "")
+    low=" ".join(str(v or "") for v in [title,ctx.get("world"),ctx.get("line"),ctx.get("branch")]).lower()
+    translations={
+      "External NIST consideration / no response required from system now.":"NIST рассматривает комментарий; сейчас от нас ничего не требуется.",
+      "Outcome windows not yet resolved; first gate around 2026-10-13.":"Окна исходов ещё не разрешились; первая контрольная точка — около 13 октября 2026.",
+      "Outcome windows not yet mature.":"Окна исходов ещё не созрели.",
+      "External response / fresh status confirmation.":"Ждём внешний ответ или новое подтверждение статуса.",
+      "External replies / opportunity creation.":"Ждём внешние ответы или появление возможности.",
+      "External program decision/credits.":"Ждём внешнее решение программы или начисление кредитов."
+    }
+    x["title"]=translations.get(title,title)
+    dest=None; next_step=None; why=x.get("why")
+    if "forecast core" in low:
+        dest={"kind":"research","label":"Forecast Core","route":"Дождаться контрольной точки → проверить исход по зафиксированному протоколу → обновить результат."}
+        why=why or "Это открытая прогнозная точка: до наступления окна исход нельзя считать известным."
+        d=iso_date_from(x.get("date"))
+        x["radar_class"]="REVIEW" if d else "WATCH"
+        next_step="В дату контрольной точки проверить только предусмотренный источник исхода; не подменять ожидание новым прогнозом."
+    elif kind=="predictions" and "twin" in low:
+        dest={"kind":"research","label":"Twin / Synthetic Worlds","route":"Сохранять запечатанный прогноз неизменным → дождаться исхода → оценить по протоколу."}
+        why=why or "Запечатанный прогноз является контрольной точкой эксперимента; его нельзя трактовать как уже подтверждённый результат."
+        x["radar_class"]="WATCH"
+        next_step="Не менять запечатанный прогноз. Поднять карточку, когда появится предусмотренный источник исхода или дата раскрытия."
+    elif kind=="predictions":
+        dest={"kind":"research","label":"Прогнозный контур","route":"Дождаться предусмотренной точки проверки → сверить исход → зафиксировать результат."}
+        why=why or "Это прогнозная точка наблюдения, а не подтверждённый исход."
+        x["radar_class"]="WATCH"
+        next_step="Ждать предусмотренную точку проверки; не повышать прогноз до факта."
+    elif "научное присутствие" in low or "nist" in low:
+        dest={"kind":"reputation","label":"Научное присутствие","route":"Следить за внешним ответом; новое действие создавать только при изменении статуса."}
+        why=why or "Внешний научный контур уже запущен; сейчас важен новый подтверждённый ответ, а не повторное действие."
+        x["radar_class"]="BACKGROUND" if "nothing is required" in low or "ничего не требуется" in x["title"].lower() else "WATCH"
+        next_step="Не предпринимать повторных действий без нового внешнего сигнала."
+    elif "выход на рынок" in low:
+        dest={"kind":"commercial","label":"Коммерческий ATLAS / выход на рынок","route":"Ждать ответ → при новом внешнем событии вернуть объект в коммерческий контур."}
+        why=why or "Контакт уже сделан; ценность следующего сигнала — в новом внешнем ответе или изменении статуса."
+        x["radar_class"]="WATCH"; next_step="Не создавать повторный контакт только из-за тишины; поднять карточку при новом ответе или заранее заданном повторном контакте."
+    elif "институциональные возможности" in low:
+        dest={"kind":"institutional","label":"Институциональные возможности","route":"Ждать решение программы → при изменении статуса проверить последствия и следующий шаг."}
+        why=why or "Заявка или внешний процесс уже находится у другой стороны."
+        x["radar_class"]="WATCH"; next_step="Следить за официальным решением; до нового статуса не считать исход ни положительным, ни отрицательным."
+    elif kind=="learning":
+        dest={"kind":"research","label":"Обучение ATLAS","route":"Пройти следующую формальную контрольную точку исследовательского контура."}
+        why=why or "Это состояние внутреннего цикла обучения и проверки ATLAS, а не внешний рыночный сигнал."
+        d=iso_date_from(x.get("next_date") or x.get("date"))
+        if d:
+            try: days=(datetime.strptime(d,"%Y-%m-%d").date()-datetime.now(timezone.utc).date()).days
+            except Exception: days=None
+            x["radar_class"]="ACTION_NOW" if days is not None and 0 <= days <= 7 else "REVIEW"
+        else: x["radar_class"]="WATCH"
+        next_step="Проверить следующую контрольную точку по его собственному протоколу и не смешивать исследовательский результат с рыночным подтверждением."
+    if dest: x["destination"]=dest
+    if why: x["why"]=why
+    if next_step: x["next_step_ru"]=next_step
+    return x
+
 def temporal_projection(temporal):
     waiting=[]; upcoming=[]; predictions=[]; reputation=[]
     for w,l,b in branch_rows(temporal):
@@ -168,7 +225,7 @@ def opportunities_projection(signals,upcoming):
         if elig_upper=="UNCHECKED":
             why += " Соответствие aiclavis условиям допуска ещё не проверено."
         elif elig_upper=="NEEDS_CALL_DOCUMENT_REVIEW":
-            why += " Окно подтверждено, но полный документ конкурса ещё нужно разобрать до company-fit проверки."
+            why += " Окно подтверждено, но полный документ конкурса ещё нужно разобрать до проверки соответствия компании."
         elif elig_upper=="NEEDS_COMPANY_FACTS":
             why += " Источник уже даёт часть критериев заявителя; нужны подтверждённые факты компании для сопоставления."
         days_left=None
@@ -363,7 +420,7 @@ def pattern_projection(field,opportunities):
           "evidence_ceiling":"Это доказывает наличие институционального окна, но не право aiclavis на участие и не вероятность финансирования. Допуск проверяется по каждой программе отдельно.",
           "source_ref":{"kind":"radar_pattern","pattern_id":"PAT-BR-INSTITUTIONAL-FUNDING"},
           "destination":{"kind":"institutional_opportunity","label":"Институциональные возможности","route":"Сначала отсечь неподходящие программы, затем ранжировать оставшиеся по сроку, размеру и стратегическому соответствию."},
-          "next_step_ru":"Собрать единый shortlist программ после проверки допуска, а не разбирать каждую как изолированную карточку.",
+          "next_step_ru":"Собрать единый короткий список программ после проверки допуска, а не разбирать каждую как изолированную карточку.",
           "signals":[{"radar_id":x.get("radar_id"),"title":x.get("title"),"date":x.get("date"),"eligibility_status":x.get("eligibility_status"),"source_url":x.get("opportunity_url")} for x in open_opps[:12]]
         })
     order={"OPEN_CORRIDOR":0,"EMERGING_PATTERN":1}
@@ -422,19 +479,41 @@ def build():
     aw,au,ar=activity_projection(data.get("activity") or {},upcoming)
     waiting.extend(aw); upcoming.extend(au); reputation.extend(ar)
     predictions=prediction_projection(data.get("twin") or {},predictions)
+
+    # The Founder radar is a routing surface, not a dump of every read model.
+    # Forecast waits live in the forecast lane; panel plumbing and lab-internal
+    # maintenance belong to System/Diagnostics rather than the Founder waiting lane.
+    clean_wait=[]
+    for x in waiting:
+        ctx=x.get("context") or {}; low=" ".join(str(v or "") for v in [x.get("title"),ctx.get("world"),ctx.get("line"),ctx.get("branch")]).lower()
+        if "forecast core" in low or re.search(r"outcome windows|forecast|прогноз",low):
+            continue
+        if (x.get("source_ref") or {}).get("kind")=="activity_event" and any(k in low for k in ["founder-panel","synthetic business world lab"]):
+            continue
+        clean_wait.append(radar_semantics(x,"waiting"))
+    waiting=clean_wait
+
+    predictions=[radar_semantics(x,"predictions") for x in predictions]
     upcoming=sorted(upcoming,key=lambda x:(x.get("date") is None,x.get("date") or "9999"))
+
+    # Reputation is intentionally narrower than commercial outreach: only the
+    # scientific/external-presence contour belongs here. Commercial waits remain
+    # visible in the waiting lane and their owning commercial route.
+    reputation=[radar_semantics(x,"reputation") for x in reputation
+                if "научное присутствие" in str((x.get("context") or {}).get("line") or "").lower()]
+
     sig=data.get("signals") or {}
     field=field_projection(sig)
     opportunities=opportunities_projection(sig,upcoming)
     patterns=pattern_projection(field,opportunities)
-    return {"schema":"aiclavis.founder-radar.v0.3","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.4","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
       "waiting":waiting,"upcoming":upcoming,"predictions":predictions,
       "patterns":patterns,
       "field":field,
-      "atlas_learning":learning_projection(data.get("signal_lab") or {},data.get("twin") or {}),
+      "atlas_learning":[radar_semantics(x,"learning") for x in learning_projection(data.get("signal_lab") or {},data.get("twin") or {})],
       "investment":investment_projection(data.get("investment")),"reputation":reputation,
       "sync_contract":{"branch_to_radar":"indirect_projection","activity_fields":["source_branch","event_type","human_change","why_it_matters","valid_at","evidence_ceiling","next_milestone"],"rule":"Branches publish normal Activity/Temporal state; Radar never requires a branch-specific write or manual copy.","timeline_sync":"Radar and Timeline render dates from the same source records; changing the source date changes both surfaces."},
       "rules":["Projection only; no radar item is canonical truth by itself.",
@@ -451,7 +530,7 @@ class H(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p=self.path.split("?",1)[0]
-        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.2","read_only":True})
+        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.4","read_only":True})
         if p=="/api/v1/founder-radar": return self.sendj(build())
         return self.sendj({"error":"not_found"},404)
     def log_message(self,*a): pass

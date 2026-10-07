@@ -1875,7 +1875,7 @@
     }
     function sourceLabel(x){
       var r=x&&x.source_ref||{};
-      var m={radar_pattern:"Founder Radar",market_signal:"Market Scanner",temporal_branch_waiting:"Temporal Universe",temporal_branch_next:"Temporal Universe",activity_event:"Activity Inbox",twin_state:"DT",signal_lab:"ATLAS Signal Lab",founder_decision:"Founder Projection"};
+      var m={radar_pattern:"Сводный радар",market_signal:"Сканер внешнего поля",temporal_branch_waiting:"Временная модель",temporal_branch_next:"Временная модель",activity_event:"Журнал событий",twin_state:"Twin / Synthetic Worlds",signal_lab:"ATLAS Signal Lab",founder_decision:"Проекция решений Основателя"};
       if(x&&x.source&&x.source.name)return x.source.name;
       return m[r.kind]||humanCode(r.kind||"источник не указан");
     }
@@ -2008,9 +2008,10 @@
     function byOppClass(items,c){return (items||[]).filter(function(x){return attentionClass(x,"opportunities")===c;});}
     var urgentOpp=byOppClass(opportunities,"ACTION_NOW"), reviewOpp=byOppClass(opportunities,"REVIEW"), watchOpp=byOppClass(opportunities,"WATCH");
     var urgentField=byClass(fieldSignals,"ACTION_NOW"), reviewField=byClass(fieldSignals,"REVIEW"), watchField=byClass(fieldSignals,"WATCH"), backgroundField=byClass(fieldSignals,"BACKGROUND");
-    var urgentN=urgentOpp.length+urgentField.length;
-    var reviewN=reviewOpp.length+reviewField.length;
-    var watchN=watchOpp.length+watchField.length;
+    function countClass(items,kind,c){return (items||[]).filter(function(x){return attentionClass(x,kind)===c;}).length;}
+    var urgentN=urgentOpp.length+urgentField.length+countClass(predictions,"predictions","ACTION_NOW")+countClass(learning,"learning","ACTION_NOW");
+    var reviewN=reviewOpp.length+reviewField.length+countClass(patterns,"patterns","REVIEW")+countClass(predictions,"predictions","REVIEW")+countClass(learning,"learning","REVIEW");
+    var watchN=watchOpp.length+watchField.length+countClass(predictions,"predictions","WATCH")+countClass(learning,"learning","WATCH")+countClass(reputation,"reputation","WATCH");
     var summary=page.querySelector("[data-radar-summary]");
     if(summary)summary.innerHTML=
       '<div class="cc-kpi radar-kpi risk"><span class="cc-kpi-icon">!</span><span class="cc-kpi-body"><small>Нужно сейчас</small><strong>'+urgentN+'</strong><em>срок или подтверждённое окно действия</em></span></div>'+
@@ -2021,7 +2022,7 @@
     if(box("patterns"))box("patterns").innerHTML=listHTML(patterns,"patterns","Пока недостаточно независимых сигналов для устойчивого паттерна.",8);
     if(box("opportunities")){
       box("opportunities").innerHTML=
-        '<div class="radar-lane-head urgent"><b>Срочные окна</b><span>дедлайн близко; сначала проверить допуск, затем маршрут действия</span></div>'+listHTML(urgentOpp,"opportunities","Срочных подтверждённых окон сейчас нет.",8)+
+        '<div class="radar-lane-head urgent"><b>Срочные окна</b><span>срок близко; сначала проверить допуск, затем маршрут действия</span></div>'+listHTML(urgentOpp,"opportunities","Срочных подтверждённых окон сейчас нет.",8)+
         '<div class="radar-lane-head review"><b>Окна на проверку</b><span>открыты, но соответствие aiclavis или полный документ ещё требуют разбора</span></div>'+listHTML(reviewOpp,"opportunities","Дополнительных окон на проверку нет.",8)+
         (watchOpp.length?'<details class="radar-background"><summary>Наблюдать за окнами · '+watchOpp.length+'</summary>'+listHTML(watchOpp,"opportunities","",10)+'</details>':"");
     }
@@ -2030,7 +2031,7 @@
     if(box("predictions"))box("predictions").innerHTML=listHTML(ps,"predictions","Открытых прогнозных точек сейчас нет.",7);
 
     if(box("field")){
-      var cov=field.source_coverage||{}, covText=(cov.ok_count!=null&&cov.total_sources!=null)?("Покрытие Scanner: "+cov.ok_count+" из "+cov.total_sources+" источников."):"Покрытие Scanner не подтверждено.";
+      var cov=field.source_coverage||{}, covText=(cov.ok_count!=null&&cov.total_sources!=null)?("Покрытие внешнего сканера: "+cov.ok_count+" из "+cov.total_sources+" источников."):"Покрытие внешнего сканера не подтверждено.";
       var flowText=[emittedNow!=null?("последний цикл: "+emittedNow+" новый сигнал"):null,fieldCounts.raw!=null?("сырых: "+fieldCounts.raw):null,fieldCounts.clusters!=null?("смысловых: "+fieldCounts.clusters):null,fieldCounts.collapsed_repeats?("схлопнуто повторов: "+fieldCounts.collapsed_repeats):null].filter(Boolean).join(" · ");
       box("field").innerHTML='<div class="radar-source-note">'+esc(covText+" "+flowText)+'</div>'+
         (urgentField.length?'<div class="radar-lane-head urgent"><b>Срочно проверить</b><span>есть основание для немедленного разбора</span></div>'+listHTML(urgentField,"field","",10):"")+
