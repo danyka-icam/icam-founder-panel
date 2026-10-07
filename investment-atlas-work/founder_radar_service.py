@@ -697,7 +697,7 @@ def movement_projection(opportunities, field, waiting, commercial):
         elig=str(x.get("eligibility_status") or "UNCHECKED").upper()
         if decision=="DROP": state="CLOSED"
         elif rc=="ACTION_NOW": state="ACTION_DUE"
-        elif decision in {"APPLY","PARTNER"}: state="ROUTED"
+        elif decision in {"APPLY","PARTNER"}: state="ROUTE_IDENTIFIED"
         elif elig in {"NEEDS_COMPANY_FACTS","NEEDS_CALL_DOCUMENT_REVIEW","ELIGIBLE"}: state="QUALIFIED"
         else: state="DETECTED"
         add("research_funding",x.get("title") or "Возможность",state,x.get("source_ref"),
@@ -711,7 +711,7 @@ def movement_projection(opportunities, field, waiting, commercial):
         dest=x.get("destination") or {}
         routed=bool(dest.get("kind") and dest.get("kind")!="radar")
         if cls=="ACTION_NOW": state="ACTION_DUE"
-        elif cls=="REVIEW": state="ROUTED" if routed else "QUALIFIED"
+        elif cls=="REVIEW": state="ROUTE_IDENTIFIED" if routed else "QUALIFIED"
         else: state="DETECTED"
         dom="field"
         if dest.get("kind")=="research": dom="research_field"
@@ -751,7 +751,10 @@ def movement_projection(opportunities, field, waiting, commercial):
             xid=str(x.get("id") or "")
             if xid and xid in live_ids: continue
             stage=str(x.get("stage") or x.get("status") or "").upper()
-            if stage in {"NO_GO","CLOSED","DROP"}: state="CLOSED"
+            source_kind=str(x.get("_source_kind") or "")
+            if source_kind=="handoff_seed":
+                state="REFERENCE_ONLY"
+            elif stage in {"NO_GO","CLOSED","DROP"}: state="CLOSED"
             elif stage in {"HOLD","DEFER","WATCH","WATCH_POST_AWARD"}: state="PARKED"
             elif stage in {"WAITING","SUBMITTED","SENT"}: state="WAITING_EXTERNAL"
             elif stage in {"REPLIED","CONVERSATION","PROPOSAL","PROPOSAL_SENT"}: state="IN_MOTION"
@@ -761,7 +764,7 @@ def movement_projection(opportunities, field, waiting, commercial):
                 iso_date_from(x.get("followup_due_at"),x.get("deadline")),"NORMAL",
                 {"product":p.get("name"),"stage":stage,"source_kind":x.get("_source_kind")})
     # De-duplicate identical source objects while keeping higher movement urgency.
-    rank={"ACTION_DUE":0,"IN_MOTION":1,"ROUTED":2,"QUALIFIED":3,"WAITING_EXTERNAL":4,"DETECTED":5,"PARKED":6,"CLOSED":7}
+    rank={"ACTION_DUE":0,"IN_MOTION":1,"ROUTE_IDENTIFIED":2,"QUALIFIED":3,"WAITING_EXTERNAL":4,"DETECTED":5,"PARKED":6,"REFERENCE_ONLY":7,"CLOSED":8}
     dedup={}
     for x in items:
         ref=x.get("source_ref") or {}
@@ -770,10 +773,10 @@ def movement_projection(opportunities, field, waiting, commercial):
         if prev is None or rank.get(x.get("state"),99)<rank.get(prev.get("state"),99): dedup[k]=x
     items=list(dedup.values())
     counts={k:sum(1 for x in items if x.get("state")==k) for k in rank}
-    active=[x for x in items if x.get("state") not in {"CLOSED","PARKED"}]
+    active=[x for x in items if x.get("state") not in {"CLOSED","PARKED","REFERENCE_ONLY"}]
     gaps=[]
     for x in active:
-        if x.get("state") in {"QUALIFIED","ROUTED","IN_MOTION","ACTION_DUE"} and not x.get("next_step"):
+        if x.get("state") in {"QUALIFIED","ROUTE_IDENTIFIED","IN_MOTION","ACTION_DUE"} and not x.get("next_step"):
             gaps.append({**x,"gap":"NO_NEXT_STEP"})
         elif x.get("state")=="QUALIFIED" and not x.get("route"):
             gaps.append({**x,"gap":"NO_ROUTE"})
@@ -784,13 +787,13 @@ def movement_projection(opportunities, field, waiting, commercial):
         domains[d]["total"]+=1
         if x.get("state")=="ACTION_DUE": domains[d]["action_due"]+=1
         if x.get("state")=="WAITING_EXTERNAL": domains[d]["waiting_external"]+=1
-        if x.get("state") in {"IN_MOTION","ROUTED"}: domains[d]["in_motion"]+=1
+        if x.get("state") in {"IN_MOTION","ROUTE_IDENTIFIED"}: domains[d]["in_motion"]+=1
     for g in gaps:
         if g.get("domain") in domains: domains[g["domain"]]["gaps"]+=1
     items.sort(key=lambda x:(rank.get(x.get("state"),99),x.get("date") is None,x.get("date") or "9999",x.get("title") or ""))
     return {
       "contract":"aiclavis.movement-layer.v0.1",
-      "states":["DETECTED","QUALIFIED","ROUTED","IN_MOTION","WAITING_EXTERNAL","ACTION_DUE","CLOSED","PARKED"],
+      "states":["DETECTED","QUALIFIED","ROUTE_IDENTIFIED","IN_MOTION","WAITING_EXTERNAL","ACTION_DUE","CLOSED","PARKED","REFERENCE_ONLY"],
       "counts":counts,"domains":domains,"active_total":len(active),"movement_gaps":gaps[:20],
       "items":items[:160],
       "rule":"Movement Layer is a read-only cross-domain projection. Domain systems remain canonical owners; this layer may expose missing movement but never invent or mutate route/owner/next-step."
@@ -885,6 +888,18 @@ def build():
             o["funding_project_candidate"]=match
     patterns=pattern_projection(field,opportunities)
     movement=movement_projection(opportunities,field,waiting,data.get("commercial") or {})
+    critical_sources=["signals","commercial","temporal","activity"]
+    degraded=[{"source":k,"error":errors.get(k)} for k in critical_sources if errors.get(k)]
+    coverage=(field or {}).get("source_coverage") or {}
+    if coverage.get("total_sources") is not None and coverage.get("ok_count") is not None and coverage.get("ok_count") < coverage.get("total_sources"):
+        degraded.append({"source":"market_scanner_coverage","error":str(coverage.get("ok_count"))+"/"+str(coverage.get("total_sources"))+" sources healthy"})
+    movement["source_guard"]={
+      "status":"DEGRADED" if degraded else "HEALTHY",
+      "degraded":degraded,
+      "critical_sources":critical_sources,
+      "commercial_generated_at":(data.get("commercial") or {}).get("generated_at"),
+      "market_source_coverage":coverage
+    }
     gap_counts={}
     for o in opportunities:
         for c in ((o.get("company_profile_gap") or {}).get("checks") or []):
@@ -902,7 +917,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.11","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.12","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
@@ -928,7 +943,7 @@ class H(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p=self.path.split("?",1)[0]
-        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.11","read_only":True})
+        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.12","read_only":True})
         if p=="/api/v1/founder-radar": return self.sendj(build())
         return self.sendj({"error":"not_found"},404)
     def log_message(self,*a): pass
