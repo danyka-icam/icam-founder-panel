@@ -3361,18 +3361,13 @@
     STALE_DAYS: STALE_DAYS, CRITICAL_DAYS: CRITICAL_DAYS
   };
 
-  function inspectorStorageKey(grid){
-    var page=grid&&grid.closest("[data-page-panel]");
-    return "aiclavis:inspector:"+(page&&page.getAttribute("data-page-panel")||"page");
-  }
-  function setInspectorCollapsed(grid,collapsed,persist){
+  function setInspectorCollapsed(grid,collapsed){
     if(!grid)return;
     grid.classList.toggle("inspector-collapsed",!!collapsed);
-    if(persist!==false){try{localStorage.setItem(inspectorStorageKey(grid),collapsed?"closed":"open");}catch(_){}}
   }
   function openInspectorHost(host){
     var grid=host&&host.closest(".cc-page-grid");
-    if(grid)setInspectorCollapsed(grid,false,true);
+    if(grid)setInspectorCollapsed(grid,false);
   }
   function initInspectorCollapse(){
     document.querySelectorAll(".cc-page-grid").forEach(function(grid){
@@ -3385,10 +3380,9 @@
       var open=document.createElement("button");
       open.type="button"; open.className="cc-inspector-open"; open.textContent="Показать детали";
       grid.appendChild(close); grid.appendChild(open);
-      var saved=null; try{saved=localStorage.getItem(inspectorStorageKey(grid));}catch(_){}
-      setInspectorCollapsed(grid,saved!=="open",false);
-      close.addEventListener("click",function(){setInspectorCollapsed(grid,true,true);});
-      open.addEventListener("click",function(){setInspectorCollapsed(grid,false,true);});
+      setInspectorCollapsed(grid,true);
+      close.addEventListener("click",function(){setInspectorCollapsed(grid,true);});
+      open.addEventListener("click",function(){setInspectorCollapsed(grid,false);});
     });
     if(!document.body.getAttribute("data-inspector-esc")){
       document.body.setAttribute("data-inspector-esc","1");
