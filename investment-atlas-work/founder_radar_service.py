@@ -572,12 +572,15 @@ def field_projection(signals):
         axes=set(str(v) for v in (s.get("axis") or []))
         institutional_primary="institutional_policy" in axes
         standards_primary="standards_protocols" in axes
-        if (institutional_primary or standards_primary) and lane in {"BACKGROUND","WATCH"}:
+        procurement_primary="commercial_procurement" in axes
+        if (institutional_primary or standards_primary or procurement_primary) and lane in {"BACKGROUND","WATCH"}:
             lane="REVIEW"
         if lane=="REVIEW" and typ=="research-signal":
             destination={"kind":"research","label":"Исследовательский ATLAS","route":"Проверить, меняет ли сигнал модель, архитектуру или исследовательскую очередь ATLAS."}
         elif typ=="research-signal":
             destination={"kind":"research","label":"ICAM / Наука","route":"Сохранить как внешний научный сигнал; повышать только при подтверждённом влиянии на программу."}
+        elif procurement_primary:
+            destination={"kind":"commercial_signal","label":"Коммерция / внешняя дверь","route":"Проверить допуск, релевантность и экономику окна. Только после подтверждения передавать во вкладку «Коммерция»; отправку автоматически не создавать."}
         elif standards_primary:
             destination={"kind":"standards","label":"Стандарты и протоколы","route":"Проверить, меняет ли официальный релиз/спецификация требования к authorization, identity, agent interoperability или conformance. Действие автоматически не создавать."}
         elif institutional_primary:
@@ -612,6 +615,7 @@ def field_projection(signals):
         if len(evidence_variants)>=2 and lane!="BACKGROUND": bright_reasons.append("EVIDENCE_CHANGED_GTE_2")
         if institutional_primary and lane=="REVIEW": bright_reasons.append("INSTITUTIONAL_PRIMARY_CHANGE")
         if standards_primary and lane=="REVIEW": bright_reasons.append("STANDARD_PRIMARY_CHANGE")
+        if procurement_primary and lane=="REVIEW": bright_reasons.append("PROCUREMENT_WINDOW_CHANGE")
         if typ!="research-signal" and lane=="REVIEW": bright_reasons.append("NON_RESEARCH_REVIEW")
         radar_visible=bool(bright_reasons)
         out.append({
@@ -770,10 +774,10 @@ def radar_coverage_projection(field, opportunities):
       },
       {
         "key":"commercial_doors","label":"Внешние коммерческие двери",
-        "status":"PARTIAL" if any(x.get("signal_type")=="commercial-door" for x in ((field or {}).get("signals") or [])) else "GAP",
-        "basis":"Есть внешний signal-feed по активному коммерческому target-set; отправки и follow-up в Радар не попадают.",
-        "source_count":sum(1 for x in ((field or {}).get("signals") or []) if x.get("signal_type")=="commercial-door"),
-        "gap":"Пока покрыт активный target-set, но нет широкого tender / procurement / CAPEX-expansion / partnership scanner."
+        "status":"PARTIAL" if (any(x.get("signal_type")=="commercial-door" for x in ((field or {}).get("signals") or [])) or any("commercial_procurement" in (x.get("axis") or []) for x in sources)) else "GAP",
+        "basis":"Активный target-set + официальные procurement feeds: "+", ".join([x.get("entity") or x.get("id") for x in sources if "commercial_procurement" in (x.get("axis") or [])])+". Отправки и follow-up в Радар не попадают.",
+        "source_count":sum(1 for x in sources if "commercial_procurement" in (x.get("axis") or [])),
+        "gap":"Покрытие расширено, но пока нет отдельных широких procurement-контуров США, Бразилии и ЕС."
       }
     ]
     counts={k:sum(1 for x in lanes if x["status"]==k) for k in ["COVERED","PARTIAL","GAP"]}
@@ -1232,7 +1236,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.25","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.26","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,

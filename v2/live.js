@@ -1891,7 +1891,8 @@
         STRUCTURAL_MECHANISM:"подтверждён структурный механизм",
         MECHANISM_CONFIRMED:"механизм подтверждён",
         INSTITUTIONAL_PRIMARY_CHANGE:"изменился первичный институциональный источник",
-        STANDARD_PRIMARY_CHANGE:"изменился официальный стандарт / протокол"
+        STANDARD_PRIMARY_CHANGE:"изменился официальный стандарт / протокол",
+        PROCUREMENT_WINDOW_CHANGE:"открылось / изменилось procurement-окно"
       })[String(v||"")]||humanCode(v||"");
     }
     function itemHTML(x,kind,i){
@@ -2032,8 +2033,8 @@
 
     var patterns=arr("patterns"), opportunities=arr("opportunities"), waiting=arr("waiting"), upcoming=arr("upcoming"), predictions=arr("predictions");
     var field=radar.field||{}, fieldSignalsAll=Array.isArray(field.signals)?field.signals:[], fieldSignals=fieldSignalsAll.filter(function(x){return x.radar_visible!==false;}), fieldCounts=field.counts||{};
-    var commercialDoorSignals=fieldSignals.filter(function(x){return x.signal_type==="commercial-door";});
-    var coreFieldSignals=fieldSignals.filter(function(x){return x.signal_type!=="commercial-door";});
+    var commercialDoorSignals=fieldSignals.filter(function(x){return x.signal_type==="commercial-door"||(Array.isArray(x.axis)&&x.axis.indexOf("commercial_procurement")>=0);});
+    var coreFieldSignals=fieldSignals.filter(function(x){return commercialDoorSignals.indexOf(x)<0;});
     var fundingProfile=radar.funding_profile||{}, fundingProfileSummary=fundingProfile.profile_summary||{}, fundingGaps=Array.isArray(fundingProfile.top_unresolved_facts)?fundingProfile.top_unresolved_facts:[];
     var marketCounts=marketSignals&&marketSignals.counts||{}, scannerRun=scannerDiagnostics&&scannerDiagnostics.scanner&&scannerDiagnostics.scanner.run_summary||{};
     var returnedSignals=marketCounts.returned!=null?Number(marketCounts.returned):(marketSignals&&Array.isArray(marketSignals.signals)?marketSignals.signals.length:null);

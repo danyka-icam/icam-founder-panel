@@ -437,7 +437,55 @@
         "extensions",
         "MCP"
       ]
+    },
+    {
+      "id": "ungm-procurement",
+      "mode": "link_feed",
+      "entity": "UNGM Procurement",
+      "url": "https://www.ungm.org/Public/Notice",
+      "axis": [
+        "commercial_procurement",
+        "tender",
+        "consulting"
+      ],
+      "priority": 89,
+      "watch_terms": [
+        "artificial intelligence",
+        "digital transformation",
+        "consultancy",
+        "research",
+        "evaluation",
+        "audit",
+        "data analytics",
+        "decision support",
+        "governance",
+        "strategy"
+      ]
+    },
+    {
+      "id": "uk-find-tender",
+      "mode": "link_feed",
+      "entity": "UK Find a Tender",
+      "url": "https://www.find-tender.service.gov.uk/Search/Results",
+      "axis": [
+        "commercial_procurement",
+        "tender",
+        "consulting"
+      ],
+      "priority": 88,
+      "watch_terms": [
+        "artificial intelligence",
+        "digital transformation",
+        "consultancy",
+        "research",
+        "evaluation",
+        "audit",
+        "data analytics",
+        "data and analytics",
+        "governance",
+        "strategy"
+      ]
     }
   ],
-  "updated_at": "2026-10-07T21:55:00Z"
+  "updated_at": "2026-10-07T22:00:00Z"
 }
