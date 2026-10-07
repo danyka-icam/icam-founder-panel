@@ -485,7 +485,100 @@
         "governance",
         "strategy"
       ]
+    },
+    {
+      "id": "br-pncp",
+      "mode": "link_feed",
+      "entity": "PNCP Brasil",
+      "url": "https://pncp.gov.br/app/editais",
+      "axis": [
+        "commercial_procurement",
+        "procurement_brazil",
+        "tender"
+      ],
+      "priority": 93,
+      "watch_terms": [
+        "inteligência artificial",
+        "transformação digital",
+        "consultoria",
+        "auditoria",
+        "analytics",
+        "dados",
+        "governança",
+        "pesquisa",
+        "inovação",
+        "sistemas de informação",
+        "apoio à decisão"
+      ]
+    },
+    {
+      "id": "eu-ted",
+      "mode": "ted_api",
+      "entity": "TED European Procurement",
+      "url": "https://api.ted.europa.eu/v3/notices/search",
+      "axis": [
+        "commercial_procurement",
+        "procurement_eu",
+        "tender"
+      ],
+      "priority": 93,
+      "watch_terms": [
+        "artificial intelligence",
+        "digital transformation",
+        "consultancy",
+        "audit",
+        "analytics",
+        "governance",
+        "research",
+        "decision support",
+        "data platform",
+        "innovation"
+      ],
+      "lookback_days": 7,
+      "limit": 50,
+      "emit_on_first": true,
+      "query_terms": [
+        "artificial intelligence",
+        "AI governance",
+        "AI Observatory",
+        "digital twin",
+        "decision support",
+        "decision intelligence"
+      ],
+      "first_emit_limit": 10,
+      "title_terms": [
+        "AI",
+        "artificial intelligence",
+        "AI Observatory",
+        "digital twin",
+        "decision support",
+        "decision intelligence"
+      ]
+    },
+    {
+      "id": "us-sam-opportunities",
+      "mode": "page_watch",
+      "entity": "SAM.gov Contract Opportunities",
+      "url": "https://sam.gov/opportunities",
+      "axis": [
+        "commercial_procurement",
+        "procurement_us",
+        "tender"
+      ],
+      "priority": 93,
+      "watch_terms": [
+        "artificial intelligence",
+        "digital transformation",
+        "consulting",
+        "audit",
+        "analytics",
+        "governance",
+        "research",
+        "decision support",
+        "data platform",
+        "innovation"
+      ]
     }
   ],
-  "updated_at": "2026-10-07T22:00:00Z"
+  "updated_at": "2026-10-07T22:10:00Z"
 }

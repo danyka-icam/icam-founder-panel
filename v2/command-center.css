@@ -1975,3 +1975,8 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .cc-inspector{padding-top:48px}
 .cc-inspector>.cc-inspector-close{position:absolute;right:10px;top:10px;display:grid;place-items:center;width:32px;height:32px;border-radius:9px;font-size:22px;line-height:1}
 .cc-page-grid.inspector-collapsed>.cc-inspector>.cc-inspector-close{display:none}
+.radar-subcoverage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:8px;padding-top:7px;border-top:1px solid var(--line-soft)}
+.radar-subcoverage>span{padding:6px 7px;border:1px solid var(--line-soft);border-left:3px solid #c39a5c;border-radius:7px;background:rgba(255,255,255,.01)}
+.radar-subcoverage>span.covered{border-left-color:#58b69d}.radar-subcoverage>span.gap{border-left-color:#dd735b}
+.radar-subcoverage b{display:block;font-size:9px;color:#dfe7e4}.radar-subcoverage small{display:block;margin-top:2px;font-size:7.8px;line-height:1.35;color:var(--muted-2)}
+@media(max-width:760px){.radar-subcoverage{grid-template-columns:1fr}}

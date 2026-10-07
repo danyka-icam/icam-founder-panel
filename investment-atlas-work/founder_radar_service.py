@@ -777,7 +777,13 @@ def radar_coverage_projection(field, opportunities):
         "status":"PARTIAL" if (any(x.get("signal_type")=="commercial-door" for x in ((field or {}).get("signals") or [])) or any("commercial_procurement" in (x.get("axis") or []) for x in sources)) else "GAP",
         "basis":"Активный target-set + официальные procurement feeds: "+", ".join([x.get("entity") or x.get("id") for x in sources if "commercial_procurement" in (x.get("axis") or [])])+". Отправки и follow-up в Радар не попадают.",
         "source_count":sum(1 for x in sources if "commercial_procurement" in (x.get("axis") or [])),
-        "gap":"Покрытие расширено, но пока нет отдельных широких procurement-контуров США, Бразилии и ЕС."
+        "gap":"ЕС уже на полноценном API; Бразилия и США пока частичные машинные контуры.",
+        "subcoverage":[
+          {"key":"eu","label":"ЕС / TED","status":"COVERED","note":"Открытый TED Search API, свежие notices диффом."},
+          {"key":"br","label":"Бразилия / PNCP","status":"PARTIAL","note":"Официальный PNCP подключён, но пока без устойчивого API-потока по релевантным открытым предложениям."},
+          {"key":"us","label":"США / SAM.gov","status":"PARTIAL","note":"Официальная Contract Opportunities страница подключена; полноценный Opportunities API требует персональный SAM API key."},
+          {"key":"global","label":"Глобально / UNGM + UK","status":"PARTIAL","note":"Широкие официальные страницы подключены как ранние внешние источники."}
+        ]
       }
     ]
     counts={k:sum(1 for x in lanes if x["status"]==k) for k in ["COVERED","PARTIAL","GAP"]}
@@ -1236,7 +1242,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.26","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.27","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,

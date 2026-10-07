@@ -2061,7 +2061,7 @@
       function covRu(s){return ({COVERED:"покрыто",PARTIAL:"частично",GAP:"слепая зона"})[s]||humanCode(s);}
       box("coverage").innerHTML=
         '<div class="radar-coverage-summary"><span><small>Покрыто</small><b>'+esc((coverage.counts||{}).COVERED||0)+'</b></span><span><small>Частично</small><b>'+esc((coverage.counts||{}).PARTIAL||0)+'</b></span><span><small>Слепые зоны</small><b>'+esc((coverage.counts||{}).GAP||0)+'</b></span></div>'+
-        '<div class="radar-coverage-grid">'+coverageLanes.map(function(x){return '<div class="radar-coverage-lane '+String(x.status||"GAP").toLowerCase()+'"><div><small>'+esc(covRu(x.status))+'</small><b>'+esc(x.label||"Контур")+'</b></div><span>'+esc(x.basis||"")+'</span>'+(x.gap?'<em>'+esc(x.gap)+'</em>':'')+'</div>';}).join('')+'</div>'+
+        '<div class="radar-coverage-grid">'+coverageLanes.map(function(x){return '<div class="radar-coverage-lane '+String(x.status||"GAP").toLowerCase()+'"><div><small>'+esc(covRu(x.status))+'</small><b>'+esc(x.label||"Контур")+'</b></div><span>'+esc(x.basis||"")+'</span>'+(x.gap?'<em>'+esc(x.gap)+'</em>':'')+(Array.isArray(x.subcoverage)&&x.subcoverage.length?'<div class="radar-subcoverage">'+x.subcoverage.map(function(y){return '<span class="'+String(y.status||"PARTIAL").toLowerCase()+'"><b>'+esc(y.label||"")+'</b><small>'+esc(covRu(y.status))+' · '+esc(y.note||"")+'</small></span>';}).join('')+'</div>':'')+'</div>';}).join('')+'</div>'+
         '<div class="radar-coverage-rule">'+esc(coverage.rule||"")+'</div>';
     }
 
