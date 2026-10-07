@@ -724,45 +724,10 @@ def movement_projection(opportunities, field, waiting, commercial):
         add("external_wait",x.get("title") or "Ожидание","WAITING_EXTERNAL",x.get("source_ref"),
             x.get("next_step_ru"),(x.get("destination") or {}).get("route"),x.get("date"),"NORMAL",
             {"context":x.get("context") or {}})
-    # Commercial truth stays owned by commercial dashboard.
-    c=commercial or {}
-    manual=c.get("manual_queue") or []
-    for x in manual:
-        add("commercial",x.get("company") or x.get("item_id") or "Коммерческая дверь","ACTION_DUE",
-            {"kind":"commercial_manual","id":x.get("item_id")},
-            x.get("action_label") or x.get("next") or x.get("reason"),x.get("route"),iso_date_from(x.get("deadline")),
-            "HIGH",{"product":x.get("product_name"),"why_now":x.get("why_now"),"kind":x.get("kind")})
-    live_ids=set()
-    for x in c.get("waiting_live") or []:
-        live_ids.add(str(x.get("case_id") or x.get("id") or ""))
-        due=iso_date_from(x.get("followup_due_at"))
-        state="WAITING_EXTERNAL"
-        priority="NORMAL"
-        if due:
-            try:
-                if datetime.strptime(due,"%Y-%m-%d").date() <= nowd: state="ACTION_DUE"; priority="HIGH"
-            except Exception: pass
-        add("commercial",x.get("company") or x.get("case_id") or "Коммерческая дверь",state,
-            {"kind":"commercial_case","id":x.get("case_id") or x.get("id")},
-            ("Повторный контакт по расписанию" if state=="ACTION_DUE" else "Ждём ответ рынка"),
-            x.get("channel") or x.get("send_mode"),due,priority,{"product":x.get("product_name"),"sent_at":x.get("sent_at")})
-    for p in c.get("products") or []:
-        for x in p.get("items") or []:
-            xid=str(x.get("id") or "")
-            if xid and xid in live_ids: continue
-            stage=str(x.get("stage") or x.get("status") or "").upper()
-            source_kind=str(x.get("_source_kind") or "")
-            if source_kind=="handoff_seed":
-                state="REFERENCE_ONLY"
-            elif stage in {"NO_GO","CLOSED","DROP"}: state="CLOSED"
-            elif stage in {"HOLD","DEFER","WATCH","WATCH_POST_AWARD"}: state="PARKED"
-            elif stage in {"WAITING","SUBMITTED","SENT"}: state="WAITING_EXTERNAL"
-            elif stage in {"REPLIED","CONVERSATION","PROPOSAL","PROPOSAL_SENT"}: state="IN_MOTION"
-            else: continue
-            add("commercial",x.get("company") or xid or "Коммерческая дверь",state,
-                {"kind":"commercial_case","id":xid},x.get("next"),x.get("route"),
-                iso_date_from(x.get("followup_due_at"),x.get("deadline")),"NORMAL",
-                {"product":p.get("name"),"stage":stage,"source_kind":x.get("_source_kind")})
+    # Operational commercial work is intentionally excluded from Radar.
+    # Manual sends, follow-ups, replies and commercial case stages belong only
+    # to the Commercial page. Radar keeps only external commercial signals that
+    # arrive through the field scanner (domain="commercial_signal").
     # De-duplicate identical source objects while keeping higher movement urgency.
     rank={"ACTION_DUE":0,"IN_MOTION":1,"ROUTE_IDENTIFIED":2,"QUALIFIED":3,"WAITING_EXTERNAL":4,"DETECTED":5,"PARKED":6,"REFERENCE_ONLY":7,"CLOSED":8}
     dedup={}
@@ -840,8 +805,7 @@ def movement_flow_projection(movement, opportunities, field, commercial):
     # response/submission/outcome, never inference.
     streams={
       "research_funding":{"label":"Исследования / финансирование","domains":{"research_funding"}},
-      "field":{"label":"Движение поля","domains":{"research_field","field","commercial_signal"}},
-      "commercial":{"label":"Коммерческие двери","domains":{"commercial"}}
+      "field":{"label":"Движение поля","domains":{"research_field","field","commercial_signal"}}
     }
     out={}
     for key,cfg in streams.items():
@@ -862,27 +826,8 @@ def movement_flow_projection(movement, opportunities, field, commercial):
                      "route_identified_not_in_motion":route_not_motion}
         }
 
-    # Commercial has richer canonical truth; replace the coarse external-result
-    # proxy with direct observed states from the commercial dashboard.
-    c=commercial or {}
-    products=c.get("products") or []
-    replied=submitted=proposal=paid=0
-    live_runtime=0
-    for p in products:
-        for x in p.get("items") or []:
-            if x.get("_source_kind")=="live_runtime": live_runtime+=1
-            st=str(x.get("stage") or x.get("status") or "").upper()
-            rs=str(x.get("reply_status") or "").upper()
-            ps=str(x.get("proposal_status") or "").upper()
-            if rs and rs!="AUTO_REPLY" or st in {"REPLIED","CONVERSATION"}: replied+=1
-            if st=="SUBMITTED" or str(x.get("status") or "").upper()=="SUBMITTED": submitted+=1
-            if st in {"PROPOSAL","PROPOSAL_SENT"} or ps: proposal+=1
-            if st=="PAID" or str(x.get("status") or "").upper()=="PAID": paid+=1
-    if "commercial" in out:
-        out["commercial"]["observed_outcomes"]={
-          "replies":replied,"submissions":submitted,"proposals":proposal,"paid":paid,
-          "live_runtime_records":live_runtime
-        }
+    # Operational commercial outcomes are intentionally not part of Radar.
+    # They remain canonical and visible only in the Commercial workspace.
 
     # Funding outcomes are explicit route decisions / external waits, not success.
     opps=opportunities or []
@@ -1048,7 +993,7 @@ def build():
     patterns=pattern_projection(field,opportunities)
     movement=movement_projection(opportunities,field,waiting,data.get("commercial") or {})
     movement_flow=movement_flow_projection(movement,opportunities,field,data.get("commercial") or {})
-    critical_sources=["signals","commercial","temporal","activity"]
+    critical_sources=["signals","temporal","activity"]
     degraded=[{"source":k,"error":errors.get(k)} for k in critical_sources if errors.get(k)]
     coverage=(field or {}).get("source_coverage") or {}
     limited=[]
@@ -1065,7 +1010,6 @@ def build():
       "degraded":degraded,
       "limited":limited,
       "critical_sources":critical_sources,
-      "commercial_generated_at":(data.get("commercial") or {}).get("generated_at"),
       "market_source_coverage":coverage
     }
     gap_counts={}
@@ -1085,7 +1029,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.17","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.18","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,

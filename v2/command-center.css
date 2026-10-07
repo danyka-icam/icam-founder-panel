@@ -1916,3 +1916,7 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
   .radar-urgent-row>em{grid-column:2;justify-self:start}
   .radar-signal-card p,.radar-card-route{margin-left:0}
 }
+
+/* Radar is external-signal-only: two movement streams */
+.radar-flow-panel .movement-flow-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:900px){.radar-flow-panel .movement-flow-grid{grid-template-columns:1fr}}

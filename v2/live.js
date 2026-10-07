@@ -1906,11 +1906,11 @@
       if(!items.length)return '<div class="cc-empty"><b>'+esc(empty)+'</b></div>';
       return '<div class="radar-card-list">'+items.map(function(x,i){return itemHTML(x,kind,i);}).join("")+'</div>';
     }
-    function showInspector(key){
+    function showInspector(key,openPanel){
       var host=page.querySelector("[data-radar-inspector]");
       var rec=inspectorItems[key];
       if(!host||!rec)return;
-      openInspectorHost(host);
+      if(openPanel!==false)openInspectorHost(host);
       var x=rec.item||{}, kind=rec.kind, cls=attentionClass(x,kind), imp=cls==="ACTION_NOW";
       var ctx=x.context||{}, ref=x.source_ref||{};
       var why=x.why||x.why_it_matters_ru||(x.enrichment&&x.enrichment.why_it_matters_ru)||"Источник не передал отдельное объяснение значимости.";
@@ -1971,7 +1971,7 @@
         details:[ctx.world,ctx.line,ctx.branch].filter(Boolean).join(" → ")
       };
       host.innerHTML=
-        '<div class="cc-insp-title">Сигнальный радар</div>'+
+        '<div class="cc-insp-title">Радар</div>'+
         '<div class="cc-insp-head"><span class="radar-insp-mark '+(imp?'important':cls==="REVIEW"?'review':'')+'">'+(imp?'!':cls==="REVIEW"?'↳':cls==="BACKGROUND"?'·':'•')+'</span><div><h3>'+esc(textRu(x.title||"Сигнал"))+'</h3><small>'+esc(attentionLabel(x,kind))+'</small></div></div>'+
         (summaryText?'<div class="cc-insp-sec"><h4>Что произошло</h4><p>'+esc(textRu(summaryText))+'</p></div>':'')+
         '<div class="cc-insp-sec"><h4>Почему это имеет значение</h4><p>'+esc(textRu(why))+'</p></div>'+
@@ -2043,7 +2043,7 @@
       box("movement-queue").innerHTML=q.length?'<div class="movement-queue-list">'+q.map(function(x,i){return '<div class="movement-queue-row"><span class="movement-queue-rank">'+(i+1)+'</span><div class="movement-queue-main"><small>'+esc(mqDomain(x.domain))+' · '+esc(mqState(x.state))+(x.date?' · '+esc(dateRu(x.date)):'')+'</small><b>'+esc(x.title||"Объект")+'</b><span>'+esc(x.required_move||"")+'</span></div><em>'+esc(x.priority==="HIGH"?"срочно":"следующий переход")+'</em></div>';}).join('')+'</div>':'<div class="movement-zero-loss">Очередь переходов пуста: обнаруженные объекты не зависли между стадиями.</div>';
     }
     if(box("movement-flow")){
-      var sf=["research_funding","field","commercial"];
+      var sf=["research_funding","field"];
       function streamName(k,v){return (v&&v.label)||({research_funding:"Исследования / финансирование",field:"Движение поля",commercial:"Коммерческие двери"})[k]||k;}
       function lossText(v){
         var l=(v&&v.leakage)||{}, a=[];
@@ -2178,11 +2178,11 @@
       }
     }
 
-    page.querySelectorAll("[data-radar-select]").forEach(function(btn){btn.addEventListener("click",function(){showInspector(btn.getAttribute("data-radar-select"));});});
+    page.querySelectorAll("[data-radar-select]").forEach(function(btn){btn.addEventListener("click",function(){showInspector(btn.getAttribute("data-radar-select"),true);});});
     var firstImportant=page.querySelector("[data-radar-select].important");
     var first=firstImportant||page.querySelector("[data-radar-select]");
-    if(first)showInspector(first.getAttribute("data-radar-select"));
-    pageBadge("signals","live","СИГНАЛЫ · LIVE");
+    if(first)showInspector(first.getAttribute("data-radar-select"),false);
+    pageBadge("signals","live","РАДАР · LIVE");
   }
 
   function renderScannerDiagnostics(diag) {
