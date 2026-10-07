@@ -576,6 +576,8 @@ def strategic_projection(opportunities,field):
     def put(k,x,why):
         if not x:return
         tier,tier_label,tier_reason=leverage_tier(x)
+        if k=="field":
+            tier,tier_label,tier_reason=("CONTEXT","наблюдать","Полезно для ориентации в поле; текущего хода для aiclavis не доказано.")
         lanes[k]["items"].append({
           "radar_id":x.get("radar_id"),"title":x.get("title"),"date":x.get("date") or x.get("published_at"),
           "radar_class":x.get("radar_class"),"why":why,"source":x.get("source"),
@@ -1475,7 +1477,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.37","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.38","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
