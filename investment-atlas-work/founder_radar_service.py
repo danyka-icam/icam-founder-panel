@@ -799,6 +799,94 @@ def movement_projection(opportunities, field, waiting, commercial):
       "rule":"Movement Layer is a read-only cross-domain projection. Domain systems remain canonical owners; this layer may expose missing movement but never invent or mutate route/owner/next-step."
     }
 
+def movement_flow_projection(movement, opportunities, field, commercial):
+    items=(movement or {}).get("items") or []
+    # This is a throughput/control projection, not a success score.
+    # "entered" means present in the live movement layer; "qualified" means
+    # enough evidence exists to merit a route; "handed_off" means an explicit
+    # route/action state exists; "external_result" requires an observed external
+    # response/submission/outcome, never inference.
+    streams={
+      "research_funding":{"label":"Исследования / финансирование","domains":{"research_funding"}},
+      "field":{"label":"Движение поля","domains":{"research_field","field","commercial_signal"}},
+      "commercial":{"label":"Коммерческие двери","domains":{"commercial"}}
+    }
+    out={}
+    for key,cfg in streams.items():
+        xs=[x for x in items if x.get("domain") in cfg["domains"] and x.get("state")!="REFERENCE_ONLY"]
+        entered=len(xs)
+        qualified=sum(1 for x in xs if x.get("state") in {"QUALIFIED","ROUTE_IDENTIFIED","IN_MOTION","WAITING_EXTERNAL","ACTION_DUE","CLOSED","PARKED"})
+        handed=sum(1 for x in xs if x.get("state") in {"ROUTE_IDENTIFIED","IN_MOTION","WAITING_EXTERNAL","ACTION_DUE","CLOSED"})
+        external=sum(1 for x in xs if x.get("state") in {"WAITING_EXTERNAL","CLOSED"})
+        action_due=sum(1 for x in xs if x.get("state")=="ACTION_DUE")
+        detected_only=sum(1 for x in xs if x.get("state")=="DETECTED")
+        qual_not_handed=sum(1 for x in xs if x.get("state")=="QUALIFIED")
+        route_not_motion=sum(1 for x in xs if x.get("state")=="ROUTE_IDENTIFIED")
+        out[key]={
+          "label":cfg["label"],"entered":entered,"qualified":qualified,"handed_off":handed,
+          "external_result_or_wait":external,"action_due":action_due,
+          "leakage":{"detected_not_qualified":detected_only,
+                     "qualified_not_handed_off":qual_not_handed,
+                     "route_identified_not_in_motion":route_not_motion}
+        }
+
+    # Commercial has richer canonical truth; replace the coarse external-result
+    # proxy with direct observed states from the commercial dashboard.
+    c=commercial or {}
+    products=c.get("products") or []
+    replied=submitted=proposal=paid=0
+    live_runtime=0
+    for p in products:
+        for x in p.get("items") or []:
+            if x.get("_source_kind")=="live_runtime": live_runtime+=1
+            st=str(x.get("stage") or x.get("status") or "").upper()
+            rs=str(x.get("reply_status") or "").upper()
+            ps=str(x.get("proposal_status") or "").upper()
+            if rs and rs!="AUTO_REPLY" or st in {"REPLIED","CONVERSATION"}: replied+=1
+            if st=="SUBMITTED" or str(x.get("status") or "").upper()=="SUBMITTED": submitted+=1
+            if st in {"PROPOSAL","PROPOSAL_SENT"} or ps: proposal+=1
+            if st=="PAID" or str(x.get("status") or "").upper()=="PAID": paid+=1
+    if "commercial" in out:
+        out["commercial"]["observed_outcomes"]={
+          "replies":replied,"submissions":submitted,"proposals":proposal,"paid":paid,
+          "live_runtime_records":live_runtime
+        }
+
+    # Funding outcomes are explicit route decisions / external waits, not success.
+    opps=opportunities or []
+    out["research_funding"]["route_decisions"]={
+      k:sum(1 for x in opps if str(x.get("route_decision") or "").upper()==k)
+      for k in ["APPLY","PARTNER","WATCH","DROP"]
+    }
+
+    # Field result is intentionally conservative: a routed research signal does
+    # not count as an external outcome just because it has a destination.
+    frows=((field or {}).get("signals") or [])
+    out["field"]["attention_mix"]={
+      k:sum(1 for x in frows if str(x.get("radar_class") or "").upper()==k)
+      for k in ["ACTION_NOW","REVIEW","WATCH","BACKGROUND"]
+    }
+
+    bottlenecks=[]
+    for k,v in out.items():
+        l=v.get("leakage") or {}
+        if l.get("qualified_not_handed_off",0):
+            bottlenecks.append({"stream":k,"kind":"QUALIFIED_NOT_HANDED_OFF","count":l["qualified_not_handed_off"],
+                                "message":"Квалифицировано, но ещё не передано в работу."})
+        if l.get("route_identified_not_in_motion",0):
+            bottlenecks.append({"stream":k,"kind":"ROUTE_NOT_IN_MOTION","count":l["route_identified_not_in_motion"],
+                                "message":"Направление определено, но фактическое движение не подтверждено."})
+        if l.get("detected_not_qualified",0):
+            bottlenecks.append({"stream":k,"kind":"DETECTED_NOT_QUALIFIED","count":l["detected_not_qualified"],
+                                "message":"Входы обнаружены, но ещё не квалифицированы."})
+    bottlenecks.sort(key=lambda x:-int(x.get("count") or 0))
+    return {
+      "contract":"aiclavis.movement-flow.v0.1",
+      "streams":out,
+      "bottlenecks":bottlenecks,
+      "rule":"No synthetic conversion score. Every stage is counted from explicit live movement or domain state; external outcomes require observed external state."
+    }
+
 def attention_projection(inbox,founder):
     out=[]
     formal=(founder or {}).get("today") or {}
@@ -888,6 +976,7 @@ def build():
             o["funding_project_candidate"]=match
     patterns=pattern_projection(field,opportunities)
     movement=movement_projection(opportunities,field,waiting,data.get("commercial") or {})
+    movement_flow=movement_flow_projection(movement,opportunities,field,data.get("commercial") or {})
     critical_sources=["signals","commercial","temporal","activity"]
     degraded=[{"source":k,"error":errors.get(k)} for k in critical_sources if errors.get(k)]
     coverage=(field or {}).get("source_coverage") or {}
@@ -925,7 +1014,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.13","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.14","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
@@ -933,6 +1022,7 @@ def build():
       "waiting":waiting,"upcoming":upcoming,"predictions":predictions,
       "patterns":patterns,
       "movement":movement,
+      "movement_flow":movement_flow,
       "field":field,
       "atlas_learning":[radar_semantics(x,"learning") for x in learning_projection(data.get("signal_lab") or {},data.get("twin") or {})],
       "investment":investment_projection(data.get("investment")),"reputation":reputation,
@@ -951,7 +1041,7 @@ class H(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p=self.path.split("?",1)[0]
-        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.13","read_only":True})
+        if p=="/health": return self.sendj({"ok":True,"service":"aiclavis-founder-radar","version":"0.14","read_only":True})
         if p=="/api/v1/founder-radar": return self.sendj(build())
         return self.sendj({"error":"not_found"},404)
     def log_message(self,*a): pass

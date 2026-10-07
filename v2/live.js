@@ -2034,6 +2034,24 @@
       '<div class="cc-kpi radar-kpi"><span class="cc-kpi-icon">•</span><span class="cc-kpi-body"><small>Наблюдать</small><strong>'+watchN+'</strong><em>ранние сигналы без основания бежать</em></span></div>'+
       '<div class="cc-kpi radar-kpi wait"><span class="cc-kpi-icon">○</span><span class="cc-kpi-body"><small>Ждём</small><strong>'+waiting.length+'</strong><em>внешние ответы и исходы</em></span></div>';
 
+    var movementFlow=radar.movement_flow||{}, movementStreams=movementFlow.streams||{}, movementBottlenecks=Array.isArray(movementFlow.bottlenecks)?movementFlow.bottlenecks:[];
+    if(box("movement-flow")){
+      var sf=["research_funding","field","commercial"];
+      function streamName(k,v){return (v&&v.label)||({research_funding:"Исследования / финансирование",field:"Движение поля",commercial:"Коммерческие двери"})[k]||k;}
+      function lossText(v){
+        var l=(v&&v.leakage)||{}, a=[];
+        if(l.detected_not_qualified)a.push("не квалифицировано: "+l.detected_not_qualified);
+        if(l.qualified_not_handed_off)a.push("не передано: "+l.qualified_not_handed_off);
+        if(l.route_identified_not_in_motion)a.push("маршрут без движения: "+l.route_identified_not_in_motion);
+        return a.length?a.join(" · "):"видимых потерь движения нет";
+      }
+      box("movement-flow").innerHTML=
+        '<div class="movement-flow-grid">'+sf.map(function(k){var v=movementStreams[k]||{};return '<section class="movement-flow-stream"><header><b>'+esc(streamName(k,v))+'</b><span>'+esc(lossText(v))+'</span></header><div class="movement-flow-funnel"><div><small>Вошло</small><b>'+esc(v.entered||0)+'</b></div><i>→</i><div><small>Квалифицировано</small><b>'+esc(v.qualified||0)+'</b></div><i>→</i><div><small>Передано</small><b>'+esc(v.handed_off||0)+'</b></div><i>→</i><div><small>Внешний результат / ожидание</small><b>'+esc(v.external_result_or_wait||0)+'</b></div></div>'+
+          (k==="commercial"&&v.observed_outcomes?'<div class="movement-outcomes"><span>ответы <b>'+esc(v.observed_outcomes.replies||0)+'</b></span><span>подачи <b>'+esc(v.observed_outcomes.submissions||0)+'</b></span><span>предложения <b>'+esc(v.observed_outcomes.proposals||0)+'</b></span><span>оплата <b>'+esc(v.observed_outcomes.paid||0)+'</b></span></div>':'')+
+          (k==="research_funding"&&v.route_decisions?'<div class="movement-outcomes"><span>APPLY <b>'+esc(v.route_decisions.APPLY||0)+'</b></span><span>PARTNER <b>'+esc(v.route_decisions.PARTNER||0)+'</b></span><span>WATCH <b>'+esc(v.route_decisions.WATCH||0)+'</b></span><span>DROP <b>'+esc(v.route_decisions.DROP||0)+'</b></span></div>':'')+
+          '</section>';}).join('')+'</div>'+
+        (movementBottlenecks.length?'<div class="movement-bottlenecks"><div class="movement-stream-head"><b>Где машина теряет движение</b><span>это очереди на улучшение процесса, а не рейтинг успеха</span></div>'+movementBottlenecks.slice(0,6).map(function(x){return '<div><b>'+esc(streamName(x.stream,movementStreams[x.stream]))+'</b><span>'+esc(x.message)+'</span><em>'+esc(x.count)+'</em></div>';}).join('')+'</div>':'<div class="movement-zero-loss">Явных потерь между стадиями сейчас не обнаружено.</div>');
+    }
     var movement=radar.movement||{}, movementItems=Array.isArray(movement.items)?movement.items:[], movementCounts=movement.counts||{}, movementGaps=Array.isArray(movement.movement_gaps)?movement.movement_gaps:[];
     if(box("movement")){
       function mvStateRu(s){return ({DETECTED:"обнаружено",QUALIFIED:"квалифицировано",ROUTE_IDENTIFIED:"направление определено",IN_MOTION:"в движении",WAITING_EXTERNAL:"ждём внешнее",ACTION_DUE:"пора действовать",CLOSED:"закрыто",PARKED:"отложено"})[s]||humanCode(s);}
