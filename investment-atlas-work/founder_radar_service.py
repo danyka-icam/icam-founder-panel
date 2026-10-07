@@ -525,7 +525,7 @@ def apply_lifecycle(opportunities,field,activity):
       }
     }
 
-def strategic_projection(opportunities,field,waiting,reputation):
+def strategic_projection(opportunities,field):
     lanes={
       "commercial":{"label":"Коммерческие двери","role":"выручка и рыночное доказательство","items":[]},
       "authority":{"label":"Авторитет и доступ","role":"репутация, публикации, конференции, фокус-группы и институциональный доступ","items":[]},
@@ -533,13 +533,31 @@ def strategic_projection(opportunities,field,waiting,reputation):
       "product":{"label":"Продукт и позиционирование","role":"изменения, которые реально требуют пересмотра ATLAS/aiclavis","items":[]},
       "field":{"label":"Поле","role":"важно знать, но прямо сейчас не требует движения","items":[]}
     }
+    def leverage_tier(x):
+        cls=str(x.get("radar_class") or "")
+        reasons=set(str(v) for v in (x.get("bright_reasons") or []))
+        route=str(x.get("route_decision") or "").upper()
+        ap=int(x.get("architecture_proximity") or 0)
+        ms=int(x.get("market_significance") or 0)
+        days=x.get("days_left")
+        if cls=="ACTION_NOW" or route in {"APPLY","PARTNER"}:
+            return ("STRONG","сильный вход","есть текущее окно действия или подтверждённый маршрут")
+        if ("PRIMARY_EVIDENCE" in reasons and ({"STRUCTURAL_MECHANISM","MECHANISM_CONFIRMED"} & reasons)):
+            return ("STRONG","сильный вход","первичный источник и подтверждённый структурный механизм")
+        if days is not None and isinstance(days,(int,float)) and 0 <= days <= 14:
+            return ("STRONG","сильный вход","близкий подтверждённый срок")
+        if cls=="REVIEW" or ap>=75 or ms>=60 or "PROCUREMENT_WINDOW_CHANGE" in reasons or "INSTITUTIONAL_PRIMARY_CHANGE" in reasons or "STANDARD_PRIMARY_CHANGE" in reasons:
+            return ("PROMISING","перспективный","есть основание для содержательного разбора, но не для немедленного действия")
+        return ("CONTEXT","фон контура","полезно держать в контексте; текущего хода не доказано")
     def put(k,x,why):
         if not x:return
+        tier,tier_label,tier_reason=leverage_tier(x)
         lanes[k]["items"].append({
           "radar_id":x.get("radar_id"),"title":x.get("title"),"date":x.get("date") or x.get("published_at"),
           "radar_class":x.get("radar_class"),"why":why,"source":x.get("source"),
           "kind":x.get("kind") or x.get("signal_type"),"destination":x.get("destination"),
-          "lifecycle":x.get("lifecycle"),"source_ref":x.get("source_ref")
+          "lifecycle":x.get("lifecycle"),"source_ref":x.get("source_ref"),
+          "leverage_tier":tier,"leverage_tier_label":tier_label,"leverage_tier_reason":tier_reason
         })
     for x in opportunities or []:
         blob=" ".join(str(v or "") for v in [x.get("title"),x.get("program_type"),x.get("kind")]).lower()
@@ -564,14 +582,14 @@ def strategic_projection(opportunities,field,waiting,reputation):
             put("product",x,"Внешнее изменение требует проверки продуктовой или архитектурной реакции.")
         else:
             put("field",x,"Внешний контекст без подтверждённого текущего действия.")
-    for x in reputation or []:
-        put("authority",x,"Публикационный или институциональный след, усиливающий доверие и доступ.")
+    tier_rank={"STRONG":0,"PROMISING":1,"CONTEXT":2}
     for k,v in lanes.items():
-        v["items"].sort(key=lambda x:({"ACTION_NOW":0,"REVIEW":1,"WATCH":2}.get(x.get("radar_class"),3),x.get("date") is None,x.get("date") or "9999"))
+        v["items"].sort(key=lambda x:(tier_rank.get(x.get("leverage_tier"),9),{"ACTION_NOW":0,"REVIEW":1,"WATCH":2}.get(x.get("radar_class"),3),x.get("date") is None,x.get("date") or "9999"))
         v["count"]=len(v["items"])
+        v["tier_counts"]={t:sum(1 for x in v["items"] if x.get("leverage_tier")==t) for t in ("STRONG","PROMISING","CONTEXT")}
     direct=sum(lanes[k]["count"] for k in ("commercial","authority","research","product"))
     return {
-      "contract":"aiclavis.radar-strategy.v0.1",
+      "contract":"aiclavis.radar-strategy.v0.2",
       "objective":"Вывести aiclavis / ATLAS на уровень сильной международной премиальной компании.",
       "principle":"Сигнал получает центральное место только если он двигает коммерцию, авторитет/доступ, исследования/капитал или продукт. Остальное остаётся в боковом контуре поля.",
       "direct_leverage_count":direct,
@@ -1350,7 +1368,7 @@ def build():
             o["funding_project_candidate"]=match
     patterns=pattern_projection(field,opportunities)
     radar_coverage=radar_coverage_projection(field,opportunities)
-    strategy=strategic_projection(opportunities,field,waiting,reputation)
+    strategy=strategic_projection(opportunities,field)
     movement=movement_projection(opportunities,field,waiting)
     movement_flow=movement_flow_projection(movement,opportunities,field)
     critical_sources=["signals","upcoming","commercial_signal_source","temporal","activity"]
@@ -1389,7 +1407,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.28","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.30","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,

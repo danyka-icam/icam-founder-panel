@@ -1993,6 +1993,7 @@
         '<div class="cc-insp-title">Радар</div>'+
         '<div class="cc-insp-head"><span class="radar-insp-mark '+(imp?'important':cls==="REVIEW"?'review':'')+'">'+(imp?'!':cls==="REVIEW"?'↳':cls==="BACKGROUND"?'·':'•')+'</span><div><h3>'+esc(textRu(x.title||"Сигнал"))+'</h3><small>'+esc(attentionLabel(x,kind))+'</small></div></div>'+
         (summaryText?'<div class="cc-insp-sec"><h4>Что произошло</h4><p>'+esc(textRu(summaryText))+'</p></div>':'')+
+        (x.strategic_lane?'<div class="cc-insp-sec radar-strategy-impact"><h4>Как усиливает aiclavis</h4><b>'+esc(x.strategic_lane_label||humanCode(x.strategic_lane))+'</b><p>'+esc(x.strategic_reason||x.strategic_role||"")+'</p>'+(x.leverage_tier_label?'<div class="radar-leverage-tier '+String(x.leverage_tier||"").toLowerCase()+'"><strong>'+esc(x.leverage_tier_label)+'</strong><span>'+esc(x.leverage_tier_reason||"")+'</span></div>':'')+(x.strategic_role?'<small>'+esc(x.strategic_role)+'</small>':'')+'</div>':'')+
         '<div class="cc-insp-sec"><h4>Почему это имеет значение</h4><p>'+esc(textRu(why))+'</p></div>'+
         ((destination.label||nextStep)?'<div class="cc-insp-sec radar-route-sec"><h4>Куда вести '+(kind==="patterns"?"паттерн":"сигнал")+'</h4>'+(destination.label?'<b>'+esc(destination.label)+'</b>':'')+(destination.route?'<p>'+esc(destination.route)+'</p>':'')+(nextStep?'<small>Следующий шаг: '+esc(nextStep)+'</small>':'')+'</div>':'')+
         (x.evidence_ceiling?'<div class="cc-insp-sec radar-ceiling"><h4>Потолок доказательств</h4><p>'+esc(x.evidence_ceiling)+'</p></div>':'')+
@@ -2064,21 +2065,19 @@
     if(retiredEl)retiredEl.textContent=lifecycle.retired_count==null?"—":lifecycle.retired_count;
     function originalForStrategy(x){
       var rid=String(x&&x.radar_id||"");
-      var all=[].concat(opportunities||[],fieldSignals||[],reputation||[],waiting||[]);
+      var all=[].concat(opportunities||[],fieldSignals||[]);
       for(var i=0;i<all.length;i++)if(String(all[i]&&all[i].radar_id||"")===rid)return all[i];
       return x||{};
     }
     function strategyLaneHTML(key,icon){
       var lane=strategyLanes[key]||{}, items=Array.isArray(lane.items)?lane.items:[];
-      var top=items.slice(0,4);
       return '<section class="radar-strategy-card '+esc(key)+'"><header><span class="radar-strategy-diamond">'+esc(icon)+'</span><div><small>'+esc(lane.role||"")+'</small><h3>'+esc(lane.label||key)+'</h3></div><b>'+esc(lane.count||0)+'</b></header>'+
-        (top.length?'<div class="radar-strategy-items">'+top.map(function(x,i){
+        (items.length?'<div class="radar-strategy-items">'+items.map(function(x,i){
           var orig=originalForStrategy(x), sk="strategy:"+key+":"+(x.radar_id||i);
-          inspectorItems[sk]={item:orig,kind:(key==="research"?"opportunities":"field")};
-          var att=x.radar_class==="ACTION_NOW"?"сейчас":(x.radar_class==="REVIEW"?"разобрать":"");
-          return '<button type="button" data-radar-select="'+esc(sk)+'"><i></i><div><b>'+esc(x.title||"Сигнал")+'</b><small>'+esc(x.why||"")+'</small></div>'+(att?'<em>'+esc(att)+'</em>':'')+'</button>';
-        }).join('')+'</div>':'<div class="radar-strategy-empty">Сейчас активных входов нет.</div>')+
-        (items.length>4?'<footer>ещё '+(items.length-4)+' в контуре</footer>':'')+'</section>';
+          inspectorItems[sk]={item:Object.assign({},orig,{strategic_lane:key,strategic_lane_label:lane.label||key,strategic_role:lane.role||"",strategic_reason:x.why||"",leverage_tier:x.leverage_tier,leverage_tier_label:x.leverage_tier_label,leverage_tier_reason:x.leverage_tier_reason}),kind:(key==="research"?"opportunities":"field")};
+          var tierLabel=x.leverage_tier_label||"";
+          return '<button type="button" data-radar-select="'+esc(sk)+'" class="tier-'+String(x.leverage_tier||"CONTEXT").toLowerCase()+'"><i></i><div><b>'+esc(x.title||"Сигнал")+'</b><small>'+esc(x.why||"")+'</small></div>'+(tierLabel?'<em>'+esc(tierLabel)+'</em>':'')+'</button>';
+        }).join('')+'</div>':'<div class="radar-strategy-empty">Сейчас активных входов нет.</div>')+'</section>';
     }
     if(box("strategy")){
       box("strategy").innerHTML=
@@ -2090,7 +2089,7 @@
     if(box("strategy-field")){
       var fl=(strategyLanes.field&&Array.isArray(strategyLanes.field.items))?strategyLanes.field.items:[];
       box("strategy-field").innerHTML=fl.length?'<div class="radar-field-strip">'+fl.slice(0,10).map(function(x,i){
-        var orig=originalForStrategy(x), sk="strategy:field:"+(x.radar_id||i); inspectorItems[sk]={item:orig,kind:"field"};
+        var orig=originalForStrategy(x), sk="strategy:field:"+(x.radar_id||i); inspectorItems[sk]={item:Object.assign({},orig,{strategic_lane:"field",strategic_lane_label:(strategyLanes.field||{}).label||"Поле",strategic_role:(strategyLanes.field||{}).role||"",strategic_reason:x.why||""}),kind:"field"};
         return '<button type="button" data-radar-select="'+esc(sk)+'"><span></span><div><b>'+esc(x.title||"Сигнал")+'</b><small>'+esc(x.why||"")+'</small></div></button>';
       }).join('')+'</div>':'<div class="movement-zero-loss">Фоновых сигналов сейчас нет.</div>';
     }
@@ -2271,8 +2270,7 @@
         showInspector(btn.getAttribute("data-radar-select"),true);
       });
     }
-    var firstImportant=page.querySelector("[data-radar-select].important");
-    var first=firstImportant||page.querySelector("[data-radar-select]");
+    var first=page.querySelector(".radar-strategy-card [data-radar-select], .radar-field-strip [data-radar-select]");
     if(first)showInspector(first.getAttribute("data-radar-select"),false);
     pageBadge("signals","live","РАДАР · LIVE");
   }

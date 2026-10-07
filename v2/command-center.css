@@ -2045,3 +2045,13 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .radar-underhood>summary b{font:400 15px var(--cc-serif);color:#b7c6c2}.radar-underhood>summary span{font-size:8.5px;color:var(--muted-2)}
 .radar-underhood[open]>summary{border-bottom:1px solid var(--line-soft)}
 .radar-underhood .radar-diagnostics-grid{margin:0;padding:10px;border-top:0}
+
+/* Strategic lanes show every active signal inside their own scroll area */
+.radar-strategy-items{max-height:390px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(110,145,137,.42) transparent}
+.radar-strategy-items::-webkit-scrollbar{width:7px}.radar-strategy-items::-webkit-scrollbar-track{background:transparent}.radar-strategy-items::-webkit-scrollbar-thumb{background:rgba(110,145,137,.35);border-radius:99px}
+.radar-strategy-card.commercial .radar-strategy-items{scrollbar-color:rgba(215,156,84,.55) transparent}
+.radar-strategy-impact{border-left:3px solid rgba(63,207,166,.42);padding-left:10px}.radar-strategy-impact>b{display:block;font:400 16px var(--cc-serif);color:#dfeae6}.radar-strategy-impact small{display:block;margin-top:4px;color:var(--muted-2)}
+.radar-strategy-items button.tier-strong{background:linear-gradient(90deg,rgba(227,165,72,.075),transparent 58%)}.radar-strategy-items button.tier-strong em{color:#e4bb7b;border-color:rgba(227,165,72,.34)}
+.radar-strategy-items button.tier-promising em{color:#9acdbf;border-color:rgba(88,182,157,.26)}.radar-strategy-items button.tier-context{opacity:.66}.radar-strategy-items button.tier-context em{color:#82938f;border-color:rgba(130,147,143,.18)}
+.radar-leverage-tier{margin-top:8px;padding:7px 8px;border:1px solid var(--line-soft);border-radius:8px}.radar-leverage-tier strong{display:block;font-size:10px}.radar-leverage-tier span{display:block;margin-top:2px;font-size:9px;line-height:1.4;color:var(--muted)}
+.radar-leverage-tier.strong{border-color:rgba(227,165,72,.28);background:rgba(227,165,72,.035)}.radar-leverage-tier.strong strong{color:#e4bb7b}.radar-leverage-tier.promising strong{color:#9acdbf}
