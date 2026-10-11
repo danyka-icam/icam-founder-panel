@@ -46,9 +46,6 @@
       });
   }
   function open(raw){
-    if(typeof window.__aiclavisOpenStu==="function"){
-      try{window.__aiclavisOpenStu(raw);return;}catch(_){}
-    }
     var d=ensure(), ctx=parse(raw);
     d._stuContext=ctx; d._stuHistory=[];
     var c=d.querySelector("[data-stu-context]");

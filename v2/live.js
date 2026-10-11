@@ -2072,22 +2072,18 @@
     }
     function strategyLaneHTML(key,icon){
       var lane=strategyLanes[key]||{}, items=Array.isArray(lane.items)?lane.items:[];
-      if(!items.length)return "";
-      return '<section class="radar-strategy-card '+esc(key)+'"><header><span class="radar-strategy-diamond">'+esc(icon)+'</span><div><small>'+esc(lane.role||"")+'</small><h3>'+esc(lane.label||key)+'</h3></div><b>'+esc(lane.count||0)+'</b></header>'+
-        '<div class="radar-strategy-items">'+items.map(function(x,i){
+      return '<section class="radar-strategy-card '+esc(key)+(items.length?'':' empty-lane')+'"><header><span class="radar-strategy-diamond">'+esc(icon)+'</span><div><small>'+esc(lane.role||"")+'</small><h3>'+esc(lane.label||key)+'</h3></div><b>'+esc(lane.count||0)+'</b></header>'+
+        (items.length?'<div class="radar-strategy-items">'+items.map(function(x,i){
           var orig=originalForStrategy(x), sk="strategy:"+key+":"+(x.radar_id||i);
           inspectorItems[sk]={item:Object.assign({},orig,{strategic_lane:key,strategic_lane_label:lane.label||key,strategic_role:lane.role||"",strategic_reason:x.why||"",leverage_tier:x.leverage_tier,leverage_tier_label:x.leverage_tier_label,leverage_tier_reason:x.leverage_tier_reason}),kind:(key==="research"?"opportunities":"field")};
           var tierLabel=x.leverage_tier_label||"";
           return '<button type="button" data-radar-select="'+esc(sk)+'" class="tier-'+String(x.leverage_tier||"CONTEXT").toLowerCase()+'"><i></i><div><b>'+esc(x.title||"Сигнал")+'</b><small>'+esc(x.why||"")+'</small></div>'+(tierLabel?'<em>'+esc(tierLabel)+'</em>':'')+'</button>';
-        }).join('')+'</div></section>';
+        }).join('')+'</div>':'<div class="radar-strategy-empty"><b>Сейчас новых входов нет</b><small>Контур продолжает наблюдение и вернёт карточки при новом подтверждённом сигнале.</small></div>')+'</section>';
     }
     if(box("strategy")){
-      var activeDefs=[["commercial","◆"],["authority","◇"],["research","◆"],["product","◇"]].filter(function(d){
-        var lane=strategyLanes[d[0]]||{};
-        return Array.isArray(lane.items)&&lane.items.length;
-      });
-      box("strategy").className="radar-strategy-grid active-count-"+activeDefs.length;
-      box("strategy").innerHTML=activeDefs.map(function(d){return strategyLaneHTML(d[0],d[1]);}).join("");
+      var defs=[["commercial","◆"],["authority","◇"],["research","◆"],["product","◇"]];
+      box("strategy").className="radar-strategy-grid active-count-4";
+      box("strategy").innerHTML=defs.map(function(d){return strategyLaneHTML(d[0],d[1]);}).join("");
     }
     if(box("strategy-field")){
       var fl=(strategyLanes.field&&Array.isArray(strategyLanes.field.items))?strategyLanes.field.items:[];
@@ -3441,6 +3437,16 @@
       close.addEventListener("click",function(){setInspectorCollapsed(grid,true);});
       open.addEventListener("click",function(){setInspectorCollapsed(grid,false);});
     });
+    if(!document.body.getAttribute("data-inspector-delegate")){
+      document.body.setAttribute("data-inspector-delegate","1");
+      document.addEventListener("click",function(e){
+        var t=e.target&&e.target.closest?e.target.closest("[data-direction-role],.direction-selectable,[data-radar-select],[data-time-id],.cc-time-dot,.cc-time-event,.cc-time-node,.temporal-event"):null;
+        if(!t)return;
+        var page=t.closest("[data-page-panel],.cc-page,.page");
+        var grid=page&&page.querySelector?page.querySelector(".cc-page-grid"):null;
+        if(grid&&grid.querySelector(".cc-inspector"))setInspectorCollapsed(grid,false);
+      },true);
+    }
     if(!document.body.getAttribute("data-inspector-esc")){
       document.body.setAttribute("data-inspector-esc","1");
       document.addEventListener("keydown",function(e){
