@@ -1064,7 +1064,7 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .cc-steward-ask{width:100%;margin:10px 0 2px;padding:10px 11px;border:1px solid rgba(89,213,187,.28);border-radius:10px;background:rgba(48,184,158,.055);text-align:left;color:inherit;cursor:pointer}
 .cc-steward-ask span{display:block;font-weight:700;font-size:11px;color:var(--cc-flow)}
 .cc-steward-ask small{display:block;margin-top:3px;font-size:9px;color:var(--muted)}
-.cc-steward-dialog{position:fixed;inset:0;z-index:120;display:none;align-items:stretch;justify-content:flex-end;background:rgba(3,8,10,.48);backdrop-filter:blur(3px)}
+.cc-steward-dialog{position:fixed;inset:0;z-index:2147483000;display:none;align-items:stretch;justify-content:flex-end;background:rgba(3,8,10,.48);backdrop-filter:blur(3px)}
 .cc-steward-dialog.open{display:flex}
 .cc-steward-shell{width:min(520px,100vw);height:100%;display:grid;grid-template-rows:auto auto 1fr auto auto;background:#0d1719;border-left:1px solid rgba(130,180,173,.18);box-shadow:-24px 0 70px rgba(0,0,0,.34)}
 .cc-steward-shell header{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 12px;border-bottom:1px solid var(--line)}
@@ -2055,3 +2055,12 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .radar-strategy-items button.tier-promising em{color:#9acdbf;border-color:rgba(88,182,157,.26)}.radar-strategy-items button.tier-context{opacity:.66}.radar-strategy-items button.tier-context em{color:#82938f;border-color:rgba(130,147,143,.18)}
 .radar-leverage-tier{margin-top:8px;padding:7px 8px;border:1px solid var(--line-soft);border-radius:8px}.radar-leverage-tier strong{display:block;font-size:10px}.radar-leverage-tier span{display:block;margin-top:2px;font-size:9px;line-height:1.4;color:var(--muted)}
 .radar-leverage-tier.strong{border-color:rgba(227,165,72,.28);background:rgba(227,165,72,.035)}.radar-leverage-tier.strong strong{color:#e4bb7b}.radar-leverage-tier.promising strong{color:#9acdbf}
+
+
+/* Commercial quick product counters */
+.com-product-quick-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:8px 10px;border-bottom:1px solid var(--line-soft);background:rgba(255,255,255,.012)}
+.com-product-quick-kpis>span{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 8px;border:1px solid rgba(255,255,255,.055);border-radius:8px;background:rgba(255,255,255,.015)}
+.com-product-quick-kpis small{font-size:8.5px;color:var(--muted-2)}
+.com-product-quick-kpis b{font:400 18px var(--cc-serif);color:#e4ece9}
+.com-product-quick-kpis .needs-manual{border-color:rgba(227,165,72,.30);background:rgba(227,165,72,.045)}
+.com-product-quick-kpis .needs-manual b{color:#e4bb7b}

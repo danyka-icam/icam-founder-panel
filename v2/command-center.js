@@ -3424,6 +3424,20 @@
     setTimeout(function(){var i=d.querySelector("[data-cc-steward-input]");if(i)i.focus();if(ctx.quick_question){var q=String(ctx.quick_question);ctx.quick_question="";d._stewardContext.quick_question="";askSteward(d,q);}},30);
   }
 
+  // Single capture-phase opener for Stu across every page and every dynamically rendered card.
+  window.__aiclavisOpenStu=openSteward;
+  if(!document.documentElement.getAttribute("data-stu-opener-bound")){
+    document.documentElement.setAttribute("data-stu-opener-bound","1");
+    document.addEventListener("click", function(e) {
+      var el=e.target && e.target.closest && e.target.closest("[data-cc-steward-context], [data-g='ask-navigator']");
+      if(!el)return;
+      var raw=el.getAttribute("data-cc-steward-context") || JSON.stringify({kind:"general",title:"Стю",page:(location.hash||"#command").slice(1)});
+      e.preventDefault();
+      e.stopPropagation();
+      openSteward(raw);
+    }, true);
+  }
+
   function stewardTextHtml(text){
     var raw=String(text||"");
     raw=raw.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,"$2");
@@ -3628,8 +3642,6 @@
         .catch(function(err){decisionConfirm.disabled=false;dscope3.classList.remove("is-processing");dscope3.querySelectorAll("[data-cc-decision-choice]").forEach(function(b){b.disabled=false;});dstate3.innerHTML="<span class='warn'>"+E(decisionErrorText(err))+"</span>";if(dlid3){dui[dlid3].processing=false;dui[dlid3].recorded=false;dui[dlid3].actionHtml=dstate3.innerHTML;}});
       return;
     }
-    var sa=e.target.closest("[data-cc-steward-context]");
-    if(sa){openSteward(sa.getAttribute("data-cc-steward-context"));return;}
     if(e.target.closest("[data-cc-steward-close]")){var sd=e.target.closest("[data-cc-steward-dialog]");if(sd)sd.classList.remove("open");return;}
     var f = e.target.closest("[data-cc-line-filter]");
     if (f) { ui.lineFilter = f.getAttribute("data-cc-line-filter"); renderAll(); return; }

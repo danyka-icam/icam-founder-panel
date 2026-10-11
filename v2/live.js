@@ -3171,6 +3171,20 @@
     var followup=data.followup_summary||{};
     var k=box("kpis");if(k){var cells=[["Отправить вручную",t.manual_send,"формы, порталы и каналы без безопасной автоотправки","↗","risk","decision"],["Найти контакт / решить маршрут",t.contact_route,"сильный кейс готов, но адрес или маршрут не подтверждён","⌕","violet","decision"],["Проверить прошлую отправку",t.verify_sent,"нельзя повторять касание до проверки","?","wait","decision"],["Сегодня отправлено",sentToday.length,"все подтверждённые отправки: автоматические и ручные","✓","","evidence"],["Ждём рынок",t.waiting,n(t.waiting_live_dated)+" с живой датой · "+n(t.waiting_imported_undated)+" импортированы без даты события","○","wait","projection"],["Живые датированные",t.live_dated,"записи с подтверждённой датой события","↩","","evidence"]];k.innerHTML=cells.map(function(c){var summary=c[0]+": "+n(c[1])+". "+c[2]+".";return '<div class="cc-kpi direction-selectable '+c[4]+'" data-direction-role="'+c[5]+'" data-direction-title="'+safe(c[0])+'" data-direction-summary="'+safe(summary)+'"><span class="cc-kpi-icon">'+c[3]+'</span><span class="cc-kpi-body"><small>'+safe(c[0])+'</small><strong>'+n(c[1])+'</strong><em>'+safe(c[2])+'</em></span></div>';}).join("");}
     var prod=box("products");if(prod)prod.innerHTML=products.map(function(p){var counts=p.stage_counts||{},items=(p.items||[]).slice().sort(function(a,b){var d=stagePriority(a.stage)-stagePriority(b.stage);return d||evidenceRank(a)-evidenceRank(b);});var chips=["RESEARCH","FOUNDER","WAITING","WATCH","HOLD","SUBMITTED","REPLIED","PROPOSAL","PAID"].filter(function(x){return n(counts[x])>0;}).map(function(x){return '<span class="com-stage-chip">'+safe(ruStage(x))+' <b>'+n(counts[x])+'</b></span>';}).join("");var rows=items.filter(function(x){return x.stage!=="CLOSED";}).slice(0,6).map(function(x){var nx=nextRu(x.next||x.signal_class||x.class_name||x.route||"");var summary=(x.company||x.id)+". Стадия: "+ruStage(x.stage)+". Следующий ход: "+(nx||"не передан")+".";return '<div class="com-item direction-selectable" data-direction-role="projection" data-direction-title="'+safe(x.company||x.id)+'" data-direction-summary="'+safe(summary)+'"><div class="com-item-top"><b>'+safe(x.company||x.id)+'</b><em>'+safe(ruStage(x.stage))+'</em></div><small>'+safe(nx)+'</small>'+itemDates(x)+provenanceHTML(x)+'</div>';}).join("");var tone=productClass(p)==="amber"?"tone-return":productClass(p)==="violet"?"tone-violet":"tone-flow";return '<article class="com-product direction-selectable '+safe(tone)+' '+safe(productClass(p))+'" data-direction-role="projection"><div class="com-product-head"><div><h2>'+safe(p.name)+'</h2><small>'+safe(productGoal(p))+'</small></div><span class="com-product-badge">'+n(p.active_items)+'</span></div><div class="com-stage-strip">'+chips+'</div><div class="com-product-list">'+(rows||'<div class="com-empty">Нет активных объектов.</div>')+'</div></article>';}).join("");
+    if(prod){
+      var productCards=prod.querySelectorAll(".com-product");
+      products.forEach(function(p,idx){
+        var card=productCards[idx];if(!card)return;
+        var allItems=Array.isArray(p.items)?p.items:[];
+        var ids={};allItems.forEach(function(x){if(x.id)ids[String(x.id)]=true;if(x.item_id)ids[String(x.item_id)]=true;});
+        var manualCount=manual.filter(function(x){
+          var xid=String(x.item_id||x.id||"");
+          return (xid&&ids[xid]) || (x.product_name&&p.name&&String(x.product_name)===String(p.name));
+        }).length;
+        var head=card.querySelector(".com-product-head");
+        if(head)head.insertAdjacentHTML("afterend",'<div class="com-product-quick-kpis"><span><small>Всего</small><b>'+n(allItems.length)+'</b></span><span class="'+(manualCount?"needs-manual":"")+'"><small>Нужно вручную</small><b>'+n(manualCount)+'</b></span></div>');
+      });
+    }
     function manualInfo(x){
       var kind=String(x.kind||"");
       if(kind==="VERIFY_SENT")return {label:"Проверить прошлую отправку",cls:"verify",tone:"tone-blue"};
