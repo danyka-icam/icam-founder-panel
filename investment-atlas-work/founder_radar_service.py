@@ -468,17 +468,20 @@ def lifecycle_policy(item,kind,resolved_refs=None):
             if d < today:
                 return {"state":"EXPIRED","active":False,"reason":"Срок окна истёк.","retention_days":0}
         except Exception: pass
-    observed=iso_date_from(item.get("latest_observed_at"),item.get("observed_at"),item.get("published_at"),item.get("created_at"))
+    axes=set(str(v) for v in (item.get("axis") or []))
+    if "commercial_procurement" in axes:
+        observed=iso_date_from(item.get("published_at"),item.get("created_at"),item.get("observed_at"),item.get("latest_observed_at"))
+    else:
+        observed=iso_date_from(item.get("latest_observed_at"),item.get("observed_at"),item.get("published_at"),item.get("created_at"))
     age=None
     if observed:
         try: age=(today-datetime.strptime(observed,"%Y-%m-%d").date()).days
         except Exception: pass
-    axes=set(str(v) for v in (item.get("axis") or []))
     stype=str(item.get("signal_type") or "")
     if kind=="opportunity":
         ttl=None if deadline else 21
     elif stype=="commercial-door" or "commercial_procurement" in axes:
-        ttl=14 if "commercial_procurement" in axes else 30
+        ttl=7 if "commercial_procurement" in axes else 30
     elif "institutional_policy" in axes or "standards_protocols" in axes:
         ttl=30
     elif stype=="research-signal":
@@ -515,7 +518,7 @@ def apply_lifecycle(opportunities,field,activity):
       "resolution_refs_seen":len(refs),
       "rules":{
         "deadline_windows":"до подтверждённого дедлайна/закрытия",
-        "procurement_without_deadline_days":14,
+        "procurement_without_deadline_days":7,
         "research_field_days":7,
         "institutional_and_standards_days":30,
         "commercial_door_days":30,
@@ -578,7 +581,7 @@ def strategic_projection(opportunities,field):
         if k=="field":
             tier,tier_label,tier_reason=("CONTEXT","наблюдать","Полезно для ориентации в поле; текущего хода для aiclavis не доказано.")
         lanes[k]["items"].append({
-          "radar_id":x.get("radar_id"),"title":x.get("title"),"date":x.get("date") or x.get("published_at"),
+          "radar_id":x.get("radar_id"),"title":x.get("title"),"date":iso_date_from(x.get("date"),x.get("published_at")),
           "radar_class":x.get("radar_class"),"why":why,"source":x.get("source"),
           "kind":x.get("kind") or x.get("signal_type"),"destination":x.get("destination"),
           "lifecycle":x.get("lifecycle"),"source_ref":x.get("source_ref"),
@@ -1398,7 +1401,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.39","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.40","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,

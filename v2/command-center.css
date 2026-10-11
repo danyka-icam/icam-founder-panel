@@ -2064,3 +2064,11 @@ button.cc-world-card{font:inherit;text-align:left;cursor:pointer;width:100%}
 .com-product-quick-kpis b{font:400 18px var(--cc-serif);color:#e4ece9}
 .com-product-quick-kpis .needs-manual{border-color:rgba(227,165,72,.30);background:rgba(227,165,72,.045)}
 .com-product-quick-kpis .needs-manual b{color:#e4bb7b}
+
+
+/* Radar strategy grid uses space only for live lanes */
+.radar-strategy-grid.active-count-1{grid-template-columns:1fr}
+.radar-strategy-grid.active-count-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.radar-strategy-grid.active-count-3{grid-template-columns:repeat(2,minmax(0,1fr))}
+.radar-strategy-grid.active-count-3>.radar-strategy-card:last-child{grid-column:1 / -1}
+@media(max-width:900px){.radar-strategy-grid.active-count-1,.radar-strategy-grid.active-count-2,.radar-strategy-grid.active-count-3{grid-template-columns:1fr}.radar-strategy-grid.active-count-3>.radar-strategy-card:last-child{grid-column:auto}}
