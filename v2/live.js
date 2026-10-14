@@ -2641,6 +2641,7 @@
     function show(el){
       var host=page.querySelector('[data-direction-inspector="'+pageKey+'"]');
       if(!host||!el)return;
+      openInspectorHost(host);
       page.querySelectorAll(".direction-selected").forEach(function(x){x.classList.remove("direction-selected");});
       el.classList.add("direction-selected");
       var role=roleFor(el), tone=toneFor(el);

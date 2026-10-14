@@ -3680,8 +3680,10 @@
     if (!t || !M) return;
     var v = t.getAttribute("data-cc-select"), i = v.indexOf(":");
     ui.selected = { kind: v.slice(0, i), key: v.slice(i + 1) };
-    renderAll();
     var page = t.closest(".page");
+    var grid = page && page.querySelector(".cc-page-grid");
+    if (grid) grid.classList.remove("inspector-collapsed");
+    renderAll();
     var insp = page && page.querySelector("[data-cc-inspector]");
     if (insp && window.matchMedia("(max-width:1280px)").matches) insp.scrollIntoView({ behavior: "smooth", block: "start" });
   });
