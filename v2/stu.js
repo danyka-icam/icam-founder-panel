@@ -45,7 +45,13 @@
         st.textContent="Стю временно недоступен";
       });
   }
+  function closeLegacy(){
+    document.querySelectorAll("[data-cc-steward-dialog].open").forEach(function(x){
+      if(!x.hasAttribute("data-stu-standalone"))x.classList.remove("open");
+    });
+  }
   function open(raw){
+    closeLegacy();
     var d=ensure(), ctx=parse(raw);
     d._stuContext=ctx; d._stuHistory=[];
     var c=d.querySelector("[data-stu-context]");
@@ -62,7 +68,7 @@
 
   document.addEventListener("click",function(e){
     var close=e.target&&e.target.closest&&e.target.closest("[data-stu-close]");
-    if(close){var d=close.closest("[data-stu-standalone]");if(d)d.classList.remove("open");return;}
+    if(close){var d=close.closest("[data-stu-standalone]");if(d)d.classList.remove("open");closeLegacy();return;}
     var el=e.target&&e.target.closest&&e.target.closest("[data-cc-steward-context], [data-g='ask-navigator']");
     if(!el)return;
     e.preventDefault(); e.stopPropagation();
