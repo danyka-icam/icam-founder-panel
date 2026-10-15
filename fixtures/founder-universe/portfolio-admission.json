@@ -1,0 +1,846 @@
+{
+ "schema_id": "atlas-portfolio-admission.v0.1",
+ "compiled_at": "2026-09-30T06:00:00Z",
+ "counts": {
+  "memory": 113,
+  "placed": 24,
+  "exact_owner_candidates": 11,
+  "review_required": 78,
+  "owner_conflicts": 1
+ },
+ "trusted_owner_map": {
+  "Signals": "Market Scanner",
+  "Foundation": "Документный хаб",
+  "BrazilPortal": "BrazilPortal",
+  "Atlas": "Atlas advisory",
+  "Research": "Health Security Alliance",
+  "H008": "Человек, представление и действие"
+ },
+ "owner_conflicts": {
+  "ATLAS Structural & Epistemic Core": [
+   "Atlas advisory",
+   "Проверка самого ATLAS"
+  ]
+ },
+ "exact_owner_candidates": [
+  {
+   "memory_id": "OPS-014",
+   "kind": "SERVICE",
+   "title": "Market Scanner",
+   "state": "ACTIVE",
+   "evidence_status": "EXACT_OWNER_MATCH",
+   "owning_branch": "Signals",
+   "proposed_line": "Market Scanner",
+   "basis": "owning_branch «Signals» есть в trusted_owner_map"
+  },
+  {
+   "memory_id": "OPS-020",
+   "kind": "ARTIFACT",
+   "title": "Документный хаб",
+   "state": "ACTIVE",
+   "evidence_status": "EXACT_OWNER_MATCH",
+   "owning_branch": "Foundation",
+   "proposed_line": "Документный хаб",
+   "basis": "owning_branch «Foundation» есть в trusted_owner_map"
+  },
+  {
+   "memory_id": "MEM-0301",
+   "kind": "NOTE",
+   "title": "Тезисы для встречи с инвестором",
+   "state": "ACTIVE",
+   "evidence_status": "EXACT_OWNER_MATCH",
+   "owning_branch": "BrazilPortal",
+   "proposed_line": "BrazilPortal",
+   "basis": "owning_branch «BrazilPortal» есть в trusted_owner_map"
+  },
+  {
+   "memory_id": "MEM-0302",
+   "kind": "DOCUMENT",
+   "title": "Финмодель Atlas",
+   "state": "ACTIVE",
+   "evidence_status": "EXACT_OWNER_MATCH",
+   "owning_branch": "Atlas",
+   "proposed_line": "Atlas advisory",
+   "basis": "owning_branch «Atlas» есть в trusted_owner_map"
+  },
+  {
+   "memory_id": "MEM-0303",
+   "kind": "TASK",
+   "title": "Доступ BrazilPortal для команды",
+   "state": "ACTIVE",
+   "evidence_status": "EXACT_OWNER_MATCH",
+   "owning_branch": "BrazilPortal",
+   "proposed_line": "BrazilPortal",
+   "basis": "owning_branch «BrazilPortal» есть в trusted_owner_map"
+  },
+  {
+   "memory_id": "MEM-0304",
+   "kind": "DOCUMENT",
+   "title": "MoU v2",
+   "state": "ACTIVE",
+   "evidence_status": "EXACT_OWNER_MATCH",
+   "owning_branch": "Research",
+   "proposed_line": "Health Security Alliance",
+   "basis": "owning_branch «Research» есть в trusted_owner_map"
+  },
+  {
+   "memory_id": "MEM-0305",
+   "kind": "DOCUMENT",
+   "title": "Readback протокол",
+   "state": "ACTIVE",
+   "evidence_status": "EXACT_OWNER_MATCH",
+   "owning_branch": "Foundation",
+   "proposed_line": "Финальная стабилизация Foundation",
+   "basis": "owning_branch «Foundation» есть в trusted_owner_map"
+  },
+  {
+   "memory_id": "MEM-0306",
+   "kind": "REPORT",
+   "title": "Scanner coverage report",
+   "state": "ACTIVE",
+   "evidence_status": "EXACT_OWNER_MATCH",
+   "owning_branch": "Signals",
+   "proposed_line": "Market Scanner",
+   "basis": "owning_branch «Signals» есть в trusted_owner_map"
+  },
+  {
+   "memory_id": "MEM-0307",
+   "kind": "DATASET",
+   "title": "Twin episode log",
+   "state": "ACTIVE",
+   "evidence_status": "EXACT_OWNER_MATCH",
+   "owning_branch": "Atlas",
+   "proposed_line": "atlas advisory",
+   "basis": "owning_branch «Atlas» есть в trusted_owner_map"
+  },
+  {
+   "memory_id": "MEM-0308",
+   "kind": "DOCUMENT",
+   "title": "CVC shortlist 2025",
+   "state": "ARCHIVED",
+   "evidence_status": "EXACT_OWNER_MATCH",
+   "owning_branch": "Research",
+   "proposed_line": "Корпоративный венчурный контур",
+   "basis": "owning_branch «Research» есть в trusted_owner_map"
+  },
+  {
+   "memory_id": "MEM-0309",
+   "kind": "DATASET",
+   "title": "Voice corpus v0",
+   "state": "HISTORICAL",
+   "evidence_status": "EXACT_OWNER_MATCH",
+   "owning_branch": "Research",
+   "proposed_line": "Construction voice research",
+   "basis": "owning_branch «Research» есть в trusted_owner_map"
+  }
+ ],
+ "review_required": [
+  {
+   "memory_id": "MEM-1000",
+   "kind": "NOTE",
+   "title": "Объект памяти №1000",
+   "state": "ARCHIVED",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1001",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1001",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1002",
+   "kind": "TASK",
+   "title": "Объект памяти №1002",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1003",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1003",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1004",
+   "kind": "IDEA",
+   "title": "Объект памяти №1004",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1005",
+   "kind": "NOTE",
+   "title": "Объект памяти №1005",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1006",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1006",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1007",
+   "kind": "TASK",
+   "title": "Объект памяти №1007",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1008",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1008",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1009",
+   "kind": "IDEA",
+   "title": "Объект памяти №1009",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1010",
+   "kind": "NOTE",
+   "title": "Объект памяти №1010",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1011",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1011",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1012",
+   "kind": "TASK",
+   "title": "Объект памяти №1012",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1013",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1013",
+   "state": "ARCHIVED",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1014",
+   "kind": "IDEA",
+   "title": "Объект памяти №1014",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1015",
+   "kind": "NOTE",
+   "title": "Объект памяти №1015",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1016",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1016",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1017",
+   "kind": "TASK",
+   "title": "Объект памяти №1017",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1018",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1018",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1019",
+   "kind": "IDEA",
+   "title": "Объект памяти №1019",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1020",
+   "kind": "NOTE",
+   "title": "Объект памяти №1020",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1021",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1021",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1022",
+   "kind": "TASK",
+   "title": "Объект памяти №1022",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1023",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1023",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1024",
+   "kind": "IDEA",
+   "title": "Объект памяти №1024",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1025",
+   "kind": "NOTE",
+   "title": "Объект памяти №1025",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1026",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1026",
+   "state": "ARCHIVED",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1027",
+   "kind": "TASK",
+   "title": "Объект памяти №1027",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1028",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1028",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1029",
+   "kind": "IDEA",
+   "title": "Объект памяти №1029",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1030",
+   "kind": "NOTE",
+   "title": "Объект памяти №1030",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1031",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1031",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1032",
+   "kind": "TASK",
+   "title": "Объект памяти №1032",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1033",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1033",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1034",
+   "kind": "IDEA",
+   "title": "Объект памяти №1034",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1035",
+   "kind": "NOTE",
+   "title": "Объект памяти №1035",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1036",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1036",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1037",
+   "kind": "TASK",
+   "title": "Объект памяти №1037",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1038",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1038",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1039",
+   "kind": "IDEA",
+   "title": "Объект памяти №1039",
+   "state": "ARCHIVED",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1040",
+   "kind": "NOTE",
+   "title": "Объект памяти №1040",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1041",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1041",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1042",
+   "kind": "TASK",
+   "title": "Объект памяти №1042",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1043",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1043",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1044",
+   "kind": "IDEA",
+   "title": "Объект памяти №1044",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1045",
+   "kind": "NOTE",
+   "title": "Объект памяти №1045",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1046",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1046",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1047",
+   "kind": "TASK",
+   "title": "Объект памяти №1047",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1048",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1048",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1049",
+   "kind": "IDEA",
+   "title": "Объект памяти №1049",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1050",
+   "kind": "NOTE",
+   "title": "Объект памяти №1050",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1051",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1051",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1052",
+   "kind": "TASK",
+   "title": "Объект памяти №1052",
+   "state": "ARCHIVED",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1053",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1053",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1054",
+   "kind": "IDEA",
+   "title": "Объект памяти №1054",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1055",
+   "kind": "NOTE",
+   "title": "Объект памяти №1055",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1056",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1056",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1057",
+   "kind": "TASK",
+   "title": "Объект памяти №1057",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1058",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1058",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1059",
+   "kind": "IDEA",
+   "title": "Объект памяти №1059",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1060",
+   "kind": "NOTE",
+   "title": "Объект памяти №1060",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1061",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1061",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1062",
+   "kind": "TASK",
+   "title": "Объект памяти №1062",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1063",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1063",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1064",
+   "kind": "IDEA",
+   "title": "Объект памяти №1064",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1065",
+   "kind": "NOTE",
+   "title": "Объект памяти №1065",
+   "state": "ARCHIVED",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1066",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1066",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1067",
+   "kind": "TASK",
+   "title": "Объект памяти №1067",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1068",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1068",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1069",
+   "kind": "IDEA",
+   "title": "Объект памяти №1069",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1070",
+   "kind": "NOTE",
+   "title": "Объект памяти №1070",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1071",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1071",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1072",
+   "kind": "TASK",
+   "title": "Объект памяти №1072",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1073",
+   "kind": "ARTIFACT",
+   "title": "Объект памяти №1073",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  },
+  {
+   "memory_id": "MEM-1074",
+   "kind": "IDEA",
+   "title": "Объект памяти №1074",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Foundation",
+   "reason": "owning_branch вне доверенной карты"
+  },
+  {
+   "memory_id": "MEM-1075",
+   "kind": "NOTE",
+   "title": "Объект памяти №1075",
+   "state": "ACTIVE",
+   "evidence_status": "UNVERIFIED",
+   "owning_branch": "Unknown",
+   "reason": "нет доказательств принадлежности"
+  },
+  {
+   "memory_id": "MEM-1076",
+   "kind": "DOCUMENT",
+   "title": "Объект памяти №1076",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": null,
+   "reason": "владелец не указан"
+  },
+  {
+   "memory_id": "MEM-1077",
+   "kind": "TASK",
+   "title": "Объект памяти №1077",
+   "state": "ACTIVE",
+   "evidence_status": "INSUFFICIENT",
+   "owning_branch": "Research",
+   "reason": "несколько возможных линий"
+  }
+ ],
+ "rules": [
+  "Кандидат не становится звездой без явного размещения",
+  "Сходство названий не является основанием принадлежности",
+  "Конфликт владельцев решается вручную"
+ ]
+}

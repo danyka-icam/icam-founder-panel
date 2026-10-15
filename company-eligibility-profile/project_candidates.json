@@ -1,0 +1,65 @@
+{
+  "schema": "aiclavis.funding-project-candidates.v0.1",
+  "rule": "PROPOSED project facts inform strategic fit but never satisfy formal eligibility until frozen and evidenced.",
+  "projects": [
+    {
+      "project_id": "FUND-RHAE-IA-ATLAS-M4",
+      "opportunity_match": "RHAE IA",
+      "status": "PROPOSED",
+      "working_title": "ATLAS — система ИИ для структурной поддержки решений и повышения производительности сложных промышленных систем",
+      "technology_theme": "Artificial intelligence / decision intelligence / state-aware multi-agent decision systems",
+      "nib_mission": {
+        "id": 4,
+        "label": "Transformação digital da indústria para ampliar a produtividade",
+        "status": "STRONG_CANDIDATE"
+      },
+      "fit_basis": [
+        "RHAE IA accepts AI used as a transversal tool to generate or improve innovative products and processes.",
+        "NIB Mission 4 explicitly targets digital transformation of industry for productivity.",
+        "Existing aiclavis/ATLAS artifacts demonstrate signal pipelines, agent orchestration, governance, monitoring, decision and state projection architecture."
+      ],
+      "formal_requirements_known": {
+        "max_cnpq_bursaries_brl": 300000,
+        "counterpart_min_pct_of_requested_bursaries": 20,
+        "minimum_set_scholarship": "one SET scholarship for master or doctor for at least 12 months",
+        "company_cnpq_directory_registration_required": true,
+        "coordinator_lattes_current_required": true,
+        "coordinator_formal_link_required": true
+      },
+      "unresolved": [
+        "freeze exact research/product scope",
+        "confirm coordinator and Lattes",
+        "confirm CNPq institutional directory registration",
+        "confirm administration in Brazil requirement with acceptable evidence",
+        "define measurable counterpart",
+        "freeze workplan and requested scholarships"
+      ]
+    },
+    {
+      "project_id": "FUND-FINEP-DIGITAL-ATLAS-11",
+      "opportunity_match": "Tecnologias Digitais",
+      "status": "PROPOSED",
+      "working_title": "ATLAS — платформа эксплуатации, оркестрации и контроля надёжности систем ИИ и агентных контуров",
+      "technology_theme": "Linha Temática 1.1 – Plataformas Nacionais para Operação e Escala de Sistemas de IA",
+      "fit_status": "STRONG_CANDIDATE",
+      "fit_basis": [
+        "Official line explicitly covers orchestration and management of multiple AI models and agents.",
+        "Official line explicitly covers monitoring performance, quality, security and reliability of AI applications, agents and models.",
+        "Existing aiclavis architecture contains adjacent implemented orchestration, authority, monitoring and projection mechanisms."
+      ],
+      "formal_requirements_known": {
+        "trl_range": "3-8",
+        "finep_request_min_brl": 5000000,
+        "mandatory_ict_simple": 1,
+        "micro_small_counterpart_min_pct": 5
+      },
+      "unresolved": [
+        "freeze project boundary distinct from existing product",
+        "assign defensible initial and target TRL",
+        "identify ICT partner",
+        "verify national-component preferences and other annex rules",
+        "build minimum R$5m project budget and counterpart plan"
+      ]
+    }
+  ]
+}
