@@ -3028,7 +3028,7 @@
       if (raw.clones_active!=null) bits.push("В текущем прогоне активно "+raw.clones_active+" клонов.");
       if (raw.outcome_due_at || raw.expected_outcome_at || raw.reveal_at) bits.push("Ожидаемая точка проверки или раскрытия: "+dateLabel(raw.outcome_due_at||raw.expected_outcome_at||raw.reveal_at)+".");
       if (raw.outcome || raw.expected_outcome) bits.push("Переданный исход/ожидание: "+human(raw.outcome||raw.expected_outcome)+".");
-      bits.push("Это запись из рабочего состояния DT; Стюард не должен подменять её похожими идеями о цифровых двойниках из памяти.");
+      bits.push("Это запись из рабочего состояния DT; Стю не должен подменять её похожими идеями о цифровых двойниках из памяти.");
       return bits.join(" ");
     }
     if (e.layer === "signals") {
