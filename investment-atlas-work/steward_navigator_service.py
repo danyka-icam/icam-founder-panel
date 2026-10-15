@@ -112,9 +112,37 @@ def founder_priority_context(ctx):
         return out
     movement=radar.get("movement") or {}
     flow=radar.get("movement_flow") or {}
+    strategy=radar.get("strategy") or {}
     due=[x for x in (movement.get("items") or []) if x.get("state")=="ACTION_DUE"]
     due=due[:20]
     queue=(flow.get("bottleneck_queue") or [])[:20]
+
+    strategic=[]
+    for lane_key in ("commercial","authority","research","product"):
+        lane=((strategy.get("lanes") or {}).get(lane_key) or {})
+        for x in (lane.get("items") or []):
+            if str(x.get("leverage_tier") or "") not in {"STRONG","PROMISING"}:
+                continue
+            strategic.append({
+              "lane":lane_key,"lane_label":lane.get("label"),"title":x.get("title"),
+              "date":x.get("date"),"radar_class":x.get("radar_class"),
+              "leverage_tier":x.get("leverage_tier"),"leverage_tier_label":x.get("leverage_tier_label"),
+              "leverage_tier_reason":x.get("leverage_tier_reason"),"why":x.get("why"),
+              "source_ref":x.get("source_ref")
+            })
+
+    commercial_manual=[]
+    try:
+        with open(COMMERCIAL_DASHBOARD,encoding="utf-8") as f:
+            commercial=json.load(f)
+        for x in (commercial.get("manual_queue") or [])[:40]:
+            commercial_manual.append({k:x.get(k) for k in (
+              "item_id","company","product_id","product_name","kind","reason","target_url",
+              "action_label","created_at","recipient_name","recipient_role","why_now","source_refs"
+            )})
+    except Exception:
+        commercial_manual=[]
+
     out["kind"]="founder_priority_brief"
     out["title"]="Что наиболее срочно делать сейчас"
     out["founder_priority_brief"]={
@@ -124,6 +152,8 @@ def founder_priority_context(ctx):
       "counts":movement.get("counts") or {},
       "action_due":[{k:x.get(k) for k in ("title","domain","state","date","priority","next_step","route","meta","source_ref")} for x in due],
       "bottleneck_queue":[{k:x.get(k) for k in ("title","domain","state","date","priority","required_move","next_step","route","bottleneck_kind","source_ref","execution")} for x in queue],
+      "founder_manual_actions":commercial_manual,
+      "strategic_leverage":strategic[:20],
       "execution_counts":flow.get("execution_counts") or {},
       "execution_queue":[{k:x.get(k) for k in ("title","domain","state","date","priority","next_step","route","execution","source_ref")} for x in (flow.get("execution_queue") or [])[:40]],
       "flow_bottlenecks":(flow.get("bottlenecks") or [])[:10],
@@ -135,37 +165,59 @@ def priority_answer(ctx):
     b=(ctx or {}).get("founder_priority_brief") or {}
     if not b.get("available"):
         return "Сейчас я не могу безопасно назвать приоритет: живая карта движения недоступна. Это не считаю тишиной — сначала нужно восстановить источник."
-    due=b.get("action_due") or []
+
     guard=(b.get("source_guard") or {}).get("status") or "UNKNOWN"
-    lines=[]
-    for i,x in enumerate(due[:7],1):
-        dom={"research_funding":"исследования/финансирование","research_field":"исследовательское поле","field":"поле","commercial":"коммерция","commercial_signal":"коммерческий сигнал"}.get(x.get("domain"),x.get("domain") or "контур")
-        tail=[]
-        if x.get("date"): tail.append("срок "+str(x.get("date")))
-        if x.get("next_step"): tail.append(str(x.get("next_step")))
-        elif x.get("route"): tail.append(str(x.get("route")))
-        lines.append(f"{i}. {x.get('title') or 'Объект'} — {dom}. "+(" · ".join(tail) if tail else "требует текущего хода."))
-    if not lines:
-        q=b.get("bottleneck_queue") or []
-        for i,x in enumerate(q[:5],1):
-            lines.append(f"{i}. {x.get('title') or 'Объект'} — {x.get('required_move') or 'нужен следующий переход'}.")
-    head="Самое срочное сейчас по живой карте движения:"
-    if not lines: head+=" активных действий с подтверждённой срочностью нет."
-    else: head+="\n"+"\n".join(lines)
+    execution=b.get("execution_queue") or []
+    founder_exec=[x for x in execution if ((x.get("execution") or {}).get("class")=="FOUNDER")]
+    system_items=[x for x in execution if ((x.get("execution") or {}).get("class")=="SYSTEM_REVIEW")]
+    auto_items=[x for x in execution if ((x.get("execution") or {}).get("class")=="AUTO")]
+    manual=b.get("founder_manual_actions") or []
+    strategic=b.get("strategic_leverage") or []
+
+    lines=["Что делать сейчас:"]
+    personal=[]
+    seen=set()
+    for x in manual:
+        key=("commercial",str(x.get("item_id") or x.get("company") or ""))
+        if key in seen: continue
+        seen.add(key)
+        title=str(x.get("company") or "Коммерческая задача")
+        product=str(x.get("product_name") or "")
+        action=str(x.get("action_label") or x.get("reason") or "выполнить ручной коммерческий шаг")
+        personal.append((title,product,action))
+    for x in founder_exec:
+        key=("movement",str(x.get("title") or ""))
+        if key in seen: continue
+        seen.add(key)
+        action=str(x.get("next_step") or x.get("route") or "требуется подтверждённый ручной шаг")
+        personal.append((str(x.get("title") or "Объект"),"",action))
+
+    if personal:
+        lines.append(f"Лично тебе — {len(personal)} подтверждённых ручных действий.")
+        for i,(title,product,action) in enumerate(personal[:7],1):
+            suffix=(" · "+product) if product else ""
+            lines.append(f"{i}. {title}{suffix} — {action}.")
+    else:
+        lines.append("Подтверждённых действий, которые прямо сейчас должен сделать Основатель, нет.")
+
+    if strategic:
+        lines.append("")
+        lines.append("Сильные внешние входы, которые сейчас двигают цель:")
+        for i,x in enumerate(strategic[:5],1):
+            tier=str(x.get("leverage_tier_label") or "вход")
+            reason=str(x.get("leverage_tier_reason") or x.get("why") or "")
+            lines.append(f"{i}. {x.get('title') or 'Сигнал'} — {tier}. {reason}")
+        lines.append("Это не автоматически твоя ручная работа: сначала система должна подтвердить маршрут там, где он ещё не подтверждён.")
+
     waits=(b.get("counts") or {}).get("WAITING_EXTERNAL",0)
-    head+=f"\n\nОтдельно: {waits} объектов сейчас у внешней стороны — я не поднимаю их как твою работу, пока не наступил follow-up или не пришёл ответ."
-    ec=b.get("execution_counts") or {}
-    founder_items=[x for x in (b.get("execution_queue") or []) if ((x.get("execution") or {}).get("class")=="FOUNDER")]
-    system_items=[x for x in (b.get("execution_queue") or []) if ((x.get("execution") or {}).get("class")=="SYSTEM_REVIEW")]
-    auto_items=[x for x in (b.get("execution_queue") or []) if ((x.get("execution") or {}).get("class")=="AUTO")]
-    head+=f"\n\nРазделение работы: лично тебе сейчас требуется {len(founder_items)} активных действий; системный разбор — {len(system_items)}; система может вести сама — {len(auto_items)}."
-    if founder_items:
-        head+="\nТвои действия: "+ "; ".join(str(x.get("title") or "объект") for x in founder_items[:7])+"."
+    lines.append("")
+    lines.append(f"Система отдельно ведёт {len(system_items)} объектов на разбор и {len(auto_items)} автоматических переходов; {waits} объектов находятся у внешней стороны. Я не превращаю их в твою очередь без нового события или наступившего срока.")
+
     if guard=="DEGRADED":
-        head+="\n\nВажно: покрытие источников деградировано, поэтому приоритет неполный."
+        lines.append("Важно: покрытие источников деградировано, поэтому обзор неполный.")
     elif guard=="LIMITED":
-        head+="\n\nПокрытие ограничено только известным внешним ограничением; критичные живые источники доступны."
-    return head
+        lines.append("Покрытие ограничено только известным внешним ограничением; критичные живые источники доступны.")
+    return "\n".join(lines)
 
 def question_intent(q):
     n=norm(q)
@@ -329,7 +381,7 @@ SYSTEM="""Ты Steward Navigator — рабочий навигатор Осно�
 Сначала идентифицируй выбранный объект/ветку, затем отвечай. Не смешивай соседние темы из-за общего слова.
 Используй только CONTEXT и EVIDENCE. Если точной связи нет, прямо скажи об этом.
 Тебя зовут Стю. В пользовательском общении называй себя только «Стю», не «Стюард», не «Steward Navigator» и не «Навигатор».
-Если CONTEXT.kind == "founder_priority_brief", это живая сводка Founder Panel. Приоритет: ACTION_DUE с ближайшим подтверждённым сроком → другие ACTION_DUE → bottleneck_queue. WAITING_EXTERNAL не превращай в задачу Основателя без наступившего follow-up. Обязательно учитывай source_guard: при DEGRADED скажи, что обзор неполный. Не придумывай приоритет вне переданной карты движения.
+Если CONTEXT.kind == "founder_priority_brief", это живая сводка Founder Panel. Сначала отделяй founder_manual_actions и execution.class=FOUNDER как личную очередь Основателя. strategic_leverage показывает сильные/перспективные внешние входы, но не превращай их в ручную задачу без подтверждённого маршрута. SYSTEM_REVIEW и AUTO — работа системы, а не Основателя. WAITING_EXTERNAL не превращай в задачу Основателя без наступившего follow-up. Обязательно учитывай source_guard: при DEGRADED скажи, что обзор неполный. Не придумывай приоритет вне переданной карты движения.
 Основной ответ: что это; к какой работе относится; что известно; чего ждём/какой следующий шаг, если подтверждено.
 Не выводи пути файлов, SHA-256, JSON и служебные поля без прямой просьбы о технических деталях.
 Технические доказательства интерфейс показывает отдельно.
