@@ -8,6 +8,7 @@ import json, os, re, hashlib
 
 PORT=int(os.environ.get("FOUNDER_RADAR_PORT","8843"))
 MARKET_SOURCE_MAP=Path(os.environ.get("FOUNDER_RADAR_MARKET_SOURCE_MAP","/srv/market-scanner/MARKET_SCANNER_SOURCE_MAP_v0.1.json"))
+OPPORTUNITY_STATE=Path(os.environ.get("FOUNDER_RADAR_OPPORTUNITY_STATE","/srv/opportunity-scanner/opportunity_scanner_state.json"))
 BASE=os.environ.get("FOUNDER_RADAR_BASE","http://127.0.0.1:8083")
 URLS={
  "inbox":BASE+"/founder-ui-preview/api/continuity/founder-inbox",
@@ -25,6 +26,20 @@ URLS={
 def now(): return datetime.now(timezone.utc).isoformat()
 def getj(name,timeout=6):
     with request.urlopen(URLS[name],timeout=timeout) as r: return json.load(r)
+def opportunity_state_projection():
+    raw=json.loads(OPPORTUNITY_STATE.read_text())
+    out=[]
+    for key,row in (raw.get("items") or {}).items():
+        if not row.get("is_open"):
+            continue
+        sig=dict(row.get("last_signal") or {})
+        if not sig:
+            continue
+        sig.setdefault("opportunity_key",key)
+        sig.setdefault("entity",row.get("source"))
+        sig["_state_current_open"]=True
+        out.append(sig)
+    return {"updated_at":raw.get("updated_at"),"current_open":len(out),"signals":out}
 def iso_date_from(*values):
     for v in values:
         if not v: continue
@@ -636,9 +651,10 @@ def strategic_projection(opportunities,field):
       "lanes":lanes
     }
 
-def opportunities_projection(signals,upcoming,company_profile=None):
+def opportunities_projection(signals,upcoming,company_profile=None,opportunity_state=None):
     out=[]
-    rows=(signals.get("signals",[]) if signals else []) or []
+    rows=list((signals.get("signals",[]) if signals else []) or [])
+    rows.extend((opportunity_state or {}).get("signals") or [])
 
     # Opportunity Scanner writes append-only state events. Collapse them to the
     # newest event per stable opportunity_key, then show only current open
@@ -1348,8 +1364,13 @@ def build():
                 if "научное присутствие" in str((x.get("context") or {}).get("line") or "").lower()]
 
     sig=data.get("signals") or {}
+    try:
+        opportunity_state=opportunity_state_projection()
+    except Exception as e:
+        opportunity_state={}
+        errors["opportunity_state"]=type(e).__name__+": "+str(e)[:120]
     field=field_projection(sig)
-    opportunities=opportunities_projection(sig,upcoming,data.get("company_profile") or {})
+    opportunities=opportunities_projection(sig,upcoming,data.get("company_profile") or {},opportunity_state)
     opportunities,field,lifecycle=apply_lifecycle(opportunities,field,data.get("activity") or {})
     fp=(data.get("funding_projects") or {}).get("projects") or []
     for o in opportunities:
@@ -1365,7 +1386,7 @@ def build():
     strategy=strategic_projection(opportunities,field)
     movement=movement_projection(opportunities,field,waiting)
     movement_flow=movement_flow_projection(movement,opportunities,field)
-    critical_sources=["signals","upcoming","temporal","activity"]
+    critical_sources=["signals","upcoming","temporal","activity","opportunity_state"]
     degraded=[{"source":k,"error":errors.get(k)} for k in critical_sources if errors.get(k)]
     source_coverage=(field or {}).get("source_coverage") or {}
     limited=[]
@@ -1401,7 +1422,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.40","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.41","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
@@ -1409,6 +1430,7 @@ def build():
       "lifecycle":lifecycle,
       "funding_profile":funding_profile,
       "waiting":waiting,"upcoming":upcoming,"predictions":predictions,
+      "opportunity_state":{"updated_at":opportunity_state.get("updated_at"),"current_open":opportunity_state.get("current_open",0),"source":str(OPPORTUNITY_STATE)},
       "patterns":patterns,
       "coverage":radar_coverage,
       "movement":movement,
