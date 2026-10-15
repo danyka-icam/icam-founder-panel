@@ -641,7 +641,11 @@ def strategic_projection(opportunities,field):
         v["items"].sort(key=lambda x:(tier_rank.get(x.get("leverage_tier"),9),{"ACTION_NOW":0,"REVIEW":1,"WATCH":2}.get(x.get("radar_class"),3),x.get("date") is None,x.get("date") or "9999"))
         v["count"]=len(v["items"])
         v["tier_counts"]={t:sum(1 for x in v["items"] if x.get("leverage_tier")==t) for t in ("STRONG","PROMISING","CONTEXT")}
-    direct=sum(lanes[k]["count"] for k in ("commercial","authority","research","product"))
+    direct=sum(
+        1 for k in ("commercial","authority","research","product")
+        for x in lanes[k]["items"]
+        if x.get("leverage_tier") in {"STRONG","PROMISING"}
+    )
     return {
       "contract":"aiclavis.radar-strategy.v0.2",
       "objective":"Вывести aiclavis / ATLAS на уровень сильной международной премиальной компании.",
@@ -1422,7 +1426,7 @@ def build():
       "top_unresolved_facts":[{"key":k,"blocked_opportunities":n} for k,n in sorted(gap_counts.items(),key=lambda kv:(-kv[1],kv[0]))],
       "rule":"Only VERIFIED profile facts may satisfy eligibility. UNKNOWN never passes."
     }
-    return {"schema":"aiclavis.founder-radar.v0.41","generated_at":now(),"read_only":True,
+    return {"schema":"aiclavis.founder-radar.v0.42","generated_at":now(),"read_only":True,
       "source_errors":errors,
       "attention":attention_projection(data.get("inbox") or {},data.get("founder") or {}),
       "opportunities":opportunities,
